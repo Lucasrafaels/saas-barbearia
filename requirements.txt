@@ -1,0 +1,20 @@
+# Framework principal
+Django>=5.0,<5.1
+
+# API REST
+djangorestframework>=3.15,<3.16
+djangorestframework-simplejwt>=5.3,<5.4
+
+# Multi-tenant: filtros de API, CORS para o frontend React
+django-filter>=24.2,<25.0
+django-cors-headers>=4.4,<5.0
+
+# Variáveis de ambiente (.env) e driver do PostgreSQL
+django-environ>=0.11,<0.12
+psycopg2-binary>=2.9,<3.0
+
+# Upload de imagem (logo da barbearia)
+Pillow>=10.4,<11.0
+
+# Servidor WSGI de produção
+gunicorn>=22.0,<23.0
