@@ -14,9 +14,9 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'id', 'email', 'nome', 'tipo_perfil', 'barbershop',
-            'is_active', 'criado_em',
+            'is_active', 'created_at',
         ]
-        read_only_fields = ['id', 'criado_em']
+        read_only_fields = ['id', 'created_at']
 
 
 class UserCreateSerializer(serializers.ModelSerializer):

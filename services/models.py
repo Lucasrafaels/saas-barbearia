@@ -3,7 +3,7 @@ Modelo de serviços oferecidos por cada barbearia (corte, barba, etc.).
 """
 from django.db import models
 
-from core.models import TimeStampedModel
+from config.models import TimeStampedModel
 
 
 class Service(TimeStampedModel):

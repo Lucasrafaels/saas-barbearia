@@ -12,9 +12,9 @@ class BarbershopSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'nome', 'endereco', 'telefone', 'email',
             'horario_abertura', 'horario_fechamento', 'logo', 'ativo',
-            'criado_em',
+            'created_at',
         ]
-        read_only_fields = ['id', 'criado_em']
+        read_only_fields = ['id', 'created_at']
 
 
 class BarberSerializer(serializers.ModelSerializer):
@@ -27,8 +27,8 @@ class BarberSerializer(serializers.ModelSerializer):
         model = Barber
         fields = [
             'id', 'user', 'nome', 'email', 'barbershop',
-            'especialidade', 'ativo', 'criado_em',
+            'especialidade', 'ativo', 'created_at',
         ]
         # `barbershop` é preenchido automaticamente pelo
         # TenantScopedQuerysetMixin, não pelo cliente da API.
-        read_only_fields = ['id', 'barbershop', 'criado_em']
+        read_only_fields = ['id', 'barbershop', 'created_at']

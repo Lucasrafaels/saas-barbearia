@@ -25,7 +25,7 @@ class UserAdmin(BaseUserAdmin):
         ('Permissões', {'fields': (
             'is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions',
         )}),
-        ('Datas importantes', {'fields': ('last_login', 'criado_em', 'atualizado_em')}),
+        ('Datas importantes', {'fields': ('last_login', 'created_at', 'updated_at')}),
     )
     add_fieldsets = (
         (None, {
@@ -33,4 +33,4 @@ class UserAdmin(BaseUserAdmin):
             'fields': ('email', 'nome', 'tipo_perfil', 'barbershop', 'password1', 'password2'),
         }),
     )
-    readonly_fields = ['criado_em', 'atualizado_em', 'last_login']
+    readonly_fields = ['created_at', 'updated_at', 'last_login']

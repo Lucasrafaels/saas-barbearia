@@ -50,7 +50,6 @@ THIRD_PARTY_APPS = [
 # Apps locais do projeto. "core" vem primeiro por não depender de mais
 # nenhum outro app local (apenas fornece classes utilitárias/abstratas).
 LOCAL_APPS = [
-    'core',
     'accounts',
     'barbershops',
     'services',
@@ -154,7 +153,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'core.pagination.DefaultPagination',
+    'DEFAULT_PAGINATION_CLASS': 'config.pagination.DefaultPagination',
     'PAGE_SIZE': 20,
     # Habilitado globalmente; cada ViewSet decide se usa filterset_fields.
     'DEFAULT_FILTER_BACKENDS': [

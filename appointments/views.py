@@ -3,7 +3,7 @@ Views do app appointments.
 """
 from rest_framework import permissions, viewsets
 
-from core.mixins import TenantScopedQuerysetMixin
+from config.mixins import TenantScopedQuerysetMixin
 from .models import Appointment
 from .serializers import AppointmentSerializer
 

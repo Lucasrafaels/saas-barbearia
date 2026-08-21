@@ -3,8 +3,8 @@ Views do app services.
 """
 from rest_framework import permissions, viewsets
 
-from core.mixins import TenantScopedQuerysetMixin
-from core.permissions import IsAdminRole
+from config.mixins import TenantScopedQuerysetMixin
+from config.permissions import IsAdminRole
 from .models import Service
 from .serializers import ServiceSerializer
 
@@ -24,3 +24,9 @@ class ServiceViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             return [permissions.IsAuthenticated(), IsAdminRole()]
         return [permissions.IsAuthenticated()]
+
+    def perform_create(self, serializer):
+        # `barbershop` é read_only no serializer; precisa ser preenchido
+        # aqui a partir do usuário autenticado (mesmo padrão do
+        # AppointmentViewSet.perform_create).
+        serializer.save(barbershop_id=self.request.user.barbershop_id)

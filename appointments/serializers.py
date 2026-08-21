@@ -18,9 +18,9 @@ class AppointmentSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'barbershop', 'cliente', 'cliente_nome', 'barbeiro',
             'barbeiro_nome', 'servico', 'servico_nome', 'data_hora',
-            'status', 'observacoes', 'criado_em',
+            'status', 'observacoes', 'created_at',
         ]
-        read_only_fields = ['id', 'barbershop', 'criado_em']
+        read_only_fields = ['id', 'barbershop', 'created_at']
 
     def validate(self, attrs):
         # Reaproveita, na camada de API, a mesma regra de consistência

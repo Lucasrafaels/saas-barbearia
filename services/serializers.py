@@ -11,8 +11,8 @@ class ServiceSerializer(serializers.ModelSerializer):
         model = Service
         fields = [
             'id', 'barbershop', 'nome', 'descricao', 'preco',
-            'duracao', 'ativo', 'criado_em',
+            'duracao', 'ativo', 'created_at',
         ]
         # `barbershop` é preenchido automaticamente pelo
         # TenantScopedQuerysetMixin, não pelo cliente da API.
-        read_only_fields = ['id', 'barbershop', 'criado_em']
+        read_only_fields = ['id', 'barbershop', 'created_at']
