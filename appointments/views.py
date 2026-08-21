@@ -36,3 +36,11 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
         if self.request.user.is_cliente:
             extra['cliente'] = self.request.user
         serializer.save(**extra)
+
+    def perform_update(self, serializer):
+        if self.request.user.is_cliente:
+            # Defesa em profundidade: a validação rejeita a troca e este
+            # reforço garante que o campo nunca seja persistido diferente.
+            serializer.save(cliente=self.request.user)
+            return
+        serializer.save()

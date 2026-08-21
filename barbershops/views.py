@@ -32,6 +32,8 @@ class BarbershopViewSet(viewsets.ModelViewSet):
         # plataforma (staff do Django admin).
         if self.action == 'destroy':
             return [permissions.IsAuthenticated(), permissions.IsAdminUser()]
+        if self.action in ['update', 'partial_update']:
+            return [permissions.IsAuthenticated(), IsAdminRole()]
         return [permissions.IsAuthenticated()]
 
     def perform_create(self, serializer):

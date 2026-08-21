@@ -4,7 +4,7 @@ Modelo de usuário customizado do sistema.
 Cada usuário tem um tipo de perfil (admin/barbeiro/cliente) e pertence a
 uma barbearia — esse campo `barbershop` é a base de toda a arquitetura
 multi-tenant do projeto: a maioria das queries do sistema é filtrada por
-`barbershop_id` (ver config.mixins.TenantScopedQuerysetMixin).
+`barbershop_id` (ver core.mixins.TenantScopedQuerysetMixin).
 """
 from django.contrib.auth.models import AbstractUser
 from django.db import models

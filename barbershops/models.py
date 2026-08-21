@@ -3,6 +3,7 @@ Modelos relacionados à barbearia em si (o "tenant" do sistema) e aos
 barbeiros vinculados a ela.
 """
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 
 from config.models import TimeStampedModel
@@ -66,3 +67,23 @@ class Barber(TimeStampedModel):
 
     def __str__(self):
         return f'{self.user.nome} - {self.barbershop.nome}'
+
+    def clean(self):
+        """Mantém o perfil profissional no mesmo tenant do seu usuário."""
+        super().clean()
+        if not self.user_id:
+            return
+
+        # Import local evita dependência circular durante o carregamento dos
+        # modelos (accounts referencia Barbershop por string).
+        from accounts.models import User
+
+        errors = {}
+        if self.user.tipo_perfil != User.TipoPerfil.BARBEIRO:
+            errors['user'] = 'O usuário vinculado deve ter perfil de barbeiro.'
+        if self.barbershop_id and self.user.barbershop_id != self.barbershop_id:
+            errors['barbershop'] = (
+                'A barbearia do barbeiro deve ser a mesma do usuário vinculado.'
+            )
+        if errors:
+            raise ValidationError(errors)

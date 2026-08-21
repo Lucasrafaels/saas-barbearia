@@ -36,6 +36,21 @@ class UserCreateSerializer(serializers.ModelSerializer):
         return user
 
 
+class PublicRegistrationSerializer(serializers.ModelSerializer):
+    """Cadastro público inicial, sempre criado como cliente sem tenant."""
+
+    password = serializers.CharField(write_only=True, min_length=8)
+
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'nome', 'password']
+        read_only_fields = ['id']
+
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        return User.objects.create_user(password=password, **validated_data)
+
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """
     Customiza o token JWT para embutir dados básicos do usuário

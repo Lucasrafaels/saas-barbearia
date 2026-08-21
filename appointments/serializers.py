@@ -1,6 +1,7 @@
 """
 Serializers do app appointments.
 """
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 from .models import Appointment
@@ -26,10 +27,23 @@ class AppointmentSerializer(serializers.ModelSerializer):
         # Reaproveita, na camada de API, a mesma regra de consistência
         # do Appointment.clean(): barbeiro e serviço precisam pertencer
         # à barbearia do usuário autenticado.
-        barbeiro = attrs.get('barbeiro') or getattr(self.instance, 'barbeiro', None)
-        servico = attrs.get('servico') or getattr(self.instance, 'servico', None)
+        appointment = Appointment()
+        if self.instance:
+            # Não altere a instância persistida durante a validação de PATCH.
+            # A cópia também preserva o pk para a checagem de conflitos
+            # ignorar o próprio agendamento.
+            for field in Appointment._meta.fields:
+                setattr(appointment, field.attname, getattr(self.instance, field.attname))
+        for field, value in attrs.items():
+            setattr(appointment, field, value)
+
+        barbeiro = appointment.barbeiro if appointment.barbeiro_id else None
+        servico = appointment.servico if appointment.servico_id else None
         request = self.context.get('request')
-        barbershop_id = request.user.barbershop_id if request else None
+        barbershop_id = appointment.barbershop_id
+        if not barbershop_id and request:
+            barbershop_id = request.user.barbershop_id
+            appointment.barbershop_id = barbershop_id
 
         if barbeiro and barbershop_id and barbeiro.barbershop_id != barbershop_id:
             raise serializers.ValidationError(
@@ -39,4 +53,21 @@ class AppointmentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'servico': 'Este serviço não pertence à sua barbearia.'}
             )
+
+        if (
+            self.instance
+            and request
+            and request.user.is_cliente
+            and 'cliente' in attrs
+            and attrs['cliente'].pk != self.instance.cliente_id
+        ):
+            raise serializers.ValidationError(
+                {'cliente': 'Clientes não podem transferir o próprio agendamento.'}
+            )
+
+        try:
+            appointment.full_clean()
+        except DjangoValidationError as error:
+            detail = getattr(error, 'message_dict', None) or {'non_field_errors': error.messages}
+            raise serializers.ValidationError(detail) from error
         return attrs

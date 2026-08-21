@@ -11,12 +11,13 @@ from django.contrib import admin
 from django.urls import include, path
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from accounts.views import CustomTokenObtainPairView, LogoutView
+from accounts.views import CustomTokenObtainPairView, LogoutView, RegistrationView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
     # Autenticação JWT
+    path('api/v1/auth/register/', RegistrationView.as_view(), name='auth-register'),
     path('api/v1/auth/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/v1/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/v1/auth/logout/', LogoutView.as_view(), name='token_logout'),

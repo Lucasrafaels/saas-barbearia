@@ -1,6 +1,7 @@
 """
 Serializers do app barbershops.
 """
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 from .models import Barber, Barbershop
@@ -32,3 +33,18 @@ class BarberSerializer(serializers.ModelSerializer):
         # `barbershop` é preenchido automaticamente pelo
         # TenantScopedQuerysetMixin, não pelo cliente da API.
         read_only_fields = ['id', 'barbershop', 'created_at']
+
+    def validate(self, attrs):
+        """Executa no fluxo REST a mesma consistência definida no model."""
+        request = self.context.get('request')
+        barber = self.instance or Barber()
+        barber.user = attrs.get('user', getattr(barber, 'user', None))
+
+        if not barber.barbershop_id and request:
+            barber.barbershop_id = request.user.barbershop_id
+
+        try:
+            barber.clean()
+        except DjangoValidationError as error:
+            raise serializers.ValidationError(error.message_dict) from error
+        return attrs

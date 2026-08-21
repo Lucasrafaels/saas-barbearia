@@ -10,10 +10,11 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from config.permissions import IsAdminRole
+from config.permissions import IsAdminRole, IsSelfOrAdmin
 from .models import User
 from .serializers import (
     CustomTokenObtainPairSerializer,
+    PublicRegistrationSerializer,
     UserCreateSerializer,
     UserSerializer,
 )
@@ -48,6 +49,18 @@ class LogoutView(APIView):
         return Response(status=status.HTTP_205_RESET_CONTENT)
 
 
+class RegistrationView(APIView):
+    """POST /api/v1/auth/register/ — cria uma conta inicial de cliente."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = PublicRegistrationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+
+
 class UserViewSet(viewsets.ModelViewSet):
     """
     Gestão de usuários da barbearia. Listar/remover é restrito a
@@ -65,6 +78,8 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['list', 'destroy']:
             return [permissions.IsAuthenticated(), IsAdminRole()]
+        if self.action in ['retrieve', 'update', 'partial_update']:
+            return [permissions.IsAuthenticated(), IsSelfOrAdmin()]
         return [permissions.IsAuthenticated()]
 
     def get_queryset(self):
