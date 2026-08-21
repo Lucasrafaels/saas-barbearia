@@ -65,6 +65,12 @@ class AppointmentSerializer(serializers.ModelSerializer):
                 {'cliente': 'Clientes não podem transferir o próprio agendamento.'}
             )
 
+        if request and request.user.is_barbeiro and 'barbeiro' in attrs:
+            if attrs['barbeiro'].pk != request.user.perfil_barbeiro.pk:
+                raise serializers.ValidationError(
+                    {'barbeiro': 'Barbeiros só podem gerenciar a própria agenda.'}
+                )
+
         try:
             appointment.full_clean()
         except DjangoValidationError as error:

@@ -26,6 +26,8 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
         user = self.request.user
         if user.is_cliente:
             queryset = queryset.filter(cliente=user)
+        elif user.is_barbeiro:
+            queryset = queryset.filter(barbeiro=user.perfil_barbeiro)
         return queryset
 
     def perform_create(self, serializer):
@@ -35,6 +37,8 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
         # registrar um agendamento feito por telefone).
         if self.request.user.is_cliente:
             extra['cliente'] = self.request.user
+        elif self.request.user.is_barbeiro:
+            extra['barbeiro'] = self.request.user.perfil_barbeiro
         serializer.save(**extra)
 
     def perform_update(self, serializer):

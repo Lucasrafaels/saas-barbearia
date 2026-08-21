@@ -73,6 +73,18 @@ class Appointment(TimeStampedModel):
         # por exemplo, agendar um serviço da Barbearia A com um barbeiro
         # da Barbearia B.
         errors = {}
+        if self.cliente_id:
+            # Import local evita um ciclo de importação no carregamento dos
+            # modelos; o campo precisa apontar para um usuário cliente.
+            from accounts.models import User
+
+            if self.cliente.tipo_perfil != User.TipoPerfil.CLIENTE:
+                errors['cliente'] = 'O usuário selecionado deve ter perfil de cliente.'
+            elif (
+                self.barbershop_id
+                and self.cliente.barbershop_id != self.barbershop_id
+            ):
+                errors['cliente'] = 'Este cliente não pertence a esta barbearia.'
         if self.barbeiro_id and self.barbershop_id and self.barbeiro.barbershop_id != self.barbershop_id:
             errors['barbeiro'] = 'Este barbeiro não pertence a esta barbearia.'
         if self.servico_id and self.barbershop_id and self.servico.barbershop_id != self.barbershop_id:

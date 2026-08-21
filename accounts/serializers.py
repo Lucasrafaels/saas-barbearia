@@ -1,6 +1,8 @@
 """
 Serializers do app accounts.
 """
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -19,7 +21,24 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at']
 
 
-class UserCreateSerializer(serializers.ModelSerializer):
+class PasswordValidationMixin:
+    """Aplica os validadores de senha configurados no Django à API."""
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        password = attrs.get('password')
+        if not password:
+            return attrs
+
+        user = User(email=attrs.get('email', ''), nome=attrs.get('nome', ''))
+        try:
+            validate_password(password, user=user)
+        except DjangoValidationError as error:
+            raise serializers.ValidationError({'password': error.messages}) from error
+        return attrs
+
+
+class UserCreateSerializer(PasswordValidationMixin, serializers.ModelSerializer):
     """Serializer usado para cadastro de novos usuários (recebe senha)."""
 
     password = serializers.CharField(write_only=True, min_length=8)
@@ -27,16 +46,30 @@ class UserCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'email', 'nome', 'password', 'tipo_perfil', 'barbershop']
+        read_only_fields = ['id', 'barbershop']
+
+    def validate_tipo_perfil(self, value):
+        if value == User.TipoPerfil.ADMIN:
+            raise serializers.ValidationError(
+                'Administradores não podem ser criados por este endpoint.'
+            )
+        return value
 
     def create(self, validated_data):
         password = validated_data.pop('password')
-        user = User(**validated_data)
-        user.set_password(password)
-        user.save()
-        return user
+        request = self.context.get('request')
+        if not request or not request.user.barbershop_id:
+            raise serializers.ValidationError(
+                {'barbershop': 'O administrador precisa pertencer a uma barbearia.'}
+            )
+        return User.objects.create_user(
+            password=password,
+            barbershop=request.user.barbershop,
+            **validated_data,
+        )
 
 
-class PublicRegistrationSerializer(serializers.ModelSerializer):
+class PublicRegistrationSerializer(PasswordValidationMixin, serializers.ModelSerializer):
     """Cadastro público inicial, sempre criado como cliente sem tenant."""
 
     password = serializers.CharField(write_only=True, min_length=8)

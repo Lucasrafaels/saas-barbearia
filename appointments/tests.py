@@ -27,6 +27,7 @@ class AppointmentSecurityTests(APITestCase):
         self.other_client = self.create_user(
             'outro-cliente@example.com', User.TipoPerfil.CLIENTE
         )
+        self.admin = self.create_user('admin@example.com', User.TipoPerfil.ADMIN)
         barber_user = self.create_user('barbeiro@example.com', User.TipoPerfil.BARBEIRO)
         self.barber = Barber.objects.create(user=barber_user, barbershop=self.barbershop)
         self.service = Service.objects.create(
@@ -98,3 +99,56 @@ class AppointmentSecurityTests(APITestCase):
         self.assertIn('cliente', response.data)
         self.existing_appointment.refresh_from_db()
         self.assertEqual(self.existing_appointment.cliente_id, self.client_user.pk)
+
+    def test_appointment_cliente_must_have_client_role(self):
+        self.client.force_authenticate(self.admin)
+        payload = self.appointment_payload(self.start + timedelta(minutes=60))
+        payload['cliente'] = self.admin.pk
+
+        response = self.client.post(reverse('appointment-list'), payload, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('cliente', response.data)
+
+    def test_barber_sees_and_manages_only_own_appointments(self):
+        other_barber_user = self.create_user(
+            'outro-barbeiro@example.com', User.TipoPerfil.BARBEIRO
+        )
+        other_barber = Barber.objects.create(
+            user=other_barber_user,
+            barbershop=self.barbershop,
+        )
+        other_appointment = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=other_barber,
+            servico=self.service,
+            data_hora=self.start + timedelta(minutes=60),
+        )
+        self.client.force_authenticate(self.barber.user)
+
+        list_response = self.client.get(reverse('appointment-list'))
+        blocked_response = self.client.patch(
+            reverse('appointment-detail', args=[other_appointment.pk]),
+            {'observacoes': 'Alteração indevida'},
+            format='json',
+        )
+
+        self.assertEqual(list_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            [item['id'] for item in list_response.data['results']],
+            [self.existing_appointment.pk],
+        )
+        self.assertEqual(blocked_response.status_code, status.HTTP_404_NOT_FOUND)
+
+        create_response = self.client.post(
+            reverse('appointment-list'),
+            {
+                **self.appointment_payload(self.start + timedelta(minutes=60)),
+                'barbeiro': other_barber.pk,
+            },
+            format='json',
+        )
+
+        self.assertEqual(create_response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('barbeiro', create_response.data)

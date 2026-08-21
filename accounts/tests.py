@@ -76,6 +76,94 @@ class AccountsSecurityTests(APITestCase):
         self.assertIsNone(user.barbershop_id)
         self.assertTrue(user.check_password('Senha-segura-123'))
 
+    def test_registration_rejects_weak_passwords(self):
+        response = self.client.post(
+            reverse('auth-register'),
+            {
+                'email': 'senha-fraca@example.com',
+                'nome': 'Senha Fraca',
+                'password': '1234567890',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('password', response.data)
+        self.assertFalse(User.objects.filter(email='senha-fraca@example.com').exists())
+
+    def test_only_admin_creates_tenant_users_with_safe_role_and_tenant(self):
+        other_barbershop = Barbershop.objects.create(
+            nome='Barbearia Externa',
+            endereco='Rua Secundária, 200',
+            telefone='11888888888',
+            email='externa@example.com',
+            horario_abertura=time(8),
+            horario_fechamento=time(18),
+        )
+        url = reverse('user-list')
+        self.client.force_authenticate(self.client_user)
+
+        forbidden_response = self.client.post(
+            url,
+            {
+                'email': 'nao-autorizado@example.com',
+                'nome': 'Não Autorizado',
+                'password': 'Senha-segura-123',
+                'tipo_perfil': User.TipoPerfil.CLIENTE,
+            },
+            format='json',
+        )
+
+        self.assertEqual(forbidden_response.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.client.force_authenticate(self.admin)
+        admin_role_response = self.client.post(
+            url,
+            {
+                'email': 'admin-indevido@example.com',
+                'nome': 'Admin Indevido',
+                'password': 'Senha-segura-123',
+                'tipo_perfil': User.TipoPerfil.ADMIN,
+            },
+            format='json',
+        )
+        self.assertEqual(admin_role_response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('tipo_perfil', admin_role_response.data)
+
+        created_response = self.client.post(
+            url,
+            {
+                'email': 'barbeiro-novo@example.com',
+                'nome': 'Barbeiro Novo',
+                'password': 'Senha-segura-123',
+                'tipo_perfil': User.TipoPerfil.BARBEIRO,
+                'barbershop': other_barbershop.pk,
+            },
+            format='json',
+        )
+
+        self.assertEqual(created_response.status_code, status.HTTP_201_CREATED)
+        created_user = User.objects.get(email='barbeiro-novo@example.com')
+        self.assertEqual(created_user.barbershop_id, self.barbershop.pk)
+        self.assertEqual(created_user.tipo_perfil, User.TipoPerfil.BARBEIRO)
+
+    def test_authenticated_creation_uses_password_validators(self):
+        self.client.force_authenticate(self.admin)
+
+        response = self.client.post(
+            reverse('user-list'),
+            {
+                'email': 'senha-fraca-interna@example.com',
+                'nome': 'Senha Fraca Interna',
+                'password': '1234567890',
+                'tipo_perfil': User.TipoPerfil.CLIENTE,
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('password', response.data)
+
     def test_client_cannot_read_or_edit_another_user_in_the_same_tenant(self):
         self.client.force_authenticate(self.client_user)
         url = reverse('user-detail', args=[self.other_user.pk])
