@@ -17,7 +17,7 @@ Django 5, Django REST Framework e autenticação via JWT.
 
 | App | Responsabilidade |
 |---|---|
-| `core` | Código compartilhado: permissões, mixin de multi-tenant, paginação |
+| `config` | Código compartilhado: permissões, mixin de multi-tenant, paginação |
 | `accounts` | Usuário customizado (`admin` / `barbeiro` / `cliente`) e autenticação |
 | `barbershops` | Barbearia (o tenant) e barbeiros |
 | `services` | Serviços oferecidos por cada barbearia |
@@ -33,7 +33,7 @@ convenção de código, em três camadas:
 2. Todo modelo "de negócio" (`Barber`, `Service`, `Appointment`) também
    tem um campo `barbershop` direto, evitando joins desnecessários para
    filtrar.
-3. O mixin `core.mixins.TenantScopedQuerysetMixin`, usado pelos ViewSets,
+3. O mixin `config.mixins.TenantScopedQuerysetMixin`, usado pelos ViewSets,
    filtra automaticamente o queryset pela barbearia do usuário autenticado
    (`request.user.barbershop_id`) e preenche esse campo ao criar registros
    — o cliente da API nunca informa `barbershop` manualmente.

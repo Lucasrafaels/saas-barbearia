@@ -47,8 +47,8 @@ THIRD_PARTY_APPS = [
     'django_filters',
 ]
 
-# Apps locais do projeto. "core" vem primeiro por não depender de mais
-# nenhum outro app local (apenas fornece classes utilitárias/abstratas).
+# Apps locais do projeto. "config"  contém infraestrutura compartilhada
+#(mixins, permissões, etc.)
 LOCAL_APPS = [
     'accounts',
     'barbershops',
