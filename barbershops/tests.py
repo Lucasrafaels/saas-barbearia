@@ -78,3 +78,359 @@ class BarbershopSecurityTests(APITestCase):
         self.assertEqual(allowed_response.status_code, status.HTTP_200_OK)
         self.barbershop.refresh_from_db()
         self.assertFalse(self.barbershop.ativo)
+
+
+class BarberAPITestCase(APITestCase):
+    """
+    Testes do endpoint /api/v1/barbers/ (BarberViewSet).
+
+    Fixtures: duas barbearias — tenant A e tenant B. Na barbearia A temos
+    um usuário de cada perfil (admin, cliente, barbeiro) e dois barbeiros
+    já cadastrados (barbeiro_a e barbeiro_a2), além de um usuário do tipo
+    barbeiro ainda SEM perfil Barber (útil para os testes de criação). Na
+    barbearia B temos um admin e um barbeiro (com e sem perfil Barber já
+    associado), usados só para os testes de isolamento entre tenants.
+
+    Cobre os 11 pontos combinados:
+    1. Admin lista barbeiros da própria barbearia.
+    2. Cliente lista barbeiros da própria barbearia.
+    3. Barbeiro visualiza (lista/detalha) barbeiros do próprio tenant.
+    4. Somente admin pode criar barbeiro.
+    5. Somente admin pode editar barbeiro.
+    6. Somente admin pode excluir barbeiro.
+    7. Usuário cliente não pode ser associado a um perfil Barber.
+    8. Barbeiro de outra barbearia não pode ser associado à barbearia atual.
+    9. Usuário não consegue manipular barbershop_id (create/update).
+    10. Usuário de outra barbearia não consegue visualizar o barbeiro.
+    11. Barber e User precisam pertencer à mesma barbearia (nível de modelo).
+    """
+
+    def setUp(self):
+        # --- duas barbearias (tenants) ---
+        self.barbershop_a = self._create_barbershop('Barbearia A', 'contato@barbeariaa.com')
+        self.barbershop_b = self._create_barbershop('Barbearia B', 'contato@barbeariab.com')
+
+        # --- usuários da barbearia A, um de cada perfil ---
+        self.admin_a = self._create_user(
+            'admin.a@teste.com', User.TipoPerfil.ADMIN, self.barbershop_a,
+        )
+        self.cliente_a = self._create_user(
+            'cliente.a@teste.com', User.TipoPerfil.CLIENTE, self.barbershop_a,
+        )
+        self.barbeiro_user_a = self._create_user(
+            'barbeiro.a@teste.com', User.TipoPerfil.BARBEIRO, self.barbershop_a,
+        )
+        self.barbeiro_a = Barber.objects.create(
+            user=self.barbeiro_user_a, barbershop=self.barbershop_a, especialidade='Corte',
+        )
+
+        # segundo barbeiro da barbearia A — útil para listar mais de um
+        # registro e para os testes de editar/excluir "outro" barbeiro.
+        self.barbeiro_user_a2 = self._create_user(
+            'barbeiro2.a@teste.com', User.TipoPerfil.BARBEIRO, self.barbershop_a,
+        )
+        self.barbeiro_a2 = Barber.objects.create(
+            user=self.barbeiro_user_a2, barbershop=self.barbershop_a, especialidade='Barba',
+        )
+
+        # usuário do tipo barbeiro na barbearia A, mas AINDA sem perfil
+        # Barber — usado para testar a criação (não pode haver conflito de
+        # unicidade no OneToOneField `user`).
+        self.barbeiro_user_a_sem_perfil = self._create_user(
+            'barbeiro-novo.a@teste.com', User.TipoPerfil.BARBEIRO, self.barbershop_a,
+        )
+
+        # --- usuários da barbearia B, só para os testes cross-tenant ---
+        self.admin_b = self._create_user(
+            'admin.b@teste.com', User.TipoPerfil.ADMIN, self.barbershop_b,
+        )
+        self.barbeiro_user_b = self._create_user(
+            'barbeiro.b@teste.com', User.TipoPerfil.BARBEIRO, self.barbershop_b,
+        )
+        self.barbeiro_b = Barber.objects.create(
+            user=self.barbeiro_user_b, barbershop=self.barbershop_b,
+        )
+        # barbeiro da barbearia B ainda sem perfil Barber — usado no teste
+        # de API do item 8, para isolar o erro de "barbearia errada" sem
+        # esbarrar na validação de unicidade do `user`.
+        self.barbeiro_user_b_sem_perfil = self._create_user(
+            'barbeiro-novo.b@teste.com', User.TipoPerfil.BARBEIRO, self.barbershop_b,
+        )
+
+        self.list_url = reverse('barber-list')
+
+    # ---- helpers ----
+
+    @staticmethod
+    def _create_barbershop(nome, email):
+        return Barbershop.objects.create(
+            nome=nome,
+            endereco='Rua Exemplo, 100',
+            telefone='11999999999',
+            email=email,
+            horario_abertura=time(9, 0),
+            horario_fechamento=time(19, 0),
+        )
+
+    @staticmethod
+    def _create_user(email, tipo_perfil, barbershop):
+        return User.objects.create_user(
+            email=email,
+            nome=email.split('@')[0],
+            password='SenhaForte123',
+            tipo_perfil=tipo_perfil,
+            barbershop=barbershop,
+        )
+
+    @staticmethod
+    def _detail_url(barber_id):
+        return reverse('barber-detail', args=[barber_id])
+
+    # ------------------------------------------------------------------
+    # 1) Admin consegue listar barbeiros da própria barbearia
+    # ------------------------------------------------------------------
+    def test_admin_can_list_own_barbershop_barbers(self):
+        self.client.force_authenticate(self.admin_a)
+        response = self.client.get(self.list_url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = [item['id'] for item in response.data['results']]
+        self.assertIn(self.barbeiro_a.id, ids)
+        self.assertIn(self.barbeiro_a2.id, ids)
+        self.assertNotIn(self.barbeiro_b.id, ids)
+
+    # ------------------------------------------------------------------
+    # 2) Cliente consegue listar barbeiros da própria barbearia
+    # ------------------------------------------------------------------
+    def test_cliente_can_list_own_barbershop_barbers(self):
+        self.client.force_authenticate(self.cliente_a)
+        response = self.client.get(self.list_url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = [item['id'] for item in response.data['results']]
+        self.assertIn(self.barbeiro_a.id, ids)
+        self.assertIn(self.barbeiro_a2.id, ids)
+        self.assertNotIn(self.barbeiro_b.id, ids)
+
+    # ------------------------------------------------------------------
+    # 3) Barbeiro consegue visualizar barbeiros do próprio tenant
+    # ------------------------------------------------------------------
+    def test_barbeiro_can_list_own_tenant_barbers(self):
+        self.client.force_authenticate(self.barbeiro_user_a)
+        response = self.client.get(self.list_url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = [item['id'] for item in response.data['results']]
+        self.assertIn(self.barbeiro_a.id, ids)
+        self.assertIn(self.barbeiro_a2.id, ids)
+        self.assertNotIn(self.barbeiro_b.id, ids)
+
+    def test_barbeiro_can_retrieve_barber_from_own_tenant(self):
+        self.client.force_authenticate(self.barbeiro_user_a)
+        response = self.client.get(self._detail_url(self.barbeiro_a2.id))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], self.barbeiro_a2.id)
+
+    # ------------------------------------------------------------------
+    # 4) Somente admin pode criar barbeiro
+    # ------------------------------------------------------------------
+    def test_admin_can_create_barber(self):
+        self.client.force_authenticate(self.admin_a)
+        response = self.client.post(
+            self.list_url,
+            {'user': self.barbeiro_user_a_sem_perfil.pk, 'especialidade': 'Sobrancelha'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        novo = Barber.objects.get(pk=response.data['id'])
+        self.assertEqual(novo.user_id, self.barbeiro_user_a_sem_perfil.pk)
+        self.assertEqual(novo.barbershop_id, self.barbershop_a.id)
+
+    def test_cliente_cannot_create_barber(self):
+        self.client.force_authenticate(self.cliente_a)
+        antes = Barber.objects.count()
+        response = self.client.post(
+            self.list_url,
+            {'user': self.barbeiro_user_a_sem_perfil.pk, 'especialidade': 'Sobrancelha'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Barber.objects.count(), antes)
+
+    def test_barbeiro_cannot_create_barber(self):
+        self.client.force_authenticate(self.barbeiro_user_a)
+        antes = Barber.objects.count()
+        response = self.client.post(
+            self.list_url,
+            {'user': self.barbeiro_user_a_sem_perfil.pk, 'especialidade': 'Sobrancelha'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Barber.objects.count(), antes)
+
+    # ------------------------------------------------------------------
+    # 5) Somente admin pode editar barbeiro
+    # ------------------------------------------------------------------
+    def test_admin_can_update_barber(self):
+        self.client.force_authenticate(self.admin_a)
+        response = self.client.patch(
+            self._detail_url(self.barbeiro_a.id),
+            {'especialidade': 'Corte e barba'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.barbeiro_a.refresh_from_db()
+        self.assertEqual(self.barbeiro_a.especialidade, 'Corte e barba')
+
+    def test_cliente_cannot_update_barber(self):
+        self.client.force_authenticate(self.cliente_a)
+        response = self.client.patch(
+            self._detail_url(self.barbeiro_a.id),
+            {'especialidade': 'Hackeado'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.barbeiro_a.refresh_from_db()
+        self.assertNotEqual(self.barbeiro_a.especialidade, 'Hackeado')
+
+    def test_barbeiro_cannot_update_barber(self):
+        self.client.force_authenticate(self.barbeiro_user_a)
+        response = self.client.patch(
+            self._detail_url(self.barbeiro_a2.id),
+            {'especialidade': 'Hackeado'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.barbeiro_a2.refresh_from_db()
+        self.assertNotEqual(self.barbeiro_a2.especialidade, 'Hackeado')
+
+    # ------------------------------------------------------------------
+    # 6) Somente admin pode excluir barbeiro
+    # ------------------------------------------------------------------
+    def test_admin_can_delete_barber(self):
+        self.client.force_authenticate(self.admin_a)
+        response = self.client.delete(self._detail_url(self.barbeiro_a2.id))
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Barber.objects.filter(pk=self.barbeiro_a2.id).exists())
+
+    def test_cliente_cannot_delete_barber(self):
+        self.client.force_authenticate(self.cliente_a)
+        response = self.client.delete(self._detail_url(self.barbeiro_a.id))
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertTrue(Barber.objects.filter(pk=self.barbeiro_a.id).exists())
+
+    def test_barbeiro_cannot_delete_barber(self):
+        self.client.force_authenticate(self.barbeiro_user_a)
+        response = self.client.delete(self._detail_url(self.barbeiro_a2.id))
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertTrue(Barber.objects.filter(pk=self.barbeiro_a2.id).exists())
+
+    # ------------------------------------------------------------------
+    # 7) Um usuário cliente não pode ser associado a um perfil Barber
+    # ------------------------------------------------------------------
+    def test_cliente_user_cannot_be_associated_to_barber_via_api(self):
+        self.client.force_authenticate(self.admin_a)
+        response = self.client.post(
+            self.list_url,
+            {'user': self.cliente_a.pk, 'especialidade': 'Corte'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('user', response.data)
+        self.assertFalse(Barber.objects.filter(user=self.cliente_a).exists())
+
+    def test_cliente_user_cannot_be_associated_to_barber_at_model_level(self):
+        barber = Barber(user=self.cliente_a, barbershop=self.barbershop_a)
+
+        with self.assertRaises(ValidationError):
+            barber.clean()
+
+    # ------------------------------------------------------------------
+    # 8) Um barbeiro de outra barbearia não pode ser associado à barbearia atual
+    # ------------------------------------------------------------------
+    def test_barber_from_other_tenant_cannot_be_associated_via_api(self):
+        self.client.force_authenticate(self.admin_a)
+        response = self.client.post(
+            self.list_url,
+            {'user': self.barbeiro_user_b_sem_perfil.pk, 'especialidade': 'Corte'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('barbershop', response.data)
+        self.assertFalse(Barber.objects.filter(user=self.barbeiro_user_b_sem_perfil).exists())
+
+    # ------------------------------------------------------------------
+    # 9) Um usuário não consegue manipular barbershop_id
+    # ------------------------------------------------------------------
+    def test_cannot_set_barbershop_on_create(self):
+        self.client.force_authenticate(self.admin_a)
+        response = self.client.post(
+            self.list_url,
+            {
+                'user': self.barbeiro_user_a_sem_perfil.pk,
+                'especialidade': 'Corte',
+                'barbershop': self.barbershop_b.id,
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        novo = Barber.objects.get(pk=response.data['id'])
+        self.assertEqual(novo.barbershop_id, self.barbershop_a.id)
+        self.assertNotEqual(novo.barbershop_id, self.barbershop_b.id)
+
+    def test_cannot_change_barbershop_on_update(self):
+        self.client.force_authenticate(self.admin_a)
+        response = self.client.patch(
+            self._detail_url(self.barbeiro_a.id),
+            {'barbershop': self.barbershop_b.id},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.barbeiro_a.refresh_from_db()
+        self.assertEqual(self.barbeiro_a.barbershop_id, self.barbershop_a.id)
+
+    # ------------------------------------------------------------------
+    # 10) Um usuário de outra barbearia não consegue visualizar o barbeiro
+    # ------------------------------------------------------------------
+    def test_user_from_other_tenant_cannot_view_barber(self):
+        self.client.force_authenticate(self.admin_b)
+        response = self.client.get(self._detail_url(self.barbeiro_a.id))
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        lista = self.client.get(self.list_url)
+        ids = [item['id'] for item in lista.data['results']]
+        self.assertNotIn(self.barbeiro_a.id, ids)
+
+    # ------------------------------------------------------------------
+    # 11) Barber e User precisam pertencer à mesma barbearia
+    # ------------------------------------------------------------------
+    def test_barber_and_user_must_share_same_barbershop(self):
+        """Testa diretamente a regra de negócio em Barber.clean(),
+        independente da camada de API: o vínculo só é válido quando
+        barbeiro e usuário pertencem à mesma barbearia."""
+        barber_barbearia_diferente = Barber(
+            user=self.barbeiro_user_b, barbershop=self.barbershop_a,
+        )
+        with self.assertRaises(ValidationError):
+            barber_barbearia_diferente.clean()
+
+        # mesma barbearia para ambos: não deve levantar erro
+        barber_valido = Barber(
+            user=self.barbeiro_user_a_sem_perfil, barbershop=self.barbershop_a,
+        )
+        barber_valido.clean()
