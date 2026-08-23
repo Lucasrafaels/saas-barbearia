@@ -301,6 +301,46 @@ Mesmo quando cliente ou barbeiro têm o valor forçado pelo servidor, envie os
 IDs corretos de `cliente` e `barbeiro`, pois esses campos são obrigatórios no
 serializer.
 
+### Horários disponíveis
+
+#### `GET /appointments/available-slots/`
+
+Autenticada. Retorna os horários em que um barbeiro ainda pode iniciar um
+atendimento do serviço informado na data informada. Os slots começam no
+horário de abertura da barbearia e avançam com passo igual à duração do
+serviço, enquanto ainda caibam antes do fechamento.
+
+| Parâmetro | Tipo | Descrição |
+| --- | --- | --- |
+| `barbeiro` | ID | Profissional consultado (obrigatório). |
+| `servico` | ID | Serviço cujo `duracao` define o passo dos slots (obrigatório). |
+| `data` | Data | Dia consultado no formato `YYYY-MM-DD` (obrigatório). |
+
+```http
+GET /api/v1/appointments/available-slots/?barbeiro=7&servico=4&data=2026-08-25
+```
+
+Resposta: `200 OK`
+
+```json
+{
+  "data": "2026-08-25",
+  "slots": ["09:00", "10:00", "14:00", "14:30"]
+}
+```
+
+Regras:
+
+- barbeiro e serviço devem pertencer ao tenant do usuário autenticado;
+  caso contrário, `403`;
+- agendamentos com status `cancelado` não bloqueiam horários;
+- agendamentos de outros barbeiros são ignorados;
+- erros: `400` se faltar parâmetro ou a data for inválida, `404` se barbeiro
+  ou serviço não existirem, `401` sem autenticação.
+
+Os horários são calculados na timezone local configurada no projeto
+(`TIME_ZONE`), a mesma usada nas validações de horário de funcionamento.
+
 ---
 
 ## Fluxo recomendado para o frontend
@@ -326,7 +366,6 @@ boa melhoria de endurecimento antes da produção.
 
 ## Rotas ainda não implementadas
 
-Esta versão ainda não possui endpoint de horários disponíveis, cancelamento
-com antecedência, recuperação de senha, dashboard ou relatórios. Não integre
-essas telas como se as rotas já existissem. O próximo endpoint recomendado é
-uma rota de disponibilidade, por exemplo `GET /appointments/available-slots/`.
+Esta versão ainda não possui cancelamento com antecedência, recuperação de
+senha, dashboard ou relatórios. Não integre essas telas como se as rotas já
+existissem.

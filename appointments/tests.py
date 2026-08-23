@@ -385,3 +385,141 @@ class AppointmentBusinessHoursAndPastDateTests(APITestCase):
 
         with self.assertRaises(ValidationError):
             appointment.clean()
+
+class AvailableSlotsTests(APITestCase):
+    """
+    Testes do endpoint GET /api/v1/appointments/available-slots/.
+    """
+    def setUp(self):
+        self.barbershop = Barbershop.objects.create(
+            nome='Barbearia Slots',
+            endereco='Rua dos Horários, 10',
+            telefone='11988888888',
+            email='slots@example.com',
+            horario_abertura=time(8),
+            horario_fechamento=time(12),
+        )
+        self.admin = self.create_user('slots-admin@example.com', User.TipoPerfil.ADMIN)
+        barber_user = self.create_user('slots-barbeiro@example.com', User.TipoPerfil.BARBEIRO)
+        self.barber = Barber.objects.create(user=barber_user, barbershop=self.barbershop)
+        self.service = Service.objects.create(
+            barbershop=self.barbershop,
+            nome='Corte Slots',
+            preco='40.00',
+            duracao=60,
+        )
+        self.client.force_authenticate(self.admin)
+
+    def create_user(self, email, tipo_perfil):
+        return User.objects.create_user(
+            email=email,
+            nome=email.split('@')[0],
+            password='Senha-segura-123',
+            tipo_perfil=tipo_perfil,
+            barbershop=self.barbershop,
+        )
+
+    def url(self, **params):
+        return reverse('appointment-available-slots')
+
+    def local_datetime(self, day_offset, hour, minute=0):
+        naive = datetime.now() + timedelta(days=day_offset)
+        data = (naive.replace(hour=hour, minute=minute, second=0, microsecond=0)).date()
+        return timezone.make_aware(datetime.combine(data, time(hour, minute)))
+
+    def data_str(self, day_offset):
+        return (datetime.now() + timedelta(days=day_offset)).strftime('%Y-%m-%d')
+
+    def test_slots_livres_gerados_com_passo_da_duracao(self):
+        response = self.client.get(self.url(), {
+            'barbeiro': self.barber.id,
+            'servico': self.service.id,
+            'data': self.data_str(2),
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Abertura 08:00, fechamento 12:00 e duração de 60 min:
+        # últimos slot válido começa às 11:00.
+        self.assertEqual(
+            response.data['slots'],
+            ['08:00', '09:00', '10:00', '11:00'],
+        )
+
+    def test_slot_conflitante_eh_removido(self):
+        Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.admin,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 9, 0),
+        )
+        response = self.client.get(self.url(), {
+            'barbeiro': self.barber.id,
+            'servico': self.service.id,
+            'data': self.data_str(2),
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['slots'], ['08:00', '10:00', '11:00'])
+
+    def test_agendamento_cancelado_nao_bloqueia_slot(self):
+        Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.admin,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 9, 0),
+            status=Appointment.Status.CANCELADO,
+        )
+        response = self.client.get(self.url(), {
+            'barbeiro': self.barber.id,
+            'servico': self.service.id,
+            'data': self.data_str(2),
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['slots'], ['08:00', '09:00', '10:00', '11:00'])
+
+    def test_agendamento_de_outro_barbeiro_nao_bloqueia(self):
+        outro_user = self.create_user('outro-barbeiro@example.com', User.TipoPerfil.BARBEIRO)
+        outro_barber = Barber.objects.create(user=outro_user, barbershop=self.barbershop)
+        Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.admin,
+            barbeiro=outro_barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 9, 0),
+        )
+        response = self.client.get(self.url(), {
+            'barbeiro': self.barber.id,
+            'servico': self.service.id,
+            'data': self.data_str(2),
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['slots'], ['08:00', '09:00', '10:00', '11:00'])
+
+    def test_parametros_ausentes_retornam_400(self):
+        response = self.client.get(self.url(), {'data': self.data_str(2)})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_data_invalida_retorna_400(self):
+        response = self.client.get(self.url(), {
+            'barbeiro': self.barber.id,
+            'servico': self.service.id,
+            'data': '25/08/2026',
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_barbeiro_inexistente_retorna_404(self):
+        response = self.client.get(self.url(), {
+            'barbeiro': 99999,
+            'servico': self.service.id,
+            'data': self.data_str(2),
+        })
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_requer_autenticacao(self):
+        self.client.force_authenticate(user=None)
+        response = self.client.get(self.url(), {
+            'barbeiro': self.barber.id,
+            'servico': self.service.id,
+            'data': self.data_str(2),
+        })
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
