@@ -34,6 +34,14 @@ class AppointmentSerializer(serializers.ModelSerializer):
             # ignorar o próprio agendamento.
             for field in Appointment._meta.fields:
                 setattr(appointment, field.attname, getattr(self.instance, field.attname))
+            # Sem esta linha, esta cópia continua com `_state.adding=True`
+            # mesmo já tendo um pk copiado. O `validate_unique()` chamado
+            # dentro de `full_clean()` logo abaixo usa exatamente esse
+            # estado para decidir se exclui o próprio registro da
+            # checagem de unicidade — como não excluía, QUALQUER update
+            # válido era recusado com "Agendamento com este ID já existe"
+            # (bug original, o pk colidia com o próprio registro).
+            appointment._state.adding = False
         for field, value in attrs.items():
             setattr(appointment, field, value)
 

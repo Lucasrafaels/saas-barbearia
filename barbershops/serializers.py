@@ -17,6 +17,20 @@ class BarbershopSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at']
 
+    def validate(self, attrs):
+        # Criar uma barbearia é o fluxo de onboarding (ver
+        # BarbershopViewSet.perform_create): só faz sentido para quem
+        # ainda não pertence a nenhuma. Sem esta checagem, um usuário que
+        # já tem tenant também conseguia criar — a barbearia era
+        # persistida mesmo assim, só o vínculo de admin é que não
+        # acontecia, deixando um registro órfão no banco (bug original).
+        request = self.context.get('request')
+        if self.instance is None and request and request.user.barbershop_id:
+            raise serializers.ValidationError(
+                'Você já pertence a uma barbearia e não pode criar outra.'
+            )
+        return attrs
+
 
 class BarberSerializer(serializers.ModelSerializer):
     # Campos "achatados" do usuário vinculado, só para leitura — evita o

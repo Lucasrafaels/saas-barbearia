@@ -195,3 +195,135 @@ class AccountsSecurityTests(APITestCase):
         self.assertEqual(admin_response.status_code, status.HTTP_200_OK)
         self.other_user.refresh_from_db()
         self.assertFalse(self.other_user.is_active)
+
+
+class AccountsPrivilegeEscalationTests(APITestCase):
+    """
+    Cobre a correção do bug de escalonamento de privilégio: antes da
+    correção, `UserSerializer` deixava `tipo_perfil` e `barbershop`
+    graváveis para qualquer usuário autenticado editando o próprio
+    cadastro (permitido por `IsSelfOrAdmin`, que só checa "é você mesmo
+    ou é admin", não quais campos estão sendo alterados). Um cliente
+    conseguia virar admin, ou mudar de barbearia, via um PATCH no
+    próprio usuário.
+    """
+
+    def setUp(self):
+        self.barbershop = Barbershop.objects.create(
+            nome='Central',
+            endereco='Rua Principal, 100',
+            telefone='11999999999',
+            email='central@example.com',
+            horario_abertura=time(8),
+            horario_fechamento=time(18),
+        )
+        self.other_barbershop = Barbershop.objects.create(
+            nome='Sul',
+            endereco='Rua Secundária, 200',
+            telefone='11888888888',
+            email='sul@example.com',
+            horario_abertura=time(8),
+            horario_fechamento=time(18),
+        )
+        self.admin = User.objects.create_user(
+            email='admin@example.com', nome='Administrador', password='Senha-segura-123',
+            tipo_perfil=User.TipoPerfil.ADMIN, barbershop=self.barbershop,
+        )
+        self.client_user = User.objects.create_user(
+            email='cliente@example.com', nome='Cliente', password='Senha-segura-123',
+            tipo_perfil=User.TipoPerfil.CLIENTE, barbershop=self.barbershop,
+        )
+        self.other_client = User.objects.create_user(
+            email='outro-cliente@example.com', nome='Outro Cliente', password='Senha-segura-123',
+            tipo_perfil=User.TipoPerfil.CLIENTE, barbershop=self.barbershop,
+        )
+
+    def test_client_cannot_promote_self_to_admin(self):
+        self.client.force_authenticate(self.client_user)
+
+        response = self.client.patch(
+            reverse('user-detail', args=[self.client_user.pk]),
+            {'tipo_perfil': User.TipoPerfil.ADMIN},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.client_user.refresh_from_db()
+        self.assertEqual(self.client_user.tipo_perfil, User.TipoPerfil.CLIENTE)
+
+    def test_client_cannot_change_own_barbershop(self):
+        self.client.force_authenticate(self.client_user)
+
+        response = self.client.patch(
+            reverse('user-detail', args=[self.client_user.pk]),
+            {'barbershop': self.other_barbershop.pk},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.client_user.refresh_from_db()
+        self.assertEqual(self.client_user.barbershop_id, self.barbershop.pk)
+
+    def test_client_cannot_promote_self_via_full_update(self):
+        """A mesma regra vale para PUT, não só PATCH."""
+        self.client.force_authenticate(self.client_user)
+
+        response = self.client.put(
+            reverse('user-detail', args=[self.client_user.pk]),
+            {
+                'email': self.client_user.email,
+                'nome': self.client_user.nome,
+                'tipo_perfil': User.TipoPerfil.ADMIN,
+                'barbershop': self.other_barbershop.pk,
+                'is_active': True,
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.client_user.refresh_from_db()
+        self.assertEqual(self.client_user.tipo_perfil, User.TipoPerfil.CLIENTE)
+        self.assertEqual(self.client_user.barbershop_id, self.barbershop.pk)
+
+    def test_admin_cannot_grant_admin_role_to_another_user(self):
+        self.client.force_authenticate(self.admin)
+
+        response = self.client.patch(
+            reverse('user-detail', args=[self.other_client.pk]),
+            {'tipo_perfil': User.TipoPerfil.ADMIN},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('tipo_perfil', response.data)
+        self.other_client.refresh_from_db()
+        self.assertEqual(self.other_client.tipo_perfil, User.TipoPerfil.CLIENTE)
+
+    def test_admin_cannot_change_barbershop_of_tenant_user(self):
+        self.client.force_authenticate(self.admin)
+
+        response = self.client.patch(
+            reverse('user-detail', args=[self.other_client.pk]),
+            {'barbershop': self.other_barbershop.pk},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.other_client.refresh_from_db()
+        self.assertEqual(self.other_client.barbershop_id, self.barbershop.pk)
+
+    def test_admin_can_still_change_role_between_non_admin_roles(self):
+        """Garante que a correção não tirou a capacidade legítima do
+        admin de promover cliente -> barbeiro (mesmas opções já
+        permitidas na criação, via UserCreateSerializer)."""
+        self.client.force_authenticate(self.admin)
+
+        response = self.client.patch(
+            reverse('user-detail', args=[self.other_client.pk]),
+            {'tipo_perfil': User.TipoPerfil.BARBEIRO},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.other_client.refresh_from_db()
+        self.assertEqual(self.other_client.tipo_perfil, User.TipoPerfil.BARBEIRO)

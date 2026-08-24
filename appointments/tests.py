@@ -1,525 +1,526 @@
-from datetime import datetime, time, timedelta
+from datetime import time
 
 from django.core.exceptions import ValidationError
 from django.urls import reverse
-from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from accounts.models import User
 from barbershops.models import Barber, Barbershop
-from services.models import Service
-from .models import Appointment
 
 
-class AppointmentSecurityTests(APITestCase):
+class BarbershopSecurityTests(APITestCase):
     def setUp(self):
-        self.barbershop = Barbershop.objects.create(
-            nome='Barbearia Central',
+        self.barbershop = self.create_barbershop('Central', 'central@example.com')
+        self.other_barbershop = self.create_barbershop('Sul', 'sul@example.com')
+        self.admin = self.create_user(
+            'admin@example.com', User.TipoPerfil.ADMIN, self.barbershop
+        )
+        self.client_user = self.create_user(
+            'cliente@example.com', User.TipoPerfil.CLIENTE, self.barbershop
+        )
+
+    @staticmethod
+    def create_barbershop(nome, email):
+        return Barbershop.objects.create(
+            nome=nome,
             endereco='Rua Principal, 100',
             telefone='11999999999',
-            email='central@example.com',
+            email=email,
             horario_abertura=time(8),
             horario_fechamento=time(18),
         )
-        self.client_user = self.create_user(
-            'cliente@example.com', User.TipoPerfil.CLIENTE
-        )
-        self.other_client = self.create_user(
-            'outro-cliente@example.com', User.TipoPerfil.CLIENTE
-        )
-        self.admin = self.create_user('admin@example.com', User.TipoPerfil.ADMIN)
-        barber_user = self.create_user('barbeiro@example.com', User.TipoPerfil.BARBEIRO)
-        self.barber = Barber.objects.create(user=barber_user, barbershop=self.barbershop)
-        self.service = Service.objects.create(
-            barbershop=self.barbershop,
-            nome='Corte',
-            preco='50.00',
-            duracao=30,
-        )
-        self.start = (timezone.now() + timedelta(days=1)).replace(second=0, microsecond=0)
-        self.existing_appointment = self.create_appointment(self.start)
-        self.client.force_authenticate(self.client_user)
 
-    def create_user(self, email, tipo_perfil):
+    @staticmethod
+    def create_user(email, tipo_perfil, barbershop):
         return User.objects.create_user(
             email=email,
             nome=email.split('@')[0],
             password='Senha-segura-123',
             tipo_perfil=tipo_perfil,
-            barbershop=self.barbershop,
+            barbershop=barbershop,
         )
 
-    def create_appointment(self, data_hora):
-        return Appointment.objects.create(
-            barbershop=self.barbershop,
-            cliente=self.client_user,
-            barbeiro=self.barber,
-            servico=self.service,
-            data_hora=data_hora,
+    def test_barber_model_and_api_reject_user_from_another_tenant(self):
+        barber_user = self.create_user(
+            'barbeiro-outra@example.com',
+            User.TipoPerfil.BARBEIRO,
+            self.other_barbershop,
+        )
+        barber = Barber(user=barber_user, barbershop=self.barbershop)
+
+        with self.assertRaises(ValidationError):
+            barber.full_clean()
+
+        self.client.force_authenticate(self.admin)
+        response = self.client.post(
+            reverse('barber-list'),
+            {'user': barber_user.pk, 'especialidade': 'Corte'},
+            format='json',
         )
 
-    def appointment_payload(self, data_hora):
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(Barber.objects.filter(user=barber_user).exists())
+
+    def test_only_admin_can_update_the_barbershop(self):
+        url = reverse('barbershop-detail', args=[self.barbershop.pk])
+        self.client.force_authenticate(self.client_user)
+
+        forbidden_response = self.client.patch(url, {'ativo': False}, format='json')
+
+        self.assertEqual(forbidden_response.status_code, status.HTTP_403_FORBIDDEN)
+        self.barbershop.refresh_from_db()
+        self.assertTrue(self.barbershop.ativo)
+
+        self.client.force_authenticate(self.admin)
+        allowed_response = self.client.patch(url, {'ativo': False}, format='json')
+
+        self.assertEqual(allowed_response.status_code, status.HTTP_200_OK)
+        self.barbershop.refresh_from_db()
+        self.assertFalse(self.barbershop.ativo)
+
+
+class BarbershopOnboardingTests(APITestCase):
+    """
+    Cobre o fluxo de onboarding de POST /api/v1/barbershops/ e a correção
+    do bug que permitia criar uma barbearia "órfã": antes da correção, um
+    usuário que já pertencia a um tenant também conseguia criar uma nova
+    barbearia — ela era persistida no banco, só o vínculo de admin é que
+    não acontecia, deixando um registro sem ninguém responsável.
+    """
+
+    def setUp(self):
+        self.barbershop = BarbershopSecurityTests.create_barbershop(
+            'Central', 'central@example.com',
+        )
+        self.list_url = reverse('barbershop-list')
+
+    @staticmethod
+    def create_user(email, tipo_perfil=None, barbershop=None):
+        return User.objects.create_user(
+            email=email,
+            nome=email.split('@')[0],
+            password='Senha-segura-123',
+            tipo_perfil=tipo_perfil or User.TipoPerfil.CLIENTE,
+            barbershop=barbershop,
+        )
+
+    @staticmethod
+    def barbershop_payload(nome, email):
         return {
-            'cliente': self.client_user.pk,
-            'barbeiro': self.barber.pk,
-            'servico': self.service.pk,
-            'data_hora': data_hora.isoformat(),
+            'nome': nome,
+            'endereco': 'Rua Nova, 500',
+            'telefone': '11977777777',
+            'email': email,
+            'horario_abertura': '08:00',
+            'horario_fechamento': '18:00',
         }
 
-    def test_api_rejects_overlapping_appointments_on_create_and_update(self):
-        create_response = self.client.post(
-            reverse('appointment-list'),
-            self.appointment_payload(self.start + timedelta(minutes=15)),
+    def test_user_without_tenant_creates_barbershop_and_becomes_its_admin(self):
+        user_sem_tenant = self.create_user('sem-tenant@example.com')
+        self.client.force_authenticate(user_sem_tenant)
+
+        response = self.client.post(
+            self.list_url,
+            self.barbershop_payload('Barbearia Nova', 'nova@example.com'),
             format='json',
         )
 
-        self.assertEqual(create_response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('data_hora', create_response.data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        user_sem_tenant.refresh_from_db()
+        self.assertEqual(user_sem_tenant.barbershop_id, response.data['id'])
+        self.assertEqual(user_sem_tenant.tipo_perfil, User.TipoPerfil.ADMIN)
 
-        later_appointment = self.create_appointment(self.start + timedelta(minutes=60))
-        update_response = self.client.patch(
-            reverse('appointment-detail', args=[later_appointment.pk]),
-            {'data_hora': (self.start + timedelta(minutes=15)).isoformat()},
+    def test_user_with_tenant_cannot_create_another_barbershop(self):
+        antes = Barbershop.objects.count()
+        usuario_com_tenant = self.create_user(
+            'ja-tem-tenant@example.com', User.TipoPerfil.CLIENTE, self.barbershop,
+        )
+        self.client.force_authenticate(usuario_com_tenant)
+
+        response = self.client.post(
+            self.list_url,
+            self.barbershop_payload('Barbearia Órfã', 'orfa@example.com'),
             format='json',
         )
 
-        self.assertEqual(update_response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('data_hora', update_response.data)
-        later_appointment.refresh_from_db()
-        self.assertEqual(later_appointment.data_hora, self.start + timedelta(minutes=60))
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        # Nenhuma barbearia órfã deve ter sido criada no banco.
+        self.assertEqual(Barbershop.objects.count(), antes)
+        usuario_com_tenant.refresh_from_db()
+        self.assertEqual(usuario_com_tenant.barbershop_id, self.barbershop.pk)
+        self.assertEqual(usuario_com_tenant.tipo_perfil, User.TipoPerfil.CLIENTE)
 
-    def test_client_cannot_transfer_own_appointment(self):
+    def test_admin_with_tenant_cannot_create_another_barbershop(self):
+        """Mesma regra vale para quem já é admin de uma barbearia — não é
+        só para clientes/barbeiros."""
+        antes = Barbershop.objects.count()
+        admin_existente = self.create_user(
+            'admin-existente@example.com', User.TipoPerfil.ADMIN, self.barbershop,
+        )
+        self.client.force_authenticate(admin_existente)
+
+        response = self.client.post(
+            self.list_url,
+            self.barbershop_payload('Segunda Barbearia', 'segunda@example.com'),
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Barbershop.objects.count(), antes)
+
+
+class BarberAPITestCase(APITestCase):
+    """
+    Testes do endpoint /api/v1/barbers/ (BarberViewSet).
+
+    Fixtures: duas barbearias — tenant A e tenant B. Na barbearia A temos
+    um usuário de cada perfil (admin, cliente, barbeiro) e dois barbeiros
+    já cadastrados (barbeiro_a e barbeiro_a2), além de um usuário do tipo
+    barbeiro ainda SEM perfil Barber (útil para os testes de criação). Na
+    barbearia B temos um admin e um barbeiro (com e sem perfil Barber já
+    associado), usados só para os testes de isolamento entre tenants.
+
+    Cobre os 11 pontos combinados:
+    1. Admin lista barbeiros da própria barbearia.
+    2. Cliente lista barbeiros da própria barbearia.
+    3. Barbeiro visualiza (lista/detalha) barbeiros do próprio tenant.
+    4. Somente admin pode criar barbeiro.
+    5. Somente admin pode editar barbeiro.
+    6. Somente admin pode excluir barbeiro.
+    7. Usuário cliente não pode ser associado a um perfil Barber.
+    8. Barbeiro de outra barbearia não pode ser associado à barbearia atual.
+    9. Usuário não consegue manipular barbershop_id (create/update).
+    10. Usuário de outra barbearia não consegue visualizar o barbeiro.
+    11. Barber e User precisam pertencer à mesma barbearia (nível de modelo).
+    """
+
+    def setUp(self):
+        # --- duas barbearias (tenants) ---
+        self.barbershop_a = self._create_barbershop('Barbearia A', 'contato@barbeariaa.com')
+        self.barbershop_b = self._create_barbershop('Barbearia B', 'contato@barbeariab.com')
+
+        # --- usuários da barbearia A, um de cada perfil ---
+        self.admin_a = self._create_user(
+            'admin.a@teste.com', User.TipoPerfil.ADMIN, self.barbershop_a,
+        )
+        self.cliente_a = self._create_user(
+            'cliente.a@teste.com', User.TipoPerfil.CLIENTE, self.barbershop_a,
+        )
+        self.barbeiro_user_a = self._create_user(
+            'barbeiro.a@teste.com', User.TipoPerfil.BARBEIRO, self.barbershop_a,
+        )
+        self.barbeiro_a = Barber.objects.create(
+            user=self.barbeiro_user_a, barbershop=self.barbershop_a, especialidade='Corte',
+        )
+
+        # segundo barbeiro da barbearia A — útil para listar mais de um
+        # registro e para os testes de editar/excluir "outro" barbeiro.
+        self.barbeiro_user_a2 = self._create_user(
+            'barbeiro2.a@teste.com', User.TipoPerfil.BARBEIRO, self.barbershop_a,
+        )
+        self.barbeiro_a2 = Barber.objects.create(
+            user=self.barbeiro_user_a2, barbershop=self.barbershop_a, especialidade='Barba',
+        )
+
+        # usuário do tipo barbeiro na barbearia A, mas AINDA sem perfil
+        # Barber — usado para testar a criação (não pode haver conflito de
+        # unicidade no OneToOneField `user`).
+        self.barbeiro_user_a_sem_perfil = self._create_user(
+            'barbeiro-novo.a@teste.com', User.TipoPerfil.BARBEIRO, self.barbershop_a,
+        )
+
+        # --- usuários da barbearia B, só para os testes cross-tenant ---
+        self.admin_b = self._create_user(
+            'admin.b@teste.com', User.TipoPerfil.ADMIN, self.barbershop_b,
+        )
+        self.barbeiro_user_b = self._create_user(
+            'barbeiro.b@teste.com', User.TipoPerfil.BARBEIRO, self.barbershop_b,
+        )
+        self.barbeiro_b = Barber.objects.create(
+            user=self.barbeiro_user_b, barbershop=self.barbershop_b,
+        )
+        # barbeiro da barbearia B ainda sem perfil Barber — usado no teste
+        # de API do item 8, para isolar o erro de "barbearia errada" sem
+        # esbarrar na validação de unicidade do `user`.
+        self.barbeiro_user_b_sem_perfil = self._create_user(
+            'barbeiro-novo.b@teste.com', User.TipoPerfil.BARBEIRO, self.barbershop_b,
+        )
+
+        self.list_url = reverse('barber-list')
+
+    # ---- helpers ----
+
+    @staticmethod
+    def _create_barbershop(nome, email):
+        return Barbershop.objects.create(
+            nome=nome,
+            endereco='Rua Exemplo, 100',
+            telefone='11999999999',
+            email=email,
+            horario_abertura=time(9, 0),
+            horario_fechamento=time(19, 0),
+        )
+
+    @staticmethod
+    def _create_user(email, tipo_perfil, barbershop):
+        return User.objects.create_user(
+            email=email,
+            nome=email.split('@')[0],
+            password='SenhaForte123',
+            tipo_perfil=tipo_perfil,
+            barbershop=barbershop,
+        )
+
+    @staticmethod
+    def _detail_url(barber_id):
+        return reverse('barber-detail', args=[barber_id])
+
+    # ------------------------------------------------------------------
+    # 1) Admin consegue listar barbeiros da própria barbearia
+    # ------------------------------------------------------------------
+    def test_admin_can_list_own_barbershop_barbers(self):
+        self.client.force_authenticate(self.admin_a)
+        response = self.client.get(self.list_url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = [item['id'] for item in response.data['results']]
+        self.assertIn(self.barbeiro_a.id, ids)
+        self.assertIn(self.barbeiro_a2.id, ids)
+        self.assertNotIn(self.barbeiro_b.id, ids)
+
+    # ------------------------------------------------------------------
+    # 2) Cliente consegue listar barbeiros da própria barbearia
+    # ------------------------------------------------------------------
+    def test_cliente_can_list_own_barbershop_barbers(self):
+        self.client.force_authenticate(self.cliente_a)
+        response = self.client.get(self.list_url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = [item['id'] for item in response.data['results']]
+        self.assertIn(self.barbeiro_a.id, ids)
+        self.assertIn(self.barbeiro_a2.id, ids)
+        self.assertNotIn(self.barbeiro_b.id, ids)
+
+    # ------------------------------------------------------------------
+    # 3) Barbeiro consegue visualizar barbeiros do próprio tenant
+    # ------------------------------------------------------------------
+    def test_barbeiro_can_list_own_tenant_barbers(self):
+        self.client.force_authenticate(self.barbeiro_user_a)
+        response = self.client.get(self.list_url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = [item['id'] for item in response.data['results']]
+        self.assertIn(self.barbeiro_a.id, ids)
+        self.assertIn(self.barbeiro_a2.id, ids)
+        self.assertNotIn(self.barbeiro_b.id, ids)
+
+    def test_barbeiro_can_retrieve_barber_from_own_tenant(self):
+        self.client.force_authenticate(self.barbeiro_user_a)
+        response = self.client.get(self._detail_url(self.barbeiro_a2.id))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], self.barbeiro_a2.id)
+
+    # ------------------------------------------------------------------
+    # 4) Somente admin pode criar barbeiro
+    # ------------------------------------------------------------------
+    def test_admin_can_create_barber(self):
+        self.client.force_authenticate(self.admin_a)
+        response = self.client.post(
+            self.list_url,
+            {'user': self.barbeiro_user_a_sem_perfil.pk, 'especialidade': 'Sobrancelha'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        novo = Barber.objects.get(pk=response.data['id'])
+        self.assertEqual(novo.user_id, self.barbeiro_user_a_sem_perfil.pk)
+        self.assertEqual(novo.barbershop_id, self.barbershop_a.id)
+
+    def test_cliente_cannot_create_barber(self):
+        self.client.force_authenticate(self.cliente_a)
+        antes = Barber.objects.count()
+        response = self.client.post(
+            self.list_url,
+            {'user': self.barbeiro_user_a_sem_perfil.pk, 'especialidade': 'Sobrancelha'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Barber.objects.count(), antes)
+
+    def test_barbeiro_cannot_create_barber(self):
+        self.client.force_authenticate(self.barbeiro_user_a)
+        antes = Barber.objects.count()
+        response = self.client.post(
+            self.list_url,
+            {'user': self.barbeiro_user_a_sem_perfil.pk, 'especialidade': 'Sobrancelha'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Barber.objects.count(), antes)
+
+    # ------------------------------------------------------------------
+    # 5) Somente admin pode editar barbeiro
+    # ------------------------------------------------------------------
+    def test_admin_can_update_barber(self):
+        self.client.force_authenticate(self.admin_a)
         response = self.client.patch(
-            reverse('appointment-detail', args=[self.existing_appointment.pk]),
-            {'cliente': self.other_client.pk},
+            self._detail_url(self.barbeiro_a.id),
+            {'especialidade': 'Corte e barba'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.barbeiro_a.refresh_from_db()
+        self.assertEqual(self.barbeiro_a.especialidade, 'Corte e barba')
+
+    def test_cliente_cannot_update_barber(self):
+        self.client.force_authenticate(self.cliente_a)
+        response = self.client.patch(
+            self._detail_url(self.barbeiro_a.id),
+            {'especialidade': 'Hackeado'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.barbeiro_a.refresh_from_db()
+        self.assertNotEqual(self.barbeiro_a.especialidade, 'Hackeado')
+
+    def test_barbeiro_cannot_update_barber(self):
+        self.client.force_authenticate(self.barbeiro_user_a)
+        response = self.client.patch(
+            self._detail_url(self.barbeiro_a2.id),
+            {'especialidade': 'Hackeado'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.barbeiro_a2.refresh_from_db()
+        self.assertNotEqual(self.barbeiro_a2.especialidade, 'Hackeado')
+
+    # ------------------------------------------------------------------
+    # 6) Somente admin pode excluir barbeiro
+    # ------------------------------------------------------------------
+    def test_admin_can_delete_barber(self):
+        self.client.force_authenticate(self.admin_a)
+        response = self.client.delete(self._detail_url(self.barbeiro_a2.id))
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Barber.objects.filter(pk=self.barbeiro_a2.id).exists())
+
+    def test_cliente_cannot_delete_barber(self):
+        self.client.force_authenticate(self.cliente_a)
+        response = self.client.delete(self._detail_url(self.barbeiro_a.id))
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertTrue(Barber.objects.filter(pk=self.barbeiro_a.id).exists())
+
+    def test_barbeiro_cannot_delete_barber(self):
+        self.client.force_authenticate(self.barbeiro_user_a)
+        response = self.client.delete(self._detail_url(self.barbeiro_a2.id))
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertTrue(Barber.objects.filter(pk=self.barbeiro_a2.id).exists())
+
+    # ------------------------------------------------------------------
+    # 7) Um usuário cliente não pode ser associado a um perfil Barber
+    # ------------------------------------------------------------------
+    def test_cliente_user_cannot_be_associated_to_barber_via_api(self):
+        self.client.force_authenticate(self.admin_a)
+        response = self.client.post(
+            self.list_url,
+            {'user': self.cliente_a.pk, 'especialidade': 'Corte'},
             format='json',
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('cliente', response.data)
-        self.existing_appointment.refresh_from_db()
-        self.assertEqual(self.existing_appointment.cliente_id, self.client_user.pk)
+        self.assertIn('user', response.data)
+        self.assertFalse(Barber.objects.filter(user=self.cliente_a).exists())
 
-    def test_appointment_cliente_must_have_client_role(self):
-        self.client.force_authenticate(self.admin)
-        payload = self.appointment_payload(self.start + timedelta(minutes=60))
-        payload['cliente'] = self.admin.pk
+    def test_cliente_user_cannot_be_associated_to_barber_at_model_level(self):
+        barber = Barber(user=self.cliente_a, barbershop=self.barbershop_a)
 
-        response = self.client.post(reverse('appointment-list'), payload, format='json')
+        with self.assertRaises(ValidationError):
+            barber.clean()
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('cliente', response.data)
-
-    def test_barber_sees_and_manages_only_own_appointments(self):
-        other_barber_user = self.create_user(
-            'outro-barbeiro@example.com', User.TipoPerfil.BARBEIRO
-        )
-        other_barber = Barber.objects.create(
-            user=other_barber_user,
-            barbershop=self.barbershop,
-        )
-        other_appointment = Appointment.objects.create(
-            barbershop=self.barbershop,
-            cliente=self.client_user,
-            barbeiro=other_barber,
-            servico=self.service,
-            data_hora=self.start + timedelta(minutes=60),
-        )
-        self.client.force_authenticate(self.barber.user)
-
-        list_response = self.client.get(reverse('appointment-list'))
-        blocked_response = self.client.patch(
-            reverse('appointment-detail', args=[other_appointment.pk]),
-            {'observacoes': 'Alteração indevida'},
+    # ------------------------------------------------------------------
+    # 8) Um barbeiro de outra barbearia não pode ser associado à barbearia atual
+    # ------------------------------------------------------------------
+    def test_barber_from_other_tenant_cannot_be_associated_via_api(self):
+        self.client.force_authenticate(self.admin_a)
+        response = self.client.post(
+            self.list_url,
+            {'user': self.barbeiro_user_b_sem_perfil.pk, 'especialidade': 'Corte'},
             format='json',
         )
 
-        self.assertEqual(list_response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            [item['id'] for item in list_response.data['results']],
-            [self.existing_appointment.pk],
-        )
-        self.assertEqual(blocked_response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('barbershop', response.data)
+        self.assertFalse(Barber.objects.filter(user=self.barbeiro_user_b_sem_perfil).exists())
 
-        create_response = self.client.post(
-            reverse('appointment-list'),
+    # ------------------------------------------------------------------
+    # 9) Um usuário não consegue manipular barbershop_id
+    # ------------------------------------------------------------------
+    def test_cannot_set_barbershop_on_create(self):
+        self.client.force_authenticate(self.admin_a)
+        response = self.client.post(
+            self.list_url,
             {
-                **self.appointment_payload(self.start + timedelta(minutes=60)),
-                'barbeiro': other_barber.pk,
+                'user': self.barbeiro_user_a_sem_perfil.pk,
+                'especialidade': 'Corte',
+                'barbershop': self.barbershop_b.id,
             },
             format='json',
         )
 
-        self.assertEqual(create_response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('barbeiro', create_response.data)
-
-
-class AppointmentBusinessHoursAndPastDateTests(APITestCase):
-    """
-    Cobre as duas regras novas de `Appointment.clean()`:
-
-    1) o agendamento — do início ao fim, considerando a duração do
-       serviço — precisa caber dentro do horário de funcionamento da
-       barbearia (horario_abertura / horario_fechamento);
-    2) não é permitido marcar nem remarcar um agendamento para uma
-       data/hora que já passou — mas editar outros campos de um
-       agendamento cuja data já passou (ex.: marcar como "realizado")
-       continua permitido.
-
-    A barbearia de fixture funciona das 8h às 18h e o serviço dura 30
-    minutos. Os horários usados nos testes são construídos no fuso
-    horário local do projeto (settings.TIME_ZONE), para bater com a
-    forma como o model compara `data_hora` com `horario_abertura` /
-    `horario_fechamento`.
-
-    Nota: um teste desta classe (test_can_update_other_fields_on_a_past_appointment)
-    valida a regra diretamente no model em vez de via API, por causa de
-    um bug pré-existente e não relacionado no `AppointmentSerializer`
-    (ver docstring do próprio teste).
-    """
-
-    def setUp(self):
-        self.barbershop = Barbershop.objects.create(
-            nome='Barbearia Central',
-            endereco='Rua Principal, 100',
-            telefone='11999999999',
-            email='central@example.com',
-            horario_abertura=time(8, 0),
-            horario_fechamento=time(18, 0),
-        )
-        self.admin = self.create_user('admin@example.com', User.TipoPerfil.ADMIN)
-        self.client_user = self.create_user('cliente@example.com', User.TipoPerfil.CLIENTE)
-        barber_user = self.create_user('barbeiro@example.com', User.TipoPerfil.BARBEIRO)
-        self.barber = Barber.objects.create(user=barber_user, barbershop=self.barbershop)
-        self.service = Service.objects.create(
-            barbershop=self.barbershop,
-            nome='Corte',
-            preco='50.00',
-            duracao=30,
-        )
-        self.client.force_authenticate(self.admin)
-
-    def create_user(self, email, tipo_perfil):
-        return User.objects.create_user(
-            email=email,
-            nome=email.split('@')[0],
-            password='Senha-segura-123',
-            tipo_perfil=tipo_perfil,
-            barbershop=self.barbershop,
-        )
-
-    @staticmethod
-    def local_datetime(dias_a_partir_de_hoje, hora, minuto=0):
-        """Monta um datetime ciente de fuso horário, no horário local do
-        projeto, para o dia `hoje + dias_a_partir_de_hoje` no horário
-        informado."""
-        dia = timezone.localdate() + timedelta(days=dias_a_partir_de_hoje)
-        return timezone.make_aware(datetime.combine(dia, time(hora, minuto)))
-
-    def appointment_payload(self, data_hora, **overrides):
-        payload = {
-            'cliente': self.client_user.pk,
-            'barbeiro': self.barber.pk,
-            'servico': self.service.pk,
-            'data_hora': data_hora.isoformat(),
-        }
-        payload.update(overrides)
-        return payload
-
-    # ------------------------------------------------------------------
-    # Horário de funcionamento
-    # ------------------------------------------------------------------
-    def test_rejects_appointment_starting_before_opening(self):
-        data_hora = self.local_datetime(1, 7, 30)  # abre às 8h
-
-        response = self.client.post(
-            reverse('appointment-list'), self.appointment_payload(data_hora), format='json',
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('data_hora', response.data)
-        self.assertFalse(Appointment.objects.filter(data_hora=data_hora).exists())
-
-    def test_rejects_appointment_ending_after_closing(self):
-        # serviço de 30 min às 17:45 terminaria 18:15, depois do fechamento (18h)
-        data_hora = self.local_datetime(1, 17, 45)
-
-        response = self.client.post(
-            reverse('appointment-list'), self.appointment_payload(data_hora), format='json',
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('data_hora', response.data)
-        self.assertFalse(Appointment.objects.filter(data_hora=data_hora).exists())
-
-    def test_accepts_appointment_exactly_at_business_hours_boundaries(self):
-        inicio_no_limite_abertura = self.local_datetime(1, 8, 0)
-        response = self.client.post(
-            reverse('appointment-list'),
-            self.appointment_payload(inicio_no_limite_abertura),
-            format='json',
-        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        novo = Barber.objects.get(pk=response.data['id'])
+        self.assertEqual(novo.barbershop_id, self.barbershop_a.id)
+        self.assertNotEqual(novo.barbershop_id, self.barbershop_b.id)
 
-        # serviço de 30 min às 17:30 termina exatamente às 18:00 (fechamento)
-        termina_no_limite_fechamento = self.local_datetime(1, 17, 30)
-        response2 = self.client.post(
-            reverse('appointment-list'),
-            self.appointment_payload(termina_no_limite_fechamento),
-            format='json',
-        )
-        self.assertEqual(response2.status_code, status.HTTP_201_CREATED)
-
-    def test_appointment_outside_business_hours_rejected_at_model_level(self):
-        appointment = Appointment(
-            barbershop=self.barbershop,
-            cliente=self.client_user,
-            barbeiro=self.barber,
-            servico=self.service,
-            data_hora=self.local_datetime(1, 6, 0),
-        )
-
-        with self.assertRaises(ValidationError):
-            appointment.clean()
-
-    def test_rejects_update_that_moves_appointment_outside_business_hours(self):
-        agendamento = Appointment.objects.create(
-            barbershop=self.barbershop,
-            cliente=self.client_user,
-            barbeiro=self.barber,
-            servico=self.service,
-            data_hora=self.local_datetime(1, 10, 0),
-        )
-        fora_do_horario = self.local_datetime(1, 19, 0)
-
+    def test_cannot_change_barbershop_on_update(self):
+        self.client.force_authenticate(self.admin_a)
         response = self.client.patch(
-            reverse('appointment-detail', args=[agendamento.pk]),
-            {'data_hora': fora_do_horario.isoformat()},
+            self._detail_url(self.barbeiro_a.id),
+            {'barbershop': self.barbershop_b.id},
             format='json',
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('data_hora', response.data)
-        agendamento.refresh_from_db()
-        self.assertNotEqual(agendamento.data_hora, fora_do_horario)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.barbeiro_a.refresh_from_db()
+        self.assertEqual(self.barbeiro_a.barbershop_id, self.barbershop_a.id)
 
     # ------------------------------------------------------------------
-    # Não permite agendamento no passado
+    # 10) Um usuário de outra barbearia não consegue visualizar o barbeiro
     # ------------------------------------------------------------------
-    def test_rejects_appointment_in_the_past_on_create(self):
-        data_hora = self.local_datetime(-1, 10, 0)  # ontem, dentro do horário
+    def test_user_from_other_tenant_cannot_view_barber(self):
+        self.client.force_authenticate(self.admin_b)
+        response = self.client.get(self._detail_url(self.barbeiro_a.id))
 
-        response = self.client.post(
-            reverse('appointment-list'), self.appointment_payload(data_hora), format='json',
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('data_hora', response.data)
-        self.assertFalse(Appointment.objects.filter(data_hora=data_hora).exists())
-
-    def test_rejects_rescheduling_appointment_to_the_past(self):
-        agendamento = Appointment.objects.create(
-            barbershop=self.barbershop,
-            cliente=self.client_user,
-            barbeiro=self.barber,
-            servico=self.service,
-            data_hora=self.local_datetime(1, 10, 0),
-        )
-        data_hora_passada = self.local_datetime(-1, 10, 0)
-
-        response = self.client.patch(
-            reverse('appointment-detail', args=[agendamento.pk]),
-            {'data_hora': data_hora_passada.isoformat()},
-            format='json',
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('data_hora', response.data)
-        agendamento.refresh_from_db()
-        self.assertNotEqual(agendamento.data_hora, data_hora_passada)
-
-    def test_can_update_other_fields_on_a_past_appointment(self):
-        """Editar campos que não sejam `data_hora` (ex.: marcar como
-        "realizado") continua permitido mesmo depois que o horário do
-        agendamento já passou — senão seria impossível encerrar o fluxo
-        normal de um agendamento.
-
-        Testado diretamente no model, e não via API: o
-        `AppointmentSerializer.validate()` monta uma cópia solta
-        (`Appointment()`) do agendamento para chamar `full_clean()`, e
-        essa cópia nunca é marcada como já persistida. Isso faz o
-        `validate_unique()` do Django tratar QUALQUER PATCH que chegue a
-        essa etapa sem outro erro antes como um "ID já existe" — um bug
-        pré-existente no serializer, sem relação com as regras desta
-        tarefa (reproduz mesmo antes destas alterações, com um simples
-        PATCH de `observacoes` em um agendamento futuro). Fica fora do
-        escopo pedido aqui; testar no model isola exatamente a regra
-        implementada em `clean()`.
-        """
-        agendamento = Appointment.objects.create(
-            barbershop=self.barbershop,
-            cliente=self.client_user,
-            barbeiro=self.barber,
-            servico=self.service,
-            data_hora=self.local_datetime(-1, 10, 0),
-        )
-
-        agendamento.status = Appointment.Status.REALIZADO
-        agendamento.observacoes = 'Atendimento concluído'
-        agendamento.full_clean()  # não deve levantar, mesmo com data_hora no passado
-        agendamento.save()
-
-        agendamento.refresh_from_db()
-        self.assertEqual(agendamento.status, Appointment.Status.REALIZADO)
-        self.assertEqual(agendamento.observacoes, 'Atendimento concluído')
-
-    def test_appointment_in_the_past_rejected_at_model_level(self):
-        appointment = Appointment(
-            barbershop=self.barbershop,
-            cliente=self.client_user,
-            barbeiro=self.barber,
-            servico=self.service,
-            data_hora=self.local_datetime(-1, 10, 0),
-        )
-
-        with self.assertRaises(ValidationError):
-            appointment.clean()
-
-class AvailableSlotsTests(APITestCase):
-    """
-    Testes do endpoint GET /api/v1/appointments/available-slots/.
-    """
-    def setUp(self):
-        self.barbershop = Barbershop.objects.create(
-            nome='Barbearia Slots',
-            endereco='Rua dos Horários, 10',
-            telefone='11988888888',
-            email='slots@example.com',
-            horario_abertura=time(8),
-            horario_fechamento=time(12),
-        )
-        self.admin = self.create_user('slots-admin@example.com', User.TipoPerfil.ADMIN)
-        barber_user = self.create_user('slots-barbeiro@example.com', User.TipoPerfil.BARBEIRO)
-        self.barber = Barber.objects.create(user=barber_user, barbershop=self.barbershop)
-        self.service = Service.objects.create(
-            barbershop=self.barbershop,
-            nome='Corte Slots',
-            preco='40.00',
-            duracao=60,
-        )
-        self.client.force_authenticate(self.admin)
-
-    def create_user(self, email, tipo_perfil):
-        return User.objects.create_user(
-            email=email,
-            nome=email.split('@')[0],
-            password='Senha-segura-123',
-            tipo_perfil=tipo_perfil,
-            barbershop=self.barbershop,
-        )
-
-    def url(self, **params):
-        return reverse('appointment-available-slots')
-
-    def local_datetime(self, day_offset, hour, minute=0):
-        naive = datetime.now() + timedelta(days=day_offset)
-        data = (naive.replace(hour=hour, minute=minute, second=0, microsecond=0)).date()
-        return timezone.make_aware(datetime.combine(data, time(hour, minute)))
-
-    def data_str(self, day_offset):
-        return (datetime.now() + timedelta(days=day_offset)).strftime('%Y-%m-%d')
-
-    def test_slots_livres_gerados_com_passo_da_duracao(self):
-        response = self.client.get(self.url(), {
-            'barbeiro': self.barber.id,
-            'servico': self.service.id,
-            'data': self.data_str(2),
-        })
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Abertura 08:00, fechamento 12:00 e duração de 60 min:
-        # últimos slot válido começa às 11:00.
-        self.assertEqual(
-            response.data['slots'],
-            ['08:00', '09:00', '10:00', '11:00'],
-        )
-
-    def test_slot_conflitante_eh_removido(self):
-        Appointment.objects.create(
-            barbershop=self.barbershop,
-            cliente=self.admin,
-            barbeiro=self.barber,
-            servico=self.service,
-            data_hora=self.local_datetime(2, 9, 0),
-        )
-        response = self.client.get(self.url(), {
-            'barbeiro': self.barber.id,
-            'servico': self.service.id,
-            'data': self.data_str(2),
-        })
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['slots'], ['08:00', '10:00', '11:00'])
-
-    def test_agendamento_cancelado_nao_bloqueia_slot(self):
-        Appointment.objects.create(
-            barbershop=self.barbershop,
-            cliente=self.admin,
-            barbeiro=self.barber,
-            servico=self.service,
-            data_hora=self.local_datetime(2, 9, 0),
-            status=Appointment.Status.CANCELADO,
-        )
-        response = self.client.get(self.url(), {
-            'barbeiro': self.barber.id,
-            'servico': self.service.id,
-            'data': self.data_str(2),
-        })
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['slots'], ['08:00', '09:00', '10:00', '11:00'])
-
-    def test_agendamento_de_outro_barbeiro_nao_bloqueia(self):
-        outro_user = self.create_user('outro-barbeiro@example.com', User.TipoPerfil.BARBEIRO)
-        outro_barber = Barber.objects.create(user=outro_user, barbershop=self.barbershop)
-        Appointment.objects.create(
-            barbershop=self.barbershop,
-            cliente=self.admin,
-            barbeiro=outro_barber,
-            servico=self.service,
-            data_hora=self.local_datetime(2, 9, 0),
-        )
-        response = self.client.get(self.url(), {
-            'barbeiro': self.barber.id,
-            'servico': self.service.id,
-            'data': self.data_str(2),
-        })
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['slots'], ['08:00', '09:00', '10:00', '11:00'])
-
-    def test_parametros_ausentes_retornam_400(self):
-        response = self.client.get(self.url(), {'data': self.data_str(2)})
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_data_invalida_retorna_400(self):
-        response = self.client.get(self.url(), {
-            'barbeiro': self.barber.id,
-            'servico': self.service.id,
-            'data': '25/08/2026',
-        })
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_barbeiro_inexistente_retorna_404(self):
-        response = self.client.get(self.url(), {
-            'barbeiro': 99999,
-            'servico': self.service.id,
-            'data': self.data_str(2),
-        })
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_requer_autenticacao(self):
-        self.client.force_authenticate(user=None)
-        response = self.client.get(self.url(), {
-            'barbeiro': self.barber.id,
-            'servico': self.service.id,
-            'data': self.data_str(2),
-        })
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        lista = self.client.get(self.list_url)
+        ids = [item['id'] for item in lista.data['results']]
+        self.assertNotIn(self.barbeiro_a.id, ids)
+
+    # ------------------------------------------------------------------
+    # 11) Barber e User precisam pertencer à mesma barbearia
+    # ------------------------------------------------------------------
+    def test_barber_and_user_must_share_same_barbershop(self):
+        """Testa diretamente a regra de negócio em Barber.clean(),
+        independente da camada de API: o vínculo só é válido quando
+        barbeiro e usuário pertencem à mesma barbearia."""
+        barber_barbearia_diferente = Barber(
+            user=self.barbeiro_user_b, barbershop=self.barbershop_a,
+        )
+        with self.assertRaises(ValidationError):
+            barber_barbearia_diferente.clean()
+
+        # mesma barbearia para ambos: não deve levantar erro
+        barber_valido = Barber(
+            user=self.barbeiro_user_a_sem_perfil, barbershop=self.barbershop_a,
+        )
+        barber_valido.clean()

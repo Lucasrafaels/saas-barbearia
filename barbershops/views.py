@@ -39,12 +39,13 @@ class BarbershopViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         barbershop = serializer.save()
         user = self.request.user
-        # O usuário que cria a barbearia passa a ser o admin dela — sem
-        # isso, a barbearia nunca fica associada a ninguém (bug original).
-        if not user.barbershop_id:
-            user.barbershop = barbershop
-            user.tipo_perfil = user.TipoPerfil.ADMIN
-            user.save(update_fields=['barbershop', 'tipo_perfil'])
+        # O usuário que cria a barbearia passa a ser o admin dela. A
+        # ausência de tenant já foi garantida em
+        # BarbershopSerializer.validate(), então não há mais o branch
+        # silencioso que deixava a barbearia órfã.
+        user.barbershop = barbershop
+        user.tipo_perfil = user.TipoPerfil.ADMIN
+        user.save(update_fields=['barbershop', 'tipo_perfil'])
 
 
 class BarberViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):

@@ -122,7 +122,7 @@ Objeto retornado:
 | `GET /users/` | Admin | Lista usuários do tenant. |
 | `POST /users/` | Admin | Cria cliente ou barbeiro no tenant do admin. |
 | `GET /users/{id}/` | Próprio ou admin | Consulta usuário. |
-| `PATCH`/`PUT /users/{id}/` | Próprio ou admin | Atualiza cadastro. |
+| `PATCH`/`PUT /users/{id}/` | Próprio ou admin | Atualiza cadastro — ver restrições de campo abaixo. |
 | `DELETE /users/{id}/` | Admin | Remove usuário. |
 | `GET /users/me/` | Autenticado | Dados do usuário logado. |
 
@@ -140,6 +140,19 @@ Criação interna de cliente/barbeiro:
 Não envie `barbershop`: ela é obtida da sessão do admin. Não é permitido criar
 outro `admin` por essa rota. Após criar um usuário barbeiro, crie também seu
 perfil profissional em `POST /barbers/`.
+
+### Restrições de campo em `PATCH`/`PUT /users/{id}/`
+
+`tipo_perfil` e `barbershop` são protegidos pelo servidor nesta rota — não é
+uma convenção que depende do frontend se comportar bem:
+
+- `barbershop` é sempre somente-leitura aqui. Não existe rota para trocar um
+  usuário de tenant; se enviado, o valor é simplesmente ignorado.
+- `tipo_perfil`: o próprio usuário nunca consegue alterar o seu (também
+  ignorado se enviado). Um admin pode alterar o `tipo_perfil` de outro
+  usuário do tenant entre `barbeiro` e `cliente`, mas não pode conceder
+  `admin` por esta rota — a tentativa retorna `400` (mesma restrição já
+  aplicada em `POST /users/`).
 
 Para alterações de perfil no frontend, envie somente campos pessoais, por
 exemplo:
@@ -178,6 +191,11 @@ Exemplo:
 ```
 
 Para enviar `logo`, use `multipart/form-data`.
+
+Se o usuário autenticado já pertencer a uma barbearia (como admin, barbeiro
+ou cliente), a criação retorna `400` em vez de criar um segundo tenant: esta
+rota é somente o onboarding inicial, e não é possível existir uma barbearia
+sem nenhum admin vinculado a ela.
 
 ---
 
@@ -290,10 +308,23 @@ Regras aplicadas:
 
 - cliente deve ter perfil `cliente` e pertencer ao tenant;
 - barbeiro e serviço devem pertencer ao tenant;
+- o agendamento — do início ao fim, considerando a duração do serviço —
+  precisa caber dentro do horário de funcionamento da barbearia (início
+  igual à abertura e fim igual ao fechamento são aceitos; não pode
+  atravessar a virada do dia);
+- não é permitido marcar nem remarcar (`data_hora`) um agendamento para uma
+  data/hora que já passou; já atualizar outros campos de um agendamento
+  cuja data já passou — por exemplo marcar `status` como `realizado` ou
+  incluir uma `observacoes` — continua permitido, exatamente para não
+  travar o fechamento do atendimento;
 - o mesmo barbeiro não pode ter horários sobrepostos;
 - cliente sempre agenda para si;
 - barbeiro só gerencia a própria agenda;
 - cliente não pode transferir um agendamento para outra pessoa.
+
+As comparações de horário de funcionamento e de "não permitir o passado" são
+feitas na mesma timezone local do projeto usada em `available-slots`
+(`TIME_ZONE`), não em UTC.
 
 Filtros: `?status=agendado`, `?barbeiro=7` e `?servico=4`.
 
@@ -354,15 +385,16 @@ Os horários são calculados na timezone local configurada no projeto
 
 ## Atenção antes de integrar o frontend
 
-O contrato acima trata `tipo_perfil` e `barbershop` como dados controlados
-pelo servidor. O frontend não deve enviá-los em edições de usuário. Antes do
-deploy, vale fazer uma última revisão para garantir que o serializer de
-atualização também marque esses campos como somente leitura.
+`tipo_perfil` e `barbershop` em `PATCH`/`PUT /users/{id}/`, e a exigência de
+"usuário sem tenant" em `POST /barbershops/`, são regras aplicadas no
+servidor (ver as seções de Usuários e Barbearias acima) — o frontend pode
+contar com o `400` do servidor como a defesa real, não precisa reforçar
+nada além disso na interface.
 
-Da mesma forma, o fluxo de criação de barbearia é destinado a contas sem
-tenant. A tela deve oferecer essa ação apenas quando `GET /users/me/` retornar
-`barbershop: null`; uma validação explícita no backend para esse cenário é uma
-boa melhoria de endurecimento antes da produção.
+A tela de criação de barbearia ainda deve, por UX, oferecer essa ação
+apenas quando `GET /users/me/` retornar `barbershop: null` — mas isso agora
+é só para não mostrar um botão que sempre falharia, não é a única defesa
+contra criar uma barbearia órfã.
 
 ## Rotas ainda não implementadas
 

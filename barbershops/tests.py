@@ -80,6 +80,96 @@ class BarbershopSecurityTests(APITestCase):
         self.assertFalse(self.barbershop.ativo)
 
 
+class BarbershopOnboardingTests(APITestCase):
+    """
+    Cobre o fluxo de onboarding de POST /api/v1/barbershops/ e a correção
+    do bug que permitia criar uma barbearia "órfã": antes da correção, um
+    usuário que já pertencia a um tenant também conseguia criar uma nova
+    barbearia — ela era persistida no banco, só o vínculo de admin é que
+    não acontecia, deixando um registro sem ninguém responsável.
+    """
+
+    def setUp(self):
+        self.barbershop = BarbershopSecurityTests.create_barbershop(
+            'Central', 'central@example.com',
+        )
+        self.list_url = reverse('barbershop-list')
+
+    @staticmethod
+    def create_user(email, tipo_perfil=None, barbershop=None):
+        return User.objects.create_user(
+            email=email,
+            nome=email.split('@')[0],
+            password='Senha-segura-123',
+            tipo_perfil=tipo_perfil or User.TipoPerfil.CLIENTE,
+            barbershop=barbershop,
+        )
+
+    @staticmethod
+    def barbershop_payload(nome, email):
+        return {
+            'nome': nome,
+            'endereco': 'Rua Nova, 500',
+            'telefone': '11977777777',
+            'email': email,
+            'horario_abertura': '08:00',
+            'horario_fechamento': '18:00',
+        }
+
+    def test_user_without_tenant_creates_barbershop_and_becomes_its_admin(self):
+        user_sem_tenant = self.create_user('sem-tenant@example.com')
+        self.client.force_authenticate(user_sem_tenant)
+
+        response = self.client.post(
+            self.list_url,
+            self.barbershop_payload('Barbearia Nova', 'nova@example.com'),
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        user_sem_tenant.refresh_from_db()
+        self.assertEqual(user_sem_tenant.barbershop_id, response.data['id'])
+        self.assertEqual(user_sem_tenant.tipo_perfil, User.TipoPerfil.ADMIN)
+
+    def test_user_with_tenant_cannot_create_another_barbershop(self):
+        antes = Barbershop.objects.count()
+        usuario_com_tenant = self.create_user(
+            'ja-tem-tenant@example.com', User.TipoPerfil.CLIENTE, self.barbershop,
+        )
+        self.client.force_authenticate(usuario_com_tenant)
+
+        response = self.client.post(
+            self.list_url,
+            self.barbershop_payload('Barbearia Órfã', 'orfa@example.com'),
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        # Nenhuma barbearia órfã deve ter sido criada no banco.
+        self.assertEqual(Barbershop.objects.count(), antes)
+        usuario_com_tenant.refresh_from_db()
+        self.assertEqual(usuario_com_tenant.barbershop_id, self.barbershop.pk)
+        self.assertEqual(usuario_com_tenant.tipo_perfil, User.TipoPerfil.CLIENTE)
+
+    def test_admin_with_tenant_cannot_create_another_barbershop(self):
+        """Mesma regra vale para quem já é admin de uma barbearia — não é
+        só para clientes/barbeiros."""
+        antes = Barbershop.objects.count()
+        admin_existente = self.create_user(
+            'admin-existente@example.com', User.TipoPerfil.ADMIN, self.barbershop,
+        )
+        self.client.force_authenticate(admin_existente)
+
+        response = self.client.post(
+            self.list_url,
+            self.barbershop_payload('Segunda Barbearia', 'segunda@example.com'),
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Barbershop.objects.count(), antes)
+
+
 class BarberAPITestCase(APITestCase):
     """
     Testes do endpoint /api/v1/barbers/ (BarberViewSet).

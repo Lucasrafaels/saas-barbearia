@@ -18,7 +18,38 @@ class UserSerializer(serializers.ModelSerializer):
             'id', 'email', 'nome', 'tipo_perfil', 'barbershop',
             'is_active', 'created_at',
         ]
-        read_only_fields = ['id', 'created_at']
+        # `barbershop` nunca é editável por este serializer — trocar de
+        # tenant não é uma operação de "editar meu cadastro" nem de
+        # "admin gerencia usuário", em lugar nenhum do sistema (mesmo
+        # padrão de `barbershop` sempre read-only já usado em
+        # BarberSerializer/AppointmentSerializer).
+        read_only_fields = ['id', 'created_at', 'barbershop']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get('request')
+        requester = getattr(request, 'user', None)
+        # `tipo_perfil` só pode ser alterado por um admin (ou superuser).
+        # Sem isso, IsSelfOrAdmin libera o próprio usuário para editar seu
+        # cadastro, e nada impedia um cliente autenticado de se
+        # autopromover via PATCH /users/{seu_id}/ (bug original).
+        is_admin = bool(
+            requester
+            and requester.is_authenticated
+            and (requester.is_superuser or requester.tipo_perfil == User.TipoPerfil.ADMIN)
+        )
+        if not is_admin:
+            self.fields['tipo_perfil'].read_only = True
+
+    def validate_tipo_perfil(self, value):
+        # Mesma regra já aplicada na criação (UserCreateSerializer): este
+        # endpoint genérico nunca é o caminho para conceder papel de
+        # administrador, nem para um admin promover alguém a admin.
+        if value == User.TipoPerfil.ADMIN:
+            raise serializers.ValidationError(
+                'Não é possível definir o papel de administrador por este endpoint.'
+            )
+        return value
 
 
 class PasswordValidationMixin:
