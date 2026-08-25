@@ -1,0 +1,10 @@
+.authPage { display: grid; min-height: 100vh; place-items: center; padding: 1.25rem; background: radial-gradient(circle at 10% 5%, #ddd6fe 0, transparent 32rem), #111827; }
+.panel { width: min(100%, 29rem); padding: clamp(1.5rem, 5vw, 2.5rem); border: 1px solid rgba(255,255,255,.32); border-radius: 1.2rem; background: rgba(255,255,255,.97); box-shadow: 0 24px 70px rgba(0,0,0,.28); }
+.widePanel { width: min(100%, 43rem); }
+.brand { display: inline-flex; align-items: center; gap: .55rem; color: #2e1065; font-size: 1.05rem; font-weight: 850; }
+.brand span { color: #7c3aed; font-size: 1.45rem; }
+.eyebrow { margin: 1.35rem 0 .45rem; color: #7c3aed; font-size: .78rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.panel h1 { margin-bottom: .6rem; color: #182033; font-size: clamp(1.65rem, 5vw, 2.1rem); letter-spacing: -.04em; }
+.description { margin-bottom: 1.6rem; color: #647085; line-height: 1.55; }
+.switch { margin: 1.35rem 0 0; color: #647085; font-size: .9rem; text-align: center; }
+.switch a { color: #5b21b6; font-weight: 750; }

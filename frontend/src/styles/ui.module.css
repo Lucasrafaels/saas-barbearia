@@ -1,0 +1,44 @@
+.form { display: grid; gap: 1rem; }
+.formCard { display: grid; gap: 1.15rem; padding: clamp(1.1rem, 4vw, 1.75rem); border: 1px solid #e4e7ee; border-radius: 1rem; background: #fff; box-shadow: 0 12px 36px rgba(20, 30, 55, .05); }
+.formCard h2 { margin-bottom: 0; font-size: 1.15rem; }
+.formGrid { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.field { display: grid; gap: .42rem; color: #303a4d; font-size: .9rem; font-weight: 650; }
+.field input, .field select, .field textarea { width: 100%; border: 1px solid #cfd6e3; border-radius: .6rem; background: #fff; color: #172033; padding: .7rem .8rem; outline: none; transition: border-color .15s, box-shadow .15s; }
+.field textarea { resize: vertical; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139, 92, 246, .14); }
+.fullWidth { grid-column: 1 / -1; }
+.inlineFields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.checkbox { display: flex; align-items: center; gap: .55rem; color: #303a4d; font-size: .9rem; font-weight: 600; }
+.checkbox input { accent-color: #7c3aed; width: 1rem; height: 1rem; }
+.button, .secondaryButton, .dangerButton, .textButton { display: inline-flex; align-items: center; justify-content: center; min-height: 2.65rem; border: 1px solid transparent; border-radius: .6rem; padding: .55rem .95rem; font-weight: 750; text-decoration: none; transition: transform .15s, background .15s, border-color .15s; }
+.button:hover, .secondaryButton:hover, .dangerButton:hover { transform: translateY(-1px); }
+.button { background: #6d28d9; color: #fff; }
+.button:hover { background: #5b21b6; }
+.secondaryButton { background: #fff; border-color: #cfd6e3; color: #364152; }
+.secondaryButton:hover { border-color: #9ba6b8; background: #f8fafc; }
+.dangerButton { background: #fff1f2; border-color: #fecdd3; color: #be123c; }
+.dangerButton:hover { background: #ffe4e6; }
+.textButton { background: transparent; color: #6541c9; padding: .35rem .2rem; }
+.textButton:hover { text-decoration: underline; }
+.buttonRow { display: flex; flex-wrap: wrap; gap: .7rem; }
+.fieldset { display: grid; gap: .7rem; border: 0; margin: 0; padding: 0; }
+.fieldset legend { margin-bottom: .45rem; color: #303a4d; font-size: .9rem; font-weight: 650; }
+.hint { color: #687386; font-size: .9rem; line-height: 1.45; margin: 0; }
+.error { color: #be123c; font-size: .8rem; font-weight: 600; }
+.errorBox { padding: 1rem; border-radius: .75rem; background: #fff1f2; color: #9f1239; }
+.loaderWrap { display: flex; min-height: 14rem; align-items: center; justify-content: center; gap: .75rem; color: #586276; font-weight: 600; }
+.spinner { width: 1.25rem; height: 1.25rem; border: 3px solid #d8d1f2; border-top-color: #6d28d9; border-radius: 50%; animation: spin .8s linear infinite; }
+.emptyState { display: grid; justify-items: center; gap: .5rem; padding: 3rem 1.5rem; border: 1px dashed #cfd6e3; border-radius: 1rem; text-align: center; color: #687386; background: #fff; }
+.emptyState h2 { color: #202a3a; margin: 0; font-size: 1.15rem; }
+.emptyState p { margin: 0 0 .5rem; max-width: 32rem; }
+.emptyIcon { color: #7c3aed; font-size: 1.8rem; }
+.pagination { display: flex; align-items: center; justify-content: center; gap: .85rem; margin-top: 1.5rem; color: #687386; font-size: .88rem; }
+.toastRegion { position: fixed; z-index: 30; right: 1rem; bottom: 1rem; display: grid; gap: .6rem; width: min(24rem, calc(100vw - 2rem)); }
+.toast { border-radius: .7rem; box-shadow: 0 12px 30px rgba(15, 23, 42, .18); padding: .8rem 1rem; color: #fff; font-weight: 600; animation: toastIn .2s ease-out; }
+.toastsuccess { background: #047857; }
+.toasterror { background: #be123c; }
+.toastinfo { background: #334155; }
+.inlineEdit { display: grid; gap: .65rem; width: min(100%, 20rem); }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes toastIn { from { opacity: 0; transform: translateY(8px); } }
+@media (max-width: 520px) { .formGrid, .inlineFields { grid-template-columns: 1fr; } .fullWidth { grid-column: auto; } .button, .secondaryButton, .dangerButton { width: 100%; } .buttonRow { display: grid; } .pagination { flex-wrap: wrap; } }
