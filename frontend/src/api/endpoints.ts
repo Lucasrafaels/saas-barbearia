@@ -12,7 +12,9 @@ import type {
   Paginated,
   RegisterInput,
   Service,
+  UpdateUserInput,
   User,
+  UserRole,
 } from '../types'
 
 export const authApi = {
@@ -45,8 +47,10 @@ export const serviceApi = {
 }
 
 export const userApi = {
-  list: () => api.get<Paginated<User>>('/users/'),
+  list: (params?: { tipo_perfil?: UserRole }) => api.get<Paginated<User>>('/users/', { params }),
   create: (payload: CreateUserInput) => api.post<User>('/users/', payload),
+  update: (id: number, payload: Partial<UpdateUserInput>) => api.patch<User>(`/users/${id}/`, payload),
+  remove: (id: number) => api.delete(`/users/${id}/`),
 }
 
 export const appointmentApi = {
@@ -69,4 +73,24 @@ export async function listAllAppointments(): Promise<Appointment[]> {
     next = pageData.next
   }
   return appointments
+}
+
+/** Busca todas as páginas de usuários do tenant, opcionalmente filtrando por papel. */
+export async function listAllUsers(tipoPerfil?: UserRole): Promise<User[]> {
+  const users: User[] = []
+  let next: string | null = '/users/'
+  let isFirst = true
+
+  while (next) {
+    const url: string = next
+    const config = isFirst && tipoPerfil ? { params: { tipo_perfil: tipoPerfil } } : {}
+    
+    const response = await api.get<Paginated<User>>(url, config)
+    
+    isFirst = false
+    users.push(...response.data.results)
+    next = response.data.next
+  }
+
+  return tipoPerfil ? users.filter((u) => u.tipo_perfil === tipoPerfil) : users
 }
