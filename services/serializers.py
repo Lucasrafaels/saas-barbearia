@@ -16,7 +16,7 @@ class ServiceSerializer(serializers.ModelSerializer):
     )
     # Sobrescreve preco para rejeitar valores negativos (zero é permitido)
     preco = serializers.DecimalField(
-        max_digits=10,
+        max_digits=8,
         decimal_places=2,
         min_value=Decimal('0.00'),
         help_text="Preço do serviço (mínimo 0.00)"

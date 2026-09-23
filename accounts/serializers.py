@@ -1,12 +1,34 @@
 """
 Serializers do app accounts.
 """
+from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db import transaction
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from rest_framework import serializers
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+from rest_framework_simplejwt.settings import api_settings
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User
+
+
+def revoke_user_refresh_tokens(user):
+    """Invalida refresh tokens já emitidos para encerrar sessões do usuário."""
+    from rest_framework_simplejwt.token_blacklist.models import (
+        BlacklistedToken, OutstandingToken,
+    )
+
+    for token in OutstandingToken.objects.filter(user=user):
+        BlacklistedToken.objects.get_or_create(token=token)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -40,6 +62,7 @@ class UserSerializer(serializers.ModelSerializer):
         )
         if not is_admin:
             self.fields['tipo_perfil'].read_only = True
+            self.fields['is_active'].read_only = True
 
     def validate_tipo_perfil(self, value):
         # Mesma regra já aplicada na criação (UserCreateSerializer): este
@@ -50,6 +73,40 @@ class UserSerializer(serializers.ModelSerializer):
                 'Não é possível definir o papel de administrador por este endpoint.'
             )
         return value
+
+    def validate(self, attrs):
+        return super().validate(attrs)
+
+    def update(self, instance, validated_data):
+        """Atualiza papel e perfil profissional como uma única transação.
+
+        `validate()` deve ser livre de efeitos colaterais: uma requisição que
+        falhe em outro campo jamais pode criar/inativar um Barber.
+        """
+        old_role = instance.tipo_perfil
+        new_role = validated_data.get('tipo_perfil', old_role)
+        is_being_deactivated = instance.is_active and validated_data.get('is_active') is False
+        with transaction.atomic():
+            instance = type(instance).objects.select_for_update().get(pk=instance.pk)
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+            instance.save()
+            if is_being_deactivated:
+                revoke_user_refresh_tokens(instance)
+            if old_role != new_role and User.TipoPerfil.BARBEIRO in {old_role, new_role}:
+                from barbershops.models import Barber
+
+                if new_role == User.TipoPerfil.BARBEIRO:
+                    barber, _ = Barber.objects.get_or_create(
+                        user=instance,
+                        defaults={'barbershop': instance.barbershop, 'ativo': True},
+                    )
+                    if not barber.ativo:
+                        barber.ativo = True
+                        barber.save(update_fields=['ativo'])
+                else:
+                    Barber.objects.filter(user=instance, ativo=True).update(ativo=False)
+        return instance
 
 
 class PasswordValidationMixin:
@@ -93,6 +150,24 @@ class UserCreateSerializer(PasswordValidationMixin, serializers.ModelSerializer)
             raise serializers.ValidationError(
                 {'barbershop': 'O administrador precisa pertencer a uma barbearia.'}
             )
+        # Defesa em profundidade: apenas ADMIN (ou superuser) pode criar usuários.
+        # A permissão IsAdminRole no ViewSet já bloqueia, mas validamos aqui também.
+        requester = request.user
+        is_admin = bool(
+            requester.is_authenticated
+            and (requester.is_superuser or requester.tipo_perfil == User.TipoPerfil.ADMIN)
+        )
+        if not is_admin:
+            raise serializers.ValidationError(
+                {'detail': 'Apenas administradores podem criar usuários.'}
+            )
+        # O frontend cadastra o usuário e, logo depois, cria seu perfil em
+        # /barbers/. Até essa segunda operação o usuário não pode receber o
+        # papel de barbeiro, pois o papel sem perfil causava erros 500 nas
+        # consultas multi-tenant. BarberViewSet promove-o atomicamente ao
+        # criar o perfil profissional.
+        if validated_data.get('tipo_perfil') == User.TipoPerfil.BARBEIRO:
+            validated_data['tipo_perfil'] = User.TipoPerfil.CLIENTE
         return User.objects.create_user(
             password=password,
             barbershop=request.user.barbershop,
@@ -129,3 +204,115 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['tipo_perfil'] = user.tipo_perfil
         token['barbershop_id'] = user.barbershop_id
         return token
+
+
+class ActiveUserTokenRefreshSerializer(TokenRefreshSerializer):
+    """Não renova sessões de contas removidas, inativas ou inexistentes."""
+
+    def validate(self, attrs):
+        try:
+            token = RefreshToken(attrs['refresh'])
+            user_id = token[api_settings.USER_ID_CLAIM]
+            user = User.objects.get(**{api_settings.USER_ID_FIELD: user_id})
+        except (KeyError, User.DoesNotExist, TokenError, ValueError, TypeError) as error:
+            raise AuthenticationFailed('Token de atualização inválido.') from error
+
+        if not user.is_active:
+            raise AuthenticationFailed('Conta de usuário inativa.')
+        return super().validate(attrs)
+
+
+class PasswordChangeSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only=True, trim_whitespace=False)
+    new_password = serializers.CharField(write_only=True, min_length=8, trim_whitespace=False)
+
+    def validate_old_password(self, value):
+        if not self.context['request'].user.check_password(value):
+            raise serializers.ValidationError('Senha atual incorreta.')
+        return value
+
+    def validate(self, attrs):
+        try:
+            validate_password(attrs['new_password'], user=self.context['request'].user)
+        except DjangoValidationError as error:
+            raise serializers.ValidationError({'new_password': error.messages}) from error
+        return attrs
+
+    def save(self, **kwargs):
+        user = self.context['request'].user
+        with transaction.atomic():
+            user.set_password(self.validated_data['new_password'])
+            user.save(update_fields=['password'])
+            revoke_user_refresh_tokens(user)
+        return user
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def save(self, **kwargs):
+        # A resposta é idêntica para e-mails existentes e inexistentes, para
+        # não transformar este endpoint em uma fonte de enumeração de contas.
+        # O envio é SEMPRE tentado (mesmo para e-mail inexistente) para evitar
+        # timing attack: a latência deve ser constante independentemente da
+        # existência da conta. Em produção, usar Celery para envio assíncrono.
+        email = self.validated_data['email']
+        user = User.objects.filter(email__iexact=email, is_active=True).first()
+
+        # Sempre preparar dados do e-mail (mesmo se user for None)
+        if user is not None:
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            recipient_list = [user.email]
+        else:
+            # Dados fictícios para manter latência constante
+            uid = urlsafe_base64_encode(force_bytes(0))
+            token = 'dummy-token'
+            recipient_list = [settings.DEFAULT_FROM_EMAIL]  # nunca entregue
+
+        try:
+            send_mail(
+                subject='Recuperação de senha',
+                message=(
+                    'Use estes dados para redefinir sua senha:\n\n'
+                    f'uid: {uid}\n'
+                    f'token: {token}\n\n'
+                    'Se você não solicitou a alteração, ignore esta mensagem.'
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=recipient_list,
+                fail_silently=True,  # não vazar erro de SMTP
+            )
+        except Exception:
+            # Log interno em produção; nunca propagar para o cliente
+            pass
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    uid = serializers.CharField(write_only=True)
+    token = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True, min_length=8, trim_whitespace=False)
+
+    def validate(self, attrs):
+        try:
+            user_id = force_str(urlsafe_base64_decode(attrs['uid']))
+            user = User.objects.get(pk=user_id, is_active=True)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist) as error:
+            raise serializers.ValidationError({'token': 'Token inválido ou expirado.'}) from error
+
+        if not default_token_generator.check_token(user, attrs['token']):
+            raise serializers.ValidationError({'token': 'Token inválido ou expirado.'})
+        try:
+            validate_password(attrs['new_password'], user=user)
+        except DjangoValidationError as error:
+            raise serializers.ValidationError({'new_password': error.messages}) from error
+        attrs['user'] = user
+        return attrs
+
+    def save(self, **kwargs):
+        user = self.validated_data['user']
+        with transaction.atomic():
+            user.set_password(self.validated_data['new_password'])
+            user.save(update_fields=['password'])
+            revoke_user_refresh_tokens(user)
+        return user

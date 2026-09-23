@@ -28,13 +28,13 @@ class Appointment(TimeStampedModel):
         'barbershops.Barbershop',
         verbose_name='barbearia',
         related_name='agendamentos',
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
     )
     cliente = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name='cliente',
         related_name='agendamentos_cliente',
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         # Restringe apenas as opções mostradas em formulários (ex.: admin);
         # não é uma constraint de banco de dados.
         limit_choices_to={'tipo_perfil': 'cliente'},
@@ -43,13 +43,13 @@ class Appointment(TimeStampedModel):
         'barbershops.Barber',
         verbose_name='barbeiro',
         related_name='agendamentos',
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
     )
     servico = models.ForeignKey(
         'services.Service',
         verbose_name='serviço',
         related_name='agendamentos',
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
     )
     data_hora = models.DateTimeField('data e hora')
     status = models.CharField(
@@ -64,6 +64,10 @@ class Appointment(TimeStampedModel):
         verbose_name = 'agendamento'
         verbose_name_plural = 'agendamentos'
         ordering = ['-data_hora']
+        indexes = [
+            models.Index(fields=['barbeiro', 'data_hora']),
+            models.Index(fields=['barbershop', 'data_hora']),
+        ]
 
     def __str__(self):
         return f'{self.cliente.nome} com {self.barbeiro.user.nome} em {self.data_hora:%d/%m/%Y %H:%M}'
@@ -86,10 +90,23 @@ class Appointment(TimeStampedModel):
                 and self.cliente.barbershop_id != self.barbershop_id
             ):
                 errors['cliente'] = 'Este cliente não pertence a esta barbearia.'
+        validating_new_booking = not self.pk
+        if self.pk:
+            persisted = type(self).objects.filter(pk=self.pk).values(
+                'barbeiro_id', 'servico_id', 'data_hora'
+            ).first()
+            validating_new_booking = bool(persisted and any(
+                persisted[field] != getattr(self, field)
+                for field in ('barbeiro_id', 'servico_id', 'data_hora')
+            ))
         if self.barbeiro_id and self.barbershop_id and self.barbeiro.barbershop_id != self.barbershop_id:
             errors['barbeiro'] = 'Este barbeiro não pertence a esta barbearia.'
+        elif validating_new_booking and self.barbeiro_id and not self.barbeiro.ativo:
+            errors['barbeiro'] = 'Este barbeiro está inativo e não pode receber agendamentos.'
         if self.servico_id and self.barbershop_id and self.servico.barbershop_id != self.barbershop_id:
             errors['servico'] = 'Este serviço não pertence a esta barbearia.'
+        elif validating_new_booking and self.servico_id and not self.servico.ativo:
+            errors['servico'] = 'Este serviço está inativo e não pode ser agendado.'
         if errors:
             raise ValidationError(errors)
 
@@ -175,7 +192,11 @@ class Appointment(TimeStampedModel):
         fim_novo_agendamento = self.data_hora + timedelta(minutes=self.servico.duracao)
         agendamentos = (
             type(self).objects.select_related('servico')
-            .filter(barbeiro_id=self.barbeiro_id, data_hora__lt=fim_novo_agendamento)
+            .filter(
+                barbeiro_id=self.barbeiro_id,
+                data_hora__lt=fim_novo_agendamento,
+                data_hora__gte=self.data_hora - timedelta(minutes=24 * 60),
+            )
             .exclude(status=self.Status.CANCELADO)
             .exclude(pk=self.pk)
         )

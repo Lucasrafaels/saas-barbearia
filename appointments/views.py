@@ -5,11 +5,13 @@ from datetime import datetime, timedelta
 
 from django.utils import timezone
 from rest_framework import permissions, status, viewsets
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from barbershops.models import Barber
 from config.mixins import TenantScopedQuerysetMixin
+from config.permissions import IsAdminRole, IsBarberRole
 from services.models import Service
 
 from .models import Appointment
@@ -29,16 +31,39 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     filterset_fields = ['status', 'barbeiro', 'servico']
 
+    def get_permissions(self):
+        # Clientes podem criar e cancelar o próprio horário, mas não podem
+        # alterar status (confirmado/realizado). Essas transições ficam com
+        # administrador e barbeiro; o queryset continua impondo o escopo.
+        if self.action in ['update', 'partial_update']:
+            if self.request.user.is_cliente:
+                # Clientes podem atualizar seus próprios agendamentos (apenas para cancelamento)
+                return [permissions.IsAuthenticated()]
+            return [permissions.IsAuthenticated(), IsAdminOrBarberRole()]
+        if self.action == 'destroy':
+            # O DELETE é um cancelamento lógico. O queryset já limita o
+            # cliente ao próprio agendamento; barbeiros continuam sem poder
+            # cancelar horários de clientes arbitrariamente.
+            if self.request.user.is_cliente:
+                return [permissions.IsAuthenticated()]
+            return [permissions.IsAuthenticated(), IsAdminRole()]
+        return [permissions.IsAuthenticated()]
+
     def get_queryset(self):
         queryset = super().get_queryset()
         user = self.request.user
         if user.is_cliente:
             queryset = queryset.filter(cliente=user)
         elif user.is_barbeiro:
-            queryset = queryset.filter(barbeiro=user.perfil_barbeiro)
+            barbeiro = getattr(user, 'perfil_barbeiro', None)
+            if barbeiro is None:
+                return queryset.none()
+            queryset = queryset.filter(barbeiro=barbeiro)
         return queryset
 
     def perform_create(self, serializer):
+        if not self.request.user.barbershop_id:
+            raise PermissionDenied('Usuário sem barbearia vinculada.')
         extra = {'barbershop_id': self.request.user.barbershop_id}
         # Um cliente só pode marcar horário para si mesmo; administradores
         # e barbeiros podem informar o cliente explicitamente (ex.: ao
@@ -46,7 +71,10 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
         if self.request.user.is_cliente:
             extra['cliente'] = self.request.user
         elif self.request.user.is_barbeiro:
-            extra['barbeiro'] = self.request.user.perfil_barbeiro
+            barbeiro = getattr(self.request.user, 'perfil_barbeiro', None)
+            if barbeiro is None:
+                raise PermissionDenied('Perfil profissional de barbeiro não encontrado.')
+            extra['barbeiro'] = barbeiro
         serializer.save(**extra)
 
     def perform_update(self, serializer):
@@ -56,6 +84,13 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
             serializer.save(cliente=self.request.user)
             return
         serializer.save()
+
+    def perform_destroy(self, instance):
+        # DELETE é mantido para compatibilidade, mas passa a representar o
+        # cancelamento do agendamento, preservando o histórico.
+        if instance.status != Appointment.Status.CANCELADO:
+            instance.status = Appointment.Status.CANCELADO
+            instance.save(update_fields=['status', 'updated_at'])
 
     @action(detail=False, methods=['get'], url_path='available-slots')
     def available_slots(self, request):
@@ -73,10 +108,7 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
         """
         user = request.user
         if user.barbershop_id is None:
-            return Response(
-                {'detail': 'Usuário sem barbearia vinculada.'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise PermissionDenied('Usuário sem barbearia vinculada.')
 
         barbeiro_id = request.query_params.get('barbeiro')
         servico_id = request.query_params.get('servico')
@@ -93,12 +125,16 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
             )
 
         try:
-            barbeiro = Barber.objects.get(id=barbeiro_id)
+            barbeiro = Barber.objects.select_related('barbershop').get(
+                id=barbeiro_id, barbershop_id=user.barbershop_id, ativo=True
+            )
         except (Barber.DoesNotExist, ValueError):
             return Response({'detail': 'Barbeiro não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
         try:
-            servico = Service.objects.get(id=servico_id)
+            servico = Service.objects.get(
+                id=servico_id, barbershop_id=user.barbershop_id, ativo=True
+            )
         except (Service.DoesNotExist, ValueError):
             return Response({'detail': 'Serviço não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -110,11 +146,6 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Escopo multi-tenant: barbeiro e serviço devem pertencer à barbearia
-        # do usuário autenticado.
-        if barbeiro.barbershop_id != user.barbershop_id or servico.barbershop_id != user.barbershop_id:
-            return Response({'detail': 'Recurso não pertence à sua barbearia.'}, status=status.HTTP_403_FORBIDDEN)
-
         duracao = timedelta(minutes=servico.duracao)
 
         inicio = timezone.make_aware(datetime.combine(data, barbeiro.barbershop.horario_abertura))
@@ -123,21 +154,35 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
         agendamentos = Appointment.objects.filter(
             barbeiro=barbeiro,
             data_hora__date=data,
-        ).exclude(status=Appointment.Status.CANCELADO).values_list('data_hora', flat=True)
+        ).exclude(status=Appointment.Status.CANCELADO).select_related('servico')
 
         ocupados = [
-            (timezone.localtime(inicio_agendado), timezone.localtime(inicio_agendado) + duracao)
-            for inicio_agendado in agendamentos
+            (
+                timezone.localtime(agendamento.data_hora),
+                timezone.localtime(agendamento.data_hora)
+                + timedelta(minutes=agendamento.servico.duracao),
+            )
+            for agendamento in agendamentos
         ]
 
         slots = []
         slot_atual = inicio
+        agora_local = timezone.localtime()
         while slot_atual <= limite:
             fim_slot = slot_atual + duracao
             conflita = any(inicio_ocupado < fim_slot and slot_atual < fim_ocupado
                            for inicio_ocupado, fim_ocupado in ocupados)
-            if not conflita:
+            if not conflita and not (data == agora_local.date() and slot_atual <= agora_local):
                 slots.append(slot_atual.strftime('%H:%M'))
             slot_atual += duracao
 
         return Response({'data': data.isoformat(), 'slots': slots})
+
+
+class IsAdminOrBarberRole(permissions.BasePermission):
+    """Permite alterar uma agenda apenas ao admin ou ao barbeiro responsável."""
+
+    def has_permission(self, request, view):
+        return IsAdminRole().has_permission(request, view) or IsBarberRole().has_permission(
+            request, view
+        )

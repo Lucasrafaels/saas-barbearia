@@ -22,9 +22,13 @@ env = environ.Env(
 # variáveis já vêm injetadas diretamente no ambiente pela infraestrutura.
 environ.Env.read_env(str(BASE_DIR / '.env'))
 
-SECRET_KEY = env('SECRET_KEY')
+_DEFAULT_DEV_SECRET = 'django-insecure-development-only-change-me-before-production-2026'
+SECRET_KEY = env('SECRET_KEY', default=_DEFAULT_DEV_SECRET)
 DEBUG = env.bool('DEBUG', default=False)
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
+
+if not DEBUG and SECRET_KEY == _DEFAULT_DEV_SECRET:
+    raise RuntimeError('SECRET_KEY deve ser definido em produção.')
 
 
 # ---------------------------------------------------------------------------
@@ -159,6 +163,23 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
+    # Proteção geral contra abuso. Os endpoints de autenticação recebem
+    # limites ainda mais restritivos e específicos nas respectivas views.
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',
+        'user': '1000/hour',
+        'login': '5/minute',
+        'register': '10/hour',
+        'refresh': '10/minute',
+        'logout': '30/minute',
+        'password_change': '5/hour',
+        'password_reset': '5/hour',
+        'password_reset_confirm': '10/hour',
+    },
 }
 
 
@@ -166,12 +187,23 @@ REST_FRAMEWORK = {
 # Simple JWT
 # ---------------------------------------------------------------------------
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
+    # O hash de senha no token permite que uma troca de senha invalide o
+    # access token imediatamente, sem aguardar a expiração de 15 minutos.
+    'CHECK_REVOKE_TOKEN': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+# O refresh nunca é exposto ao JavaScript: o navegador o envia somente no
+# cookie HttpOnly. O access permanece curto e é mantido apenas em memória.
+JWT_REFRESH_COOKIE_NAME = 'barbearia_refresh'
+JWT_REFRESH_COOKIE_PATH = '/api/v1/auth/'
+JWT_REFRESH_COOKIE_SECURE = env.bool('JWT_REFRESH_COOKIE_SECURE', default=not DEBUG)
+JWT_REFRESH_COOKIE_SAMESITE = env('JWT_REFRESH_COOKIE_SAMESITE', default='Lax')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='no-reply@barbearia.local')
 
 
 # ---------------------------------------------------------------------------
@@ -179,6 +211,19 @@ SIMPLE_JWT = {
 # ---------------------------------------------------------------------------
 CORS_ALLOWED_ORIGINS = env.list(
     'CORS_ALLOWED_ORIGINS',
-    default=['http://localhost:3000', 'http://127.0.0.1:3000'],
+    default=['http://localhost:5173', 'http://127.0.0.1:5173'],
 )
 CORS_ALLOW_CREDENTIALS = True
+
+# Segurança de transporte ativada por padrão fora do ambiente de
+# desenvolvimento; as opções podem ser ajustadas pela infraestrutura.
+SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=not DEBUG)
+SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=31536000 if not DEBUG else 0)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=not DEBUG)
+SECURE_HSTS_PRELOAD = env.bool('SECURE_HSTS_PRELOAD', default=False)
+SESSION_COOKIE_SECURE = env.bool('SESSION_COOKIE_SECURE', default=not DEBUG)
+CSRF_COOKIE_SECURE = env.bool('CSRF_COOKIE_SECURE', default=not DEBUG)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') if env.bool(
+    'USE_X_FORWARDED_PROTO', default=not DEBUG
+) else None
+X_FRAME_OPTIONS = 'DENY'

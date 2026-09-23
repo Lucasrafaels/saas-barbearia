@@ -9,9 +9,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from rest_framework_simplejwt.views import TokenRefreshView
-
-from accounts.views import CustomTokenObtainPairView, LogoutView, RegistrationView
+from accounts.views import (
+    CustomTokenObtainPairView, LogoutView, PasswordChangeView,
+    PasswordResetConfirmView, PasswordResetRequestView, RegistrationView,
+    ThrottledTokenRefreshView,
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -19,8 +21,11 @@ urlpatterns = [
     # Autenticação JWT
     path('api/v1/auth/register/', RegistrationView.as_view(), name='auth-register'),
     path('api/v1/auth/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/v1/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/v1/auth/refresh/', ThrottledTokenRefreshView.as_view(), name='token_refresh'),
     path('api/v1/auth/logout/', LogoutView.as_view(), name='token_logout'),
+    path('api/v1/auth/password/change/', PasswordChangeView.as_view(), name='password_change'),
+    path('api/v1/auth/password/reset/', PasswordResetRequestView.as_view(), name='password_reset'),
+    path('api/v1/auth/password/reset/confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
 
     # Rotas de cada app de negócio
     path('api/v1/', include('accounts.urls')),

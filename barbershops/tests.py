@@ -409,7 +409,8 @@ class BarberAPITestCase(APITestCase):
         response = self.client.delete(self._detail_url(self.barbeiro_a2.id))
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(Barber.objects.filter(pk=self.barbeiro_a2.id).exists())
+        self.barbeiro_a2.refresh_from_db()
+        self.assertFalse(self.barbeiro_a2.ativo)
 
     def test_cliente_cannot_delete_barber(self):
         self.client.force_authenticate(self.cliente_a)

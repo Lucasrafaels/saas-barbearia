@@ -49,13 +49,13 @@ class Barber(TimeStampedModel):
         settings.AUTH_USER_MODEL,
         verbose_name='usuário',
         related_name='perfil_barbeiro',
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
     )
     barbershop = models.ForeignKey(
         Barbershop,
         verbose_name='barbearia',
         related_name='barbeiros',
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
     )
     especialidade = models.CharField('especialidade', max_length=150, blank=True)
     ativo = models.BooleanField('ativo', default=True)
@@ -79,7 +79,7 @@ class Barber(TimeStampedModel):
         from accounts.models import User
 
         errors = {}
-        if self.user.tipo_perfil != User.TipoPerfil.BARBEIRO:
+        if self.ativo and self.user.tipo_perfil != User.TipoPerfil.BARBEIRO:
             errors['user'] = 'O usuário vinculado deve ter perfil de barbeiro.'
         if self.barbershop_id and self.user.barbershop_id != self.barbershop_id:
             errors['barbershop'] = (

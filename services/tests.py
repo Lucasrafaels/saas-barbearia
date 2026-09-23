@@ -136,14 +136,18 @@ class ServiceAPITestCase(APITestCase):
         self.assertEqual(self.servico_a.preco, Decimal('50.00'))
 
     # ------------------------------------------------------------------
-    # 3) Admin consegue excluir serviço
+    # 3) Admin consegue excluir serviço (soft delete)
     # ------------------------------------------------------------------
     def test_admin_can_delete_service(self):
         self.client.force_authenticate(user=self.admin_a)
         response = self.client.delete(self._detail_url(self.servico_a.id))
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(Service.objects.filter(pk=self.servico_a.id).exists())
+        # Verifica soft delete: serviço marcado como inativo, não excluído fisicamente
+        self.servico_a.refresh_from_db()
+        self.assertFalse(self.servico_a.ativo)
+        # Ainda existe no banco, mas está inativo
+        self.assertTrue(Service.objects.filter(pk=self.servico_a.id).exists())
 
     # ------------------------------------------------------------------
     # 4) Cliente consegue listar serviços da própria barbearia

@@ -11,7 +11,7 @@ class Service(TimeStampedModel):
         'barbershops.Barbershop',
         verbose_name='barbearia',
         related_name='servicos',
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
     )
     nome = models.CharField('nome', max_length=150)
     descricao = models.TextField('descrição', blank=True)
