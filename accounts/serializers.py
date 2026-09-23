@@ -78,13 +78,16 @@ class UserSerializer(serializers.ModelSerializer):
         return super().validate(attrs)
 
     def update(self, instance, validated_data):
-        """Atualiza papel e perfil profissional como uma única transação.
-
-        `validate()` deve ser livre de efeitos colaterais: uma requisição que
-        falhe em outro campo jamais pode criar/inativar um Barber.
+        """Atualiza apenas campos permitidos. Alteração de papel deve ocorrer
+        exclusivamente através do BarberViewSet para manter consistência do fluxo
+        de criação de perfil profissional.
         """
+        # Impedir alteração de tipo_perfil neste endpoint - usar BarberViewSet
+        validated_data.pop('tipo_perfil', None)
+        # Impedir alteração direta de is_active (use endpoints específicos)
+        validated_data.pop('is_active', None)
+
         old_role = instance.tipo_perfil
-        new_role = validated_data.get('tipo_perfil', old_role)
         is_being_deactivated = instance.is_active and validated_data.get('is_active') is False
         with transaction.atomic():
             instance = type(instance).objects.select_for_update().get(pk=instance.pk)
@@ -93,19 +96,6 @@ class UserSerializer(serializers.ModelSerializer):
             instance.save()
             if is_being_deactivated:
                 revoke_user_refresh_tokens(instance)
-            if old_role != new_role and User.TipoPerfil.BARBEIRO in {old_role, new_role}:
-                from barbershops.models import Barber
-
-                if new_role == User.TipoPerfil.BARBEIRO:
-                    barber, _ = Barber.objects.get_or_create(
-                        user=instance,
-                        defaults={'barbershop': instance.barbershop, 'ativo': True},
-                    )
-                    if not barber.ativo:
-                        barber.ativo = True
-                        barber.save(update_fields=['ativo'])
-                else:
-                    Barber.objects.filter(user=instance, ativo=True).update(ativo=False)
         return instance
 
 
