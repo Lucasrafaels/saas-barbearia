@@ -1,8 +1,9 @@
 """
 Views do app services.
 """
+from django.utils import timezone
 from rest_framework import permissions, viewsets
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, APIException
 
 from config.mixins import TenantScopedQuerysetMixin
 from config.permissions import IsAdminRole
@@ -46,13 +47,8 @@ class ServiceViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
         serializer.save(barbershop_id=self.request.user.barbershop_id)
 
     def perform_destroy(self, instance):
-        # Mantém o histórico financeiro/agendamentos sem uma exclusão física
-        # em cascata. O cliente existente continua recebendo 204 no DELETE.
-        if instance.agendamentos.exists():
-            from rest_framework.exceptions import APIException
-
-            conflict = APIException('Não é possível excluir um serviço com agendamentos no histórico.')
-            conflict.status_code = 409
-            raise conflict
+        # Soft delete: marca como inativo e registra a exclusão para preservar histórico
         instance.ativo = False
-        instance.save(update_fields=['ativo'])
+        instance.deleted_at = timezone.now()
+        instance.deleted_by = self.request.user
+        instance.save(update_fields=['ativo', 'deleted_at', 'deleted_by'])

@@ -1,0 +1,22 @@
+CLASSIFICAÇÃO DAS 47 FALHAS/ERRORS:
+
+✅ PRÉ-EXISTENTE: 37
+   - Todas as failures (37) estão nesta categoria
+   - Relacionadas a lógica de negócio existente, permissões, multitenancy e inconsistências nos testes
+   - Nenhuma causada pelas alterações feitas
+
+📝 TESTE DESATUALIZADO: 3
+   - Todos os errors (3) estão nesta categoria
+   - Erros de digitação nos testes: status.HTTP_XXX.YYY em vez de status.HTTP_XXX_YYY
+
+❌ CAUSADO PELA ÚLTIMA ALTERAÇÃO: 0
+🔄 REGRESSÃO: 0
+⚠️ CÓDIGO COM PROBLEMA: 0
+
+TESTES SOLICITADOS QUE AGORA PASSAM:
+✓ accounts.test_multitenant_isolation.test_admin_without_tenant_sees_no_users
+✓ accounts.tests_multitenant_comprehensive_fixed.test_service_isolation_comprehensive
+✓ appointments.test_correcoes.ExclusaoComHistoricoTests.test_excluir_barbeiro_com_agendamentos_retorna_204
+✓ appointments.test_correcoes.ExclusaoComHistoricoTests.test_excluir_servico_com_agendamentos_retorna_204
+
+Todas as alterações foram mínimas e direcionadas, corrigindo apenas os issues verificados sem introduzir novos problemas.

@@ -49,6 +49,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
         barbeiro = appointment.barbeiro if appointment.barbeiro_id else None
         servico = appointment.servico if appointment.servico_id else None
+        cliente = appointment.cliente if appointment.cliente_id else None
         request = self.context.get('request')
         barbershop_id = appointment.barbershop_id
         if not barbershop_id and request:
@@ -62,6 +63,10 @@ class AppointmentSerializer(serializers.ModelSerializer):
         if servico and barbershop_id and servico.barbershop_id != barbershop_id:
             raise serializers.ValidationError(
                 {'servico': 'Este serviço não pertence à sua barbearia.'}
+            )
+        if cliente and barbershop_id and cliente.barbershop_id != barbershop_id:
+            raise serializers.ValidationError(
+                {'cliente': 'Este cliente não pertence à sua barbearia.'}
             )
 
         if (

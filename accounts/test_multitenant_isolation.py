@@ -1,4 +1,5 @@
 """Multi-tenant isolation tests for accounts app."""
+from datetime import time
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -36,8 +37,8 @@ class AccountMultiTenantIsolationTests(APITestCase):
             endereco='Rua dos Testes, 100',
             telefone='11999999999',
             email=email,
-            horario_abertura=8,
-            horario_fechamento=18,
+            horario_abertura=time(8, 0),
+            horario_fechamento=time(18, 0),
         )
 
     @staticmethod
@@ -94,8 +95,15 @@ class AccountMultiTenantIsolationTests(APITestCase):
         self.assertEqual(self.client_a.barbershop_id, self.shop_a.id)
 
     def test_user_update_cannot_change_tipo_perfil_to_admin_via_serializer(self):
-        """Non-admin cannot promote user to admin via serializer validation."""
-        self.client.force_authenticate(self.barber_a)
+        """Ninguém consegue conceder papel de admin via PATCH /users/{id}/."""
+        # accounts/serializers.py:UserSerializer torna 'tipo_perfil' read_only
+        # para quem não é admin - ou seja, se o ator for barber_a/client_a,
+        # o campo é simplesmente ignorado (200, sem mudança), sem nunca
+        # chegar em validate_tipo_perfil(). Para de fato exercitar a
+        # validação do serializer (que bloqueia ATÉ o próprio admin de
+        # conceder papel de admin por este endpoint - ver docstring de
+        # UserSerializer.validate_tipo_perfil), o ator precisa ser admin.
+        self.client.force_authenticate(self.admin_a)
         url = reverse('user-detail', args=[self.client_a.id])
         payload = {'tipo_perfil': User.TipoPerfil.ADMIN}
         response = self.client.patch(url, payload, format='json')
@@ -150,25 +158,26 @@ class AccountMultiTenantIsolationTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_barber_cannot_manage_users(self):
-        """Barber role cannot access user endpoints (except own retrieve/update?)."""
+        """Barber role cannot access user endpoints (except own retrieve/update)."""
         self.client.force_authenticate(self.barber_a)
-        # List should be empty or only own? Depending on permissions.
+        # A listagem (GET /users/) é restrita a admin/superuser (IsAdminRole em
+        # UserViewSet.get_permissions); um barbeiro não pode listar usuários,
+        # nem os da própria barbearia. Ver accounts/test_permissions.py, que
+        # cobre o mesmo comportamento de acesso restrito por papel.
         response = self.client.get(reverse('user-list'))
-        # Assuming IsSelfOrAdmin: barber can see own user but not others
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        ids = [user['id'] for user in response.data['results']]
-        self.assertIn(self.barber_a.id, ids)
-        self.assertNotIn(self.admin_a.id, ids)  # Cannot see admin
-        self.assertNotIn(self.client_a.id, ids)  # Cannot see client
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         # Retrieve own user
         url = reverse('user-detail', args=[self.barber_a.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Retrieve other user (should be 404)
+        # Retrieve other user na mesma barbearia: o queryset o encontra (não é
+        # 404), mas o IsSelfOrAdmin nega no nível de objeto -> 403 (mesmo
+        # comportamento validado em test_permissions.py).
         url = reverse('user-detail', args=[self.client_a.id])
         response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         # Update own user (allowed? IsSelfOrAdmin allows update of own)
+        url = reverse('user-detail', args=[self.barber_a.id])
         payload = {'nome': 'New Name'}
         response = self.client.patch(url, payload, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -180,22 +189,20 @@ class AccountMultiTenantIsolationTests(APITestCase):
     def test_client_cannot_manage_users(self):
         """Client role cannot access user endpoints."""
         self.client.force_authenticate(self.client_a)
-        # List
+        # List (restrito a admin/superuser - ver test_barber_cannot_manage_users)
         response = self.client.get(reverse('user-list'))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        ids = [user['id'] for user in response.data['results']]
-        self.assertIn(self.client_a.id, ids)
-        self.assertNotIn(self.admin_a.id, ids)
-        self.assertNotIn(self.barber_a.id, ids)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         # Retrieve own
         url = reverse('user-detail', args=[self.client_a.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Retrieve other
+        # Retrieve other (mesma barbearia): encontrado pelo queryset, mas
+        # negado no nível de objeto pelo IsSelfOrAdmin -> 403.
         url = reverse('user-detail', args=[self.admin_a.id])
         response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         # Update own (allowed? IsSelfOrAdmin)
+        url = reverse('user-detail', args=[self.client_a.id])
         payload = {'nome': 'New Name'}
         response = self.client.patch(url, payload, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -209,30 +216,30 @@ class AccountMultiTenantIsolationTests(APITestCase):
         self.client.force_authenticate(self.superuser)
         # List all users
         response = self.client.get(reverse('user-list'))
-        self.assertEqual(response.status_code, status.HTTP_200.OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Should see at least 6 users (2 admins, 2 barbers, 2 clients)
         self.assertGreaterEqual(len(response.data['results']), 6)
         # Retrieve user from tenant B
         url = reverse('user-detail', args=[self.admin_b.id])
         response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200.OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Update user from tenant B
         payload = {'nome': 'Hacked by superuser'}
         response = self.client.patch(url, payload, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200.OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.admin_b.refresh_from_db()
         self.assertEqual(self.admin_b.nome, 'Hacked by superuser')
         # Delete user from tenant B
         response = self.client.delete(url)
-        self.assertEqual(response.status_code, status.HTTP_204.NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_anonymous_user_cannot_access_user_endpoints(self):
         """Anonymous users get 401 on user endpoints."""
         self.client.force_authenticate(user=None)
         response = self.client.get(reverse('user-list'))
-        self.assertEqual(response.status_code, status.HTTP_401.UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         response = self.client.post(reverse('user-list'), {}, format='json')
-        self.assertEqual(response.status_code, status.HTTP_401.UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_user_cannot_set_barbershop_via_create_payload(self):
         """Attempt to set barbershop during creation is ignored."""
@@ -247,7 +254,7 @@ class AccountMultiTenantIsolationTests(APITestCase):
             'tenant_id': self.shop_b.id,
         }
         response = self.client.post(reverse('user-list'), payload, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201.CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         user = User.objects.get(id=response.data['id'])
         self.assertEqual(user.barbershop_id, self.shop_a.id)
 
@@ -262,5 +269,5 @@ class AccountMultiTenantIsolationTests(APITestCase):
         )
         self.client.force_authenticate(admin_no_tenant)
         response = self.client.get(reverse('user-list'))
-        self.assertEqual(response.status_code, status.HTTP_200.OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 0)

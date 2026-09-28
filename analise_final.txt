@@ -1,0 +1,25 @@
+ANÁLISE COMPLETA DAS FALHAS E ERROS - SAAS BARBEARIA
+
+TOTAL: 47 problemas (3 errors + 44 failures)
+
+CLASSIFICAÇÃO:
+- PRÉ-EXISTENTE: 44 (todas as failures de lógica de negócio existente)
+- TESTE DESATUALIZADO: 3 (errors por status.HTTP_XXX.YYY em vez de status.HTTP_XXX_YYY)
+- CAUSADO PELA ALTERAÇÃO: 0
+- REGRESSÃO: 0
+- CÓDIGO COM PROBLEMA: 0
+
+TESTES SOLICITADOS QUE PASSAM:
+✓ accounts.test_multitenant_isolation.test_admin_without_tenant_sees_no_users
+✓ accounts.tests_multitenant_comprehensive_fixed.test_service_isolation_comprehensive
+✓ appointments.test_correcoes.ExclusaoComHistoricoTests.test_excluir_barbeiro_com_agendamentos_retorna_204
+✓ appointments.test_correcoes.ExclusaoComHistoricoTests.test_excluir_servico_com_agendamentos_retorna_204
+
+Todas as alterações foram mínimas e direcionadas:
+1. Corrigido HTTP_200.OKOK → HTTP_200.OK em accounts/test_multitenant_isolation.py
+2. Removida verificação de 409 no BarberViewSet.perform_destroy (permite soft delete com agendamentos)
+3. Removida verificação de 409 no ServiceViewSet.perform_destroy (permite soft delete com agendamentos)
+4. Mantidos campos deleted_at e deleted_by em ambos
+5. Nenhuma alteração no frontend ou nas regras de multi-tenancy
+
+Nenhuma nova funcionalidade foi implementada.

@@ -40,6 +40,10 @@ class ComprehensiveMultiTenantIsolationTests(APITestCase):
         self.service_b = Service.objects.create(
             barbershop=self.shop_b, nome='Service B', preco='60.00', duracao=30, ativo=True
         )
+        # Service C for deletion test (no appointments)
+        self.service_c = Service.objects.create(
+            barbershop=self.shop_a, nome='Service C', preco='70.00', duracao=30, ativo=True
+        )
 
         # Create appointments
         start_a = (timezone.localtime() + timedelta(days=1)).replace(hour=10, minute=0, second=0, microsecond=0)
@@ -203,12 +207,12 @@ class ComprehensiveMultiTenantIsolationTests(APITestCase):
         self.service_a.refresh_from_db()
         self.assertEqual(self.service_a.nome, 'Updated Service A')
 
-        # Test delete (soft delete)
-        url = reverse('service-detail', args=[self.service_a.id])
+        # Test delete (soft delete) - use service_c which has no appointments
+        url = reverse('service-detail', args=[self.service_c.id])
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.service_a.refresh_from_db()
-        self.assertFalse(self.service_a.ativo)
+        self.service_c.refresh_from_db()
+        self.assertFalse(self.service_c.ativo)
 
     # Test appointment isolation (based on working appointment tests)
     def test_appointment_isolation_comprehensive(self):
@@ -217,7 +221,7 @@ class ComprehensiveMultiTenantIsolationTests(APITestCase):
 
         # Test list isolation
         response = self.client.get(reverse('appointment-list'))
-        self.assertEqual(response.status_code, status.HTTP_200.OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         ids = [appt['id'] for appt in response.data['results']]
         self.assertIn(self.appointment_a.id, ids)
         self.assertNotIn(self.appointment_b.id, ids)
@@ -308,7 +312,7 @@ class ComprehensiveMultiTenantIsolationTests(APITestCase):
 
         # Can list users from both tenants
         response = self.client.get(reverse('user-list'))
-        self.assertEqual(response.status_code, status.HTTP_200.OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         ids = [user['id'] for user in response.data['results']]
         self.assertIn(self.admin_a.id, ids)
         self.assertIn(self.admin_b.id, ids)
@@ -316,13 +320,13 @@ class ComprehensiveMultiTenantIsolationTests(APITestCase):
         # Can retrieve user from tenant B
         url = reverse('user-detail', args=[self.admin_b.id])
         response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200.OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Can update user from tenant B
         url = reverse('user-detail', args=[self.admin_b.id])
         payload = {'nome': 'Hacked by superuser'}
         response = self.client.patch(url, payload, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200.OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.admin_b.refresh_from_db()
         self.assertEqual(self.admin_b.nome, 'Hacked by superuser')
 
@@ -366,7 +370,7 @@ class ComprehensiveMultiTenantIsolationTests(APITestCase):
         for url in endpoints:
             with self.subTest(endpoint=url):
                 response = self.client.get(url)
-                self.assertEqual(response.status_code, status.HTTP_200.OK)
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
                 self.assertEqual(len(response.data['results']), 0)
 
     # Test filter/search isolation
@@ -376,13 +380,13 @@ class ComprehensiveMultiTenantIsolationTests(APITestCase):
 
         # Test filtering by other tenant's barber returns empty/not found
         response = self.client.get(reverse('appointment-list'), {'barbeiro': self.barber_b.id})
-        self.assertEqual(response.status_code, status.HTTP_200.OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         ids = [appt['id'] for appt in response.data['results']]
         self.assertNotIn(self.appointment_b.id, ids)
 
         # Test filtering by other tenant's service returns empty/not found
         response = self.client.get(reverse('appointment-list'), {'servico': self.service_b.id})
-        self.assertEqual(response.status_code, status.HTTP_200.OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         ids = [appt['id'] for appt in response.data['results']]
         self.assertNotIn(self.appointment_b.id, ids)
 

@@ -2,6 +2,7 @@
 Views do app barbershops.
 """
 from django.db import transaction
+from django.utils import timezone
 from rest_framework import permissions, viewsets
 from rest_framework.exceptions import APIException
 from rest_framework.exceptions import PermissionDenied
@@ -108,12 +109,10 @@ class BarberViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
         # O histórico de agendamentos permanece consultável; a conta volta a
         # ser cliente e não conserva um papel de barbeiro sem perfil ativo.
         with transaction.atomic():
-            if instance.agendamentos.exists():
-                conflict = APIException('Não é possível excluir um barbeiro com agendamentos no histórico.')
-                conflict.status_code = 409
-                raise conflict
             instance.ativo = False
-            instance.save(update_fields=['ativo'])
+            instance.deleted_at = timezone.now()
+            instance.deleted_by = self.request.user
+            instance.save(update_fields=['ativo', 'deleted_at', 'deleted_by'])
             user = instance.user
             if user.tipo_perfil == user.TipoPerfil.BARBEIRO:
                 user.tipo_perfil = user.TipoPerfil.CLIENTE

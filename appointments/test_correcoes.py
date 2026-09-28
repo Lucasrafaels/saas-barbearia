@@ -258,15 +258,27 @@ class ExclusaoComHistoricoTests(BaseAgendaSetup, APITestCase):
         )
         self.client.force_authenticate(self.admin)
 
-    def test_excluir_barbeiro_com_agendamentos_retorna_409(self):
+    def test_excluir_barbeiro_com_agendamentos_retorna_204(self):
         resposta = self.client.delete(reverse('barber-detail', args=[self.barbeiro.pk]))
-        self.assertEqual(resposta.status_code, status.HTTP_409_CONFLICT)
+        self.assertEqual(resposta.status_code, status.HTTP_204_NO_CONTENT)
+        # Verifica que o barbeiro foi desativado (soft delete)
+        self.barbeiro.refresh_from_db()
+        self.assertFalse(self.barbeiro.ativo)
+        self.assertIsNotNone(self.barbeiro.deleted_at)
+        self.assertIsNotNone(self.barbeiro.deleted_by)
+        # Verifica que os agendamentos históricos foram preservados
         self.assertTrue(Appointment.objects.filter(pk=self.agendamento.pk).exists())
         self.assertTrue(Barber.objects.filter(pk=self.barbeiro.pk).exists())
 
-    def test_excluir_servico_com_agendamentos_retorna_409(self):
+    def test_excluir_servico_com_agendamentos_retorna_204(self):
         resposta = self.client.delete(reverse('service-detail', args=[self.servico.pk]))
-        self.assertEqual(resposta.status_code, status.HTTP_409_CONFLICT)
+        self.assertEqual(resposta.status_code, status.HTTP_204_NO_CONTENT)
+        # Verifica que o serviço foi desativado (soft delete)
+        self.servico.refresh_from_db()
+        self.assertFalse(self.servico.ativo)
+        self.assertIsNotNone(self.servico.deleted_at)
+        self.assertIsNotNone(self.servico.deleted_by)
+        # Verifica que os agendamentos históricos foram preservados
         self.assertTrue(Appointment.objects.filter(pk=self.agendamento.pk).exists())
 
     def test_excluir_servico_sem_agendamentos_continua_funcionando(self):

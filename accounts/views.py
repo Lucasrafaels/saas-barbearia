@@ -15,6 +15,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from config.permissions import IsAdminRole, IsSelfOrAdmin
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 from .models import User
 from .serializers import (
     CustomTokenObtainPairSerializer,

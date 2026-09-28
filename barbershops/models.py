@@ -59,11 +59,24 @@ class Barber(TimeStampedModel):
     )
     especialidade = models.CharField('especialidade', max_length=150, blank=True)
     ativo = models.BooleanField('ativo', default=True)
+    deleted_at = models.DateTimeField('deleted_at', null=True, blank=True)
+    deleted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name='deleted_by',
+        null=True,
+        blank=True,
+        related_name='barber_deletions',
+        on_delete=models.SET_NULL,
+    )
 
     class Meta:
         verbose_name = 'barbeiro'
         verbose_name_plural = 'barbeiros'
         ordering = ['user__nome']
+        indexes = [
+            models.Index(fields=['barbershop', 'ativo']),
+            models.Index(fields=['barbershop', 'user']),
+        ]
 
     def __str__(self):
         return f'{self.user.nome} - {self.barbershop.nome}'

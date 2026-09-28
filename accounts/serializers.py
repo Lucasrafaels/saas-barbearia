@@ -78,22 +78,52 @@ class UserSerializer(serializers.ModelSerializer):
         return super().validate(attrs)
 
     def update(self, instance, validated_data):
-        """Atualiza apenas campos permitidos. Alteração de papel deve ocorrer
-        exclusivamente através do BarberViewSet para manter consistência do fluxo
-        de criação de perfil profissional.
+        """Atualiza campos permitidos. Alteração de papel (tipo_perfil) sincroniza
+        automaticamente o perfil de Barber para manter consistência.
         """
-        # Impedir alteração de tipo_perfil neste endpoint - usar BarberViewSet
-        validated_data.pop('tipo_perfil', None)
-        # Impedir alteração direta de is_active (use endpoints específicos)
-        validated_data.pop('is_active', None)
+        # Capture is_active before popping to detect deactivation
+        is_active_value = validated_data.pop('is_active', None)
+        is_being_deactivated = (
+            instance.is_active
+            and is_active_value is False
+        )
 
+        new_role = validated_data.pop('tipo_perfil', None)
         old_role = instance.tipo_perfil
-        is_being_deactivated = instance.is_active and validated_data.get('is_active') is False
+
         with transaction.atomic():
             instance = type(instance).objects.select_for_update().get(pk=instance.pk)
+
+            # Handle role change with Barber profile sync
+            if new_role is not None and new_role != old_role:
+                from barbershops.models import Barber
+                # Demote from BARBEIRO -> deactivate Barber profile
+                if old_role == User.TipoPerfil.BARBEIRO:
+                    try:
+                        barber = instance.perfil_barbeiro
+                        barber.ativo = False
+                        barber.save(update_fields=['ativo'])
+                    except Barber.DoesNotExist:
+                        pass
+                # Promote to BARBEIRO -> create or activate Barber profile
+                if new_role == User.TipoPerfil.BARBEIRO:
+                    barber, created = Barber.objects.get_or_create(
+                        user=instance,
+                        defaults={'barbershop': instance.barbershop, 'ativo': True}
+                    )
+                    if not created and not barber.ativo:
+                        barber.ativo = True
+                        barber.save(update_fields=['ativo'])
+                instance.tipo_perfil = new_role
+
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
+
+            # Apply is_active change if provided
+            if is_active_value is not None:
+                instance.is_active = is_active_value
             instance.save()
+
             if is_being_deactivated:
                 revoke_user_refresh_tokens(instance)
         return instance
