@@ -1,0 +1,168 @@
+/* BarberPro Design Tokens — Identidade Visual Oficial */
+
+:root {
+  /* === CORES DA MARCA BARBERPRO === */
+  /* Primárias */
+  --color-primary: #C1121F;
+  --color-primary-red: #C1121F;
+  --color-primary-red-hover: #A00F1A;
+  --color-primary-red-light: #FEEEEE;
+
+  --color-primary-navy: #1D3557;
+  --color-primary-navy-hover: #162A42;
+  --color-primary-navy-light: #E8EDF2;
+
+  /* Neutras */
+  --color-white: #FFFFFF;
+  --color-bg-light: #F5F3F0;
+  --color-text-primary: #242424;
+  --color-text-secondary: #4A4A4A;
+  --color-text-muted: #7D7D7D;
+  --color-border: #D9D9D9;
+  --color-border-light: #E8E6E3;
+
+  /* Estados */
+  --color-success: #1E7A3A;
+  --color-success-light: #E8F5EB;
+  --color-warning: #B8860B;
+  --color-warning-light: #FEF9E7;
+  --color-error: #C1121F;
+  --color-error-light: #FEEEEE;
+  --color-info: #1D3557;
+  --color-info-light: #E8EDF2;
+
+  /* === TIPOGRAFIA === */
+  /* Fontes */
+  --font-heading: 'Oswald', 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Pesos */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /* Tamanhos — Escala modular (ratio 1.25) */
+  --text-xs: 0.75rem;      /* 12px */
+  --text-sm: 0.875rem;     /* 14px */
+  --text-base: 1rem;       /* 16px */
+  --text-lg: 1.125rem;     /* 18px */
+  --text-xl: 1.25rem;      /* 20px */
+  --text-2xl: 1.5rem;      /* 24px */
+  --text-3xl: 1.875rem;    /* 30px */
+  --text-4xl: 2.25rem;     /* 36px */
+  --text-5xl: 3rem;        /* 48px */
+
+  /* Alturas de linha */
+  --leading-tight: 1.1;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+
+  /* Espaçamento entre letras */
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.02em;
+  --tracking-wider: 0.08em;
+
+  /* === ESPAÇAMENTO — Base 4px (0.25rem) === */
+  --space-0: 0;
+  --space-1: 0.25rem;  /* 4px */
+  --space-2: 0.5rem;   /* 8px */
+  --space-3: 0.75rem;  /* 12px */
+  --space-4: 1rem;     /* 16px */
+  --space-5: 1.25rem;  /* 20px */
+  --space-6: 1.5rem;   /* 24px */
+  --space-8: 2rem;     /* 32px */
+  --space-10: 2.5rem;  /* 40px */
+  --space-12: 3rem;    /* 48px */
+  --space-16: 4rem;    /* 64px */
+  --space-20: 5rem;    /* 80px */
+  --space-24: 6rem;    /* 96px */
+
+  /* === BORDAS === */
+  --radius-none: 0;
+  --radius-sm: 0.25rem;    /* 4px */
+  --radius-md: 0.5rem;     /* 8px */
+  --radius-lg: 0.75rem;    /* 12px */
+  --radius-xl: 1rem;       /* 16px */
+  --radius-2xl: 1.25rem;   /* 20px */
+  --radius-full: 9999px;
+
+  /* Larguras de borda */
+  --border-width-thin: 1px;
+  --border-width-medium: 2px;
+  --border-width-thick: 3px;
+
+  /* === SOMBRAS — Discretas, sem exagero === */
+  --shadow-xs: 0 1px 2px rgba(29, 53, 87, 0.04);
+  --shadow-sm: 0 1px 3px rgba(29, 53, 87, 0.06), 0 1px 2px rgba(29, 53, 87, 0.04);
+  --shadow-md: 0 4px 6px rgba(29, 53, 87, 0.05), 0 2px 4px rgba(29, 53, 87, 0.03);
+  --shadow-lg: 0 10px 15px rgba(29, 53, 87, 0.05), 0 4px 6px rgba(29, 53, 87, 0.03);
+  --shadow-xl: 0 20px 25px rgba(29, 53, 87, 0.06), 0 10px 10px rgba(29, 53, 87, 0.02);
+  --shadow-focus: 0 0 0 3px rgba(193, 18, 31, 0.15);
+
+  /* === TRANSIÇÕES === */
+  --transition-fast: 120ms ease-out;
+  --transition-normal: 200ms ease-out;
+  --transition-slow: 300ms ease-out;
+
+  /* === Z-INDEX === */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal: 300;
+  --z-popover: 400;
+  --z-tooltip: 500;
+  --z-toast: 600;
+
+  /* === LAYOUT === */
+  --container-max: 1180px;
+  --container-xl: 1180px;
+  --header-height: 4.5rem;      /* 72px */
+  --nav-height: 3.25rem;        /* 52px */
+  --sidebar-width: 16rem;       /* 256px */
+  --sidebar-collapsed-width: 4.5rem; /* 72px */
+
+  /* === ÍCONES (tamanhos padrão) === */
+  --icon-xs: 0.875rem;   /* 14px */
+  --icon-sm: 1rem;       /* 16px */
+  --icon-md: 1.25rem;    /* 20px */
+  --icon-lg: 1.5rem;     /* 24px */
+  --icon-xl: 2rem;       /* 32px */
+
+  /* === INPUTS === */
+  --input-height: 2.75rem;     /* 44px */
+  --input-height-sm: 2.25rem;  /* 36px */
+  --input-height-lg: 3.25rem;  /* 52px */
+  --input-padding-x: 0.875rem; /* 14px */
+}
+
+/* === TEMA ESCURO (opcional, preparado para futuro) === */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg-light: #1A1A1A;
+    --color-text-primary: #F5F3F0;
+    --color-text-secondary: #D9D9D9;
+    --color-text-muted: #A0A0A0;
+    --color-border: #3D3D3D;
+    --color-border-light: #2D2D2D;
+  }
+}
+
+/* === REDUÇÃO DE MOVIMENTO === */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0ms;
+    --transition-normal: 0ms;
+    --transition-slow: 0ms;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

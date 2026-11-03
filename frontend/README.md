@@ -1,6 +1,6 @@
-# Corte Certo — Frontend
+# BarberPro — Frontend
 
-Frontend React para a API Django de barbearia fornecida. O projeto usa TypeScript, Vite, React Router, Axios, Context API, CSS Modules, React Hook Form e Zod.
+Frontend React para a API Django de barbearia BarberPro. O projeto usa TypeScript, Vite, React Router, Axios, Context API, CSS Modules, React Hook Form e Zod.
 
 ## Pré-requisitos
 

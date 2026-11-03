@@ -6,7 +6,6 @@ import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { errorMessage } from '../utils/format'
 import styles from '../styles/auth.module.css'
-import ui from '../styles/ui.module.css'
 
 const loginSchema = z.object({
   email: z.string().email('Informe um e-mail válido.'),
@@ -36,24 +35,46 @@ export function LoginPage() {
   return (
     <main className={styles.authPage}>
       <section className={styles.panel}>
-        <div className={styles.brand}><span>✂</span> Corte Certo</div>
-        <p className={styles.eyebrow}>Gestão simples de horários</p>
-        <h1>Entre na sua conta</h1>
-        <p className={styles.description}>Acompanhe sua agenda ou administre sua barbearia em um só lugar.</p>
-        <form className={ui.form} onSubmit={handleSubmit(onSubmit)} noValidate>
-          <label className={ui.field}>E-mail
-            <input type="email" autoComplete="email" placeholder="voce@exemplo.com" {...register('email')} />
-            {errors.email && <small className={ui.error}>{errors.email.message}</small>}
-          </label>
-          <label className={ui.field}>Senha
-            <input type="password" autoComplete="current-password" placeholder="Sua senha" {...register('password')} />
-            {errors.password && <small className={ui.error}>{errors.password.message}</small>}
-          </label>
-          <button className={ui.button} disabled={isSubmitting} type="submit">
+        <a href="/" className={styles.brand}>
+          <span className={styles.brandMark} aria-hidden="true">B</span>
+          BarberPro
+        </a>
+        <div className={styles.panelHeader}>
+          <p className={styles.eyebrow}>Área do cliente</p>
+          <h1>Entre na sua conta</h1>
+          <p className={styles.description}>Acompanhe sua agenda ou administre sua barbearia em um só lugar.</p>
+        </div>
+        <form className={styles.form} onSubmit={handleSubmit(onSubmit)} noValidate>
+          <div className={styles.field}>
+            <label htmlFor="email">E-mail</label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              placeholder="voce@exemplo.com"
+              {...register('email')}
+              className={errors.email ? 'error' : ''}
+            />
+            {errors.email && <span className={styles.errorText}>{errors.email.message}</span>}
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="password">Senha</label>
+            <input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="Sua senha"
+              {...register('password')}
+              className={errors.password ? 'error' : ''}
+            />
+            {errors.password && <span className={styles.errorText}>{errors.password.message}</span>}
+          </div>
+          <button className={styles.submitButton} disabled={isSubmitting} type="submit">
             {isSubmitting ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
         <p className={styles.switch}>Ainda não tem conta? <Link to="/register">Criar conta</Link></p>
+        <p className={styles.switch}><Link to="/password/reset">Esqueci minha senha</Link></p>
       </section>
     </main>
   )

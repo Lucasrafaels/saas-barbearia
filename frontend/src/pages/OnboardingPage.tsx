@@ -7,7 +7,6 @@ import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { errorMessage } from '../utils/format'
 import styles from '../styles/auth.module.css'
-import ui from '../styles/ui.module.css'
 
 const schema = z.object({
   nome: z.string().min(2, 'Informe o nome da barbearia.'),
@@ -42,40 +41,87 @@ export function OnboardingPage() {
   return (
     <main className={styles.authPage}>
       <section className={`${styles.panel} ${styles.widePanel}`}>
-        <div className={styles.brand}><span>✂</span> Corte Certo</div>
-        <p className={styles.eyebrow}>Primeiro acesso</p>
-        <h1>Cadastre sua barbearia</h1>
-        <p className={styles.description}>A API cria a barbearia e promove sua conta a administrador. Se você foi convidado por uma barbearia, peça ao administrador para vincular sua conta.</p>
-        <form className={ui.form} onSubmit={handleSubmit(onSubmit)} noValidate>
-          <div className={ui.formGrid}>
-            <label className={ui.field}>Nome
-              <input placeholder="Barbearia Central" {...register('nome')} />
-              {errors.nome && <small className={ui.error}>{errors.nome.message}</small>}
-            </label>
-            <label className={ui.field}>E-mail comercial
-              <input type="email" placeholder="contato@barbearia.com" {...register('email')} />
-              {errors.email && <small className={ui.error}>{errors.email.message}</small>}
-            </label>
-            <label className={`${ui.field} ${ui.fullWidth}`}>Endereço
-              <input placeholder="Rua Exemplo, 100" {...register('endereco')} />
-              {errors.endereco && <small className={ui.error}>{errors.endereco.message}</small>}
-            </label>
-            <label className={ui.field}>Telefone
-              <input inputMode="tel" placeholder="(11) 99999-9999" {...register('telefone')} />
-              {errors.telefone && <small className={ui.error}>{errors.telefone.message}</small>}
-            </label>
-            <div className={ui.inlineFields}>
-              <label className={ui.field}>Abre às
-                <input type="time" {...register('horario_abertura')} />
-              </label>
-              <label className={ui.field}>Fecha às
-                <input type="time" {...register('horario_fechamento')} />
-              </label>
-            </div>
+        <a href="/" className={styles.brand}>
+          <span className={styles.brandMark} aria-hidden="true">B</span>
+          BarberPro
+        </a>
+        <div className={styles.panelHeader}>
+          <p className={styles.eyebrow}>Primeiro acesso</p>
+          <h1>Cadastre sua barbearia</h1>
+          <p className={styles.description}>A API cria a barbearia e promove sua conta a administrador. Se você foi convidado por uma barbearia, peça ao administrador para vincular sua conta.</p>
+        </div>
+        <form className={styles.form} onSubmit={handleSubmit(onSubmit)} noValidate>
+          <div className={styles.field}>
+            <label htmlFor="nome">Nome</label>
+            <input
+              id="nome"
+              placeholder="Barbearia Central"
+              {...register('nome')}
+              className={errors.nome ? 'error' : ''}
+            />
+            {errors.nome && <span className={styles.errorText}>{errors.nome.message}</span>}
           </div>
-          <button className={ui.button} disabled={isSubmitting} type="submit">{isSubmitting ? 'Criando...' : 'Criar minha barbearia'}</button>
-          <button className={ui.textButton} type="button" onClick={() => void logout()}>Sair da conta</button>
+          <div className={styles.field}>
+            <label htmlFor="email">E-mail comercial</label>
+            <input
+              id="email"
+              type="email"
+              placeholder="contato@barbearia.com"
+              {...register('email')}
+              className={errors.email ? 'error' : ''}
+            />
+            {errors.email && <span className={styles.errorText}>{errors.email.message}</span>}
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="endereco">Endereço</label>
+            <input
+              id="endereco"
+              placeholder="Rua Exemplo, 100"
+              {...register('endereco')}
+              className={errors.endereco ? 'error' : ''}
+            />
+            {errors.endereco && <span className={styles.errorText}>{errors.endereco.message}</span>}
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="telefone">Telefone</label>
+            <input
+              id="telefone"
+              inputMode="tel"
+              placeholder="(11) 99999-9999"
+              {...register('telefone')}
+              className={errors.telefone ? 'error' : ''}
+            />
+            {errors.telefone && <span className={styles.errorText}>{errors.telefone.message}</span>}
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="horario_abertura">Abre às</label>
+            <input
+              id="horario_abertura"
+              type="time"
+              {...register('horario_abertura')}
+              className={errors.horario_abertura ? 'error' : ''}
+            />
+            {errors.horario_abertura && <span className={styles.errorText}>{errors.horario_abertura.message}</span>}
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="horario_fechamento">Fecha às</label>
+            <input
+              id="horario_fechamento"
+              type="time"
+              {...register('horario_fechamento')}
+              className={errors.horario_fechamento ? 'error' : ''}
+            />
+            {errors.horario_fechamento && <span className={styles.errorText}>{errors.horario_fechamento.message}</span>}
+          </div>
+          <button className={styles.submitButton} disabled={isSubmitting} type="submit">
+            {isSubmitting ? 'Criando...' : 'Criar minha barbearia'}
+          </button>
         </form>
+        <p className={styles.switch}>
+          <button type="button" onClick={() => void logout()} className="textButton">
+            Sair da conta
+          </button>
+        </p>
       </section>
     </main>
   )

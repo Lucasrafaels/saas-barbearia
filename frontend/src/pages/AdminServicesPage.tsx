@@ -25,37 +25,48 @@ const defaults: ServiceForm = { nome: '', descricao: '', preco: '', duracao: 30,
 
 export function AdminServicesPage() {
   const { showToast } = useToast()
-  const [editing, setEditing] = useState<Service | null>(null)
+  const [showModal, setShowModal] = useState(false)
+  const [editingService, setEditingService] = useState<Service | null>(null)
   const { data, isLoading, error, reload } = useAsyncData(() => serviceApi.list().then((response) => response.data), [])
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ServiceForm>({
     resolver: zodResolver(serviceSchema), defaultValues: defaults,
   })
 
-  const beginEdit = (service: Service) => {
-    setEditing(service)
-    reset({ nome: service.nome, descricao: service.descricao, preco: service.preco, duracao: service.duracao, ativo: service.ativo })
+  const openCreateModal = () => {
+    setEditingService(null)
+    reset(defaults)
+    setShowModal(true)
   }
 
-  const clearForm = () => { setEditing(null); reset(defaults) }
+  const openEditModal = (service: Service) => {
+    setEditingService(service)
+    reset({ nome: service.nome, descricao: service.descricao, preco: service.preco, duracao: service.duracao, ativo: service.ativo })
+    setShowModal(true)
+  }
+
+  const closeModal = () => {
+    setShowModal(false)
+    setEditingService(null)
+    reset(defaults)
+  }
 
   const save = async (values: ServiceForm) => {
     try {
-      if (editing) await serviceApi.update(editing.id, values)
+      if (editingService) await serviceApi.update(editingService.id, values)
       else await serviceApi.create(values)
       await reload()
-      showToast(editing ? 'Serviço atualizado.' : 'Serviço cadastrado.', 'success')
-      clearForm()
+      showToast(editingService ? 'Serviço atualizado.' : 'Serviço cadastrado.', 'success')
+      closeModal()
     } catch (requestError) {
       showToast(errorMessage(requestError, 'Não foi possível salvar o serviço.'), 'error')
     }
   }
 
   const remove = async (service: Service) => {
-    if (!window.confirm(`Excluir o serviço “${service.nome}”?`)) return
+    if (!window.confirm(`Excluir o serviço "${service.nome}"?`)) return
     try {
       await serviceApi.remove(service.id)
       await reload()
-      if (editing?.id === service.id) clearForm()
       showToast('Serviço excluído.', 'success')
     } catch (requestError) {
       showToast(errorMessage(requestError, 'Não foi possível excluir o serviço.'), 'error')
@@ -68,46 +79,97 @@ export function AdminServicesPage() {
 
   return (
     <div className={styles.page}>
-      <header className={styles.pageHeader}><div><p className={styles.eyebrow}>Catálogo da barbearia</p><h1>Gerenciar serviços</h1></div></header>
-      <div className={styles.adminSplit}>
-        <section className={ui.formCard}>
-          <h2>{editing ? 'Editar serviço' : 'Novo serviço'}</h2>
-          <form className={ui.form} onSubmit={handleSubmit(save)} noValidate>
-            <label className={ui.field}>Nome
-              <input placeholder="Corte masculino" {...register('nome')} />
-              {errors.nome && <small className={ui.error}>{errors.nome.message}</small>}
-            </label>
-            <label className={ui.field}>Descrição
-              <textarea rows={3} placeholder="Descreva o serviço" {...register('descricao')} />
-              {errors.descricao && <small className={ui.error}>{errors.descricao.message}</small>}
-            </label>
-            <div className={ui.inlineFields}>
-              <label className={ui.field}>Preço (R$)
-                <input inputMode="decimal" type="number" min="0" step="0.01" placeholder="50,00" {...register('preco')} />
-                {errors.preco && <small className={ui.error}>{errors.preco.message}</small>}
-              </label>
-              <label className={ui.field}>Duração (min)
-                <input type="number" min="1" {...register('duracao')} />
-                {errors.duracao && <small className={ui.error}>{errors.duracao.message}</small>}
-              </label>
+      <header className={styles.pageHeader}>
+        <div>
+          <p className={styles.eyebrow}>Catálogo da barbearia</p>
+          <h1>Gerenciar serviços</h1>
+        </div>
+        <button className={ui.button} onClick={openCreateModal}>Novo serviço</button>
+      </header>
+
+      <div className={ui.dataTable}>
+        {services.length === 0 ? (
+          <EmptyState title="Nenhum serviço cadastrado" description="Cadastre o primeiro serviço para começar." />
+        ) : (
+          <>
+            <div className={ui.tableContainer}>
+              <table className={ui.table}>
+                <thead>
+                  <tr>
+                    <th>Serviço</th>
+                    <th>Preço</th>
+                    <th>Duração</th>
+                    <th>Status</th>
+                    <th style={{ width: '120px' }}>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {services.map((service) => (
+                    <tr key={service.id}>
+                      <td>
+                        <strong>{service.nome}</strong>
+                        {service.descricao && <p className={ui.cellMuted}>{service.descricao}</p>}
+                      </td>
+                      <td className={ui.cellPrice}>{formatCurrency(service.preco)}</td>
+                      <td>{service.duracao} min</td>
+                      <td>
+                        <span className={`ui.badge ${service.ativo ? 'badgeSuccess' : 'badgeWarning'}`}>
+                          {service.ativo ? 'Ativo' : 'Inativo'}
+                        </span>
+                      </td>
+                      <td>
+                        <div className={ui.actionButtons}>
+                          <button className={ui.secondaryButton} onClick={() => openEditModal(service)}>Editar</button>
+                          <button className={ui.dangerButton} onClick={() => void remove(service)}>Excluir</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <label className={ui.checkbox}><input type="checkbox" {...register('ativo')} /> Serviço ativo</label>
-            <div className={ui.buttonRow}>
-              <button className={ui.button} disabled={isSubmitting} type="submit">{isSubmitting ? 'Salvando...' : editing ? 'Salvar alterações' : 'Cadastrar serviço'}</button>
-              {editing && <button className={ui.secondaryButton} type="button" onClick={clearForm}>Cancelar edição</button>}
-            </div>
-          </form>
-        </section>
-        <section>
-          <h2 className={styles.sectionTitle}>Serviços cadastrados</h2>
-          {services.length === 0 ? <EmptyState title="Nenhum serviço" description="Cadastre o primeiro serviço ao lado." /> : <div className={styles.managementList}>
-            {services.map((service) => <article className={styles.managementCard} key={service.id}>
-              <div><h3>{service.nome} {!service.ativo && <span className={styles.inactive}>Inativo</span>}</h3><p>{service.descricao || 'Sem descrição'}</p><small>{formatCurrency(service.preco)} · {service.duracao} min</small></div>
-              <div className={styles.cardActions}><button className={ui.secondaryButton} onClick={() => beginEdit(service)}>Editar</button><button className={ui.dangerButton} onClick={() => void remove(service)}>Excluir</button></div>
-            </article>)}
-          </div>}
-        </section>
+          </>
+        )}
       </div>
+
+      {/* Modal */}
+      {showModal && (
+        <div className={ui.modalOverlay} onClick={closeModal} role="dialog" aria-modal="true" aria-labelledby="modal-title">
+          <div className={ui.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={ui.modalHeader}>
+              <h2 id="modal-title">{editingService ? 'Editar serviço' : 'Novo serviço'}</h2>
+              <button className={ui.modalClose} onClick={closeModal} aria-label="Fechar">✕</button>
+            </div>
+            <form className={ui.modalBody} onSubmit={handleSubmit(save)} noValidate>
+              <label className={ui.field}>Nome
+                <input placeholder="Corte masculino" {...register('nome')} />
+                {errors.nome && <small className={ui.error}>{errors.nome.message}</small>}
+              </label>
+              <label className={ui.field}>Descrição
+                <textarea rows={3} placeholder="Descreva o serviço" {...register('descricao')} />
+                {errors.descricao && <small className={ui.error}>{errors.descricao.message}</small>}
+              </label>
+              <div className={ui.inlineFields}>
+                <label className={ui.field}>Preço (R$)
+                  <input inputMode="decimal" type="number" min="0" step="0.01" placeholder="50,00" {...register('preco')} />
+                  {errors.preco && <small className={ui.error}>{errors.preco.message}</small>}
+                </label>
+                <label className={ui.field}>Duração (min)
+                  <input type="number" min="1" {...register('duracao')} />
+                  {errors.duracao && <small className={ui.error}>{errors.duracao.message}</small>}
+                </label>
+              </div>
+              <label className={ui.checkbox}><input type="checkbox" {...register('ativo')} /> Serviço ativo</label>
+            </form>
+            <div className={ui.modalFooter}>
+              <button type="button" className={ui.secondaryButton} onClick={closeModal}>Cancelar</button>
+              <button type="submit" className={ui.button} disabled={isSubmitting}>
+                {isSubmitting ? 'Salvando...' : editingService ? 'Salvar alterações' : 'Cadastrar serviço'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

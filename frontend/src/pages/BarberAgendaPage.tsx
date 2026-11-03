@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import { appointmentApi, listAllAppointments } from '../api/endpoints'
-import { AppointmentCard } from '../components/AppointmentCard'
 import { EmptyState } from '../components/EmptyState'
 import { PageLoader } from '../components/PageLoader'
 import { useToast } from '../contexts/ToastContext'
 import { useAsyncData } from '../hooks/useAsyncData'
 import type { AppointmentStatus } from '../types'
-import { errorMessage, todayISO } from '../utils/format'
+import { errorMessage, todayISO, statusLabels } from '../utils/format'
 import styles from '../styles/page.module.css'
 import ui from '../styles/ui.module.css'
 
@@ -22,7 +21,8 @@ export function BarberAgendaPage() {
   const { showToast } = useToast()
   const [updatingId, setUpdatingId] = useState<number | null>(null)
   const { data, isLoading, error, reload } = useAsyncData(listAllAppointments, [])
-  const appointments = (data ?? []).filter((appointment) => dateKey(appointment.data_hora) === todayISO())
+  const today = todayISO()
+  const appointments = (data ?? []).filter((appointment) => dateKey(appointment.data_hora) === today)
     .sort((a, b) => a.data_hora.localeCompare(b.data_hora))
 
   const updateStatus = async (id: number, status: AppointmentStatus) => {
@@ -38,17 +38,102 @@ export function BarberAgendaPage() {
     }
   }
 
+  // Valid status transitions based on backend rules
+  const validTransitions: Record<AppointmentStatus, AppointmentStatus[]> = {
+    agendado: ['confirmado', 'cancelado'],
+    confirmado: ['realizado', 'cancelado'],
+    realizado: [],
+    cancelado: [],
+  }
+
   if (isLoading) return <PageLoader label="Carregando sua agenda..." />
-  if (error) return <p className={ui.errorBox}>Não foi possível carregar a agenda de hoje.</p>
+  if (error) return <p className={ui.errorBox}>Não foi possível carregar a agenda.</p>
 
   return (
     <div className={styles.page}>
-      <header className={styles.pageHeader}><div><p className={styles.eyebrow}>{new Intl.DateTimeFormat('pt-BR', { dateStyle: 'full' }).format(new Date())}</p><h1>Agenda de hoje</h1></div><p>{appointments.length} atendimento(s) hoje</p></header>
-      {appointments.length === 0 ? <EmptyState title="Agenda livre hoje" description="Quando houver atendimentos atribuídos a você, eles aparecerão aqui." /> : (
-        <section className={styles.appointmentList}>
-          {appointments.map((appointment) => <AppointmentCard key={appointment.id} appointment={appointment} showClient onStatusChange={(status) => void updateStatus(appointment.id, status)} isUpdating={updatingId === appointment.id} />)}
-        </section>
-      )}
+      <header className={styles.pageHeader}>
+        <div>
+          <p className={styles.eyebrow}>Sua agenda</p>
+          <h1>Agendamentos de hoje</h1>
+        </div>
+        <p>
+          {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+        </p>
+      </header>
+
+      <div className={ui.dataTable}>
+        {appointments.length === 0 ? (
+          <EmptyState
+            title="Nenhum agendamento hoje"
+            description="Aproveite o tempo livre! Nenhum horário marcado para hoje."
+          />
+        ) : (
+          <>
+            <div className={ui.tableContainer}>
+              <table className={ui.table}>
+                <thead>
+                  <tr>
+                    <th>Horário</th>
+                    <th>Cliente</th>
+                    <th>Serviço</th>
+                    <th>Duração</th>
+                    <th>Status</th>
+                    <th style={{ width: '140px' }}>Ação</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {appointments.map((appointment) => (
+                    <tr key={appointment.id}>
+                      <td>
+                        <time dateTime={appointment.data_hora}>
+                          {new Date(appointment.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        </time>
+                      </td>
+                      <td>
+                        <strong>{appointment.cliente_nome}</strong>
+                      </td>
+                      <td>{appointment.servico_nome}</td>
+                      <td>{appointment.servico_duracao} min</td>
+                      <td>
+                        <span className={`ui.badge badgeDefault`}>{statusLabels[appointment.status]}</span>
+                      </td>
+                      <td>
+                        <StatusBadge status={appointment.status} />
+                      </td>
+                      <td>
+                        <div className={ui.statusSelect}>
+                          <select
+                            value={appointment.status}
+                            onChange={(e) => updateStatus(appointment.id, e.target.value as AppointmentStatus)}
+                            disabled={updatingId === appointment.id}
+                          >
+                            {['agendado', 'confirmado', 'realizado', 'cancelado'].map((statusValue) => {
+                              const isCurrent = appointment.status === statusValue
+                              const canTransition = validTransitions[appointment.status]?.includes(statusValue as AppointmentStatus) ?? false
+                              // Disable if currently updating this appointment (prevents double submission)
+                              // OR if it's not the current status AND not a valid transition
+                              const disabled = updatingId === appointment.id || (!isCurrent && !canTransition)
+                              return (
+                                <option
+                                  key={statusValue}
+                                  value={statusValue}
+                                  disabled={disabled}
+                                >
+                                  {statusLabels[statusValue as AppointmentStatus]}
+                                </option>
+                              )
+                            })}
+                          </select>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   )
 }

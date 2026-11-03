@@ -58,8 +58,11 @@ export interface Appointment {
   cliente_nome: string
   barbeiro: number
   barbeiro_nome: string
+  barbeiro_especialidade: string | null
   servico: number
   servico_nome: string
+  servico_preco: string
+  servico_duracao: number
   data_hora: string
   status: AppointmentStatus
   observacoes: string
@@ -108,10 +111,32 @@ export interface CreateUserInput {
   tipo_perfil: Exclude<UserRole, 'admin'>
 }
 
+export interface UpdateUserInput {
+  email?: string
+  nome?: string
+  tipo_perfil?: Exclude<UserRole, 'admin'>
+  is_active?: boolean
+}
+
 export interface CreateAppointmentInput {
   cliente: number
   barbeiro: number
   servico: number
   data_hora: string
   observacoes?: string
+}
+
+export interface PasswordChangeInput {
+  old_password: string
+  new_password: string
+}
+
+export interface PasswordResetRequestInput {
+  email: string
+}
+
+export interface PasswordResetConfirmInput {
+  uid: string
+  token: string
+  new_password: string
 }

@@ -1,5 +1,5 @@
 """
-Registro do modelo User no Django Admin.
+Registro do modelo User no Django Admin.P
 """
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin

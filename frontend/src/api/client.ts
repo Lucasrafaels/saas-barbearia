@@ -1,6 +1,5 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios'
-import { clearStoredTokens, getStoredTokens, storeTokens } from '../utils/storage'
-import type { AuthTokens } from '../types'
+import { clearStoredTokens, getStoredAccessToken, storeAccessToken } from '../utils/storage'
 
 export const API_URL = (import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000/api/v1').replace(/\/$/, '')
 
@@ -11,10 +10,11 @@ interface RetriableRequest extends InternalAxiosRequestConfig {
 const api = axios.create({
   baseURL: API_URL,
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
 })
 
 api.interceptors.request.use((config) => {
-  const access = getStoredTokens()?.access
+  const access = getStoredAccessToken()
   if (access) config.headers.Authorization = `Bearer ${access}`
   return config
 })
@@ -30,24 +30,12 @@ api.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    const currentTokens = getStoredTokens()
-    if (!currentTokens?.refresh) {
-      clearStoredTokens()
-      window.dispatchEvent(new Event('auth:expired'))
-      return Promise.reject(error)
-    }
-
     request._retry = true
     try {
-      const { data } = await axios.post<Partial<AuthTokens>>(`${API_URL}/auth/refresh/`, {
-        refresh: currentTokens.refresh,
-      })
-      const tokens: AuthTokens = {
-        access: data.access ?? currentTokens.access,
-        refresh: data.refresh ?? currentTokens.refresh,
-      }
-      storeTokens(tokens)
-      request.headers.Authorization = `Bearer ${tokens.access}`
+      // Backend reads refresh token from HttpOnly cookie, not request body
+      const { data } = await axios.post<{ access: string }>(`${API_URL}/auth/refresh/`, {}, { withCredentials: true })
+      storeAccessToken(data.access)
+      request.headers.Authorization = `Bearer ${data.access}`
       return api(request)
     } catch (refreshError) {
       clearStoredTokens()

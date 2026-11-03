@@ -10,6 +10,9 @@ import type {
   CreateUserInput,
   LoginInput,
   Paginated,
+  PasswordChangeInput,
+  PasswordResetConfirmInput,
+  PasswordResetRequestInput,
   RegisterInput,
   Service,
   UpdateUserInput,
@@ -18,10 +21,13 @@ import type {
 } from '../types'
 
 export const authApi = {
-  login: (payload: LoginInput) => api.post<{ access: string; refresh: string }>('/auth/login/', payload),
+  login: (payload: LoginInput) => api.post<{ access: string }>('/auth/login/', payload),
   register: (payload: RegisterInput) => api.post<User>('/auth/register/', payload),
-  logout: (refresh: string) => api.post('/auth/logout/', { refresh }),
+  logout: () => api.post('/auth/logout/'),
   me: () => api.get<User>('/users/me/'),
+  changePassword: (payload: PasswordChangeInput) => api.post('/auth/password/change/', payload),
+  requestPasswordReset: (payload: PasswordResetRequestInput) => api.post('/auth/password/reset/', payload),
+  confirmPasswordReset: (payload: PasswordResetConfirmInput) => api.post('/auth/password/reset/confirm/', payload),
 }
 
 export const barbershopApi = {

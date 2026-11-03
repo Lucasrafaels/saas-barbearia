@@ -32,6 +32,11 @@ export function todayISO(): string {
   return new Date(now.getTime() - timezoneOffset).toISOString().slice(0, 10)
 }
 
+export function isPast(dateStr: string): boolean {
+  const today = todayISO()
+  return dateStr < today
+}
+
 export function errorMessage(error: unknown, fallback = 'Não foi possível concluir a operação.'): string {
   if (!axios.isAxiosError(error)) return fallback
   const data = error.response?.data

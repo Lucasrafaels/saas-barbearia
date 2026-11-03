@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { authApi } from '../api/endpoints'
 import type { LoginInput, RegisterInput, User } from '../types'
-import { clearStoredTokens, getStoredTokens, storeTokens } from '../utils/storage'
+import { clearStoredTokens, getStoredAccessToken, storeAccessToken } from '../utils/storage'
 
 interface AuthContextValue {
   user: User | null
@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const bootstrap = async () => {
-      if (!getStoredTokens()) {
+      if (!getStoredAccessToken()) {
         setIsLoading(false)
         return
       }
@@ -50,8 +50,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [clearSession, refreshUser])
 
   const login = useCallback(async (input: LoginInput) => {
-    const { data: tokens } = await authApi.login(input)
-    storeTokens(tokens)
+    const { data } = await authApi.login(input)
+    storeAccessToken(data.access)
     try {
       return await refreshUser()
     } catch (error) {
@@ -65,9 +65,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const logout = useCallback(async () => {
-    const refresh = getStoredTokens()?.refresh
     try {
-      if (refresh) await authApi.logout(refresh)
+      await authApi.logout()
     } finally {
       clearSession()
     }

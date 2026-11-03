@@ -2,6 +2,7 @@ import type { Appointment, AppointmentStatus } from '../types'
 import { formatDateTime, statusLabels } from '../utils/format'
 import { StatusBadge } from './StatusBadge'
 import styles from '../styles/page.module.css'
+import ui from '../styles/ui.module.css'
 
 interface AppointmentCardProps {
   appointment: Appointment
@@ -22,7 +23,7 @@ export function AppointmentCard({ appointment, showClient = false, actions, onSt
       </div>
       {(actions || onStatusChange) && <div className={styles.appointmentActions}>
         {onStatusChange && (
-          <label className={styles.statusSelect}>Status
+          <label className={ui.statusSelect}>Status
             <select disabled={isUpdating} value={appointment.status} onChange={(event) => onStatusChange(event.target.value as AppointmentStatus)}>
               {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </select>
