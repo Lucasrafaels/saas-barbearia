@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { authApi } from '../api/endpoints'
 import { useToast } from '../contexts/ToastContext'
 import styles from '../styles/auth.module.css'
+import ui from '../styles/ui.module.css'
 
 const resetRequestSchema = z.object({
   email: z.string().email('E-mail inválido'),
@@ -64,7 +65,7 @@ export function PasswordResetRequestPage() {
               type="email"
               autoComplete="email"
               {...register('email')}
-              className={errors.email ? 'error' : ''}
+              className={errors.email ? styles.error : ''}
               disabled={isSubmitting}
             />
             {errors.email && <span className={styles.errorText}>{errors.email.message}</span>}
@@ -74,7 +75,7 @@ export function PasswordResetRequestPage() {
           </button>
         </form>
         <p className={styles.switch}>
-          <button type="button" onClick={() => navigate('/login')} className="textButton" disabled={isSubmitting}>
+          <button type="button" onClick={() => navigate('/login')} className={ui.textButton} disabled={isSubmitting}>
             Voltar para o Login
           </button>
         </p>

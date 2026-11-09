@@ -25,7 +25,7 @@ environ.Env.read_env(str(BASE_DIR / '.env'))
 _DEFAULT_DEV_SECRET = 'django-insecure-development-only-change-me-before-production-2026'
 SECRET_KEY = env('SECRET_KEY', default=_DEFAULT_DEV_SECRET)
 DEBUG = env.bool('DEBUG', default=False)
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1', 'testserver'])
 
 if not DEBUG and SECRET_KEY == _DEFAULT_DEV_SECRET:
     raise RuntimeError('SECRET_KEY deve ser definido em produção.')

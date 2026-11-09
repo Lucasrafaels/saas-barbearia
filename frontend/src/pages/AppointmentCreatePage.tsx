@@ -1,9 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
-import { appointmentApi, barberApi, serviceApi } from '../api/endpoints'
+import { appointmentApi } from '../api/endpoints'
+import { listAllServices, listAllBarbers } from '../api/endpoints'
 import { EmptyState } from '../components/EmptyState'
 import { PageLoader } from '../components/PageLoader'
 import { useAuth } from '../contexts/AuthContext'
@@ -36,6 +37,8 @@ export function AppointmentCreatePage() {
   const { user } = useAuth()
   const { showToast } = useToast()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const rescheduleId = searchParams.get('reschedule')
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [slots, setSlots] = useState<string[]>([])
@@ -43,15 +46,18 @@ export function AppointmentCreatePage() {
   const [slotsError, setSlotsError] = useState<string | null>(null)
   const [selectedDate, setSelectedDate] = useState<string>(todayISO())
   const [weekStart, setWeekStart] = useState<string>(todayISO())
+  const [isRescheduling, setIsRescheduling] = useState(false)
+  const [rescheduleAppointment, setRescheduleAppointment] = useState<{ id: number; data_hora: string; servico: number; barbeiro: number; observacoes: string | null } | null>(null)
 
   const { data, isLoading, error } = useAsyncData(async () => {
     const [services, barbers] = await Promise.all([
-      serviceApi.list(true),
-      barberApi.list()
+      listAllServices(),
+      listAllBarbers()
     ])
+    // Filter only active services and barbers
     return {
-      services: services.data.results,
-      barbers: barbers.data.results.filter((barber) => barber.ativo)
+      services: services.filter(s => s.ativo),
+      barbers: barbers.filter(b => b.ativo)
     }
   }, [])
 
@@ -65,6 +71,49 @@ export function AppointmentCreatePage() {
     resolver: zodResolver(schema),
     defaultValues: { data: todayISO(), observacoes: '', horario: '' },
   })
+
+  // Handle reschedule flow - fetch existing appointment data on mount
+  useEffect(() => {
+    if (rescheduleId) {
+      const fetchAppointment = async () => {
+        try {
+          const response = await appointmentApi.get(Number(rescheduleId))
+          const appointment = response.data
+          setRescheduleAppointment(appointment)
+          setIsRescheduling(true)
+
+          // Parse date and time from data_hora (ISO string) using America/Sao_Paulo timezone
+          // This prevents date shifts due to UTC conversion
+          const dateTime = new Date(appointment.data_hora)
+          // Use timezone-aware formatting to avoid UTC shifts
+          const dateStr = dateTime.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })
+            .split('/').reverse().join('-') // Convert DD/MM/YYYY to YYYY-MM-DD
+          const timeStr = dateTime.toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+            timeZone: 'America/Sao_Paulo'
+          })
+
+          // Prefill form
+          setValue('servico', String(appointment.servico))
+          setValue('barbeiro', String(appointment.barbeiro))
+          setValue('data', dateStr)
+          setValue('horario', timeStr)
+          if (appointment.observacoes) {
+            setValue('observacoes', appointment.observacoes)
+          }
+
+          // Update selected date and week
+          setSelectedDate(dateStr)
+          setWeekStart(dateStr)
+        } catch (err) {
+          showToast(errorMessage(err, 'Não foi possível carregar o agendamento para reagendamento.'), 'error')
+        }
+      }
+      fetchAppointment()
+    }
+  }, [rescheduleId, setValue, showToast])
 
   const serviceId = watch('servico')
   const barberId = watch('barbeiro')
@@ -108,7 +157,9 @@ export function AppointmentCreatePage() {
     setIsLoadingSlots(true)
     setSlotsError(null)
     setValue('horario', '')
-    appointmentApi.availableSlots(Number(barberId), Number(serviceId), selectedDate)
+    // During rescheduling, pass the original appointment ID to exclude it from busy slots
+    const excludeId = isRescheduling && rescheduleAppointment ? rescheduleAppointment.id : undefined
+    appointmentApi.availableSlots(Number(barberId), Number(serviceId), selectedDate, excludeId)
       .then((response) => {
         if (active) setSlots(response.data.slots)
       })
@@ -119,22 +170,38 @@ export function AppointmentCreatePage() {
         if (active) setIsLoadingSlots(false)
       })
     return () => { active = false }
-  }, [serviceId, barberId, selectedDate, setValue])
+  }, [serviceId, barberId, selectedDate, setValue, isRescheduling, rescheduleAppointment])
 
   const onSubmit = async (values: AppointmentForm) => {
     if (!user) return
     try {
-      await appointmentApi.create({
-        cliente: user.id,
-        barbeiro: Number(values.barbeiro),
-        servico: Number(values.servico),
-        data_hora: `${values.data}T${values.horario}:00`,
-        observacoes: values.observacoes?.trim(),
-      })
-      showToast('Agendamento criado com sucesso!', 'success')
+      const dataHora = `${values.data}T${values.horario}:00`
+
+      if (isRescheduling && rescheduleAppointment) {
+        // Atomic rescheduling: PATCH the existing appointment
+        // This is safe - if PATCH fails, original appointment is preserved
+        await appointmentApi.update(rescheduleAppointment.id, {
+          barbeiro: Number(values.barbeiro),
+          servico: Number(values.servico),
+          data_hora: dataHora,
+          observacoes: values.observacoes?.trim(),
+        })
+        showToast('Agendamento reagendado com sucesso!', 'success')
+      } else {
+        // Create new appointment
+        await appointmentApi.create({
+          cliente: user.id,
+          barbeiro: Number(values.barbeiro),
+          servico: Number(values.servico),
+          data_hora: dataHora,
+          observacoes: values.observacoes?.trim(),
+        })
+        showToast('Agendamento criado com sucesso!', 'success')
+      }
+
       navigate('/appointments')
     } catch (requestError) {
-      showToast(errorMessage(requestError, 'Não foi possível criar o agendamento.'), 'error')
+      showToast(errorMessage(requestError, isRescheduling ? 'Não foi possível reagendar.' : 'Não foi possível criar o agendamento.'), 'error')
     }
   }
 
@@ -204,8 +271,8 @@ export function AppointmentCreatePage() {
     <div className={`${styles.page} ${styles.narrowPage}`}>
       <header className={styles.pageHeader}>
         <div>
-          <p className={styles.eyebrow}>Reserve seu horário</p>
-          <h1>Novo agendamento</h1>
+          <p className={styles.eyebrow}>{isRescheduling ? 'Reagendamento' : 'Reserve seu horário'}</p>
+          <h1>{isRescheduling ? 'Reagendar agendamento' : 'Novo agendamento'}</h1>
         </div>
       </header>
 
@@ -222,10 +289,19 @@ export function AppointmentCreatePage() {
             <div className={ui.stepperStep}>
               {index < currentStepIndex ? '' : index + 1}
             </div>
-            <span className={ui.stepperLabel}>{stepLabels[step]}</span>
+            <span className={ui.stepperLabel}>{isRescheduling && step === 'confirm' ? 'Confirmar reagendamento' : stepLabels[step]}</span>
           </div>
         ))}
       </nav>
+
+      {isRescheduling && rescheduleAppointment && (
+        <div style={{ background: 'var(--color-primary-red-light)', border: '1px solid var(--color-primary-red)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)', marginBottom: 'var(--space-4)', display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+          <span style={{ color: 'var(--color-primary-red)', fontWeight: 'var(--font-weight-semibold)' }}>↻ Reagendando agendamento #{rescheduleAppointment.id}</span>
+          <span style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>
+            Horário original: {new Date(rescheduleAppointment.data_hora).toLocaleString('pt-BR')}
+          </span>
+        </div>
+      )}
 
       <form className={ui.formCard} onSubmit={handleSubmit(onSubmit)} noValidate>
         {/* Step 1: Service Selection */}

@@ -5,7 +5,7 @@
 /* === PAGE WRAPPER === */
 .page {
   display: grid;
-  gap: var(--space-6);
+  gap: var(--space-7);
 }
 
 .narrowPage {
@@ -51,10 +51,10 @@
 .hero {
   padding: clamp(var(--space-8), 5vw, var(--space-16));
   overflow: hidden;
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-lg);
   color: var(--color-white);
   background: var(--color-primary-navy);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-md);
   position: relative;
 }
 
@@ -127,7 +127,7 @@
 .feature {
   padding: var(--space-5);
   border: var(--border-width-thin) solid var(--color-border);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   background: var(--color-white);
   transition: box-shadow var(--transition-normal), border-color var(--transition-normal);
 }
@@ -146,9 +146,16 @@
   border-radius: var(--radius-lg);
   color: var(--color-primary-red);
   background: var(--color-primary-red-light);
-  font-family: var(--font-heading);
-  font-size: var(--text-xl);
-  font-weight: var(--font-weight-extrabold);
+}
+
+.featureIcon.navy {
+  color: var(--color-primary-navy);
+  background: var(--color-primary-navy-light);
+}
+
+.featureIcon.success {
+  color: var(--color-success);
+  background: var(--color-success-light);
 }
 
 .feature h2 {
@@ -389,7 +396,7 @@
 
 .dashboardCard {
   border: var(--border-width-thin) solid var(--color-border);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   background: var(--color-white);
   box-shadow: var(--shadow-xs);
   overflow: hidden;
@@ -401,7 +408,7 @@
   justify-content: space-between;
   padding: var(--space-4) var(--space-5);
   border-bottom: var(--border-width-thin) solid var(--color-border);
-  background: var(--color-bg-light);
+  background: #fcfbfa;
 }
 
 .cardHeader h2 {
@@ -559,4 +566,71 @@
   .statsGrid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Shared presentation used by catalogues and appointment rows. */
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: var(--space-4);
+}
+
+.serviceCard,
+.barberCard {
+  display: grid;
+  gap: var(--space-3);
+  min-height: 12.5rem;
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-white);
+  box-shadow: var(--shadow-xs);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.serviceCard:hover,
+.barberCard:hover { border-color: var(--color-border-strong); box-shadow: var(--shadow-sm); }
+.serviceCard h2, .barberCard h2 { font-size: var(--text-lg); }
+.serviceCard p, .barberCard p { color: var(--color-text-muted); font-size: var(--text-sm); }
+.serviceCard footer { display: flex; align-items: center; justify-content: space-between; align-self: end; }
+.serviceCard footer strong { color: var(--color-primary-navy); font-family: var(--font-heading); font-size: var(--text-lg); }
+.barberCard { justify-items: center; text-align: center; }
+
+.serviceIcon {
+  display: grid;
+  place-items: center;
+  width: 2.85rem;
+  height: 2.85rem;
+  border: 1px solid #d4deea;
+  border-radius: var(--radius-sm);
+  color: var(--color-primary-navy);
+  background: var(--color-primary-navy-light);
+  font-family: var(--font-heading);
+  font-weight: var(--font-weight-bold);
+}
+
+.appointmentCard {
+  display: grid;
+  grid-template-columns: 8rem minmax(0, 1fr) auto;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-white);
+  box-shadow: var(--shadow-xs);
+}
+
+.appointmentTime { color: var(--color-primary-navy); font-family: var(--font-heading); font-weight: var(--font-weight-bold); line-height: var(--leading-tight); }
+.appointmentMain { min-width: 0; }
+.appointmentTitle { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.appointmentTitle h2 { font-size: var(--text-lg); }
+.appointmentMain p, .note { margin-top: var(--space-1); color: var(--color-text-muted); font-size: var(--text-sm); }
+.appointmentActions { display: flex; align-items: end; flex-wrap: wrap; gap: var(--space-2); }
+.errorBox { padding: var(--space-4); border-radius: var(--radius-md); background: var(--color-error-light); color: var(--color-error); }
+
+@media (max-width: 720px) {
+  .cardGrid { grid-template-columns: 1fr; }
+  .appointmentCard { grid-template-columns: 1fr; gap: var(--space-3); padding: var(--space-4); }
+  .appointmentActions { align-items: stretch; }
 }

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { appointmentApi, listAllAppointments } from '../api/endpoints'
 import { EmptyState } from '../components/EmptyState'
 import { PageLoader } from '../components/PageLoader'
+import { StatusBadge } from '../components/StatusBadge'
 import { useToast } from '../contexts/ToastContext'
 import { useAsyncData } from '../hooks/useAsyncData'
 import type { AppointmentStatus } from '../types'
@@ -38,12 +39,14 @@ export function BarberAgendaPage() {
     }
   }
 
-  // Valid status transitions based on backend rules
+  // Valid status transitions for barbers based on backend rules
+  // Barbers can only advance the flow: agendado -> confirmado/cancelado, confirmado -> realizado/cancelado
+  // They CANNOT reopen terminal states (realizado, cancelado)
   const validTransitions: Record<AppointmentStatus, AppointmentStatus[]> = {
     agendado: ['confirmado', 'cancelado'],
     confirmado: ['realizado', 'cancelado'],
-    realizado: [],
-    cancelado: [],
+    realizado: [], // Terminal state - cannot transition further
+    cancelado: [], // Terminal state - cannot transition further
   }
 
   if (isLoading) return <PageLoader label="Carregando sua agenda..." />
@@ -94,9 +97,6 @@ export function BarberAgendaPage() {
                       </td>
                       <td>{appointment.servico_nome}</td>
                       <td>{appointment.servico_duracao} min</td>
-                      <td>
-                        <span className={`ui.badge badgeDefault`}>{statusLabels[appointment.status]}</span>
-                      </td>
                       <td>
                         <StatusBadge status={appointment.status} />
                       </td>

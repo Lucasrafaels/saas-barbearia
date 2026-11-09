@@ -14,6 +14,7 @@ from accounts.models import User
 from barbershops.models import Barber, Barbershop
 from services.models import Service
 from .models import Appointment
+from .serializers import AppointmentSerializer
 
 
 class AppointmentSecurityTests(APITestCase):
@@ -343,13 +344,9 @@ class AppointmentBusinessHoursAndPastDateTests(APITestCase):
         self.assertNotEqual(agendamento.data_hora, data_hora_passada)
 
     def test_can_update_other_fields_on_a_past_appointment(self):
-        """Editar campos que não sejam `data_hora` (ex.: marcar como
-        "realizado") continua permitido mesmo depois que o horário do
-        agendamento já passou — senão seria impossível encerrar o fluxo
-        normal de um agendamento.
-
-        Testado pela API para garantir que a cópia de PATCH usada pelo
-        serializer preserve o estado persistido e valide corretamente.
+        """Editar campos que não sejam `data_hora` (ex.: status/observacoes)
+        segue a máquina de estados mesmo depois que o horário passou.
+        O fluxo correto é: agendado → confirmado → realizado.
         """
         agendamento = Appointment.objects.create(
             barbershop=self.barbershop,
@@ -359,6 +356,17 @@ class AppointmentBusinessHoursAndPastDateTests(APITestCase):
             data_hora=self.local_datetime(-1, 10, 0),
         )
 
+        # Primeiro: agendado → confirmado
+        response = self.client.patch(
+            reverse('appointment-detail', args=[agendamento.pk]),
+            {'status': Appointment.Status.CONFIRMADO},
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        agendamento.refresh_from_db()
+        self.assertEqual(agendamento.status, Appointment.Status.CONFIRMADO)
+
+        # Segundo: confirmado → realizado (com observações)
         response = self.client.patch(
             reverse('appointment-detail', args=[agendamento.pk]),
             {
@@ -367,11 +375,25 @@ class AppointmentBusinessHoursAndPastDateTests(APITestCase):
             },
             format='json',
         )
-
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         agendamento.refresh_from_db()
         self.assertEqual(agendamento.status, Appointment.Status.REALIZADO)
         self.assertEqual(agendamento.observacoes, 'Atendimento concluído')
+
+        # Tentativa direta agendado → realizado deve falhar
+        agendamento2 = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(-2, 10, 0),
+        )
+        response = self.client.patch(
+            reverse('appointment-detail', args=[agendamento2.pk]),
+            {'status': Appointment.Status.REALIZADO},
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_appointment_in_the_past_rejected_at_model_level(self):
         appointment = Appointment(
@@ -645,8 +667,6 @@ class AppointmentConcurrencyTests(TransactionTestCase):
         )
 
     def test_concurrent_requests_create_only_one_appointment(self):
-        from .serializers import AppointmentSerializer
-
         barrier = threading.Barrier(2)
         outcomes = []
         failures = []
@@ -688,3 +708,806 @@ class AppointmentConcurrencyTests(TransactionTestCase):
         self.assertFalse(failures, failures)
         self.assertEqual(sorted(outcomes), [status.HTTP_201_CREATED, status.HTTP_400_BAD_REQUEST])
         self.assertEqual(Appointment.objects.count(), 1)
+
+
+class AvailableSlotsExcludeAppointmentTests(APITestCase):
+    """Testes para o parâmetro exclude_appointment_id no endpoint available-slots."""
+
+    def setUp(self):
+        self.barbershop = Barbershop.objects.create(
+            nome='Barbearia Exclude',
+            endereco='Rua dos Excluídos, 10',
+            telefone='11977777777',
+            email='exclude@example.com',
+            horario_abertura=time(8),
+            horario_fechamento=time(12),
+        )
+        self.admin = self.create_user('exclude-admin@example.com', User.TipoPerfil.ADMIN)
+        self.client_user = self.create_user('cliente-exclude@example.com', User.TipoPerfil.CLIENTE)
+        self.other_client = self.create_user('other-client@example.com', User.TipoPerfil.CLIENTE)
+        barber_user = self.create_user('barbeiro-exclude@example.com', User.TipoPerfil.BARBEIRO)
+        self.barber = Barber.objects.create(user=barber_user, barbershop=self.barbershop)
+        self.service = Service.objects.create(
+            barbershop=self.barbershop,
+            nome='Corte Exclude',
+            preco='40.00',
+            duracao=60,
+        )
+        self.client.force_authenticate(self.admin)
+
+    def create_user(self, email, tipo_perfil):
+        return User.objects.create_user(
+            email=email,
+            nome=email.split('@')[0],
+            password='Senha-segura-123',
+            tipo_perfil=tipo_perfil,
+            barbershop=self.barbershop,
+        )
+
+    def url(self):
+        return reverse('appointment-available-slots')
+
+    def local_datetime(self, day_offset, hour, minute=0):
+        naive = datetime.now() + timedelta(days=day_offset)
+        data = (naive.replace(hour=hour, minute=minute, second=0, microsecond=0)).date()
+        return timezone.make_aware(datetime.combine(data, time(hour, minute)))
+
+    def data_str(self, day_offset):
+        return (datetime.now() + timedelta(days=day_offset)).strftime('%Y-%m-%d')
+
+    def test_exclude_own_appointment_from_slots(self):
+        """Ao reagendar, o próprio agendamento não deve bloquear o slot original."""
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 9, 0),
+        )
+
+        # Sem exclude: o slot 09:00 está ocupado
+        response = self.client.get(self.url(), {
+            'barbeiro': self.barber.id,
+            'servico': self.service.id,
+            'data': self.data_str(2),
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotIn('09:00', response.data['slots'])
+
+        # Com exclude: o slot 09:00 deve aparecer livre
+        response = self.client.get(self.url(), {
+            'barbeiro': self.barber.id,
+            'servico': self.service.id,
+            'data': self.data_str(2),
+            'exclude_appointment_id': agendamento.id,
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('09:00', response.data['slots'])
+
+    def test_exclude_appointment_not_found(self):
+        """Agendamento inexistente retorna 404."""
+        response = self.client.get(self.url(), {
+            'barbeiro': self.barber.id,
+            'servico': self.service.id,
+            'data': self.data_str(2),
+            'exclude_appointment_id': 99999,
+        })
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_exclude_appointment_wrong_tenant(self):
+        """Agendamento de outro tenant não pode ser usado no exclude."""
+        outra = Barbershop.objects.create(
+            nome='Outra', endereco='Rua B', telefone='11900000000',
+            email='outra@ex.com', horario_abertura=time(8), horario_fechamento=time(18),
+        )
+        outro_usuario = User.objects.create_user(
+            email='outro@example.com', nome='Outro', password='Senha-segura-123',
+            tipo_perfil=User.TipoPerfil.BARBEIRO, barbershop=outra,
+        )
+        outro_barbeiro = Barber.objects.create(user=outro_usuario, barbershop=outra)
+        outro_servico = Service.objects.create(
+            barbershop=outra, nome='Corte', preco='50.00', duracao=30,
+        )
+        outro_agendamento = Appointment.objects.create(
+            barbershop=outra,
+            cliente=self.admin,  # usando admin só para criar
+            barbeiro=outro_barbeiro,
+            servico=outro_servico,
+            data_hora=self.local_datetime(2, 9, 0),
+        )
+
+        response = self.client.get(self.url(), {
+            'barbeiro': self.barber.id,
+            'servico': self.service.id,
+            'data': self.data_str(2),
+            'exclude_appointment_id': outro_agendamento.id,
+        })
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_exclude_appointment_client_no_permission(self):
+        """Cliente não pode excluir agendamento de outro cliente."""
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.other_client,  # pertence a outro cliente
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 9, 0),
+        )
+        self.client.force_authenticate(self.client_user)
+
+        response = self.client.get(self.url(), {
+            'barbeiro': self.barber.id,
+            'servico': self.service.id,
+            'data': self.data_str(2),
+            'exclude_appointment_id': agendamento.id,
+        })
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_exclude_appointment_barber_no_permission(self):
+        """Barbeiro não pode excluir agendamento de outro barbeiro."""
+        outro_barbeiro_user = self.create_user('outro-barbeiro@example.com', User.TipoPerfil.BARBEIRO)
+        outro_barbeiro = Barber.objects.create(user=outro_barbeiro_user, barbershop=self.barbershop)
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=outro_barbeiro,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 9, 0),
+        )
+        barbeiro_user = User.objects.get(email='barbeiro-exclude@example.com')
+        self.client.force_authenticate(barbeiro_user)
+
+        response = self.client.get(self.url(), {
+            'barbeiro': self.barber.id,
+            'servico': self.service.id,
+            'data': self.data_str(2),
+            'exclude_appointment_id': agendamento.id,
+        })
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_exclude_appointment_wrong_barber(self):
+        """exclude_appointment_id de outro barbeiro é ignorado (não bloqueia slots)."""
+        outro_barbeiro_user = self.create_user('outro-barbeiro2@example.com', User.TipoPerfil.BARBEIRO)
+        outro_barbeiro = Barber.objects.create(user=outro_barbeiro_user, barbershop=self.barbershop)
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=outro_barbeiro,  # barbeiro diferente
+            servico=self.service,
+            data_hora=self.local_datetime(2, 9, 0),
+        )
+
+        response = self.client.get(self.url(), {
+            'barbeiro': self.barber.id,  # barbeiro da consulta diferente do agendamento
+            'servico': self.service.id,
+            'data': self.data_str(2),
+            'exclude_appointment_id': agendamento.id,
+        })
+        # Deve retornar 200 e ignorar o agendamento de outro barbeiro
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # O agendamento original não estava no barbeiro consultado, então não afeta os slots
+        self.assertIn('slots', response.data)
+
+    def test_exclude_appointment_status_not_reschedulable(self):
+        """Não permite excluir agendamento com status realizado."""
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 9, 0),
+            status=Appointment.Status.REALIZADO,
+        )
+
+        response = self.client.get(self.url(), {
+            'barbeiro': self.barber.id,
+            'servico': self.service.id,
+            'data': self.data_str(2),
+            'exclude_appointment_id': agendamento.id,
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('realizado', response.data['detail'].lower())
+
+    def test_exclude_appointment_cancelado(self):
+        """Não permite excluir agendamento cancelado."""
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 9, 0),
+            status=Appointment.Status.CANCELADO,
+        )
+
+        response = self.client.get(self.url(), {
+            'barbeiro': self.barber.id,
+            'servico': self.service.id,
+            'data': self.data_str(2),
+            'exclude_appointment_id': agendamento.id,
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('cancelado', response.data['detail'].lower())
+
+
+class AppointmentReschedulingTests(APITestCase):
+    """Testes de reagendamento completo."""
+
+    def setUp(self):
+        self.barbershop = Barbershop.objects.create(
+            nome='Barbearia Reagend',
+            endereco='Rua Reagend, 10',
+            telefone='11966666666',
+            email='reagend@example.com',
+            horario_abertura=time(8),
+            horario_fechamento=time(18),
+        )
+        self.admin = self.create_user('reagend-admin@example.com', User.TipoPerfil.ADMIN)
+        self.client_user = self.create_user('cliente-reagend@example.com', User.TipoPerfil.CLIENTE)
+        self.other_client = self.create_user('other-client-reagend@example.com', User.TipoPerfil.CLIENTE)
+        barber_user = self.create_user('barbeiro-reagend@example.com', User.TipoPerfil.BARBEIRO)
+        self.barber = Barber.objects.create(user=barber_user, barbershop=self.barbershop)
+        self.other_barber_user = self.create_user('outro-barbeiro-reagend@example.com', User.TipoPerfil.BARBEIRO)
+        self.other_barber = Barber.objects.create(user=self.other_barber_user, barbershop=self.barbershop)
+        self.service = Service.objects.create(
+            barbershop=self.barbershop,
+            nome='Corte Reagend',
+            preco='40.00',
+            duracao=60,
+        )
+        self.other_service = Service.objects.create(
+            barbershop=self.barbershop,
+            nome='Barba',
+            preco='30.00',
+            duracao=30,
+        )
+
+    def create_user(self, email, tipo_perfil):
+        return User.objects.create_user(
+            email=email,
+            nome=email.split('@')[0],
+            password='Senha-segura-123',
+            tipo_perfil=tipo_perfil,
+            barbershop=self.barbershop,
+        )
+
+    def local_datetime(self, day_offset, hour, minute=0):
+        naive = datetime.now() + timedelta(days=day_offset)
+        data = (naive.replace(hour=hour, minute=minute, second=0, microsecond=0)).date()
+        return timezone.make_aware(datetime.combine(data, time(hour, minute)))
+
+    def test_reschedule_same_time_allowed(self):
+        """Reagendar para o mesmo horário deve ser permitido (idempotente)."""
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 10, 0),
+        )
+        self.client.force_authenticate(self.client_user)
+
+        response = self.client.patch(
+            reverse('appointment-detail', args=[agendamento.pk]),
+            {
+                'data_hora': agendamento.data_hora.isoformat(),
+                'barbeiro': self.barber.id,
+                'servico': self.service.id,
+            },
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        agendamento.refresh_from_db()
+        self.assertEqual(agendamento.status, Appointment.Status.AGENDADO)
+
+    def test_reschedule_to_available_time(self):
+        """Reagendar para outro horário disponível."""
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 10, 0),
+        )
+        self.client.force_authenticate(self.client_user)
+
+        nova_data_hora = self.local_datetime(2, 11, 0)
+        response = self.client.patch(
+            reverse('appointment-detail', args=[agendamento.pk]),
+            {
+                'data_hora': nova_data_hora.isoformat(),
+                'barbeiro': self.barber.id,
+                'servico': self.service.id,
+            },
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        agendamento.refresh_from_db()
+        self.assertEqual(agendamento.data_hora, nova_data_hora)
+
+    def test_reschedule_conflict_rejected(self):
+        """Reagendar para horário ocupado deve ser rejeitado."""
+        Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.other_client,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 11, 0),
+        )
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 10, 0),
+        )
+        self.client.force_authenticate(self.client_user)
+
+        response = self.client.patch(
+            reverse('appointment-detail', args=[agendamento.pk]),
+            {
+                'data_hora': self.local_datetime(2, 11, 0).isoformat(),
+                'barbeiro': self.barber.id,
+                'servico': self.service.id,
+            },
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('já possui um agendamento neste horário', str(response.data).lower())
+
+    def test_reschedule_cancelled_rejected(self):
+        """Não pode reagendar agendamento cancelado."""
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 10, 0),
+            status=Appointment.Status.CANCELADO,
+        )
+        self.client.force_authenticate(self.client_user)
+
+        response = self.client.patch(
+            reverse('appointment-detail', args=[agendamento.pk]),
+            {
+                'data_hora': self.local_datetime(2, 11, 0).isoformat(),
+                'barbeiro': self.barber.id,
+                'servico': self.service.id,
+            },
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_reschedule_completed_rejected(self):
+        """Não pode reagendar agendamento realizado."""
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 10, 0),
+            status=Appointment.Status.REALIZADO,
+        )
+        self.client.force_authenticate(self.client_user)
+
+        response = self.client.patch(
+            reverse('appointment-detail', args=[agendamento.pk]),
+            {
+                'data_hora': self.local_datetime(2, 11, 0).isoformat(),
+                'barbeiro': self.barber.id,
+                'servico': self.service.id,
+            },
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_reschedule_other_client_rejected(self):
+        """Cliente não pode reagendar agendamento de outro cliente."""
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.other_client,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 10, 0),
+        )
+        self.client.force_authenticate(self.client_user)
+
+        response = self.client.patch(
+            reverse('appointment-detail', args=[agendamento.pk]),
+            {
+                'data_hora': self.local_datetime(2, 11, 0).isoformat(),
+                'barbeiro': self.barber.id,
+                'servico': self.service.id,
+            },
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_reschedule_to_past_rejected(self):
+        """Não pode reagendar para horário no passado."""
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 10, 0),
+        )
+        self.client.force_authenticate(self.client_user)
+
+        response = self.client.patch(
+            reverse('appointment-detail', args=[agendamento.pk]),
+            {
+                'data_hora': self.local_datetime(-1, 10, 0).isoformat(),
+                'barbeiro': self.barber.id,
+                'servico': self.service.id,
+            },
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class AppointmentCancelByDeleteTests(APITestCase):
+    """Testes de cancelamento via DELETE."""
+
+    def setUp(self):
+        self.barbershop = Barbershop.objects.create(
+            nome='Barbearia Delete',
+            endereco='Rua Delete, 10',
+            telefone='11955555555',
+            email='delete@example.com',
+            horario_abertura=time(8),
+            horario_fechamento=time(18),
+        )
+        self.admin = self.create_user('delete-admin@example.com', User.TipoPerfil.ADMIN)
+        self.client_user = self.create_user('cliente-delete@example.com', User.TipoPerfil.CLIENTE)
+        barber_user = self.create_user('barbeiro-delete@example.com', User.TipoPerfil.BARBEIRO)
+        self.barber = Barber.objects.create(user=barber_user, barbershop=self.barbershop)
+        self.service = Service.objects.create(
+            barbershop=self.barbershop,
+            nome='Corte Delete',
+            preco='40.00',
+            duracao=60,
+        )
+
+    def create_user(self, email, tipo_perfil):
+        return User.objects.create_user(
+            email=email,
+            nome=email.split('@')[0],
+            password='Senha-segura-123',
+            tipo_perfil=tipo_perfil,
+            barbershop=self.barbershop,
+        )
+
+    def local_datetime(self, day_offset, hour, minute=0):
+        naive = datetime.now() + timedelta(days=day_offset)
+        data = (naive.replace(hour=hour, minute=minute, second=0, microsecond=0)).date()
+        return timezone.make_aware(datetime.combine(data, time(hour, minute)))
+
+    def test_cancel_scheduled_by_delete(self):
+        """DELETE cancela agendamento 'agendado'."""
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 10, 0),
+        )
+        self.client.force_authenticate(self.client_user)
+
+        response = self.client.delete(reverse('appointment-detail', args=[agendamento.pk]))
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        agendamento.refresh_from_db()
+        self.assertEqual(agendamento.status, Appointment.Status.CANCELADO)
+
+    def test_cancel_confirmed_by_delete(self):
+        """DELETE cancela agendamento 'confirmado'."""
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 10, 0),
+            status=Appointment.Status.CONFIRMADO,
+        )
+        self.client.force_authenticate(self.client_user)
+
+        response = self.client.delete(reverse('appointment-detail', args=[agendamento.pk]))
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        agendamento.refresh_from_db()
+        self.assertEqual(agendamento.status, Appointment.Status.CANCELADO)
+
+    def test_cancel_completed_rejected(self):
+        """DELETE não cancela agendamento 'realizado'."""
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(-1, 10, 0),
+            status=Appointment.Status.REALIZADO,
+        )
+        self.client.force_authenticate(self.client_user)
+
+        response = self.client.delete(reverse('appointment-detail', args=[agendamento.pk]))
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        agendamento.refresh_from_db()
+        self.assertEqual(agendamento.status, Appointment.Status.REALIZADO)
+
+    def test_cancel_already_cancelled_idempotent(self):
+        """DELETE em agendamento já cancelado é idempotente (retorna 204)."""
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 10, 0),
+            status=Appointment.Status.CANCELADO,
+        )
+        self.client.force_authenticate(self.client_user)
+
+        response = self.client.delete(reverse('appointment-detail', args=[agendamento.pk]))
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        agendamento.refresh_from_db()
+        self.assertEqual(agendamento.status, Appointment.Status.CANCELADO)
+
+
+class AppointmentStateMachineTests(APITestCase):
+    """Testes da máquina de estados de status."""
+
+    def setUp(self):
+        self.barbershop = Barbershop.objects.create(
+            nome='Barbearia State',
+            endereco='Rua State, 10',
+            telefone='11944444444',
+            email='state@example.com',
+            horario_abertura=time(8),
+            horario_fechamento=time(18),
+        )
+        self.admin = self.create_user('state-admin@example.com', User.TipoPerfil.ADMIN)
+        self.client_user = self.create_user('cliente-state@example.com', User.TipoPerfil.CLIENTE)
+        barber_user = self.create_user('barbeiro-state@example.com', User.TipoPerfil.BARBEIRO)
+        self.barber = Barber.objects.create(user=barber_user, barbershop=self.barbershop)
+        self.service = Service.objects.create(
+            barbershop=self.barbershop,
+            nome='Corte State',
+            preco='40.00',
+            duracao=60,
+        )
+        self.client.force_authenticate(self.admin)
+
+    def create_user(self, email, tipo_perfil):
+        return User.objects.create_user(
+            email=email,
+            nome=email.split('@')[0],
+            password='Senha-segura-123',
+            tipo_perfil=tipo_perfil,
+            barbershop=self.barbershop,
+        )
+
+    def local_datetime(self, day_offset, hour, minute=0):
+        naive = datetime.now() + timedelta(days=day_offset)
+        data = (naive.replace(hour=hour, minute=minute, second=0, microsecond=0)).date()
+        return timezone.make_aware(datetime.combine(data, time(hour, minute)))
+
+    def test_agendado_to_confirmado_allowed(self):
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 10, 0),
+        )
+        response = self.client.patch(
+            reverse('appointment-detail', args=[agendamento.pk]),
+            {'status': Appointment.Status.CONFIRMADO},
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        agendamento.refresh_from_db()
+        self.assertEqual(agendamento.status, Appointment.Status.CONFIRMADO)
+
+    def test_agendado_to_cancelado_allowed(self):
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 10, 0),
+        )
+        response = self.client.patch(
+            reverse('appointment-detail', args=[agendamento.pk]),
+            {'status': Appointment.Status.CANCELADO},
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        agendamento.refresh_from_db()
+        self.assertEqual(agendamento.status, Appointment.Status.CANCELADO)
+
+    def test_agendado_to_realizado_rejected(self):
+        """agendado → realizado diretamente NÃO é permitido."""
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 10, 0),
+        )
+        response = self.client.patch(
+            reverse('appointment-detail', args=[agendamento.pk]),
+            {'status': Appointment.Status.REALIZADO},
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_confirmado_to_realizado_allowed(self):
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 10, 0),
+            status=Appointment.Status.CONFIRMADO,
+        )
+        response = self.client.patch(
+            reverse('appointment-detail', args=[agendamento.pk]),
+            {'status': Appointment.Status.REALIZADO},
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        agendamento.refresh_from_db()
+        self.assertEqual(agendamento.status, Appointment.Status.REALIZADO)
+
+    def test_confirmado_to_cancelado_allowed(self):
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 10, 0),
+            status=Appointment.Status.CONFIRMADO,
+        )
+        response = self.client.patch(
+            reverse('appointment-detail', args=[agendamento.pk]),
+            {'status': Appointment.Status.CANCELADO},
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        agendamento.refresh_from_db()
+        self.assertEqual(agendamento.status, Appointment.Status.CANCELADO)
+
+    def test_realizado_no_transitions(self):
+        """realizado é estado final - nenhuma transição permitida."""
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(-1, 10, 0),
+            status=Appointment.Status.REALIZADO,
+        )
+        for novo_status in [Appointment.Status.AGENDADO, Appointment.Status.CONFIRMADO, Appointment.Status.CANCELADO]:
+            response = self.client.patch(
+                reverse('appointment-detail', args=[agendamento.pk]),
+                {'status': novo_status},
+                format='json',
+            )
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            agendamento.refresh_from_db()
+            self.assertEqual(agendamento.status, Appointment.Status.REALIZADO)
+
+    def test_cancelado_no_transitions(self):
+        """cancelado é estado final - nenhuma transição permitida."""
+        agendamento = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=self.local_datetime(2, 10, 0),
+            status=Appointment.Status.CANCELADO,
+        )
+        for novo_status in [Appointment.Status.AGENDADO, Appointment.Status.CONFIRMADO, Appointment.Status.REALIZADO]:
+            response = self.client.patch(
+                reverse('appointment-detail', args=[agendamento.pk]),
+                {'status': novo_status},
+                format='json',
+            )
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            agendamento.refresh_from_db()
+            self.assertEqual(agendamento.status, Appointment.Status.CANCELADO)
+
+
+@skipUnless(connection.vendor == 'postgresql', 'Requer bloqueio real do PostgreSQL.')
+class AppointmentConcurrencySlotsTests(TransactionTestCase):
+    """Testes de concorrência de horários (slot ocupado)."""
+
+    reset_sequences = True
+
+    def setUp(self):
+        self.barbershop = Barbershop.objects.create(
+            nome='Barbearia Concorrência Slots',
+            endereco='Rua Concorrência, 10',
+            telefone='11933333333',
+            email='concorrencia-slots@example.com',
+            horario_abertura=time(8),
+            horario_fechamento=time(18),
+        )
+        self.client_user = User.objects.create_user(
+            email='cliente-concorrencia-slots@example.com', nome='Cliente',
+            password='Senha-segura-123', tipo_perfil=User.TipoPerfil.CLIENTE,
+            barbershop=self.barbershop,
+        )
+        self.other_client = User.objects.create_user(
+            email='other-cliente-concorrencia-slots@example.com', nome='Other',
+            password='Senha-segura-123', tipo_perfil=User.TipoPerfil.CLIENTE,
+            barbershop=self.barbershop,
+        )
+        barber_user = User.objects.create_user(
+            email='barbeiro-concorrencia-slots@example.com', nome='Barbeiro',
+            password='Senha-segura-123', tipo_perfil=User.TipoPerfil.BARBEIRO,
+            barbershop=self.barbershop,
+        )
+        self.barber = Barber.objects.create(user=barber_user, barbershop=self.barbershop)
+        self.service = Service.objects.create(
+            barbershop=self.barbershop, nome='Corte', preco='50.00', duracao=30,
+        )
+        self.data_hora = timezone.make_aware(
+            datetime.combine(timezone.localdate() + timedelta(days=1), time(10)),
+        )
+
+    def test_concurrent_reschedule_to_same_slot_rejected(self):
+        """Duas requisições simultâneas de reagendamento para o mesmo slot."""
+        agendamento1 = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.client_user,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=timezone.make_aware(datetime.combine(timezone.localdate() + timedelta(days=1), time(9))),
+        )
+        agendamento2 = Appointment.objects.create(
+            barbershop=self.barbershop,
+            cliente=self.other_client,
+            barbeiro=self.barber,
+            servico=self.service,
+            data_hora=timezone.make_aware(datetime.combine(timezone.localdate() + timedelta(days=1), time(11))),
+        )
+
+        barrier = threading.Barrier(2)
+        outcomes = []
+        failures = []
+
+        def reschedule_appointment(appt_id, user):
+            close_old_connections()
+            client = APIClient()
+            client.force_authenticate(user)
+            try:
+                response = client.patch(
+                    reverse('appointment-detail', args=[appt_id]),
+                    {
+                        'data_hora': self.data_hora.isoformat(),
+                        'barbeiro': self.barber.id,
+                        'servico': self.service.id,
+                    },
+                    format='json',
+                )
+                outcomes.append(response.status_code)
+            except Exception as error:
+                failures.append(error)
+            finally:
+                close_old_connections()
+
+        # Tentar reagendar ambos para o mesmo horário (10:00)
+        with mock.patch.object(AppointmentSerializer, 'validate', lambda s, a: (barrier.wait(timeout=10), a)[1]):
+            workers = [
+                threading.Thread(target=reschedule_appointment, args=(agendamento1.pk, self.client_user)),
+                threading.Thread(target=reschedule_appointment, args=(agendamento2.pk, self.other_client)),
+            ]
+            for w in workers:
+                w.start()
+            for w in workers:
+                w.join(timeout=15)
+
+        self.assertFalse(failures, failures)
+        # Apenas um deve conseguir
+        self.assertEqual(sorted(outcomes), [status.HTTP_200_OK, status.HTTP_400_BAD_REQUEST])
+        # Verificar que só um está no horário 10:00
+        count_10 = Appointment.objects.filter(data_hora=self.data_hora).exclude(status=Appointment.Status.CANCELADO).count()
+        self.assertEqual(count_10, 1)

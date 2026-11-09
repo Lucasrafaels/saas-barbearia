@@ -53,7 +53,7 @@ export function LoginPage() {
               autoComplete="email"
               placeholder="voce@exemplo.com"
               {...register('email')}
-              className={errors.email ? 'error' : ''}
+              className={errors.email ? styles.error : ''}
             />
             {errors.email && <span className={styles.errorText}>{errors.email.message}</span>}
           </div>
@@ -65,7 +65,7 @@ export function LoginPage() {
               autoComplete="current-password"
               placeholder="Sua senha"
               {...register('password')}
-              className={errors.password ? 'error' : ''}
+              className={errors.password ? styles.error : ''}
             />
             {errors.password && <span className={styles.errorText}>{errors.password.message}</span>}
           </div>

@@ -29,11 +29,41 @@ class ServiceViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        # Recursos desativados preservam o histórico, mas não voltam a ser
-        # oferecidos a clientes por padrão. Administradores podem consultar
-        # explicitamente ?ativo=false para auditoria/restauração manual.
-        if self.action == 'list' and 'ativo' not in self.request.query_params:
-            queryset = queryset.filter(ativo=True)
+        # Filtro por status ativo/inativo:
+        # - Sem parâmetro (público) → apenas ativos
+        # - ativo=true → apenas ativos
+        # - ativo=false → apenas inativos
+        # - ativo=all (apenas admin) → todos (sem filtro)
+        ativo_param = self.request.query_params.get('ativo')
+        user = self.request.user
+
+        # Para operações de escrita (UPDATE, DELETE), superuser deve poder
+        # acessar serviços inativos para reativar ou confirmar exclusão.
+        is_write_operation = self.action in ['update', 'partial_update', 'destroy']
+
+        if ativo_param == 'all':
+            # Apenas admins podem ver inativos via ativo=all
+            if user.is_authenticated and (user.is_superuser or user.tipo_perfil == 'admin'):
+                # Admin explícito: retorna todos, sem filtro por ativo
+                pass
+            else:
+                # Não-admins: ignora ativo=all e usa padrão (apenas ativos)
+                queryset = queryset.filter(ativo=True)
+        elif ativo_param == 'false':
+            # Apenas admins podem filtrar inativos
+            if user.is_authenticated and (user.is_superuser or user.tipo_perfil == 'admin'):
+                queryset = queryset.filter(ativo=False)
+            else:
+                # Não-admins não podem ver inativos
+                queryset = queryset.filter(ativo=True)
+        else:
+            # ativo=true ou parâmetro ausente (padrão público)
+            # Mas para operações de escrita de superuser, não filtramos por ativo
+            # para permitir reativação e exclusão de inativos
+            if is_write_operation and user.is_authenticated and user.is_superuser:
+                pass  # Superuser em operação de escrita vê todos
+            else:
+                queryset = queryset.filter(ativo=True)
         return queryset
 
     def perform_create(self, serializer):

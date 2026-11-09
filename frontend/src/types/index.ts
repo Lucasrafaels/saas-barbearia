@@ -109,6 +109,8 @@ export interface CreateUserInput {
   nome: string
   password: string
   tipo_perfil: Exclude<UserRole, 'admin'>
+  especialidade?: string
+  ativo?: boolean
 }
 
 export interface UpdateUserInput {

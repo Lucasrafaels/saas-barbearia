@@ -3,6 +3,7 @@ Serializers do app appointments.
 """
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
@@ -15,17 +16,31 @@ class AppointmentSerializer(serializers.ModelSerializer):
     cliente_nome = serializers.CharField(source='cliente.nome', read_only=True)
     barbeiro_nome = serializers.CharField(source='barbeiro.user.nome', read_only=True)
     servico_nome = serializers.CharField(source='servico.nome', read_only=True)
+    servico_preco = serializers.CharField(source='servico.preco', read_only=True)
+    servico_duracao = serializers.IntegerField(source='servico.duracao', read_only=True)
 
     class Meta:
         model = Appointment
         fields = [
             'id', 'barbershop', 'cliente', 'cliente_nome', 'barbeiro',
-            'barbeiro_nome', 'servico', 'servico_nome', 'data_hora',
-            'status', 'observacoes', 'created_at',
+            'barbeiro_nome', 'servico', 'servico_nome', 'servico_preco',
+            'servico_duracao', 'data_hora', 'status', 'observacoes', 'created_at',
         ]
         read_only_fields = ['id', 'barbershop', 'created_at']
 
     def validate(self, attrs):
+        # Validar status ANTES de verificar permissões: não permitir
+        # PATCH (reagendamento ou alteração) em agendamentos cancelados ou realizados.
+        if self.instance:
+            if self.instance.status == Appointment.Status.CANCELADO:
+                raise serializers.ValidationError(
+                    {'status': 'Não é possível alterar um agendamento cancelado.'}
+                )
+            if self.instance.status == Appointment.Status.REALIZADO:
+                raise serializers.ValidationError(
+                    {'status': 'Não é possível alterar um agendamento realizado.'}
+                )
+
         # Reaproveita, na camada de API, a mesma regra de consistência
         # do Appointment.clean(): barbeiro e serviço precisam pertencer
         # à barbearia do usuário autenticado.
@@ -60,6 +75,10 @@ class AppointmentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'barbeiro': 'Este barbeiro não pertence à sua barbearia.'}
             )
+        if barbeiro and not barbeiro.ativo:
+            raise serializers.ValidationError(
+                {'barbeiro': 'Este barbeiro está inativo.'}
+            )
         if servico and barbershop_id and servico.barbershop_id != barbershop_id:
             raise serializers.ValidationError(
                 {'servico': 'Este serviço não pertence à sua barbearia.'}
@@ -78,7 +97,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
         ):
             raise PermissionDenied('Clientes não podem transferir o próprio agendamento.')
 
-        # Clientes só podem alterar o status para 'cancelado' (próprio agendamento)
+        # Clientes podem alterar o status para 'cancelado' ou reagendar (próprio agendamento)
         if (
             self.instance
             and request
@@ -97,6 +116,50 @@ class AppointmentSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {'barbeiro': 'Barbeiros só podem gerenciar a própria agenda.'}
                 )
+
+        # Validação específica para clientes em PATCH (reagendamento ou cancelamento)
+        if (
+            self.instance
+            and request
+            and request.user.is_cliente
+        ):
+            if attrs.get('status') == Appointment.Status.CANCELADO:
+                # Cancelamento é uma operação de estado, não um
+                # reagendamento. Não deixe que dados de agenda sejam
+                # alterados no mesmo PATCH.
+                campos_extras = set(attrs) - {'status'}
+                if campos_extras:
+                    raise serializers.ValidationError({
+                        'status': (
+                            'Ao cancelar, envie somente o campo status com o valor cancelado. '
+                            'Horário, barbeiro e serviço são preservados.'
+                        )
+                    })
+            else:
+                # Reagendamento pode alterar data, barbeiro, serviço e
+                # observações, mas não pode alterar o cliente nem outros
+                # campos administrativos.
+                campos_permitidos_cliente = {'data_hora', 'barbeiro', 'servico', 'observacoes', 'status'}
+                campos_nao_permitidos = set(attrs.keys()) - campos_permitidos_cliente
+                if campos_nao_permitidos:
+                    raise PermissionDenied(
+                        f'Clientes não podem alterar os campos: {", ".join(campos_nao_permitidos)}. '
+                        f'Campos permitidos para reagendamento: {", ".join(campos_permitidos_cliente)}.'
+                    )
+
+                # Se está tentando alterar data_hora, barbeiro ou servico, validar se agendamento permite
+                if self.instance.status not in [Appointment.Status.AGENDADO, Appointment.Status.CONFIRMADO]:
+                    if any(campo in attrs for campo in ['data_hora', 'barbeiro', 'servico']):
+                        raise PermissionDenied(
+                            'Não é possível reagendar agendamentos com status '
+                            f'{self.instance.get_status_display()}. Apenas agendados ou confirmados podem ser reagendados.'
+                        )
+
+                # Validação de data_hora não ser no passado para reagendamento
+                if 'data_hora' in attrs and attrs['data_hora'] < timezone.now():
+                    raise serializers.ValidationError(
+                        {'data_hora': 'Não é possível reagendar para uma data/hora que já passou.'}
+                    )
 
         try:
             appointment.full_clean()
@@ -123,11 +186,12 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def _lock_barbers(*barber_ids):
-        """Usa o próprio barbeiro como trava estável da agenda dele."""
+        """Trava e recarrega os barbeiros envolvidos na alteração."""
         from barbershops.models import Barber
 
         ids = sorted({barber_id for barber_id in barber_ids if barber_id})
-        list(Barber.objects.select_for_update().filter(pk__in=ids).order_by('pk'))
+        barbers = Barber.objects.select_for_update().filter(pk__in=ids).order_by('pk')
+        return {barber.pk: barber for barber in barbers}
 
     def create(self, validated_data):
         """
@@ -136,7 +200,11 @@ class AppointmentSerializer(serializers.ModelSerializer):
         requisições simultâneas poderiam ambas não enxergar o outro horário.
         """
         with transaction.atomic():
-            self._lock_barbers(validated_data.get('barbeiro').pk)
+            barber_id = validated_data['barbeiro'].pk
+            locked_barbers = self._lock_barbers(barber_id)
+            # Usa o registro lido após a trava; assim uma desativação
+            # concorrente também é observada antes da gravação.
+            validated_data['barbeiro'] = locked_barbers[barber_id]
             appointment = Appointment(**validated_data)
             try:
                 appointment.full_clean()
@@ -149,7 +217,8 @@ class AppointmentSerializer(serializers.ModelSerializer):
         """Aplica o mesmo bloqueio e revalidação para remarcações/PATCH."""
         with transaction.atomic():
             new_barber = validated_data.get('barbeiro', instance.barbeiro)
-            self._lock_barbers(instance.barbeiro_id, new_barber.pk)
+            locked_barbers = self._lock_barbers(instance.barbeiro_id, new_barber.pk)
+            validated_data['barbeiro'] = locked_barbers[new_barber.pk]
 
             candidate = self._copy_instance(instance)
             for field, value in validated_data.items():

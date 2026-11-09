@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { authApi } from '../api/endpoints'
 import styles from '../styles/auth.module.css'
+import ui from '../styles/ui.module.css'
 
 const passwordChangeSchema = z.object({
   old_password: z.string().min(1, 'Senha atual é obrigatória'),
@@ -78,7 +79,7 @@ export function PasswordChangePage() {
               type="password"
               autoComplete="current-password"
               {...register('old_password')}
-              className={errors.old_password ? 'error' : ''}
+              className={errors.old_password ? styles.error : ''}
               disabled={isSubmitting}
             />
             {errors.old_password && <span className={styles.errorText}>{errors.old_password.message}</span>}
@@ -90,7 +91,7 @@ export function PasswordChangePage() {
               type="password"
               autoComplete="new-password"
               {...register('new_password')}
-              className={errors.new_password ? 'error' : ''}
+              className={errors.new_password ? styles.error : ''}
               disabled={isSubmitting}
             />
             {errors.new_password && <span className={styles.errorText}>{errors.new_password.message}</span>}
@@ -102,7 +103,7 @@ export function PasswordChangePage() {
               type="password"
               autoComplete="new-password"
               {...register('confirm_password')}
-              className={errors.confirm_password ? 'error' : ''}
+              className={errors.confirm_password ? styles.error : ''}
               disabled={isSubmitting}
             />
             {errors.confirm_password && <span className={styles.errorText}>{errors.confirm_password.message}</span>}
@@ -112,7 +113,7 @@ export function PasswordChangePage() {
           </button>
         </form>
         <p className={styles.switch}>
-          <button type="button" onClick={() => navigate(-1)} className="textButton" disabled={isSubmitting}>
+          <button type="button" onClick={() => navigate(-1)} className={ui.textButton} disabled={isSubmitting}>
             Voltar
           </button>
         </p>

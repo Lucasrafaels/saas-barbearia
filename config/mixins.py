@@ -15,7 +15,11 @@ class TenantScopedQuerysetMixin:
                 # inconsistente. Além de não poder causar 500, ele não pode
                 # herdar a visão de todo o tenant.
                 barbeiro = getattr(user, 'perfil_barbeiro', None)
-                if barbeiro is not None:
+                if (
+                    barbeiro is not None
+                    and barbeiro.ativo
+                    and barbeiro.barbershop_id == user.barbershop_id
+                ):
                     return super().get_queryset().filter(
                         barbershop=barbeiro.barbershop
                     )

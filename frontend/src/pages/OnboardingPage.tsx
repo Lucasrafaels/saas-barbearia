@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { errorMessage } from '../utils/format'
 import styles from '../styles/auth.module.css'
+import ui from '../styles/ui.module.css'
 
 const schema = z.object({
   nome: z.string().min(2, 'Informe o nome da barbearia.'),
@@ -57,7 +58,7 @@ export function OnboardingPage() {
               id="nome"
               placeholder="Barbearia Central"
               {...register('nome')}
-              className={errors.nome ? 'error' : ''}
+              className={errors.nome ? styles.error : ''}
             />
             {errors.nome && <span className={styles.errorText}>{errors.nome.message}</span>}
           </div>
@@ -68,7 +69,7 @@ export function OnboardingPage() {
               type="email"
               placeholder="contato@barbearia.com"
               {...register('email')}
-              className={errors.email ? 'error' : ''}
+              className={errors.email ? styles.error : ''}
             />
             {errors.email && <span className={styles.errorText}>{errors.email.message}</span>}
           </div>
@@ -78,7 +79,7 @@ export function OnboardingPage() {
               id="endereco"
               placeholder="Rua Exemplo, 100"
               {...register('endereco')}
-              className={errors.endereco ? 'error' : ''}
+              className={errors.endereco ? styles.error : ''}
             />
             {errors.endereco && <span className={styles.errorText}>{errors.endereco.message}</span>}
           </div>
@@ -89,7 +90,7 @@ export function OnboardingPage() {
               inputMode="tel"
               placeholder="(11) 99999-9999"
               {...register('telefone')}
-              className={errors.telefone ? 'error' : ''}
+              className={errors.telefone ? styles.error : ''}
             />
             {errors.telefone && <span className={styles.errorText}>{errors.telefone.message}</span>}
           </div>
@@ -99,7 +100,7 @@ export function OnboardingPage() {
               id="horario_abertura"
               type="time"
               {...register('horario_abertura')}
-              className={errors.horario_abertura ? 'error' : ''}
+              className={errors.horario_abertura ? styles.error : ''}
             />
             {errors.horario_abertura && <span className={styles.errorText}>{errors.horario_abertura.message}</span>}
           </div>
@@ -109,7 +110,7 @@ export function OnboardingPage() {
               id="horario_fechamento"
               type="time"
               {...register('horario_fechamento')}
-              className={errors.horario_fechamento ? 'error' : ''}
+              className={errors.horario_fechamento ? styles.error : ''}
             />
             {errors.horario_fechamento && <span className={styles.errorText}>{errors.horario_fechamento.message}</span>}
           </div>
@@ -118,7 +119,7 @@ export function OnboardingPage() {
           </button>
         </form>
         <p className={styles.switch}>
-          <button type="button" onClick={() => void logout()} className="textButton">
+          <button type="button" onClick={() => void logout()} className={ui.textButton}>
             Sair da conta
           </button>
         </p>

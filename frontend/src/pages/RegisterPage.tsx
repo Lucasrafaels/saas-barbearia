@@ -57,7 +57,7 @@ export function RegisterPage() {
               autoComplete="name"
               placeholder="Seu nome"
               {...register('nome')}
-              className={errors.nome ? 'error' : ''}
+              className={errors.nome ? styles.error : ''}
             />
             {errors.nome && <span className={styles.errorText}>{errors.nome.message}</span>}
           </div>
@@ -69,7 +69,7 @@ export function RegisterPage() {
               autoComplete="email"
               placeholder="voce@exemplo.com"
               {...register('email')}
-              className={errors.email ? 'error' : ''}
+              className={errors.email ? styles.error : ''}
             />
             {errors.email && <span className={styles.errorText}>{errors.email.message}</span>}
           </div>
@@ -81,7 +81,7 @@ export function RegisterPage() {
               autoComplete="new-password"
               placeholder="Mínimo de 8 caracteres"
               {...register('password')}
-              className={errors.password ? 'error' : ''}
+              className={errors.password ? styles.error : ''}
             />
             {errors.password && <span className={styles.errorText}>{errors.password.message}</span>}
           </div>
@@ -93,7 +93,7 @@ export function RegisterPage() {
               autoComplete="new-password"
               placeholder="Repita a senha"
               {...register('confirmPassword')}
-              className={errors.confirmPassword ? 'error' : ''}
+              className={errors.confirmPassword ? styles.error : ''}
             />
             {errors.confirmPassword && <span className={styles.errorText}>{errors.confirmPassword.message}</span>}
           </div>

@@ -429,7 +429,11 @@ class BarberAPITestCase(APITestCase):
     # ------------------------------------------------------------------
     # 7) Um usuário cliente não pode ser associado a um perfil Barber
     # ------------------------------------------------------------------
-    def test_cliente_user_cannot_be_associated_to_barber_via_api(self):
+    def test_cliente_user_can_be_promoted_to_barber_via_api(self):
+        """
+        CLIENTE users should be promotable to BARBEIRO when creating a Barber profile.
+        This is the corrected behavior: allow legitimate barber registration from CLIENTE users.
+        """
         self.client.force_authenticate(self.admin_a)
         response = self.client.post(
             self.list_url,
@@ -437,11 +441,30 @@ class BarberAPITestCase(APITestCase):
             format='json',
         )
 
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        novo = Barber.objects.get(pk=response.data['id'])
+        self.assertEqual(novo.user_id, self.cliente_a.pk)
+        self.assertEqual(novo.barbershop_id, self.barbershop_a.id)
+        # User should be promoted to BARBEIRO
+        self.cliente_a.refresh_from_db()
+        self.assertEqual(self.cliente_a.tipo_perfil, User.TipoPerfil.BARBEIRO)
+
+    def test_admin_user_cannot_be_converted_to_barber(self):
+        """Administrators cannot be converted to barbers."""
+        self.client.force_authenticate(self.admin_a)
+        response = self.client.post(
+            self.list_url,
+            {'user': self.admin_a.pk, 'especialidade': 'Corte'},
+            format='json',
+        )
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('user', response.data)
-        self.assertFalse(Barber.objects.filter(user=self.cliente_a).exists())
+        self.assertFalse(Barber.objects.filter(user=self.admin_a).exists())
 
     def test_cliente_user_cannot_be_associated_to_barber_at_model_level(self):
+        # This test verifies the model-level validation still rejects
+        # a CLIENTE user directly without the promotion logic.
         barber = Barber(user=self.cliente_a, barbershop=self.barbershop_a)
 
         with self.assertRaises(ValidationError):
@@ -525,3 +548,149 @@ class BarberAPITestCase(APITestCase):
             user=self.barbeiro_user_a_sem_perfil, barbershop=self.barbershop_a,
         )
         barber_valido.clean()
+
+    # ------------------------------------------------------------------
+    # 12) Filtro ?ativo=true funciona (apenas ativos)
+    # ------------------------------------------------------------------
+    def test_filtro_ativo_true(self):
+        # Cria um barbeiro inativo
+        user_inativo = self._create_user(
+            'barbeiro.inativo@teste.com', User.TipoPerfil.BARBEIRO, self.barbershop_a,
+        )
+        barbeiro_inativo = Barber.objects.create(
+            user=user_inativo, barbershop=self.barbershop_a, especialidade='Corte', ativo=False,
+        )
+
+        self.client.force_authenticate(self.admin_a)
+        response = self.client.get(self.list_url, {'ativo': 'true'})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = [item['id'] for item in response.data['results']]
+        self.assertIn(self.barbeiro_a.id, ids)
+        self.assertIn(self.barbeiro_a2.id, ids)
+        self.assertNotIn(barbeiro_inativo.id, ids)
+
+    # ------------------------------------------------------------------
+    # 13) Filtro ?ativo=false retorna apenas inativos
+    # ------------------------------------------------------------------
+    def test_filtro_ativo_false(self):
+        # Cria um barbeiro inativo
+        user_inativo = self._create_user(
+            'barbeiro.inativo@teste.com', User.TipoPerfil.BARBEIRO, self.barbershop_a,
+        )
+        barbeiro_inativo = Barber.objects.create(
+            user=user_inativo, barbershop=self.barbershop_a, especialidade='Corte', ativo=False,
+        )
+
+        self.client.force_authenticate(self.admin_a)
+        response = self.client.get(self.list_url, {'ativo': 'false'})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = [item['id'] for item in response.data['results']]
+        self.assertIn(barbeiro_inativo.id, ids)
+        self.assertNotIn(self.barbeiro_a.id, ids)
+        self.assertNotIn(self.barbeiro_a2.id, ids)
+
+    # ------------------------------------------------------------------
+    # 14) Filtro ?ativo=all retorna todos (ativos e inativos) para admin
+    # ------------------------------------------------------------------
+    def test_filtro_ativo_all_admin(self):
+        # Cria um barbeiro inativo
+        user_inativo = self._create_user(
+            'barbeiro.inativo@teste.com', User.TipoPerfil.BARBEIRO, self.barbershop_a,
+        )
+        barbeiro_inativo = Barber.objects.create(
+            user=user_inativo, barbershop=self.barbershop_a, especialidade='Corte', ativo=False,
+        )
+
+        self.client.force_authenticate(self.admin_a)
+        response = self.client.get(self.list_url, {'ativo': 'all'})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 3)
+        ids = [item['id'] for item in response.data['results']]
+        self.assertIn(self.barbeiro_a.id, ids)
+        self.assertIn(self.barbeiro_a2.id, ids)
+        self.assertIn(barbeiro_inativo.id, ids)
+
+    # ------------------------------------------------------------------
+    # 15) Filtro ?ativo=all não funciona para não-admins (retorna apenas ativos)
+    # ------------------------------------------------------------------
+    def test_filtro_ativo_all_not_admin(self):
+        # Cria um barbeiro inativo
+        user_inativo = self._create_user(
+            'barbeiro.inativo@teste.com', User.TipoPerfil.BARBEIRO, self.barbershop_a,
+        )
+        barbeiro_inativo = Barber.objects.create(
+            user=user_inativo, barbershop=self.barbershop_a, especialidade='Corte', ativo=False,
+        )
+
+        # Cliente tenta usar ativo=all
+        self.client.force_authenticate(self.cliente_a)
+
+        response = self.client.get(self.list_url, {'ativo': 'all'})
+
+        # Não-admins não devem conseguir ver inativos via ativo=all
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # O filtro padrão para não-admins é apenas ativos
+        self.assertEqual(response.data['count'], 2)
+        ids = [item['id'] for item in response.data['results']]
+        self.assertIn(self.barbeiro_a.id, ids)
+        self.assertIn(self.barbeiro_a2.id, ids)
+        self.assertNotIn(barbeiro_inativo.id, ids)
+
+    # ------------------------------------------------------------------
+    # 16) Paginação respeita filtro ativo=false
+    # ------------------------------------------------------------------
+    def test_pagination_respects_ativo_filter(self):
+        # Cria 25 barbeiros inativos (mais que o page_size=20)
+        for i in range(25):
+            user = self._create_user(
+                f'barbeiro.inativo{i}@teste.com', User.TipoPerfil.BARBEIRO, self.barbershop_a,
+            )
+            Barber.objects.create(
+                user=user, barbershop=self.barbershop_a, especialidade='Corte', ativo=False,
+            )
+
+        self.client.force_authenticate(self.admin_a)
+
+        # Primeira página
+        response = self.client.get(self.list_url, {'ativo': 'false', 'page': 1})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 25)
+        self.assertLessEqual(len(response.data['results']), 20)  # page_size default
+        # Verifica que só inativos aparecem
+        for item in response.data['results']:
+            self.assertFalse(item['ativo'])
+
+        # Segunda página (deve haver)
+        self.assertIsNotNone(response.data['next'])
+        response2 = self.client.get(response.data['next'])
+        self.assertEqual(response2.status_code, status.HTTP_200_OK)
+        for item in response2.data['results']:
+            self.assertFalse(item['ativo'])
+
+    # ------------------------------------------------------------------
+    # 17) Isolamento multi-tenant: ativo=all não vaza dados de outro tenant
+    # ------------------------------------------------------------------
+    def test_ativo_all_tenant_isolation(self):
+        # Cria barbeiro inativo no tenant B
+        user_b_inativo = self._create_user(
+            'barbeiro.inativo.b@teste.com', User.TipoPerfil.BARBEIRO, self.barbershop_b,
+        )
+        barbeiro_b_inativo = Barber.objects.create(
+            user=user_b_inativo, barbershop=self.barbershop_b, especialidade='Corte', ativo=False,
+        )
+
+        # Admin do tenant A usa ativo=all
+        self.client.force_authenticate(self.admin_a)
+        response = self.client.get(self.list_url, {'ativo': 'all'})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = [item['id'] for item in response.data['results']]
+        # Deve ver apenas barbeiros do tenant A
+        self.assertIn(self.barbeiro_a.id, ids)
+        self.assertIn(self.barbeiro_a2.id, ids)
+        self.assertNotIn(self.barbeiro_b.id, ids)
+        self.assertNotIn(barbeiro_b_inativo.id, ids)

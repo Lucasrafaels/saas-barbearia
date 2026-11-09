@@ -16,7 +16,7 @@ export function AdminAppointmentsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [updatingId, setUpdatingId] = useState<number | null>(null)
 
-  const { data, isLoading, error } = useAsyncData(
+  const { data, isLoading, error, reload } = useAsyncData(
     () => appointmentApi.list({ page, ...(statusFilter === 'all' ? {} : { status: statusFilter }) }).then((response) => response.data),
     [page, statusFilter]
   )
@@ -25,6 +25,7 @@ export function AdminAppointmentsPage() {
     try {
       setUpdatingId(id)
       await appointmentApi.update(id, { status })
+      await reload()
       showToast('Status atualizado com sucesso.', 'success')
     } catch (requestError) {
       showToast(errorMessage(requestError, 'Não foi possível atualizar o status.'), 'error')
@@ -45,11 +46,20 @@ export function AdminAppointmentsPage() {
     { value: 'cancelado', label: 'Cancelado' },
   ]
 
+  const statusBadgeClass: Record<AppointmentStatus, string> = {
+    agendado: ui.badgeInfo,
+    confirmado: ui.badgeSuccess,
+    realizado: ui.badgeError,
+    cancelado: ui.badgeWarning,
+  }
+
   const renderStatusOptions = (currentStatus: AppointmentStatus, isUpdating: boolean) =>
     statusOptions
       .filter(opt => opt.value !== 'all')
       .map(opt => {
-        // Define valid transitions based on backend rules
+        // Valid status transitions for admin based on backend rules
+        // Admin can: agendado -> confirmado/cancelado, confirmado -> realizado/cancelado
+        // realizado and cancelado are terminal states (admin cannot revert)
         const validTransitions: Record<AppointmentStatus, AppointmentStatus[]> = {
           agendado: ['confirmado', 'cancelado'],
           confirmado: ['realizado', 'cancelado'],
@@ -116,7 +126,7 @@ export function AdminAppointmentsPage() {
                       </td>
                       <td>{appointment.barbeiro_nome}</td>
                       <td>
-                        <span className={`ui.badge badgeDefault`}>{statusLabels[appointment.status]}</span>
+                        <span className={`${ui.badge} ${statusBadgeClass[appointment.status]}`}>{statusLabels[appointment.status]}</span>
                       </td>
                       <td>
                         <div className={ui.actionButtons}>

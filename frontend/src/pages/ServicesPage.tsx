@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { serviceApi } from '../api/endpoints'
 import { EmptyState } from '../components/EmptyState'
 import { PageLoader } from '../components/PageLoader'
+import { Pagination } from '../components/Pagination'
+import { ScissorsIcon, ClockIcon } from '../components/Icons'
 import { formatCurrency } from '../utils/format'
 import styles from '../styles/page.module.css'
 
@@ -17,13 +19,18 @@ export function ServicesPage() {
   const [services, setServices] = useState<Service[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
 
   useEffect(() => {
     let active = true
     setIsLoading(true)
-    serviceApi.list(true)
+    serviceApi.list({ ativo: 'true', page })
       .then((response) => {
-        if (active) setServices(response.data.results)
+        if (active) {
+          setServices(response.data.results)
+          setTotalCount(response.data.count)
+        }
       })
       .catch(() => {
         if (active) setError('Não foi possível carregar os serviços.')
@@ -32,7 +39,7 @@ export function ServicesPage() {
         if (active) setIsLoading(false)
       })
     return () => { active = false }
-  }, [])
+  }, [page])
 
   if (isLoading) return <PageLoader label="Carregando serviços..." />
 
@@ -83,18 +90,22 @@ export function ServicesPage() {
             key={service.id}
             className={styles.serviceCard}
           >
-            <div className={styles.serviceIcon} aria-hidden="true">✂</div>
+            <div className={styles.serviceIcon} aria-hidden="true"><ScissorsIcon size={30} /></div>
             <div>
               <h2>{service.nome}</h2>
               {service.descricao && <p>{service.descricao}</p>}
             </div>
             <footer>
-              <span>{service.duracao} min</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}><ClockIcon size={16} /> {service.duracao} min</span>
+              </div>
               <strong>{formatCurrency(service.preco)}</strong>
             </footer>
           </article>
         ))}
       </div>
+
+      <Pagination page={page} count={totalCount} onChange={setPage} />
     </div>
   )
 }

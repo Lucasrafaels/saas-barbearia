@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { barberApi } from '../api/endpoints'
 import { EmptyState } from '../components/EmptyState'
 import { PageLoader } from '../components/PageLoader'
+import { Pagination } from '../components/Pagination'
+import { StarIcon, BadgeIcon, CheckCircleIcon } from '../components/Icons'
 import styles from '../styles/page.module.css'
 
 interface Barber {
@@ -15,14 +17,17 @@ export function BarbersPage() {
   const [barbers, setBarbers] = useState<Barber[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
 
   useEffect(() => {
     let active = true
     setIsLoading(true)
-    barberApi.list()
+    barberApi.list({ page, ativo: 'true' })
       .then((response) => {
         if (active) {
-          setBarbers(response.data.results.filter((barber) => barber.ativo))
+          setBarbers(response.data.results)
+          setTotalCount(response.data.count)
         }
       })
       .catch(() => {
@@ -32,7 +37,7 @@ export function BarbersPage() {
         if (active) setIsLoading(false)
       })
     return () => { active = false }
-  }, [])
+  }, [page])
 
   const getInitials = (name: string) => {
     return name
@@ -94,11 +99,24 @@ export function BarbersPage() {
           >
             <div className={styles.serviceIcon} aria-hidden="true">{getInitials(barber.nome)}</div>
             <h2>{barber.nome}</h2>
-            {barber.especialidade && <p>{barber.especialidade}</p>}
-            <small>Barbeiro ativo</small>
+            {barber.especialidade && (
+              <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-1)', color: 'var(--color-text-muted)' }}>
+                <BadgeIcon size={16} /> {barber.especialidade}
+              </p>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)', marginTop: 'var(--space-2)' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', color: 'var(--color-success)', fontSize: 'var(--text-sm)', fontWeight: 'var(--font-weight-medium)' }}>
+                <CheckCircleIcon size={14} /> Ativo
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', color: 'var(--color-primary-navy)', fontSize: 'var(--text-sm)' }}>
+                <StarIcon size={14} /> Barbeiro
+              </span>
+            </div>
           </article>
         ))}
       </div>
+
+      <Pagination page={page} count={totalCount} onChange={setPage} />
     </div>
   )
 }

@@ -31,7 +31,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div className={styles.toastRegion} aria-live="polite">
         {toasts.map((toast) => (
-          <div key={toast.id} className={`${styles.toast} ${styles[`toast${toast.kind}`]}`}>
+          <div key={toast.id} className={`${styles.toast} ${styles[`toast${toast.kind.charAt(0).toUpperCase() + toast.kind.slice(1)}`]}`}>
             {toast.message}
           </div>
         ))}

@@ -213,6 +213,54 @@ class ComprehensiveMultiTenantIsolationTests(APITestCase):
             data_hora=safe_data_hora,
             status=Appointment.Status.AGENDADO,
         )
+        # Agendamentos dedicados para UPDATE/DELETE em test_appointment_crud_isolation:
+        # O DELETE cancela o agendamento (status -> cancelado). Como todos os
+        # subTests compartilham o mesmo estado (sem rollback entre eles),
+        # cancelar appointment_a/appointment_b em uma iteração faria as
+        # iterações seguintes falharem no UPDATE/RETRIEVE (agendamento já
+        # cancelado não permite UPDATE). Mesmo padrão de fixtures dedicadas
+        # já usado em test_barber_crud_isolation e test_service_crud_isolation.
+        # Usamos dias diferentes (+90, +91, +92, +93) para evitar colisões
+        # de horário com o barbeiro.
+        for i in range(4):
+            future_date = (timezone.localtime() + timedelta(days=90 + i)).date()
+            safe_data_hora = timezone.make_aware(datetime.combine(future_date, time(10, 0)))
+            if i == 0:
+                cls.appointment_for_update_a = Appointment.objects.create(
+                    barbershop=cls.shop_a,
+                    cliente=cls.client_a,
+                    barbeiro=cls.barber_profile_a,
+                    servico=cls.service_a,
+                    data_hora=safe_data_hora,
+                    status=Appointment.Status.AGENDADO,
+                )
+            elif i == 1:
+                cls.appointment_for_update_b = Appointment.objects.create(
+                    barbershop=cls.shop_b,
+                    cliente=cls.client_b,
+                    barbeiro=cls.barber_profile_b,
+                    servico=cls.service_b,
+                    data_hora=safe_data_hora,
+                    status=Appointment.Status.AGENDADO,
+                )
+            elif i == 2:
+                cls.appointment_for_delete_a = Appointment.objects.create(
+                    barbershop=cls.shop_a,
+                    cliente=cls.client_a,
+                    barbeiro=cls.barber_profile_a,
+                    servico=cls.service_a,
+                    data_hora=safe_data_hora,
+                    status=Appointment.Status.AGENDADO,
+                )
+            else:
+                cls.appointment_for_delete_b = Appointment.objects.create(
+                    barbershop=cls.shop_b,
+                    cliente=cls.client_b,
+                    barbeiro=cls.barber_profile_b,
+                    servico=cls.service_b,
+                    data_hora=safe_data_hora,
+                    status=Appointment.Status.AGENDADO,
+                )
 
         # URLs
         cls.user_list_url = reverse('user-list')
@@ -279,8 +327,10 @@ class ComprehensiveMultiTenantIsolationTests(APITestCase):
         # quando a suíte roda (ver mesmo ajuste em setUpTestData). Cada
         # chamada usa um dia diferente (offset incremental) para não colidir
         # com agendamentos criados por chamadas anteriores no mesmo teste.
+        # Start at day 100 to avoid collision with fixtures created on days 90-93
+        # (appointment_for_update_a/b, appointment_for_delete_a/b in setUpTestData).
         future_date = (
-            timezone.localtime() + timedelta(days=90 + self._appointment_payload_offset)
+            timezone.localtime() + timedelta(days=100 + self._appointment_payload_offset)
         ).date()
         self._appointment_payload_offset += 1
         safe_data_hora = timezone.make_aware(datetime.combine(future_date, time(10, 0)))
@@ -669,14 +719,21 @@ class ComprehensiveMultiTenantIsolationTests(APITestCase):
 
     def test_appointment_crud_isolation(self):
         """Test Appointment CRUD operations for isolation."""
+        # Use dedicated fixtures for UPDATE and DELETE to avoid test pollution
+        # (same pattern as test_barber_crud_isolation and test_service_crud_isolation)
         test_cases = [
-            # (actor, target_appointment, expected_status_codes)
+            # (actor, actor_desc, list_target, list_desc, retrieve_target, retrieve_desc,
+            #  create_ok, update_target, update_desc, delete_target, delete_desc)
             (self.admin_a, 'Admin A', self.appointment_a, 'Appointment A (same tenant)',
-             status.HTTP_200_OK, status.HTTP_200_OK, status.HTTP_201_CREATED,
-             status.HTTP_200_OK, status.HTTP_204_NO_CONTENT),
+             self.appointment_a, 'Appointment A (same tenant)',
+             status.HTTP_201_CREATED,
+             self.appointment_for_update_a, 'Appointment Update A (same tenant)',
+             self.appointment_for_delete_a, 'Appointment Delete A (same tenant)'),
             (self.admin_a, 'Admin A', self.appointment_b, 'Appointment B (other tenant)',
-             status.HTTP_200_OK, status.HTTP_404_NOT_FOUND, status.HTTP_201_CREATED,
-             status.HTTP_404_NOT_FOUND, status.HTTP_404_NOT_FOUND),
+             self.appointment_b, 'Appointment B (other tenant)',
+             status.HTTP_201_CREATED,
+             self.appointment_for_update_b, 'Appointment Update B (other tenant)',
+             self.appointment_for_delete_b, 'Appointment Delete B (other tenant)'),
             # Barbeiro pode criar agendamento (para a própria agenda) e
             # cliente pode criar o próprio agendamento - ver
             # DOCUMENTACAO_API.md ("POST /appointments/ | Autenticado, dentro
@@ -685,8 +742,10 @@ class ComprehensiveMultiTenantIsolationTests(APITestCase):
             # nenhuma restrição de permissão de 'create' para estes papéis
             # (diferente de Service/Barber, que exigem IsAdminRole).
             (self.barber_a, 'Barber A', self.appointment_a, 'Appointment A (same tenant)',
-             status.HTTP_200_OK, status.HTTP_200_OK, status.HTTP_201_CREATED,
-             status.HTTP_200_OK, status.HTTP_403_FORBIDDEN),
+             self.appointment_a, 'Appointment A (same tenant)',
+             status.HTTP_201_CREATED,
+             self.appointment_for_update_a, 'Appointment Update A (same tenant)',
+             self.appointment_for_delete_a, 'Appointment Delete A (same tenant)'),
             # UPDATE em appointment_b: get_permissions libera (IsAdminOrBarberRole
             # só checa papel, não objeto), mas o queryset de barbeiro é
             # filtrado a `barbeiro=perfil_barbeiro` (AppointmentViewSet.get_queryset)
@@ -695,22 +754,28 @@ class ComprehensiveMultiTenantIsolationTests(APITestCase):
             # permissão de destroy para barbeiro exige IsAdminRole, negada
             # antes de qualquer consulta ao objeto.
             (self.barber_a, 'Barber A', self.appointment_b, 'Appointment B (other tenant)',
-             status.HTTP_200_OK, status.HTTP_404_NOT_FOUND, status.HTTP_201_CREATED,
-             status.HTTP_404_NOT_FOUND, status.HTTP_403_FORBIDDEN),
+             self.appointment_b, 'Appointment B (other tenant)',
+             status.HTTP_201_CREATED,
+             self.appointment_for_update_b, 'Appointment Update B (other tenant)',
+             self.appointment_for_delete_b, 'Appointment Delete B (other tenant)'),
             # DELETE para cliente é permitido (cancelamento do próprio
             # agendamento - AppointmentViewSet.get_permissions/perform_destroy);
             # appointment_a.cliente é client_a, então o próprio agendamento
             # pode ser cancelado -> 204.
             (self.client_a, 'Client A', self.appointment_a, 'Appointment A (same tenant)',
-             status.HTTP_200_OK, status.HTTP_200_OK, status.HTTP_201_CREATED,
-             status.HTTP_200_OK, status.HTTP_204_NO_CONTENT),
+             self.appointment_a, 'Appointment A (same tenant)',
+             status.HTTP_201_CREATED,
+             self.appointment_for_update_a, 'Appointment Update A (same tenant)',
+             self.appointment_for_delete_a, 'Appointment Delete A (same tenant)'),
             # appointment_b pertence a client_b: fora do queryset do cliente
             # (filtrado por `cliente=user`) -> 404 tanto para UPDATE quanto
             # para DELETE (a permissão em si não bloqueia o cliente, quem
             # bloqueia é o queryset).
             (self.client_a, 'Client A', self.appointment_b, 'Appointment B (other tenant)',
-             status.HTTP_200_OK, status.HTTP_404_NOT_FOUND, status.HTTP_201_CREATED,
-             status.HTTP_404_NOT_FOUND, status.HTTP_404_NOT_FOUND),
+             self.appointment_b, 'Appointment B (other tenant)',
+             status.HTTP_201_CREATED,
+             self.appointment_for_update_b, 'Appointment Update B (other tenant)',
+             self.appointment_for_delete_b, 'Appointment Delete B (other tenant)'),
             # Superuser não pertence a nenhuma barbearia (barbershop_id=None).
             # AppointmentSerializer.validate() monta uma cópia em memória do
             # Appointment com barbershop_id=None e chama full_clean(); como
@@ -721,38 +786,45 @@ class ComprehensiveMultiTenantIsolationTests(APITestCase):
             # princípio (superuser sem tenant não cria recurso de tenant) já
             # coberto em test_service_crud_isolation/test_barber_crud_isolation.
             (self.superuser, 'Superuser', self.appointment_a, 'Appointment A',
-             status.HTTP_200_OK, status.HTTP_200_OK, status.HTTP_400_BAD_REQUEST,
-             status.HTTP_200_OK, status.HTTP_204_NO_CONTENT),
+             self.appointment_a, 'Appointment A',
+             status.HTTP_400_BAD_REQUEST,
+             self.appointment_for_update_a, 'Appointment Update A',
+             self.appointment_for_delete_a, 'Appointment Delete A'),
             (self.superuser, 'Superuser', self.appointment_b, 'Appointment B',
-             status.HTTP_200_OK, status.HTTP_200_OK, status.HTTP_400_BAD_REQUEST,
-             status.HTTP_200_OK, status.HTTP_204_NO_CONTENT),
+             self.appointment_b, 'Appointment B',
+             status.HTTP_400_BAD_REQUEST,
+             self.appointment_for_update_b, 'Appointment Update B',
+             self.appointment_for_delete_b, 'Appointment Delete B'),
         ]
 
-        for actor, actor_desc, target_appointment, target_desc, list_ok, retrieve_ok, create_ok, update_ok, delete_ok in test_cases:
-            with self.subTest(actor=actor_desc, target=target_desc):
+        for (actor, actor_desc, list_target, list_desc, retrieve_target, retrieve_desc,
+             create_ok, update_target, update_desc, delete_target, delete_desc) in test_cases:
+            with self.subTest(actor=actor_desc, target=list_desc):
                 self.client.force_authenticate(actor)
 
                 # LIST
                 response = self.client.get(self.appointment_list_url)
-                self.assertEqual(response.status_code, list_ok,
+                self.assertEqual(response.status_code, status.HTTP_200_OK,
                                f"Appointment list failed for {actor_desc}")
-                if list_ok == status.HTTP_200_OK:
-                    ids = [a['id'] for a in response.data['results']]
-                    if actor == self.superuser:
-                        self.assertIn(target_appointment.id, ids)
-                    elif actor.barbershop_id == target_appointment.barbershop_id:
-                        self.assertIn(target_appointment.id, ids)
-                    else:
-                        self.assertNotIn(target_appointment.id, ids)
+                ids = [a['id'] for a in response.data['results']]
+                if actor == self.superuser:
+                    self.assertIn(list_target.id, ids)
+                elif actor.barbershop_id == list_target.barbershop_id:
+                    self.assertIn(list_target.id, ids)
+                else:
+                    self.assertNotIn(list_target.id, ids)
 
                 # RETRIEVE
-                url = self._appointment_detail_url(target_appointment.id)
+                url = self._appointment_detail_url(retrieve_target.id)
                 response = self.client.get(url)
-                self.assertEqual(response.status_code, retrieve_ok,
-                               f"Appointment retrieve failed for {actor_desc} -> {target_desc}")
+                expected_retrieve = status.HTTP_200_OK if (
+                    actor == self.superuser or actor.barbershop_id == retrieve_target.barbershop_id
+                ) else status.HTTP_404_NOT_FOUND
+                self.assertEqual(response.status_code, expected_retrieve,
+                               f"Appointment retrieve failed for {actor_desc} -> {retrieve_desc}")
 
                 # CREATE
-                if create_ok in (status.HTTP_201_CREATED, status.HTTP_403_FORBIDDEN):
+                if create_ok in (status.HTTP_201_CREATED, status.HTTP_403_FORBIDDEN, status.HTTP_400_BAD_REQUEST):
                     payload = self._valid_appointment_payload(
                         cliente=self.client_a.pk,
                         barbeiro=self.barber_profile_a.pk,
@@ -771,26 +843,60 @@ class ComprehensiveMultiTenantIsolationTests(APITestCase):
                         self.assertEqual(appointment.barbeiro.barbershop_id, actor.barbershop_id)
                         self.assertEqual(appointment.servico.barbershop_id, actor.barbershop_id)
 
-                # UPDATE
-                if update_ok in (status.HTTP_200_OK, status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND):
-                    url = self._appointment_detail_url(target_appointment.id)
+                # UPDATE - use separate target to not pollute LIST/RETRIEVE fixtures
+                # Superuser can update any appointment across tenants
+                # Admin can update same-tenant appointments
+                # Barber can update same-tenant appointments where they are the barber (queryset filtered)
+                # Client can update their own same-tenant appointments
+                # Cross-tenant: Admin gets 404, Barber gets 404 (queryset), Client gets 404 (queryset)
+                if update_target:
+                    url = self._appointment_detail_url(update_target.id)
+                    # Determine expected status based on actor and target relationship
+                    if actor == self.superuser:
+                        expected_update = status.HTTP_200_OK
+                    elif actor == self.admin_a:
+                        expected_update = status.HTTP_200_OK if actor.barbershop_id == update_target.barbershop_id else status.HTTP_404_NOT_FOUND
+                    elif actor == self.barber_a:
+                        # Barber can update if appointment is in same tenant AND they are the barber
+                        expected_update = status.HTTP_200_OK if (actor.barbershop_id == update_target.barbershop_id and update_target.barbeiro.user_id == actor.id) else status.HTTP_404_NOT_FOUND
+                    elif actor == self.client_a:
+                        # Client can update if appointment is in same tenant AND they are the client
+                        expected_update = status.HTTP_200_OK if (actor.barbershop_id == update_target.barbershop_id and update_target.cliente_id == actor.id) else status.HTTP_404_NOT_FOUND
+                    else:
+                        expected_update = status.HTTP_404_NOT_FOUND
+
                     payload = {'observacoes': f'Updated by {actor.nome}'}
                     response = self.client.patch(url, payload, format='json')
-                    self.assertEqual(response.status_code, update_ok,
-                                   f"Appointment update failed for {actor_desc} -> {target_desc}")
-                    if update_ok == status.HTTP_200_OK:
-                        target_appointment.refresh_from_db()
-                        self.assertEqual(target_appointment.observacoes, f'Updated by {actor.nome}')
+                    self.assertEqual(response.status_code, expected_update,
+                                   f"Appointment update failed for {actor_desc} -> {update_desc}")
+                    if expected_update == status.HTTP_200_OK:
+                        update_target.refresh_from_db()
+                        self.assertEqual(update_target.observacoes, f'Updated by {actor.nome}')
 
-                # DELETE
-                if delete_ok in (status.HTTP_204_NO_CONTENT, status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND):
-                    url = self._appointment_detail_url(target_appointment.id)
+                # DELETE - use separate target
+                # Superuser can delete any appointment across tenants
+                # Admin can delete same-tenant appointments
+                # Barber cannot delete (requires IsAdminRole)
+                # Client can delete their own same-tenant appointments (cancel)
+                if delete_target:
+                    url = self._appointment_detail_url(delete_target.id)
+                    if actor == self.superuser:
+                        expected_delete = status.HTTP_204_NO_CONTENT
+                    elif actor == self.admin_a:
+                        expected_delete = status.HTTP_204_NO_CONTENT if actor.barbershop_id == delete_target.barbershop_id else status.HTTP_404_NOT_FOUND
+                    elif actor == self.barber_a:
+                        expected_delete = status.HTTP_403_FORBIDDEN
+                    elif actor == self.client_a:
+                        expected_delete = status.HTTP_204_NO_CONTENT if (actor.barbershop_id == delete_target.barbershop_id and delete_target.cliente_id == actor.id) else status.HTTP_404_NOT_FOUND
+                    else:
+                        expected_delete = status.HTTP_404_NOT_FOUND
+
                     response = self.client.delete(url)
-                    self.assertEqual(response.status_code, delete_ok,
-                                   f"Appointment delete failed for {actor_desc} -> {target_desc}")
-                    if delete_ok == status.HTTP_204_NO_CONTENT:
-                        target_appointment.refresh_from_db()
-                        self.assertEqual(target_appointment.status, Appointment.Status.CANCELADO)
+                    self.assertEqual(response.status_code, expected_delete,
+                                   f"Appointment delete failed for {actor_desc} -> {delete_desc}")
+                    if expected_delete == status.HTTP_204_NO_CONTENT:
+                        delete_target.refresh_from_db()
+                        self.assertEqual(delete_target.status, Appointment.Status.CANCELADO)
 
     def test_appointment_cross_tenant_foreign_key_validation(self):
         """Test that creating appointments with cross-tenant foreign keys fails validation."""

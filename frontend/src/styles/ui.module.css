@@ -687,6 +687,59 @@
   }
 }
 
+/* Final presentation pass: the late booking-flow styles share this same visual language. */
+.dataTable,
+.formCard,
+.serviceCardEnhanced,
+.barberCardEnhanced,
+.appointmentCardEnhanced {
+  border-radius: var(--radius-lg);
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-xs);
+}
+
+.serviceCardEnhanced:hover,
+.barberCardEnhanced:hover,
+.appointmentCardEnhanced:hover {
+  transform: none;
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.serviceCardEnhancedSelected,
+.barberCardEnhancedSelected {
+  border-color: var(--color-primary-red);
+  box-shadow: inset 3px 0 0 var(--color-primary-red);
+}
+
+.stepper {
+  padding: var(--space-4) var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.stepperStep {
+  border-radius: var(--radius-sm);
+}
+
+.dateGridDay {
+  border-radius: var(--radius-sm);
+}
+
+.confirmSummary {
+  border-radius: var(--radius-lg);
+  border-color: var(--color-border);
+  background: #fcfbfa;
+}
+
+.modal,
+.dataTable { overflow: hidden; }
+
+@media (max-width: 720px) {
+  .table { min-width: 34rem; }
+  .appointmentCardEnhanced { padding: var(--space-4); }
+  .stepperLabel { font-size: .65rem; }
+}
+
 /* === EDIÇÃO INLINE === */
 .inlineEdit {
   display: grid;
@@ -757,6 +810,149 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* === POLIMENTO VISUAL: componentes de produto === */
+.button,
+.secondaryButton,
+.dangerButton,
+.ghostButton {
+  min-height: 2.75rem;
+  border-radius: var(--radius-sm);
+  letter-spacing: .01em;
+}
+
+.button {
+  box-shadow: 0 1px 1px rgba(107, 7, 15, .14);
+}
+
+.button:not(:disabled):hover,
+.secondaryButton:not(:disabled):hover,
+.dangerButton:not(:disabled):hover,
+.ghostButton:not(:disabled):hover {
+  transform: none;
+}
+
+.secondaryButton {
+  color: var(--color-primary-navy);
+  background: var(--color-white);
+}
+
+.secondaryButton:hover:not(:disabled) {
+  border-color: var(--color-primary-navy);
+  background: var(--color-primary-navy-light);
+}
+
+.dangerButton { border-color: transparent; }
+
+.formCard,
+.dataTable {
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-white);
+  box-shadow: var(--shadow-xs);
+}
+
+.dataTable { overflow: hidden; }
+
+.formCard {
+  padding: clamp(var(--space-5), 4vw, var(--space-8));
+  box-shadow: var(--shadow-sm);
+}
+
+.field { gap: var(--space-2); }
+
+.field input,
+.field select,
+.field textarea,
+.statusSelect select,
+.filterGroup select {
+  border-radius: var(--radius-sm);
+  border-color: var(--color-border-strong);
+}
+
+.tableContainer { overflow-x: auto; }
+
+.table { min-width: 38rem; font-size: var(--text-sm); }
+
+.table thead { background: var(--color-primary-navy-light); }
+
+.table th {
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-primary-navy);
+  font-size: .68rem;
+  letter-spacing: .075em;
+}
+
+.table td {
+  padding: var(--space-4);
+  border-bottom-color: var(--color-border-light);
+  vertical-align: middle;
+}
+
+.table tbody tr:hover td { background: #faf9f7; }
+
+.actionButtons { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.actionButtons .secondaryButton,
+.actionButtons .dangerButton { min-height: 2.25rem; padding: 0 var(--space-3); font-size: var(--text-xs); }
+
+.filterBar {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: var(--border-width-thin) solid var(--color-border);
+  background: #fcfbfa;
+}
+
+.filterGroup { display: flex; align-items: center; gap: var(--space-2); color: var(--color-text-secondary); font-size: var(--text-sm); font-weight: var(--font-weight-semibold); }
+.filterGroup select { width: auto; min-width: 8.5rem; height: 2.5rem; padding: 0 var(--space-3); background: var(--color-white); }
+
+.modalOverlay { background: rgba(18, 29, 46, .48); padding: var(--space-4); }
+.modal { border-radius: var(--radius-lg); border: 1px solid var(--color-border); box-shadow: var(--shadow-2xl); }
+.modalHeader { padding: var(--space-5) var(--space-6); border-bottom: 1px solid var(--color-border); }
+.modalBody { padding: var(--space-6); }
+.modalFooter { padding: var(--space-4) var(--space-6); border-top: 1px solid var(--color-border); background: #fcfbfa; }
+.modalClose { border-radius: var(--radius-sm); }
+
+.emptyState,
+.sectionEmpty {
+  border-radius: var(--radius-lg);
+  background: #fcfbfa;
+}
+
+.emptyIcon { color: var(--color-primary-red); }
+
+.status,
+.badge {
+  border-radius: var(--radius-sm);
+  font-size: .66rem;
+  letter-spacing: .055em;
+}
+
+.statusConfirmado { color: var(--color-primary-navy); background: var(--color-primary-navy-light); }
+
+.loaderWrap {
+  min-height: 18rem;
+  color: var(--color-primary-navy);
+  font-size: var(--text-base);
+}
+
+.spinner { width: 2rem; height: 2rem; border-color: var(--color-primary-navy-light); border-top-color: var(--color-primary-red); }
+
+.toast { border-radius: var(--radius-md); box-shadow: var(--shadow-lg); }
+
+@media (max-width: 640px) {
+  .formCard { padding: var(--space-5); }
+  .formGrid,
+  .inlineFields { grid-template-columns: 1fr; }
+  .filterBar { justify-content: stretch; padding: var(--space-3) var(--space-4); }
+  .filterGroup { width: 100%; justify-content: space-between; }
+  .filterGroup select { flex: 1; }
+  .modalOverlay { align-items: end; padding: 0; }
+  .modal { width: 100%; max-height: 92vh; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+  .modalHeader, .modalBody, .modalFooter { padding-left: var(--space-4); padding-right: var(--space-4); }
+  .modalFooter { flex-wrap: wrap; }
+  .modalFooter > * { flex: 1; }
 }
 
 .avatarSm {
@@ -1127,7 +1323,14 @@
   }
 
   .stepperItemCompleted .stepperStep::before {
-    content: '✓';
+    content: '';
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+    background-size: 60% 60%;
+    background-position: center;
+    background-repeat: no-repeat;
   }
 
   .stepperLabel {
@@ -1570,4 +1773,40 @@
       text-align: left;
     }
   }
+}
+
+/* Booking flow and management controls use the same reserved card treatment. */
+.dataTable,
+.formCard,
+.serviceCardEnhanced,
+.barberCardEnhanced,
+.appointmentCardEnhanced {
+  border-radius: var(--radius-lg);
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-xs);
+}
+
+.serviceCardEnhanced:hover,
+.barberCardEnhanced:hover,
+.appointmentCardEnhanced:hover {
+  transform: none;
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.serviceCardEnhancedSelected,
+.barberCardEnhancedSelected {
+  border-color: var(--color-primary-red);
+  box-shadow: inset 3px 0 0 var(--color-primary-red);
+}
+
+.stepper { padding: var(--space-4) var(--space-2); border-bottom: 1px solid var(--color-border); }
+.stepperStep, .dateGridDay { border-radius: var(--radius-sm); }
+.confirmSummary { border-radius: var(--radius-lg); border-color: var(--color-border); background: #fcfbfa; }
+.modal, .dataTable { overflow: hidden; }
+
+@media (max-width: 720px) {
+  .table { min-width: 34rem; }
+  .appointmentCardEnhanced { padding: var(--space-4); }
+  .stepperLabel { font-size: .65rem; }
 }

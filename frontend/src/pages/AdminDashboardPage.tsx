@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { barberApi, serviceApi, listAllAppointments } from '../api/endpoints'
+import { listAllAppointments, listAllServices, listAllBarbers } from '../api/endpoints'
+import { PageLoader } from '../components/PageLoader'
 import { useAsyncData } from '../hooks/useAsyncData'
 import type { AppointmentStatus } from '../types'
 import { formatCurrency, formatDateTime, todayISO, statusLabels } from '../utils/format'
@@ -23,18 +24,18 @@ export function AdminDashboardPage() {
   useAuth()
 
   const { data: allAppointments, isLoading: loadingAppointments, error: errorAppointments } = useAsyncData(listAllAppointments, [])
-  const { data: servicesData, isLoading: loadingServices } = useAsyncData(() => serviceApi.list().then(r => r.data), [])
-  const { data: barbersData, isLoading: loadingBarbers } = useAsyncData(() => barberApi.list().then(r => r.data), [])
+  const { data: services, isLoading: loadingServices, error: errorServices } = useAsyncData(listAllServices, [])
+  const { data: barbers, isLoading: loadingBarbers, error: errorBarbers } = useAsyncData(listAllBarbers, [])
 
   const isLoading = loadingAppointments || loadingServices || loadingBarbers
-  const error = errorAppointments
+  const hasError = errorAppointments || errorServices || errorBarbers
 
   const today = todayISO()
   const now = useMemo(() => new Date(), [])
 
   const appointments = useMemo(() => allAppointments ?? [], [allAppointments])
-  const services = useMemo(() => servicesData?.results ?? [], [servicesData?.results])
-  const barbers = useMemo(() => barbersData?.results ?? [], [barbersData?.results])
+  const servicesArray = useMemo(() => services ?? [], [services])
+  const barbersArray = useMemo(() => barbers ?? [], [barbers])
 
   const todayAppointments = useMemo(() =>
     appointments
@@ -70,20 +71,51 @@ export function AdminDashboardPage() {
   const stats = [
     { label: 'Agendamentos hoje', value: todayAppointments.length, description: 'Horários marcados para hoje' },
     { label: 'Total de agendamentos', value: appointments.length, description: 'Todos os status' },
-    { label: 'Serviços cadastrados', value: services.length, description: services.filter(s => s.ativo).length + ' ativos' },
-    { label: 'Barbeiros cadastrados', value: barbers.length, description: barbers.filter(b => b.ativo).length + ' ativos' },
+    { label: 'Serviços ativos', value: errorServices ? '—' : servicesArray.filter(s => s.ativo).length, description: errorServices ? 'Erro ao carregar' : `${servicesArray.filter(s => s.ativo).length} de ${servicesArray.length} ativos` },
+    { label: 'Barbeiros ativos', value: errorBarbers ? '—' : barbersArray.filter(b => b.ativo).length, description: errorBarbers ? 'Erro ao carregar' : `${barbersArray.filter(b => b.ativo).length} de ${barbersArray.length} ativos` },
   ]
 
   const statusOrder: AppointmentStatus[] = ['agendado', 'confirmado', 'realizado', 'cancelado']
+  // Use design tokens directly for status colors - matching badge classes
   const statusColors: Record<AppointmentStatus, string> = {
-    agendado: 'var(--color-info)',
-    confirmado: 'var(--color-success)',
-    realizado: 'var(--color-primary)',
-    cancelado: 'var(--color-error)',
+    agendado: 'var(--color-primary-navy)',    // --color-primary-navy (matches badgeInfo)
+    confirmado: 'var(--color-success)',       // --color-success (matches badgeSuccess)
+    realizado: 'var(--color-error)',          // --color-error (--color-primary-red, matches badgeError)
+    cancelado: 'var(--color-warning)',        // --color-warning (matches badgeWarning)
   }
 
-  if (isLoading) return <div className={styles.page}><div className={ui.pageLoader}>Carregando dashboard...</div></div>
-  if (error) return <div className={styles.page}><p className={ui.errorBox}>Não foi possível carregar o dashboard.</p></div>
+  // Badge classes mapping - using design token colors
+  // Note: ui.badgeInfo = primary-navy, ui.badgeSuccess = green, ui.badgeError = red, ui.badgeWarning = yellow
+  const statusBadgeClass: Record<AppointmentStatus, string> = {
+    agendado: ui.badgeInfo,      // --color-info (--color-primary-navy)
+    confirmado: ui.badgeSuccess, // --color-success (green)
+    realizado: ui.badgeError,    // --color-error (--color-primary-red)
+    cancelado: ui.badgeWarning,  // --color-warning (yellow)
+  }
+
+  if (isLoading) return <PageLoader label="Carregando dashboard..." />
+  const formatError = (err: unknown): string => {
+    if (err instanceof Error) return err.message
+    if (typeof err === 'string') return err
+    return 'Erro desconhecido'
+  }
+
+  const errorMessages = [
+    errorAppointments ? `Agendamentos: ${formatError(errorAppointments)}` : null,
+    errorServices ? `Serviços: ${formatError(errorServices)}` : null,
+    errorBarbers ? `Barbeiros: ${formatError(errorBarbers)}` : null,
+  ].filter(Boolean) as string[]
+
+  if (hasError) return (
+    <div className={styles.page}>
+      <div className={ui.errorBox}>
+        <p>Não foi possível carregar alguns dados do dashboard.</p>
+        {errorMessages.map((msg, i) => (
+          <p key={i}>{msg}</p>
+        ))}
+      </div>
+    </div>
+  )
 
   return (
     <div className={styles.page}>
@@ -104,9 +136,9 @@ export function AdminDashboardPage() {
           </article>
         ))}
         <article className={styles.statCard} style={{ gridColumn: 'span 1' }}>
-          <p className={styles.statLabel}>Faturamento (realizados)</p>
+          <p className={styles.statLabel}>Valor dos serviços concluídos</p>
           <p className={styles.statValue}>{formatCurrency(totalRevenue.toString())}</p>
-          <p className={styles.statDescription}>Soma de serviços concluídos</p>
+          <p className={styles.statDescription}>Soma dos preços dos serviços com status "realizado" — não reflete pagamentos confirmados</p>
         </article>
       </section>
 
@@ -142,7 +174,7 @@ export function AdminDashboardPage() {
                       <td>{appointment.servico_nome}</td>
                       <td>{appointment.barbeiro_nome}</td>
                       <td>
-                        <span className={`${ui.badge} ${ui.badgeDefault}`} style={{ backgroundColor: statusColors[appointment.status], color: 'white' }}>
+                        <span className={`${ui.badge} ${statusBadgeClass[appointment.status]}`}>
                           {statusLabels[appointment.status]}
                         </span>
                       </td>
@@ -181,7 +213,7 @@ export function AdminDashboardPage() {
                       <td>{appointment.servico_nome}</td>
                       <td>{appointment.barbeiro_nome}</td>
                       <td>
-                        <span className={`${ui.badge} ${ui.badgeDefault}`} style={{ backgroundColor: statusColors[appointment.status], color: 'white' }}>
+                        <span className={`${ui.badge} ${statusBadgeClass[appointment.status]}`}>
                           {statusLabels[appointment.status]}
                         </span>
                       </td>
@@ -213,7 +245,7 @@ export function AdminDashboardPage() {
                   </span>
                 </div>
                 <div className={styles.statusBar} role="progressbar" aria-valuenow={statusCounts[status]} aria-valuemin={0} aria-valuemax={appointments.length || 1} aria-label={statusLabels[status]}>
-                  <div className={styles.statusBarFill} style={{ width: appointments.length > 0 ? (statusCounts[status] / appointments.length) * 100 : 0 + '%', backgroundColor: statusColors[status] }} />
+                  <div className={styles.statusBarFill} style={{ width: appointments.length > 0 ? `${(statusCounts[status] / appointments.length) * 100}%` : '0%', backgroundColor: statusColors[status] }} />
                 </div>
               </div>
             ))}
@@ -222,7 +254,7 @@ export function AdminDashboardPage() {
 
         <section className={styles.dashboardCard} aria-labelledby="revenue-title">
           <header className={styles.cardHeader}>
-            <h2 id="revenue-title">Faturamento por status</h2>
+            <h2 id="revenue-title">Valor dos serviços por status</h2>
           </header>
           <div className={styles.revenueBreakdown}>
             {statusOrder.map(status => {
@@ -241,6 +273,9 @@ export function AdminDashboardPage() {
               <span>Total (realizados)</span>
               <strong>{formatCurrency(totalRevenue.toString())}</strong>
             </div>
+            <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: 'var(--space-3)' }}>
+              Valores baseados nos preços cadastrados dos serviços — não reflete pagamentos confirmados
+            </p>
           </div>
         </section>
       </div>

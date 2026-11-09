@@ -37,12 +37,12 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
         # administrador e barbeiro; o queryset continua impondo o escopo.
         if self.action in ['update', 'partial_update']:
             if self.request.user.is_cliente:
-                # Clientes podem atualizar seus próprios agendamentos (apenas para cancelamento)
+                # Clientes podem atualizar seus próprios agendamentos (reagendamento ou cancelamento)
                 return [permissions.IsAuthenticated()]
             return [permissions.IsAuthenticated(), IsAdminOrBarberRole()]
         if self.action == 'destroy':
             # O DELETE é um cancelamento lógico. O queryset já limita o
-            # cliente ao próprio agendamento; barbeiros continuam sem poder
+            # cliente ao próprio agendamento.damento; barbeiros continuam sem poder
             # cancelar horários de clientes arbitrariamente.
             if self.request.user.is_cliente:
                 return [permissions.IsAuthenticated()]
@@ -52,11 +52,26 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
         user = self.request.user
+
+        # Superuser pode ver todos os agendamentos independentemente do filtro
+        # Para operações de escrita (UPDATE, DELETE), superuser vê todos
+        # independentemente do status para permitir reativação/exclusão
+        is_write_operation = self.action in ['update', 'partial_update', 'destroy']
+        if user.is_authenticated and user.is_superuser:
+            if is_write_operation:
+                return queryset  # Todos
+            # Para leitura, aplicar filtros normais baseados no papel
+            # (superuser age como admin da plataforma)
+
         if user.is_cliente:
             queryset = queryset.filter(cliente=user)
         elif user.is_barbeiro:
             barbeiro = getattr(user, 'perfil_barbeiro', None)
-            if barbeiro is None:
+            if (
+                barbeiro is None
+                or not barbeiro.ativo
+                or barbeiro.barbershop_id != user.barbershop_id
+            ):
                 return queryset.none()
             queryset = queryset.filter(barbeiro=barbeiro)
         return queryset
@@ -72,8 +87,12 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
             extra['cliente'] = self.request.user
         elif self.request.user.is_barbeiro:
             barbeiro = getattr(self.request.user, 'perfil_barbeiro', None)
-            if barbeiro is None:
-                raise PermissionDenied('Perfil profissional de barbeiro não encontrado.')
+            if (
+                barbeiro is None
+                or not barbeiro.ativo
+                or barbeiro.barbershop_id != self.request.user.barbershop_id
+            ):
+                raise PermissionDenied('Perfil profissional de barbeiro ativo não encontrado.')
             extra['barbeiro'] = barbeiro
         serializer.save(**extra)
 
@@ -86,22 +105,42 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
         serializer.save()
 
     def perform_destroy(self, instance):
-        # DELETE é mantido para compatibilidade, mas passa a representar o
-        # cancelamento do agendamento, preservando o histórico.
-        if instance.status != Appointment.Status.CANCELADO:
+        # DELETE representa o cancelamento do agendamento, preservando o histórico.
+        # Aplica a mesma máquina de estados: só permite cancelar se o status atual
+        # permitir a transição para cancelado (agendado ou confirmado).
+        # Não permite cancelar agendamentos realizados ou já cancelados.
+        if instance.status in [Appointment.Status.AGENDADO, Appointment.Status.CONFIRMADO]:
             instance.status = Appointment.Status.CANCELADO
             instance.save(update_fields=['status', 'updated_at'])
+        elif instance.status == Appointment.Status.CANCELADO:
+            # Já cancelado - operação idempotente, retorna sucesso sem modificar
+            pass
+        else:
+            # REALIZADO não pode ser cancelado
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({
+                'detail': f'Não é possível cancelar um agendamento com status {instance.get_status_display()}.'
+            })
 
     @action(detail=False, methods=['get'], url_path='available-slots')
     def available_slots(self, request):
         """
-        GET /api/v1/appointments/available-slots/?barbeiro=7&servico=4&data=2026-08-25
+        GET /api/v1/appointments/available-slots/?barbeiro=7&servico=4&data=2026-08-25[&exclude_appointment_id=123]
 
         Retorna os horários (HH:MM) em que o barbeiro ainda pode iniciar um
         atendimento do serviço informado na data informada: slots gerados a
         partir da abertura da barbearia até caber mais um serviço antes do
         fechamento, com passo igual à duração do serviço, excluindo os que
         conflitam com agendamentos existentes (status != cancelado).
+
+        Parâmetro opcional `exclude_appointment_id`: durante um reagendamento,
+        informe o ID do agendamento original para que ele não seja considerado
+        como horário ocupado. O backend valida:
+        - Se o agendamento existe.
+        - Se pertence à barbearia do usuário.
+        - Se o usuário tem permissão para reagendá-lo.
+        - Se o status permite reagendamento (agendado ou confirmado).
+        - Se não está cancelado ou realizado.
 
         Todos os cálculos usam a timezone local do projeto (TIME_ZONE),
         consistente com as validações de horário de funcionamento do model.
@@ -113,6 +152,7 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
         barbeiro_id = request.query_params.get('barbeiro')
         servico_id = request.query_params.get('servico')
         data_param = request.query_params.get('data')
+        exclude_appointment_id = request.query_params.get('exclude_appointment_id')
         faltando = [
             nome for nome, valor in (
                 ('barbeiro', barbeiro_id), ('servico', servico_id), ('data', data_param),
@@ -146,6 +186,41 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # Validação do exclude_appointment_id (opcional)
+        exclude_appointment = None
+        if exclude_appointment_id:
+            try:
+                exclude_appointment = Appointment.objects.select_related(
+                    'cliente', 'barbeiro', 'servico', 'barbershop'
+                ).get(pk=exclude_appointment_id)
+            except (Appointment.DoesNotExist, ValueError):
+                return Response({'detail': 'Agendamento a excluir não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+
+            # Verifica se pertence à barbearia do usuário
+            if exclude_appointment.barbershop_id != user.barbershop_id:
+                return Response({'detail': 'Agendamento a excluir não pertence à sua barbearia.'}, status=status.HTTP_404_NOT_FOUND)
+
+            # Verifica permissão do usuário para reagendar
+            if user.is_cliente:
+                if exclude_appointment.cliente_id != user.pk:
+                    return Response({'detail': 'Sem permissão para reagendar este agendamento.'}, status=status.HTTP_403_FORBIDDEN)
+            elif user.is_barbeiro:
+                barbeiro_perfil = getattr(user, 'perfil_barbeiro', None)
+                if not barbeiro_perfil or exclude_appointment.barbeiro_id != barbeiro_perfil.pk:
+                    return Response({'detail': 'Barbeiros só podem gerenciar a própria agenda.'}, status=status.HTTP_403_FORBIDDEN)
+
+            # Verifica se status permite reagendamento
+            if exclude_appointment.status not in [Appointment.Status.AGENDADO, Appointment.Status.CONFIRMADO]:
+                return Response(
+                    {'detail': f'Agendamento com status {exclude_appointment.get_status_display()} não pode ser reagendado.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Se o agendamento a excluir for de outro barbeiro, não tentamos excluí-lo
+            # da lista de ocupados (já não estaria lá). Apenas ignoramos a exclusão.
+            if exclude_appointment.barbeiro_id != int(barbeiro_id):
+                exclude_appointment = None
+
         duracao = timedelta(minutes=servico.duracao)
 
         inicio = timezone.make_aware(datetime.combine(data, barbeiro.barbershop.horario_abertura))
@@ -155,6 +230,10 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
             barbeiro=barbeiro,
             data_hora__date=data,
         ).exclude(status=Appointment.Status.CANCELADO).select_related('servico')
+
+        # Exclui o agendamento original da consulta de horários ocupados durante reagendamento
+        if exclude_appointment:
+            agendamentos = agendamentos.exclude(pk=exclude_appointment.pk)
 
         ocupados = [
             (

@@ -1,14 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { serviceApi } from '../api/endpoints'
 import { EmptyState } from '../components/EmptyState'
 import { PageLoader } from '../components/PageLoader'
+import { Pagination } from '../components/Pagination'
 import { useToast } from '../contexts/ToastContext'
 import { useAsyncData } from '../hooks/useAsyncData'
 import type { Service } from '../types'
 import { errorMessage, formatCurrency } from '../utils/format'
+import { XIcon } from '../components/Icons'
 import styles from '../styles/page.module.css'
 import ui from '../styles/ui.module.css'
 
@@ -27,7 +29,18 @@ export function AdminServicesPage() {
   const { showToast } = useToast()
   const [showModal, setShowModal] = useState(false)
   const [editingService, setEditingService] = useState<Service | null>(null)
-  const { data, isLoading, error, reload } = useAsyncData(() => serviceApi.list().then((response) => response.data), [])
+  const [statusFilter, setStatusFilter] = useState<'all' | 'true' | 'false'>('all')
+  const [page, setPage] = useState(1)
+
+  // Reset page to 1 when filter changes
+  useEffect(() => {
+    setPage(1)
+  }, [statusFilter])
+
+  const { data, isLoading, error, reload } = useAsyncData(
+    () => serviceApi.list({ page, ativo: statusFilter }).then((response) => response.data),
+    [page, statusFilter]
+  )
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ServiceForm>({
     resolver: zodResolver(serviceSchema), defaultValues: defaults,
   })
@@ -88,8 +101,19 @@ export function AdminServicesPage() {
       </header>
 
       <div className={ui.dataTable}>
+        <div className={ui.filterBar}>
+          <div className={ui.filterGroup}>
+            <label htmlFor="status-filter">Status</label>
+            <select id="status-filter" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as 'all' | 'true' | 'false')}>
+              <option value="all">Todos</option>
+              <option value="true">Ativos</option>
+              <option value="false">Inativos</option>
+            </select>
+          </div>
+        </div>
+
         {services.length === 0 ? (
-          <EmptyState title="Nenhum serviço cadastrado" description="Cadastre o primeiro serviço para começar." />
+          <EmptyState title="Nenhum serviço encontrado" description={statusFilter === 'all' ? 'Cadastre o primeiro serviço para começar.' : 'Não há serviços com o filtro selecionado. Tente alterar o filtro de status.'} />
         ) : (
           <>
             <div className={ui.tableContainer}>
@@ -113,7 +137,7 @@ export function AdminServicesPage() {
                       <td className={ui.cellPrice}>{formatCurrency(service.preco)}</td>
                       <td>{service.duracao} min</td>
                       <td>
-                        <span className={`ui.badge ${service.ativo ? 'badgeSuccess' : 'badgeWarning'}`}>
+                        <span className={`${ui.badge} ${service.ativo ? ui.badgeSuccess : ui.badgeWarning}`}>
                           {service.ativo ? 'Ativo' : 'Inativo'}
                         </span>
                       </td>
@@ -128,6 +152,7 @@ export function AdminServicesPage() {
                 </tbody>
               </table>
             </div>
+            {data && <Pagination page={page} count={data.count} onChange={setPage} />}
           </>
         )}
       </div>
@@ -138,7 +163,7 @@ export function AdminServicesPage() {
           <div className={ui.modal} onClick={(e) => e.stopPropagation()}>
             <div className={ui.modalHeader}>
               <h2 id="modal-title">{editingService ? 'Editar serviço' : 'Novo serviço'}</h2>
-              <button className={ui.modalClose} onClick={closeModal} aria-label="Fechar">✕</button>
+              <button className={ui.modalClose} onClick={closeModal} aria-label="Fechar"><XIcon size={20} /></button>
             </div>
             <form className={ui.modalBody} onSubmit={handleSubmit(save)} noValidate>
               <label className={ui.field}>Nome
@@ -160,13 +185,13 @@ export function AdminServicesPage() {
                 </label>
               </div>
               <label className={ui.checkbox}><input type="checkbox" {...register('ativo')} /> Serviço ativo</label>
+              <div className={ui.modalFooter}>
+                <button type="button" className={ui.secondaryButton} onClick={closeModal}>Cancelar</button>
+                <button type="submit" className={ui.button} disabled={isSubmitting}>
+                  {isSubmitting ? 'Salvando...' : editingService ? 'Salvar alterações' : 'Cadastrar serviço'}
+                </button>
+              </div>
             </form>
-            <div className={ui.modalFooter}>
-              <button type="button" className={ui.secondaryButton} onClick={closeModal}>Cancelar</button>
-              <button type="submit" className={ui.button} disabled={isSubmitting}>
-                {isSubmitting ? 'Salvando...' : editingService ? 'Salvar alterações' : 'Cadastrar serviço'}
-              </button>
-            </div>
           </div>
         </div>
       )}

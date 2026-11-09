@@ -22,10 +22,19 @@ class IsSelfOrAdmin(BasePermission):
 
 class IsBarberRole(BasePermission):
     def has_permission(self, request, view):
-        return bool(
-            request.user.is_authenticated
-            and (request.user.is_superuser or request.user.tipo_perfil == 'barbeiro')
-        )
+        if not request.user.is_authenticated:
+            return False
+        if request.user.is_superuser:
+            return True
+        if request.user.tipo_perfil != 'barbeiro':
+            return False
+        # Verify active Barber profile exists in the user's barbershop
+        from barbershops.models import Barber
+        return Barber.objects.filter(
+            user=request.user,
+            barbershop_id=request.user.barbershop_id,
+            ativo=True
+        ).exists()
 
 class IsClientRole(BasePermission):
     def has_permission(self, request, view):

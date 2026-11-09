@@ -82,8 +82,56 @@ class BarberViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        if self.action == 'list' and 'ativo' not in self.request.query_params:
-            queryset = queryset.filter(ativo=True)
+        # Filtro por status ativo/inativo:
+        # - Sem parâmetro (público) → apenas ativos
+        # - ativo=true → apenas ativos
+        # - ativo=false → apenas inativos
+        # - ativo=all (apenas admin/superuser) → todos (sem filtro)
+        ativo_param = self.request.query_params.get('ativo')
+        user = self.request.user
+
+        # Superuser pode ver todos os barbeiros independentemente do filtro
+        # Para operações de escrita (UPDATE, DELETE), superuser vê todos
+        # independentemente do status ativo para permitir reativação/exclusão
+        is_write_operation = self.action in ['update', 'partial_update', 'destroy']
+        if user.is_authenticated and user.is_superuser:
+            if ativo_param == 'all' or is_write_operation:
+                return queryset  # Todos
+            elif ativo_param == 'false':
+                return queryset.filter(ativo=False)
+            elif ativo_param == 'true':
+                return queryset.filter(ativo=True)
+            else:
+                return queryset.filter(ativo=True)  # Padrão: apenas ativos
+
+        # Para operações de escrita (UPDATE, DELETE), admins devem poder
+        # acessar barbeiros inativos para reativar ou confirmar exclusão.
+        # A permissão IsAdminRole já garante que só admins chegam aqui.
+        is_write_operation = self.action in ['update', 'partial_update', 'destroy']
+
+        if ativo_param == 'all':
+            # Apenas admins podem ver inativos via ativo=all
+            if user.is_authenticated and user.tipo_perfil == 'admin':
+                # Admin explícito: retorna todos, sem filtro por ativo
+                pass
+            else:
+                # Não-admins: ignora ativo=all e usa padrão (apenas ativos)
+                queryset = queryset.filter(ativo=True)
+        elif ativo_param == 'false':
+            # Apenas admins podem filtrar inativos
+            if user.is_authenticated and user.tipo_perfil == 'admin':
+                queryset = queryset.filter(ativo=False)
+            else:
+                # Não-admins não podem ver inativos
+                queryset = queryset.filter(ativo=True)
+        else:
+            # ativo=true ou parâmetro ausente (padrão público)
+            # Mas para operações de escrita de admin, não filtramos por ativo
+            # para permitir reativação e exclusão de inativos
+            if is_write_operation and user.is_authenticated and user.tipo_perfil == 'admin':
+                pass  # Admin em operação de escrita vê todos
+            else:
+                queryset = queryset.filter(ativo=True)
         return queryset
 
     def perform_create(self, serializer):
@@ -96,13 +144,17 @@ class BarberViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
             # Serializa promoções concorrentes para o mesmo usuário e evita
             # confirmar um Barber vinculado a um papel incompatível.
             user = type(user).objects.select_for_update().get(pk=user.pk)
+            will_be_active = serializer.validated_data.get('ativo', True)
+            # A alteração do papel acontece antes do save do Barber, mas as
+            # duas escritas pertencem à mesma transação. Se o perfil falhar,
+            # a promoção também é desfeita.
+            if will_be_active and user.tipo_perfil != user.TipoPerfil.BARBEIRO:
+                user.tipo_perfil = user.TipoPerfil.BARBEIRO
+                user.save(update_fields=['tipo_perfil'])
             barber = serializer.save(
                 user=user,
                 barbershop_id=self.request.user.barbershop_id,
             )
-            if user.tipo_perfil != user.TipoPerfil.BARBEIRO:
-                user.tipo_perfil = user.TipoPerfil.BARBEIRO
-                user.save(update_fields=['tipo_perfil'])
             return barber
 
     def perform_destroy(self, instance):
@@ -117,3 +169,39 @@ class BarberViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
             if user.tipo_perfil == user.TipoPerfil.BARBEIRO:
                 user.tipo_perfil = user.TipoPerfil.CLIENTE
                 user.save(update_fields=['tipo_perfil'])
+
+    def perform_update(self, serializer):
+        """Mantém papel, soft-delete e atividade do perfil sincronizados."""
+        with transaction.atomic():
+            # Lock the user row to serialize concurrent updates
+            user = serializer.instance.user
+            user = type(user).objects.select_for_update().get(pk=user.pk)
+
+            # Check if we're deactivating (ativo: True -> False)
+            was_active = serializer.instance.ativo
+            will_be_active = serializer.validated_data.get('ativo', serializer.instance.ativo)
+
+            barber = serializer.save()
+
+            if not will_be_active:
+                # A desativação por PATCH tem a mesma semântica do DELETE
+                # lógico: conserva agenda/histórico e remove o papel ativo.
+                if user.tipo_perfil != user.TipoPerfil.CLIENTE:
+                    user.tipo_perfil = user.TipoPerfil.CLIENTE
+                    user.save(update_fields=['tipo_perfil'])
+                if barber.deleted_at is None:
+                    barber.deleted_at = timezone.now()
+                    barber.deleted_by = self.request.user
+                    barber.save(update_fields=['deleted_at', 'deleted_by'])
+            else:
+                # Tanto a reativação como uma correção de estado legado
+                # restauram o único papel compatível com um Barber ativo.
+                if user.tipo_perfil != user.TipoPerfil.BARBEIRO:
+                    user.tipo_perfil = user.TipoPerfil.BARBEIRO
+                    user.save(update_fields=['tipo_perfil'])
+                if barber.deleted_at or barber.deleted_by:
+                    barber.deleted_at = None
+                    barber.deleted_by = None
+                    barber.save(update_fields=['deleted_at', 'deleted_by'])
+
+            return barber

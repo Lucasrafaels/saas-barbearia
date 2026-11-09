@@ -48,6 +48,13 @@ class BarberSerializer(serializers.ModelSerializer):
         # TenantScopedQuerysetMixin, não pelo cliente da API.
         read_only_fields = ['id', 'barbershop', 'created_at']
 
+    def get_fields(self):
+        """A associação profissional não pode ser transferida por PATCH."""
+        fields = super().get_fields()
+        if self.instance is not None:
+            fields['user'].read_only = True
+        return fields
+
     def validate(self, attrs):
         """Executa no fluxo REST a mesma consistência definida no model."""
         request = self.context.get('request')
@@ -57,8 +64,36 @@ class BarberSerializer(serializers.ModelSerializer):
         if not barber.barbershop_id and request:
             barber.barbershop_id = request.user.barbershop_id
 
+        # Block ADMIN users from being converted to barbers.
+        user = attrs.get('user', getattr(barber, 'user', None))
+        if user and getattr(user, 'tipo_perfil', None) == 'admin':
+            raise serializers.ValidationError(
+                {'user': 'Usuários administradores não podem ser convertidos em barbeiros.'}
+            )
+
+        # A promoção efetiva é feita pela view, dentro da mesma transação que
+        # salva o perfil. Para validar a combinação antes de gravar, usamos
+        # uma cópia em memória do papel esperado, sem alterar o User real.
+        is_creation_with_promotion = (
+            self.instance is None
+            and attrs.get('ativo', True) is True
+            and user is not None
+            and getattr(user, 'tipo_perfil', None) == 'cliente'
+        )
+        is_reactivation = (
+            self.instance is not None
+            and attrs.get('ativo', getattr(self.instance, 'ativo', False)) is True
+            and getattr(self.instance, 'ativo', False) is False
+        )
+
+        original_profile = getattr(user, 'tipo_perfil', None)
         try:
+            if is_creation_with_promotion or is_reactivation:
+                user.tipo_perfil = 'barbeiro'
             barber.clean()
         except DjangoValidationError as error:
             raise serializers.ValidationError(error.message_dict) from error
+        finally:
+            if user is not None:
+                user.tipo_perfil = original_profile
         return attrs

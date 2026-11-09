@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
+from django.utils import timezone
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.encoding import force_bytes
@@ -75,6 +76,14 @@ class UserSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
+        if (
+            self.instance is not None
+            and self.instance.tipo_perfil == User.TipoPerfil.ADMIN
+            and attrs.get('tipo_perfil') == User.TipoPerfil.BARBEIRO
+        ):
+            raise serializers.ValidationError({
+                'tipo_perfil': 'Usuários administradores não podem ser convertidos em barbeiros.'
+            })
         return super().validate(attrs)
 
     def update(self, instance, validated_data):
@@ -89,10 +98,9 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
         new_role = validated_data.pop('tipo_perfil', None)
-        old_role = instance.tipo_perfil
-
         with transaction.atomic():
             instance = type(instance).objects.select_for_update().get(pk=instance.pk)
+            old_role = instance.tipo_perfil
 
             # Handle role change with Barber profile sync
             if new_role is not None and new_role != old_role:
@@ -102,7 +110,10 @@ class UserSerializer(serializers.ModelSerializer):
                     try:
                         barber = instance.perfil_barbeiro
                         barber.ativo = False
-                        barber.save(update_fields=['ativo'])
+                        barber.deleted_at = timezone.now()
+                        request = self.context.get('request')
+                        barber.deleted_by = getattr(request, 'user', None)
+                        barber.save(update_fields=['ativo', 'deleted_at', 'deleted_by'])
                     except Barber.DoesNotExist:
                         pass
                 # Promote to BARBEIRO -> create or activate Barber profile
@@ -113,7 +124,9 @@ class UserSerializer(serializers.ModelSerializer):
                     )
                     if not created and not barber.ativo:
                         barber.ativo = True
-                        barber.save(update_fields=['ativo'])
+                        barber.deleted_at = None
+                        barber.deleted_by = None
+                        barber.save(update_fields=['ativo', 'deleted_at', 'deleted_by'])
                 instance.tipo_perfil = new_role
 
             for attr, value in validated_data.items():
@@ -150,10 +163,13 @@ class UserCreateSerializer(PasswordValidationMixin, serializers.ModelSerializer)
     """Serializer usado para cadastro de novos usuários (recebe senha)."""
 
     password = serializers.CharField(write_only=True, min_length=8)
+    # Campos opcionais para criar o perfil de Barber junto com o usuário
+    especialidade = serializers.CharField(write_only=True, required=False, allow_blank=True, max_length=100)
+    ativo = serializers.BooleanField(write_only=True, required=False, default=True)
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'nome', 'password', 'tipo_perfil', 'barbershop']
+        fields = ['id', 'email', 'nome', 'password', 'tipo_perfil', 'barbershop', 'especialidade', 'ativo']
         read_only_fields = ['id', 'barbershop']
 
     def validate_tipo_perfil(self, value):
@@ -163,8 +179,19 @@ class UserCreateSerializer(PasswordValidationMixin, serializers.ModelSerializer)
             )
         return value
 
+    def validate(self, attrs):
+        # Se tipo_perfil for BARBEIRO, especialidade é obrigatória
+        if attrs.get('tipo_perfil') == User.TipoPerfil.BARBEIRO:
+            if not attrs.get('especialidade'):
+                raise serializers.ValidationError(
+                    {'especialidade': 'Este campo é obrigatório para usuários do tipo barbeiro.'}
+                )
+        return super().validate(attrs)
+
     def create(self, validated_data):
         password = validated_data.pop('password')
+        especialidade = validated_data.pop('especialidade', None)
+        barber_active = validated_data.pop('ativo', True)
         request = self.context.get('request')
         if not request or not request.user.barbershop_id:
             raise serializers.ValidationError(
@@ -181,18 +208,42 @@ class UserCreateSerializer(PasswordValidationMixin, serializers.ModelSerializer)
             raise serializers.ValidationError(
                 {'detail': 'Apenas administradores podem criar usuários.'}
             )
-        # O frontend cadastra o usuário e, logo depois, cria seu perfil em
-        # /barbers/. Até essa segunda operação o usuário não pode receber o
-        # papel de barbeiro, pois o papel sem perfil causava erros 500 nas
-        # consultas multi-tenant. BarberViewSet promove-o atomicamente ao
-        # criar o perfil profissional.
-        if validated_data.get('tipo_perfil') == User.TipoPerfil.BARBEIRO:
+
+        is_barber = validated_data.get('tipo_perfil') == User.TipoPerfil.BARBEIRO
+        # O papel BARBEIRO representa acesso profissional vigente. Um perfil
+        # criado já inativo fica registrado para o histórico, mas a conta
+        # permanece CLIENTE até que ele seja reativado.
+        if is_barber and not barber_active:
             validated_data['tipo_perfil'] = User.TipoPerfil.CLIENTE
-        return User.objects.create_user(
-            password=password,
-            barbershop=request.user.barbershop,
-            **validated_data,
-        )
+
+        with transaction.atomic():
+            user = User.objects.create_user(
+                password=password,
+                barbershop=request.user.barbershop,
+                **validated_data,
+            )
+
+            if is_barber:
+                from barbershops.models import Barber
+                barber = Barber(
+                    user=user,
+                    barbershop=request.user.barbershop,
+                    especialidade=especialidade or '',
+                    ativo=barber_active,
+                )
+                # create()/save() não chama clean() automaticamente no
+                # Django. Validamos explicitamente para preservar as regras
+                # de tenant e de perfil também neste fluxo composto.
+                try:
+                    barber.full_clean()
+                except DjangoValidationError as error:
+                    raise serializers.ValidationError(error.message_dict) from error
+                if not barber_active:
+                    barber.deleted_at = timezone.now()
+                    barber.deleted_by = request.user
+                barber.save()
+
+        return user
 
 
 class PublicRegistrationSerializer(PasswordValidationMixin, serializers.ModelSerializer):

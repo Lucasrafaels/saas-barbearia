@@ -113,6 +113,7 @@ class Appointment(TimeStampedModel):
         self._validar_horario_funcionamento()
         self._validar_nao_permite_agendamento_no_passado()
         self._validar_conflito_horario()
+        self._validar_transicao_status()
 
     def _validar_horario_funcionamento(self):
         """
@@ -123,9 +124,30 @@ class Appointment(TimeStampedModel):
         A comparação é feita no fuso horário local (TIME_ZONE do
         projeto), já que `horario_abertura`/`horario_fechamento` são
         horários "de parede" da barbearia, não horários em UTC.
+
+        Só reavalia a regra quando `data_hora` está sendo definida pela
+        primeira vez (criação) ou alterada (remarcação): editar outros
+        campos — por exemplo, mudar o status para "realizado" ou incluir
+        uma observação — em um agendamento cujo horário já foi validado
+        continua permitido.
         """
         if not self.barbershop_id or not self.servico_id or not self.data_hora:
             return
+
+        # Se o agendamento já existe e o data_hora não mudou, pular validação
+        # de horário de funcionamento. Isso permite PATCH parcial (ex.: só
+        # observacoes ou status) sem revalidar horário comercial.
+        if self.pk:
+            data_hora_persistida = (
+                type(self).objects
+                .filter(pk=self.pk)
+                .values_list('data_hora', flat=True)
+                .first()
+            )
+            # Comparar timestamps para evitar problemas de representação de timezone
+            # (ex.: UTC vs aware local) quando ambos representam o mesmo instante.
+            if data_hora_persistida is not None and data_hora_persistida.timestamp() == self.data_hora.timestamp():
+                return
 
         inicio = timezone.localtime(self.data_hora)
         fim = inicio + timedelta(minutes=self.servico.duracao)
@@ -171,7 +193,9 @@ class Appointment(TimeStampedModel):
                 .values_list('data_hora', flat=True)
                 .first()
             )
-            if data_hora_persistida == self.data_hora:
+            # Comparar timestamps para evitar problemas de representação de timezone
+            # (ex.: UTC vs aware local) quando ambos representam o mesmo instante.
+            if data_hora_persistida is not None and data_hora_persistida.timestamp() == self.data_hora.timestamp():
                 return
 
         if self.data_hora < timezone.now():
@@ -208,3 +232,52 @@ class Appointment(TimeStampedModel):
                 raise ValidationError(
                     {'data_hora': 'Este barbeiro já possui um agendamento neste horário.'}
                 )
+
+    def _validar_transicao_status(self):
+        """Valida transições permitidas de status (máquina de estados).
+
+        Política:
+        - agendado → confirmado ou cancelado
+        - confirmado → realizado ou cancelado
+        - realizado → estado final (sem transições)
+        - cancelado → estado final (sem transições)
+
+        Não permite agendado → realizado diretamente.
+        """
+        if not self.pk:
+            # Nova instância: status padrão 'agendado' é válido
+            return
+
+        status_atual = type(self).objects.filter(pk=self.pk).values_list('status', flat=True).first()
+        if status_atual is None:
+            return
+
+        # Define transições permitidas conforme a política única
+        transicoes_permitidas = {
+            self.Status.AGENDADO: [self.Status.CONFIRMADO, self.Status.CANCELADO],
+            self.Status.CONFIRMADO: [self.Status.REALIZADO, self.Status.CANCELADO],
+            self.Status.REALIZADO: [],  # Estado final
+            self.Status.CANCELADO: [],  # Estado final
+        }
+
+        novo_status = self.status
+        if novo_status != status_atual:
+            permitidos = transicoes_permitidas.get(status_atual, [])
+            if novo_status not in permitidos:
+                raise ValidationError({
+                    'status': f'Transição inválida: {status_atual} → {novo_status}. '
+                              f'Transições permitidas de {status_atual}: {permitidos if permitidos else "nenhuma (estado final)"}'
+                })
+
+    def _validar_campos_cliente_nao_autorizados(self):
+        """Valida que clientes não alteram campos não autorizados em PATCH."""
+        if not self.pk:
+            return
+
+        # Import local evita ciclo
+        from accounts.models import User
+
+        # Verifica se a validação está vindo de um request de cliente
+        # (a instância não tem acesso ao request, mas podemos verificar
+        # se há tentativa de alterar campos sensíveis)
+        # Esta validação será complementada no serializer com o request context

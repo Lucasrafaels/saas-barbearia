@@ -302,3 +302,89 @@ class ServiceAPITestCase(APITestCase):
         nomes = [item['nome'] for item in response.data['results']]
         self.assertIn('Corte Simples', nomes)
         self.assertNotIn('Promoção Antiga', nomes)
+
+    # ------------------------------------------------------------------
+    # 15) Filtro ?ativo=false retorna apenas inativos
+    # ------------------------------------------------------------------
+    def test_filtro_ativo_false(self):
+        Service.objects.create(
+            barbershop=self.barbershop_a, nome='Promoção Antiga',
+            preco=Decimal('20.00'), duracao=20, ativo=False,
+        )
+        self.client.force_authenticate(user=self.admin_a)
+
+        response = self.client.get(self.list_url, {'ativo': 'false'})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        nomes = [item['nome'] for item in response.data['results']]
+        self.assertIn('Promoção Antiga', nomes)
+        self.assertNotIn('Corte Simples', nomes)
+
+    # ------------------------------------------------------------------
+    # 16) Filtro ?ativo=all retorna todos (ativos e inativos) para admin
+    # ------------------------------------------------------------------
+    def test_filtro_ativo_all_admin(self):
+        Service.objects.create(
+            barbershop=self.barbershop_a, nome='Promoção Antiga',
+            preco=Decimal('20.00'), duracao=20, ativo=False,
+        )
+        self.client.force_authenticate(user=self.admin_a)
+
+        response = self.client.get(self.list_url, {'ativo': 'all'})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 2)
+        nomes = [item['nome'] for item in response.data['results']]
+        self.assertIn('Corte Simples', nomes)
+        self.assertIn('Promoção Antiga', nomes)
+
+    # ------------------------------------------------------------------
+    # 17) Filtro ?ativo=all não funciona para não-admins (retorna 403 ou filtra ativos)
+    # ------------------------------------------------------------------
+    def test_filtro_ativo_all_not_admin(self):
+        Service.objects.create(
+            barbershop=self.barbershop_a, nome='Promoção Antiga',
+            preco=Decimal('20.00'), duracao=20, ativo=False,
+        )
+        # Cliente tenta usar ativo=all
+        self.client.force_authenticate(user=self.cliente_a)
+
+        response = self.client.get(self.list_url, {'ativo': 'all'})
+
+        # Não-admins não devem conseguir ver inativos via ativo=all
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # O filtro padrão para não-admins é apenas ativos
+        self.assertEqual(response.data['count'], 1)
+        nomes = [item['nome'] for item in response.data['results']]
+        self.assertIn('Corte Simples', nomes)
+        self.assertNotIn('Promoção Antiga', nomes)
+
+    # ------------------------------------------------------------------
+    # 18) Paginação respeita filtro ativo=false
+    # ------------------------------------------------------------------
+    def test_pagination_respects_ativo_filter(self):
+        # Cria 25 serviços inativos (mais que o page_size=20)
+        for i in range(25):
+            Service.objects.create(
+                barbershop=self.barbershop_a, nome=f'Promoção {i}',
+                preco=Decimal('20.00'), duracao=20, ativo=False,
+            )
+        self.client.force_authenticate(user=self.admin_a)
+
+        # Primeira página
+        response = self.client.get(self.list_url, {'ativo': 'false', 'page': 1})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 25)  # 25 criados (o do setUp é ativo=True)
+        self.assertLessEqual(len(response.data['results']), 20)  # page_size default
+        # Verifica que só inativos aparecem
+        for item in response.data['results']:
+            self.assertFalse(item['ativo'])
+
+        # Segunda página (deve haver)
+        self.assertIsNotNone(response.data['next'])
+        response2 = self.client.get(response.data['next'])
+        self.assertEqual(response2.status_code, status.HTTP_200_OK)
+        for item in response2.data['results']:
+            self.assertFalse(item['ativo'])

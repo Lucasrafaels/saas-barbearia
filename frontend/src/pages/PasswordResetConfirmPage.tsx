@@ -6,6 +6,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useToast } from '../contexts/ToastContext'
 import { authApi } from '../api/endpoints'
 import styles from '../styles/auth.module.css'
+import ui from '../styles/ui.module.css'
 
 const resetConfirmSchema = z.object({
   new_password: z.string().min(8, 'A nova senha deve ter pelo menos 8 caracteres'),
@@ -85,7 +86,7 @@ export function PasswordResetConfirmPage() {
             <button
               type="button"
               onClick={() => navigate('/password/reset')}
-              className="textButton"
+              className={ui.textButton}
             >
               Solicitar Novo Link
             </button>
@@ -115,7 +116,7 @@ export function PasswordResetConfirmPage() {
               type="password"
               autoComplete="new-password"
               {...register('new_password')}
-              className={errors.new_password ? 'error' : ''}
+              className={errors.new_password ? styles.error : ''}
               disabled={isSubmitting}
             />
             {errors.new_password && <span className={styles.errorText}>{errors.new_password.message}</span>}
@@ -127,7 +128,7 @@ export function PasswordResetConfirmPage() {
               type="password"
               autoComplete="new-password"
               {...register('confirm_password')}
-              className={errors.confirm_password ? 'error' : ''}
+              className={errors.confirm_password ? styles.error : ''}
               disabled={isSubmitting}
             />
             {errors.confirm_password && <span className={styles.errorText}>{errors.confirm_password.message}</span>}
@@ -140,7 +141,7 @@ export function PasswordResetConfirmPage() {
           <button
             type="button"
             onClick={() => navigate('/login')}
-            className="textButton"
+            className={ui.textButton}
             disabled={isSubmitting}
           >
             Voltar para o Login

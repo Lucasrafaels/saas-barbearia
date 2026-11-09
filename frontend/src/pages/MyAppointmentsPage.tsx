@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { appointmentApi } from '../api/endpoints'
 import { PageLoader } from '../components/PageLoader'
+import { Pagination } from '../components/Pagination'
 import { StatusBadge } from '../components/StatusBadge'
 import { statusLabels, isPast } from '../utils/format'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { errorMessage } from '../utils/format'
+import { CalendarIcon } from '../components/Icons'
 import styles from '../styles/page.module.css'
 import ui from '../styles/ui.module.css'
 
@@ -30,14 +32,19 @@ export function MyAppointmentsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [updatingId, setUpdatingId] = useState<number | null>(null)
+  const [page, setPage] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
 
   useEffect(() => {
     if (!user) return
     let active = true
     setIsLoading(true)
-    appointmentApi.list({ cliente: user.id })
+    appointmentApi.list({ cliente: user.id, page })
       .then((response) => {
-        if (active) setAppointments(response.data.results)
+        if (active) {
+          setAppointments(response.data.results)
+          setTotalCount(response.data.count)
+        }
       })
       .catch((err) => {
         if (active) setError(errorMessage(err, 'Não foi possível carregar seus agendamentos.'))
@@ -46,7 +53,7 @@ export function MyAppointmentsPage() {
         if (active) setIsLoading(false)
       })
     return () => { active = false }
-  }, [user])
+  }, [user, page])
 
   const handleCancel = async (id: number) => {
     if (!window.confirm('Tem certeza que deseja cancelar este agendamento?')) return
@@ -109,7 +116,7 @@ export function MyAppointmentsPage() {
 
         {upcoming.length === 0 ? (
           <div className={ui.sectionEmpty}>
-            <span className={ui.emptyIcon} aria-hidden="true">📅</span>
+            <CalendarIcon size={48} className={ui.emptyIcon} aria-hidden="true" />
             <h3>Nenhum agendamento próximo</h3>
             <p>Você não tem agendamentos futuros. Que tal agendar seu próximo corte?</p>
             <a className={ui.button} href="/appointments/new">Agendar agora</a>
@@ -224,12 +231,14 @@ export function MyAppointmentsPage() {
 
       {appointments.length === 0 && (
         <div className={ui.sectionEmpty} style={{ marginTop: 'var(--space-6)' }}>
-          <span className={ui.emptyIcon} aria-hidden="true">📅</span>
+          <CalendarIcon size={48} className={ui.emptyIcon} aria-hidden="true" />
           <h3>Nenhum agendamento ainda</h3>
           <p>Comece agendando seu primeiro horário na barbearia.</p>
           <a className={ui.button} href="/appointments/new">Fazer primeiro agendamento</a>
         </div>
       )}
+
+      {totalCount > 0 && <Pagination page={page} count={totalCount} onChange={setPage} />}
     </div>
   )
 }

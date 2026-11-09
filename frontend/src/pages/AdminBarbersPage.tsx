@@ -1,14 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { barberApi, userApi } from '../api/endpoints'
 import { EmptyState } from '../components/EmptyState'
 import { PageLoader } from '../components/PageLoader'
+import { Pagination } from '../components/Pagination'
 import { useToast } from '../contexts/ToastContext'
 import { useAsyncData } from '../hooks/useAsyncData'
 import type { Barber } from '../types'
 import { errorMessage } from '../utils/format'
+import { XIcon } from '../components/Icons'
 import styles from '../styles/page.module.css'
 import ui from '../styles/ui.module.css'
 
@@ -33,10 +35,17 @@ export function AdminBarbersPage() {
   const { showToast } = useToast()
   const [showModal, setShowModal] = useState(false)
   const [editingBarber, setEditingBarber] = useState<Barber | null>(null)
+  const [statusFilter, setStatusFilter] = useState<'all' | 'true' | 'false'>('all')
+  const [page, setPage] = useState(1)
+
+  // Reset page to 1 when filter changes
+  useEffect(() => {
+    setPage(1)
+  }, [statusFilter])
 
   const { data: barbersData, isLoading: loadingBarbers, error: errorBarbers, reload: reloadBarbers } = useAsyncData(
-    () => barberApi.list().then((response) => response.data),
-    []
+    () => barberApi.list({ page, ativo: statusFilter }).then((response) => response.data),
+    [page, statusFilter]
   )
 
   // Create form
@@ -74,7 +83,16 @@ export function AdminBarbersPage() {
 
   const handleCreateSubmit = async (values: NewBarberForm) => {
     try {
-      await userApi.create({ email: values.email, nome: values.nome, password: values.password, tipo_perfil: 'barbeiro' })
+      // O endpoint de usuários cria o User e o perfil Barber em uma única
+      // transação. Uma segunda chamada deixaria um usuário órfão se falhasse.
+      await userApi.create({
+        email: values.email,
+        nome: values.nome,
+        password: values.password,
+        tipo_perfil: 'barbeiro',
+        especialidade: values.especialidade,
+        ativo: values.ativo,
+      })
       await reloadBarbers()
       showToast('Barbeiro cadastrado.', 'success')
       closeModal()
@@ -121,21 +139,21 @@ export function AdminBarbersPage() {
       </header>
 
       <div className={ui.dataTable}>
+        <div className={ui.filterBar}>
+          <div className={ui.filterGroup}>
+            <label htmlFor="status-filter">Status</label>
+            <select id="status-filter" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as 'all' | 'true' | 'false')}>
+              <option value="all">Todos</option>
+              <option value="true">Ativos</option>
+              <option value="false">Inativos</option>
+            </select>
+          </div>
+        </div>
+
         {barbers.length === 0 ? (
-          <EmptyState title="Nenhum barbeiro cadastrado" description="Cadastre o primeiro barbeiro para começar." />
+          <EmptyState title="Nenhum barbeiro encontrado" description={statusFilter === 'all' ? 'Cadastre o primeiro barbeiro para começar.' : 'Não há barbeiros com o filtro selecionado. Tente alterar o filtro de status.'} />
         ) : (
           <>
-            <div className={ui.filterBar}>
-              <div className={ui.filterGroup}>
-                <label htmlFor="status-filter">Status</label>
-                <select id="status-filter" defaultValue="all">
-                  <option value="all">Todos</option>
-                  <option value="ativo">Ativos</option>
-                  <option value="inativo">Inativos</option>
-                </select>
-              </div>
-            </div>
-
             <div className={ui.tableContainer}>
               <table className={ui.table}>
                 <thead>
@@ -161,7 +179,7 @@ export function AdminBarbersPage() {
                       <td>{barber.email}</td>
                       <td>{barber.especialidade || <span className={ui.cellMuted}>—</span>}</td>
                       <td>
-                        <span className={`ui.badge ${barber.ativo ? 'badgeSuccess' : 'badgeWarning'}`}>
+                        <span className={`${ui.badge} ${barber.ativo ? ui.badgeSuccess : ui.badgeWarning}`}>
                           {barber.ativo ? 'Ativo' : 'Inativo'}
                         </span>
                       </td>
@@ -176,6 +194,7 @@ export function AdminBarbersPage() {
                 </tbody>
               </table>
             </div>
+            {barbersData && <Pagination page={page} count={barbersData.count} onChange={setPage} />}
           </>
         )}
       </div>
@@ -186,7 +205,7 @@ export function AdminBarbersPage() {
           <div className={ui.modal} onClick={(e) => e.stopPropagation()}>
             <div className={ui.modalHeader}>
               <h2 id="modal-title">{isEditMode ? 'Editar barbeiro' : 'Novo barbeiro'}</h2>
-              <button className={ui.modalClose} onClick={closeModal} aria-label="Fechar">✕</button>
+              <button className={ui.modalClose} onClick={closeModal} aria-label="Fechar"><XIcon size={20} /></button>
             </div>
             {!isEditMode ? (
               <form className={ui.modalBody} onSubmit={createForm.handleSubmit(handleCreateSubmit)} noValidate>
