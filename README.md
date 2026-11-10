@@ -74,17 +74,27 @@ O servidor de desenvolvimento roda em `http://localhost:5173` (proxy configurado
 
 ## Testes
 
-Para executar os testes (SQLite em memória):
+### SQLite (em memória, rápido)
 
 ```bash
-python manage.py test
+python manage.py test --settings=config.test_settings
 ```
 
-Para executar os testes de concorrência com PostgreSQL:
+- Usa banco SQLite em memória (`:memory:`)
+- Não suporta `select_for_update()` — 4 testes de concorrência são ignorados
+- Execução rápida (~3s)
+
+### PostgreSQL (Docker, completo)
 
 ```bash
 python manage.py test --settings=config.test_postgres_settings
 ```
+
+- Usa PostgreSQL 16 via Docker (porta 5433)
+- Suporta `select_for_update()` — todos os testes de concorrência rodam
+- Execução completa (~9s)
+
+> **Diferença:** `config.test_settings` usa SQLite `:memory:` (sem locking de linha). `config.test_postgres_settings` usa PostgreSQL real, permitindo validar isolamento multi-tenant e concorrência com `select_for_update()`. O comando `python manage.py test` sem `--settings` usa o `config.settings` padrão (PostgreSQL) e falhará se o container não estiver rodando.
 
 ## Documentação
 

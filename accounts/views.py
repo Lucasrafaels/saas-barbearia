@@ -32,7 +32,7 @@ from .serializers import (
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
-    """POST /api/v1/auth/login/ — retorna os tokens access e refresh."""
+    """POST /api/v1/auth/login/ — retorna access token no corpo (JSON) e define refresh token via cookie HttpOnly."""
     serializer_class = CustomTokenObtainPairSerializer
     throttle_scope = 'login'
     throttle_classes = [ScopedRateThrottle]
@@ -82,7 +82,8 @@ class ThrottledTokenRefreshView(TokenRefreshView):
 class LogoutView(APIView):
     """
     POST /api/v1/auth/logout/ — invalida (blacklist) o refresh token
-    enviado no corpo da requisição: {"refresh": "<token>"}.
+    obtido do cookie HttpOnly `barbearia_refresh` e remove o cookie.
+    Não envie o refresh token no corpo.
     """
     permission_classes = [permissions.IsAuthenticated]
     throttle_scope = 'logout'

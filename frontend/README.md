@@ -9,11 +9,22 @@ Frontend React para a API Django de barbearia BarberPro. O projeto usa TypeScrip
 
 ## Instalação e execução
 
+**Desenvolvimento local:**
+
 ```bash
 cd frontend
 cp .env.example .env
 npm install
 npm run dev
+```
+
+**CI/CD (instalação reprodutível com lockfile):**
+
+```bash
+cd frontend
+cp .env.example .env
+npm ci
+npm run build
 ```
 
 O Vite sobe em `http://localhost:5173`, porta já liberada pela configuração CORS padrão do backend. Para criar uma versão de produção:

@@ -1,4 +1,4 @@
-# Documentação da API — SaaS Barbearia
+# Documentação da API — BarberPro
 
 Base URL local: `http://127.0.0.1:8000/api/v1`
 
@@ -8,6 +8,13 @@ As requisições e respostas usam JSON, exceto o envio de `logo`, que deve usar
 ## Convenções
 
 ### Autenticação
+
+**Estratégia JWT (access token 15 min em localStorage + refresh HttpOnly cookie):**
+
+- **Access token:** 15 minutos, retornado no corpo JSON do login/refresh, armazenado no **localStorage** (chave `barbearia.auth`) pelo frontend. Enviado no header `Authorization: Bearer <access_token>`. Por estar no localStorage, é acessível ao JavaScript e **não** oferece proteção contra XSS.
+- **Refresh token:** 7 dias, **exclusivamente via cookie HttpOnly** (`barbearia_refresh`, path `/api/v1/auth/`, `Secure` em produção, `SameSite=Lax`). **Nunca exposto ao JavaScript** — o HttpOnly reduz drasticamente a superfície de ataque XSS (o token não pode ser lido via `document.cookie`), mas não elimina todos os riscos (ex.: CSRF se SameSite falhar, ou ataques de injeção que enviam requisições automaticamente com o cookie).
+- **Rotação + Blacklist:** `ROTATE_REFRESH_TOKENS=True`, `BLACKLIST_AFTER_ROTATION=True`. A cada renovação bem-sucedida (`POST /auth/refresh/`), emite-se novo refresh token (novo cookie) e o anterior vai para blacklist.
+- **Logout:** Invalida o refresh token (blacklist) e remove o cookie. Access token expira naturalmente (15 min) — troca de senha também revoga tokens via `CHECK_REVOKE_TOKEN=True`.
 
 As rotas protegidas exigem:
 
@@ -74,30 +81,55 @@ Resposta:
 
 ```json
 {
-  "refresh": "<refresh_token>",
   "access": "<access_token>"
 }
 ```
 
-O access token expira em 60 minutos e o refresh em 7 dias. Os claims do token
-incluem `nome`, `tipo_perfil` e `barbershop_id`, mas o backend revalida as
-permissões no banco.
+O **access token expira em 15 minutos** e é retornado no corpo da resposta (JSON).
+O frontend o armazena no **localStorage** (chave `barbearia.auth`) e o envia no header `Authorization: Bearer <access_token>`. Por estar no localStorage, é acessível ao JavaScript.
+
+O **refresh token (7 dias) é enviado exclusivamente via cookie HttpOnly**
+(`barbearia_refresh`, path `/api/v1/auth/`, `Secure` em produção, `SameSite=Lax`).
+O JavaScript **não tem acesso** ao refresh token — o HttpOnly reduz drasticamente a superfície de ataque XSS (o token não pode ser lido via `document.cookie`), mas não elimina todos os riscos (ex.: CSRF se SameSite falhar, ou ataques de injeção que enviam requisições automaticamente com o cookie).
+
+Claims do access token: `nome`, `tipo_perfil`, `barbershop_id`. O backend
+revalida permissões no banco a cada requisição.
 
 ### `POST /auth/refresh/`
 
-Pública. Envie o refresh token:
+Pública. **Não envie o refresh token no corpo** — o backend o lê
+automaticamente do cookie HttpOnly `barbearia_refresh`.
+
+Requisição (vazia, apenas cookies):
+
+```http
+POST /api/v1/auth/refresh/
+Cookie: barbearia_refresh=<refresh_token>
+```
+
+Resposta:
 
 ```json
-{"refresh": "<refresh_token>"}
+{
+  "access": "<novo_access_token>"
+}
 ```
+
+**Rotação de refresh token:** as configurações `ROTATE_REFRESH_TOKENS=True`
++ `BLACKLIST_AFTER_ROTATION=True` fazem com que **a cada renovação bem-sucedida**
+(`POST /auth/refresh/`) um novo refresh token seja emitido (novo cookie
+`barbearia_refresh`) e o anterior seja adicionado à blacklist.
 
 ### `POST /auth/logout/`
 
-Protegida. Invalida o refresh token enviado e responde `205 Reset Content`.
+Protegida. **Não envie o refresh token no corpo** — o backend o obtém
+automaticamente do cookie HttpOnly `barbearia_refresh`.
 
-```json
-{"refresh": "<refresh_token>"}
-```
+O refresh token é invalidado (adicionado à blacklist via
+`rest_framework_simplejwt.token_blacklist`) e o cookie é removido
+(definindo expiração no passado).
+
+Resposta: `204 No Content` (sem corpo).
 
 ---
 

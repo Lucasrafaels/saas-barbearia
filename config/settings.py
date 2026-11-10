@@ -198,7 +198,8 @@ SIMPLE_JWT = {
 }
 
 # O refresh nunca é exposto ao JavaScript: o navegador o envia somente no
-# cookie HttpOnly. O access permanece curto e é mantido apenas em memória.
+# cookie HttpOnly. O access token (15 min) é armazenado no localStorage pelo
+# frontend (chave `barbearia.auth`) e enviado no header Authorization.
 JWT_REFRESH_COOKIE_NAME = 'barbearia_refresh'
 JWT_REFRESH_COOKIE_PATH = '/api/v1/auth/'
 JWT_REFRESH_COOKIE_SECURE = env.bool('JWT_REFRESH_COOKIE_SECURE', default=not DEBUG)
