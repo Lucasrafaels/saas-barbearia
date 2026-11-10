@@ -106,7 +106,7 @@ ASGI_APPLICATION = 'config.asgi.application'
 DATABASES = {
     'default': env.db(
         'DATABASE_URL',
-        default='postgres://barbershop_user:barbershop_pass@localhost:5432/barbershop_db',
+        default='postgres://barbershop_user:barbershop_pass@localhost:5433/barbershop_db',
     ),
 }
 

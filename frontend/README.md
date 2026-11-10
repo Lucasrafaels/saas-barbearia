@@ -16,7 +16,7 @@ npm install
 npm run dev
 ```
 
-O Vite sobe em `http://localhost:3000`, porta já liberada pela configuração CORS padrão do backend. Para criar uma versão de produção:
+O Vite sobe em `http://localhost:5173`, porta já liberada pela configuração CORS padrão do backend. Para criar uma versão de produção:
 
 ```bash
 npm run build

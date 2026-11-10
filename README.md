@@ -17,7 +17,7 @@ Django 5, Django REST Framework e autenticação via JWT.
 
 | App | Responsabilidade |
 |---|---|
-| `core` | Código compartilhado: permissões, mixin de multi-tenant, paginação |
+| `config` | Código compartilhado: permissões, mixin de multi-tenant, paginação, settings |
 | `accounts` | Usuário customizado (`admin` / `barbeiro` / `cliente`) e autenticação |
 | `barbershops` | Barbearia (o tenant) e barbeiros |
 | `services` | Serviços oferecidos por cada barbearia |
@@ -33,7 +33,7 @@ convenção de código, em três camadas:
 2. Todo modelo "de negócio" (`Barber`, `Service`, `Appointment`) também
    tem um campo `barbershop` direto, evitando joins desnecessários para
    filtrar.
-3. O mixin `core.mixins.TenantScopedQuerysetMixin`, usado pelos ViewSets,
+3. O mixin `config.mixins.TenantScopedQuerysetMixin`, usado pelos ViewSets,
    filtra automaticamente o queryset pela barbearia do usuário autenticado
    (`request.user.barbershop_id`) e preenche esse campo ao criar registros
    — o cliente da API nunca informa `barbershop` manualmente.
@@ -47,7 +47,7 @@ barbearia não enxerga dados da outra.
 > maioria dos SaaS nesse estágio é suficiente, mas se precisar de
 > isolamento mais forte, pode-se considerar o RLS do Postgres no futuro.
 
-## Como executar
+## Como executar (Backend)
 
 1. Clone o repositório
 2. Crie um ambiente virtual: `python -m venv venv`
@@ -58,13 +58,38 @@ barbearia não enxerga dados da outra.
 7. Crie um superusuario: `python manage.py createsuperuser`
 8. Execute o servidor: `python manage.py runserver`
 
+A API estará disponível em `http://localhost:8000/api/v1/`
+
+## Como executar (Frontend)
+
+O frontend React/Vite está em `frontend/`:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+O servidor de desenvolvimento roda em `http://localhost:5173` (proxy configurado para `http://localhost:8000`).
+
 ## Testes
 
-Para executar os testes:
+Para executar os testes (SQLite em memória):
 
 ```bash
 python manage.py test
 ```
+
+Para executar os testes de concorrência com PostgreSQL:
+
+```bash
+python manage.py test --settings=config.test_postgres_settings
+```
+
+## Documentação
+
+- [Arquitetura da API](docs/arquitetura/DOCUMENTACAO_API.md)
+- [Auditorias e relatórios técnicos](docs/auditorias/historico/)
 
 ## Licença
 

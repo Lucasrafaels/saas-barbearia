@@ -2,7 +2,9 @@
 Views do app appointments.
 """
 from datetime import datetime, timedelta
+from decimal import Decimal
 
+from django.db.models import Count, Sum
 from django.utils import timezone
 from rest_framework import permissions, status, viewsets
 from rest_framework.exceptions import PermissionDenied
@@ -256,6 +258,119 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
             slot_atual += duracao
 
         return Response({'data': data.isoformat(), 'slots': slots})
+
+    @action(detail=False, methods=['get'], url_path='revenue-report')
+    def revenue_report(self, request):
+        """
+        GET /api/v1/appointments/revenue-report/?start=2026-01-01&end=2026-12-31
+
+        Relatório de faturamento baseado no preço histórico dos agendamentos
+        concluídos (status = realizado). Usa `preco_historico` para garantir
+        que alterações posteriores no preço dos serviços não afetem o
+        faturamento já consolidado.
+
+        Parâmetros:
+        - start: data inicial (YYYY-MM-DD) - opcional, padrão 30 dias atrás
+        - end: data final (YYYY-MM-DD) - opcional, padrão hoje
+        - barbeiro: ID do barbeiro para filtrar - opcional
+
+        Retorna:
+        - total_revenue: soma dos preços históricos
+        - total_appointments: contagem de agendamentos realizados
+        - by_barber: faturamento agrupado por barbeiro
+        - by_service: faturamento agrupado por serviço
+        - daily: faturamento diário
+        """
+        user = request.user
+        if user.barbershop_id is None:
+            raise PermissionDenied('Usuário sem barbearia vinculada.')
+
+        # Parâmetros de data
+        start_param = request.query_params.get('start')
+        end_param = request.query_params.get('end')
+        barbeiro_param = request.query_params.get('barbeiro')
+
+        hoje = timezone.localdate()
+        try:
+            start_date = datetime.strptime(start_param, '%Y-%m-%d').date() if start_param else hoje - timedelta(days=30)
+        except ValueError:
+            return Response({'detail': 'Data inicial inválida. Use YYYY-MM-DD.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            end_date = datetime.strptime(end_param, '%Y-%m-%d').date() if end_param else hoje
+        except ValueError:
+            return Response({'detail': 'Data final inválida. Use YYYY-MM-DD.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if start_date > end_date:
+            return Response({'detail': 'Data inicial não pode ser maior que final.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Base queryset: apenas agendamentos realizados da barbearia do usuário
+        qs = Appointment.objects.filter(
+            barbershop_id=user.barbershop_id,
+            status=Appointment.Status.REALIZADO,
+            data_hora__date__gte=start_date,
+            data_hora__date__lte=end_date,
+        ).select_related('barbeiro__user', 'servico')
+
+        # Filtro opcional por barbeiro
+        if barbeiro_param:
+            try:
+                qs = qs.filter(barbeiro_id=int(barbeiro_param))
+            except ValueError:
+                return Response({'detail': 'ID do barbeiro inválido.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Total geral usando preco_historico
+        total = qs.aggregate(
+            total_revenue=Sum('preco_historico'),
+            total_appointments=Count('id')
+        )
+
+        # Por barbeiro
+        by_barber = list(qs.values('barbeiro__user__nome').annotate(
+            revenue=Sum('preco_historico'),
+            count=Count('id')
+        ).order_by('-revenue'))
+
+        # Por serviço
+        by_service = list(qs.values('servico__nome').annotate(
+            revenue=Sum('preco_historico'),
+            count=Count('id')
+        ).order_by('-revenue'))
+
+        # Diário
+        daily = list(qs.extra(
+            select={'date': 'DATE(data_hora)'}
+        ).values('date').annotate(
+            revenue=Sum('preco_historico'),
+            count=Count('id')
+        ).order_by('date'))
+
+        # Converter Decimal para string para serialização JSON
+        def format_decimal(val):
+            if val is None:
+                return '0.00'
+            return str(val)
+
+        return Response({
+            'period': {
+                'start': start_date.isoformat(),
+                'end': end_date.isoformat(),
+            },
+            'total_revenue': format_decimal(total['total_revenue']),
+            'total_appointments': total['total_appointments'] or 0,
+            'by_barber': [
+                {'barbeiro': item['barbeiro__user__nome'], 'revenue': format_decimal(item['revenue']), 'count': item['count']}
+                for item in by_barber
+            ],
+            'by_service': [
+                {'servico': item['servico__nome'], 'revenue': format_decimal(item['revenue']), 'count': item['count']}
+                for item in by_service
+            ],
+            'daily': [
+                {'date': item['date'], 'revenue': format_decimal(item['revenue']), 'count': item['count']}
+                for item in daily
+            ],
+        })
 
 
 class IsAdminOrBarberRole(permissions.BasePermission):

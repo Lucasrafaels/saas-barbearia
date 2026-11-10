@@ -215,11 +215,28 @@ class UserViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         # A remoção pela API desativa a conta, preservando agendamentos e
         # demais registros históricos vinculados ao usuário.
-        instance.is_active = False
-        instance.save(update_fields=['is_active'])
-        # Tokens de refresh emitidos antes da desativação não podem renovar
-        # a sessão. O access token existente expira no prazo curto definido.
-        revoke_user_refresh_tokens(instance)
+        # Se o usuário for barbeiro, também desativa o perfil Barber.
+        from django.db import transaction
+        from django.utils import timezone
+        from barbershops.models import Barber
+
+        with transaction.atomic():
+            instance.is_active = False
+            instance.save(update_fields=['is_active'])
+            # Tokens de refresh emitidos antes da desativação não podem renovar
+            # a sessão. O access token existente expira no prazo curto definido.
+            revoke_user_refresh_tokens(instance)
+
+            # Desativar perfil de barbeiro se existir
+            try:
+                barber = instance.perfil_barbeiro
+                if barber.ativo:
+                    barber.ativo = False
+                    barber.deleted_at = timezone.now()
+                    barber.deleted_by = self.request.user
+                    barber.save(update_fields=['ativo', 'deleted_at', 'deleted_by'])
+            except Barber.DoesNotExist:
+                pass
 
     @action(detail=False, methods=['get'])
     def me(self, request):

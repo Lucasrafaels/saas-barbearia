@@ -18,15 +18,23 @@ class AppointmentSerializer(serializers.ModelSerializer):
     servico_nome = serializers.CharField(source='servico.nome', read_only=True)
     servico_preco = serializers.CharField(source='servico.preco', read_only=True)
     servico_duracao = serializers.IntegerField(source='servico.duracao', read_only=True)
+    # Preço histórico praticado no momento do agendamento (somente leitura).
+    # Não pode ser manipulado pelo cliente — é definido automaticamente no backend.
+    preco_historico = serializers.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        read_only=True,
+    )
 
     class Meta:
         model = Appointment
         fields = [
             'id', 'barbershop', 'cliente', 'cliente_nome', 'barbeiro',
             'barbeiro_nome', 'servico', 'servico_nome', 'servico_preco',
-            'servico_duracao', 'data_hora', 'status', 'observacoes', 'created_at',
+            'servico_duracao', 'data_hora', 'status', 'observacoes',
+            'preco_historico', 'created_at',
         ]
-        read_only_fields = ['id', 'barbershop', 'created_at']
+        read_only_fields = ['id', 'barbershop', 'preco_historico', 'created_at']
 
     def validate(self, attrs):
         # Validar status ANTES de verificar permissões: não permitir
@@ -205,6 +213,10 @@ class AppointmentSerializer(serializers.ModelSerializer):
             # Usa o registro lido após a trava; assim uma desativação
             # concorrente também é observada antes da gravação.
             validated_data['barbeiro'] = locked_barbers[barber_id]
+            # Definir preço histórico do serviço no momento da criação
+            # Nunca confiar em preço enviado pelo frontend
+            servico = validated_data['servico']
+            validated_data['preco_historico'] = servico.preco
             appointment = Appointment(**validated_data)
             try:
                 appointment.full_clean()
@@ -219,6 +231,15 @@ class AppointmentSerializer(serializers.ModelSerializer):
             new_barber = validated_data.get('barbeiro', instance.barbeiro)
             locked_barbers = self._lock_barbers(instance.barbeiro_id, new_barber.pk)
             validated_data['barbeiro'] = locked_barbers[new_barber.pk]
+
+            # Lógica do preço histórico:
+            # - Se o serviço for alterado, atualizar para o preço vigente do novo serviço
+            # - Se apenas horário/barbeiro/observações mudarem, preservar o preço histórico original
+            if 'servico' in validated_data and validated_data['servico'] != instance.servico:
+                validated_data['preco_historico'] = validated_data['servico'].preco
+            elif 'preco_historico' in validated_data:
+                # Impedir manipulação do preço histórico pelo frontend
+                validated_data.pop('preco_historico')
 
             candidate = self._copy_instance(instance)
             for field, value in validated_data.items():

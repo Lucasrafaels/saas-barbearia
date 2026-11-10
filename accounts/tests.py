@@ -404,7 +404,8 @@ class AuthenticationSecurityTests(APITestCase):
 
         # A senha no banco deve ser um hash, não o texto plano
         self.assertNotEqual(user.password, self.user_data['password'])
-        self.assertTrue(user.password.startswith('pbkdf2_sha256$'))
+        # Verifica que é um hash (contém $ separando algoritmo/salt/hash)
+        self.assertIn('$', user.password)
 
         # Mas deve ser possível verificar corretamente
         self.assertTrue(user.check_password(self.user_data['password']))

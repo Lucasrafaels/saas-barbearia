@@ -59,13 +59,24 @@ class BarberSerializer(serializers.ModelSerializer):
         """Executa no fluxo REST a mesma consistência definida no model."""
         request = self.context.get('request')
         barber = self.instance or Barber()
-        barber.user = attrs.get('user', getattr(barber, 'user', None))
+
+        # Get the user object - for PATCH, user is read_only so not in attrs
+        user = attrs.get('user', getattr(barber, 'user', None))
+        barber.user = user
+
+        # Capture original ativo value BEFORE modifying barber instance
+        # This is critical: when updating, barber IS self.instance, so
+        # modifying barber.ativo changes self.instance.ativo
+        original_ativo = getattr(barber, 'ativo', True)
+
+        # Apply ativo value to the temporary barber instance BEFORE validation
+        # This ensures Barber.clean() receives the correct ativo value
+        barber.ativo = attrs.get('ativo', original_ativo)
 
         if not barber.barbershop_id and request:
             barber.barbershop_id = request.user.barbershop_id
 
         # Block ADMIN users from being converted to barbers.
-        user = attrs.get('user', getattr(barber, 'user', None))
         if user and getattr(user, 'tipo_perfil', None) == 'admin':
             raise serializers.ValidationError(
                 {'user': 'Usuários administradores não podem ser convertidos em barbeiros.'}
@@ -76,20 +87,25 @@ class BarberSerializer(serializers.ModelSerializer):
         # uma cópia em memória do papel esperado, sem alterar o User real.
         is_creation_with_promotion = (
             self.instance is None
-            and attrs.get('ativo', True) is True
+            and barber.ativo is True
             and user is not None
             and getattr(user, 'tipo_perfil', None) == 'cliente'
         )
+        # Use original_ativo (captured before modification) to detect reactivation
         is_reactivation = (
             self.instance is not None
-            and attrs.get('ativo', getattr(self.instance, 'ativo', False)) is True
-            and getattr(self.instance, 'ativo', False) is False
+            and barber.ativo is True
+            and original_ativo is False
         )
 
         original_profile = getattr(user, 'tipo_perfil', None)
         try:
             if is_creation_with_promotion or is_reactivation:
-                user.tipo_perfil = 'barbeiro'
+                # Ensure the user object is the same one referenced by barber.user
+                # by setting it explicitly on the barber instance
+                if user is not None:
+                    barber.user = user
+                    user.tipo_perfil = 'barbeiro'
             barber.clean()
         except DjangoValidationError as error:
             raise serializers.ValidationError(error.message_dict) from error

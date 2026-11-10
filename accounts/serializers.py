@@ -96,6 +96,10 @@ class UserSerializer(serializers.ModelSerializer):
             instance.is_active
             and is_active_value is False
         )
+        is_being_activated = (
+            not instance.is_active
+            and is_active_value is True
+        )
 
         new_role = validated_data.pop('tipo_perfil', None)
         with transaction.atomic():
@@ -136,6 +140,23 @@ class UserSerializer(serializers.ModelSerializer):
             if is_active_value is not None:
                 instance.is_active = is_active_value
             instance.save()
+
+            # Sync Barber profile when is_active changes
+            if is_being_deactivated:
+                from barbershops.models import Barber
+                try:
+                    barber = instance.perfil_barbeiro
+                    barber.ativo = False
+                    barber.deleted_at = timezone.now()
+                    request = self.context.get('request')
+                    barber.deleted_by = getattr(request, 'user', None)
+                    barber.save(update_fields=['ativo', 'deleted_at', 'deleted_by'])
+                except Barber.DoesNotExist:
+                    pass
+            # NOTE: Reactivating user (is_being_activated) does NOT auto-reactivate
+            # the Barber profile. The Barber profile must be explicitly reactivated
+            # by an administrator through the Barber API to avoid unintentional
+            # reactivation of professionals who were manually deactivated.
 
             if is_being_deactivated:
                 revoke_user_refresh_tokens(instance)

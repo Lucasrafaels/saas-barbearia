@@ -51,6 +51,19 @@ class Appointment(TimeStampedModel):
         related_name='agendamentos',
         on_delete=models.PROTECT,
     )
+    # Preço praticado no momento do agendamento (preservado para histórico
+    # financeiro). Se o preço do serviço mudar depois, o agendamento mantém
+    # o valor original. Em reagendamentos: troca de horário/barbeiro preserva
+    # o preço; troca de serviço atualiza para o preço vigente do novo serviço.
+    preco_historico = models.DecimalField(
+        'preço histórico',
+        max_digits=8,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text='Preço do serviço no momento da criação/alteração do agendamento',
+    )
+
     data_hora = models.DateTimeField('data e hora')
     status = models.CharField(
         'status',
