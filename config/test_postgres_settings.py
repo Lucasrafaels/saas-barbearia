@@ -7,11 +7,11 @@ from .settings import *
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'saas_barbearia_test',
-        'USER': 'test_user',
-        'PASSWORD': 'test_pass',
+        'NAME': 'barbershop_db',
+        'USER': 'barbershop_user',
+        'PASSWORD': 'barbershop_pass',
         'HOST': 'localhost',
-        'PORT': '5432',
+        'PORT': '5433',
     }
 }
 
