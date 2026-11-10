@@ -50,4 +50,9 @@ htmlcov/
 .claude/
 outputs/
 work/
+build/
 *.docx
+!requisitos_barbearia.docx
+
+# Python environments
+venv312/

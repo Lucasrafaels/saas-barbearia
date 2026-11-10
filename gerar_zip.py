@@ -31,6 +31,9 @@ EXCLUDED_DIRS = {
     ".claude",
     ".vscode",
     ".idea",
+    "outputs",
+    "work",
+    "build",
 }
 
 # Arquivos gerados ou bancos locais

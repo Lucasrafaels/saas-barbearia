@@ -9,8 +9,8 @@ docs/
 ├── arquitetura/          # Documentação de arquitetura e API
 │   └── DOCUMENTACAO_API.md
 ├── auditorias/           # Auditorias e relatórios técnicos
-│   └── historico/        # Auditorias antigas (somente leitura)
-└── guias/                # Guias de uso e desenvolvimento
+│   ├── RELATORIO_ENTREGA_FINAL.md      # Relatório final de entrega (este)
+│   └── historico/        # 21 arquivos históricos arquivados (somente leitura)
 ```
 
 ## Principais Documentos
