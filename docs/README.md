@@ -18,7 +18,8 @@ docs/
 | Documento | Localização | Descrição |
 |-----------|-------------|-----------|
 | Arquitetura da API | `docs/arquitetura/DOCUMENTACAO_API.md` | Endpoints, autenticação, modelos |
-| Auditoria completa | `docs/auditorias/historico/AUDITORIA_COMPLETA.md` | Auditoria completa do projeto |
+| **Auditoria Final (Entrega)** | `docs/auditorias/AUDITORIA_FINAL_APRESENTACAO.md` | **Relatório final para apresentação acadêmica** |
+| Auditoria completa (histórico) | `docs/auditorias/historico/AUDITORIA_COMPLETA.md` | Auditoria completa do projeto |
 | Resumo multi-tenant | `docs/auditorias/historico/MULTITENANT_ISOLATION_TEST_SUMMARY.md` | Testes de isolamento entre tenants |
 
 ## Links Rápidos
