@@ -16,6 +16,7 @@ EXCLUDED_DIRS = {
     ".git",
     ".venv",
     "venv",
+    "venv312",
     "node_modules",
     "__pycache__",
     ".pytest_cache",
@@ -26,6 +27,10 @@ EXCLUDED_DIRS = {
     "coverage",
     ".next",
     "dist",
+    ".agents",
+    ".claude",
+    ".vscode",
+    ".idea",
 }
 
 # Arquivos gerados ou bancos locais

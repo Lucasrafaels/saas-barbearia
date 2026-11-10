@@ -1,11 +1,11 @@
-# Barbershop SaaS — Backend
+# BarberPro — Backend
 
-Backend multi-tenant para um SaaS de gestão de barbearias, construído com
+Backend multi-tenant para o SaaS BarberPro de gestão de barbearias, construído com
 Django 5, Django REST Framework e autenticação via JWT.
 
 ## Stack
 
-- Python 3.12+
+- Python 3.12 (versão oficial suportada)
 - Django 5.x
 - Django REST Framework
 - djangorestframework-simplejwt (autenticação JWT, com blacklist no logout)
