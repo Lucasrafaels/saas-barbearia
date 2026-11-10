@@ -1,5 +1,53 @@
+# Python
 venv/
+.venv/
 __pycache__/
-.env
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.mypy_cache/
+*.egg-info/
+dist/
+build/
+
+# Django
 db.sqlite3
-/.venv
+test.db
+*.log
+local_settings.py
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Node
+node_modules/
+dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage
+.coverage
+htmlcov/
+
+# Tooling / Local
+.agents/
+.claude/
+outputs/
+work/
+*.docx
