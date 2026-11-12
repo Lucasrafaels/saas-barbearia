@@ -1,0 +1,60 @@
+Sondagem de permissões, isolamento multi-tenant e regras de negócio
+Data: 11/11/2026 · Alvo: cópia ISOLADA da API (Django com SQLite descartável fora do repositório; throttling desligado)
+Tenants: A = barbearia de demonstração do banco de teste; B = barbearia criada pela própria sondagem.
+Todos os dados são fictícios. Nenhum token, senha ou chave foi registrado.
+Legenda: "OK" = comportamento esperado; "FALHA" = comportamento incorreto confirmado.
+Coluna "HTTP/valor": código HTTP retornado, ou 0/1 para verificações compostas (0 = esperado, 1 = falhou).
+
+Resultado: 42 verificações · 27 OK · 15 FALHA
+
+--- 1. Isolamento entre barbearias (admin de A contra recursos de B) ---
+OK   | A lê serviço de B                                       | HTTP/valor 404
+OK   | A altera serviço de B                                   | HTTP/valor 404
+OK   | A lê barbeiro de B                                      | HTTP/valor 404
+OK   | A lê usuário de B                                       | HTTP/valor 404
+OK   | A altera usuário de B                                   | HTTP/valor 404
+OK   | A desativa usuário de B                                 | HTTP/valor 404
+OK   | A lê agendamento de B                                   | HTTP/valor 404
+OK   | A altera agendamento de B                               | HTTP/valor 404
+OK   | A lê barbearia de B                                     | HTTP/valor 404
+OK   | A altera barbearia de B                                 | HTTP/valor 404
+OK   | A agenda cliente de B                                   | HTTP/valor 400
+OK   | A agenda com barbeiro de B                              | HTTP/valor 400
+OK   | A consulta slots do barbeiro de B                       | HTTP/valor 404
+OK   | A promove usuário de B a barbeiro                       | HTTP/valor 400
+OK   | lista de usuários de A sem dados de B                   | HTTP/valor 0
+OK   | exclude_appointment_id de outro tenant                  | HTTP/valor 404
+
+--- 2. Perfis e escalada de privilégio ---
+OK   | cliente se promove a admin                              | HTTP/valor 0 | HTTP 200, tipo_perfil=cliente
+OK   | cliente muda o próprio tenant                           | HTTP/valor 0 | HTTP 200
+OK   | cliente lista usuários                                  | HTTP/valor 403
+OK   | cliente lê outro usuário do tenant                      | HTTP/valor 403
+OK   | cliente lê agendamento de outro cliente                 | HTTP/valor 404
+OK   | barbeiro lê agendamento de outro barbeiro               | HTTP/valor 404
+OK   | cliente cria serviço                                    | HTTP/valor 403
+OK   | barbeiro cria serviço                                   | HTTP/valor 403
+OK   | cliente cria segunda barbearia                          | HTTP/valor 400
+FALHA | cliente lê faturamento da barbearia                     | HTTP/valor 200 | total exposto: 7990          -> SEC-02
+FALHA | barbeiro lê faturamento de toda a barbearia             | HTTP/valor 200 | barbeiros no relatório: 3    -> SEC-02
+FALHA | cliente vê e-mail de login dos barbeiros                | HTTP/valor 1 | BarberSerializer expõe email     -> SEC-03
+OK   | anônimo lista serviços                                  | HTTP/valor 401
+
+--- 3. Regras de negócio e recursos da API ---
+FALHA | reagendamento pelo cliente volta para "agendado"        | HTTP/valor 1 | status após reagendar: confirmado        -> BUS-03
+FALHA | marcar como realizado um horário FUTURO                 | HTTP/valor 200 | HTTP 200                                -> BUS-07
+FALHA | slots para data no passado                              | HTTP/valor 1 | HTTP 200, 18 slots para ontem              -> BUS-10
+FALHA | troca para serviço que passa do fechamento              | HTTP/valor 200 | HTTP 200 (18:30 + 60 min > 19:00)       -> BUS-04
+FALHA | fechamento antes da abertura                            | HTTP/valor 200 | HTTP 200                                -> BUS-05
+FALHA | barbearia desativada continua aceitando agendamentos    | HTTP/valor 1 | PATCH ativo=false HTTP 200; novo agendamento HTTP 201  -> BUS-02
+FALHA | cadastro duplicado só mudando maiúsculas no e-mail      | HTTP/valor 201 | HTTP 201                                -> AUTH-02
+FALHA | page_size é respeitado                                  | HTTP/valor 1 | retorna sempre 20                          -> API-01
+FALHA | ?ordering é suportado                                   | HTTP/valor 1                                              -> API-01
+FALHA | ?search é suportado em /users/                          | HTTP/valor 1                                              -> API-01
+FALHA | filtro ?tipo_perfil em /users/                          | HTTP/valor 1                                              -> API-01
+OK   | barbeiro cancela via PATCH (DELETE é proibido a ele)    | HTTP/valor 200 | PATCH HTTP 200   (aceito; registrado como inconsistência BUS-12)
+FALHA | admin rebaixa a si mesmo (tenant fica sem admin)        | HTTP/valor 200 | HTTP 200, tipo_perfil=cliente           -> BUS-01
+
+Efeito colateral observado após a última verificação: o ex-admin de B passou a receber
+HTTP 403 ao tentar criar usuários ("Você não tem permissão para executar essa ação."),
+confirmando que a barbearia B ficou sem administrador (BUS-01).

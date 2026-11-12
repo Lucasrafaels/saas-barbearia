@@ -1,0 +1,10 @@
+Sondagem da geração de horários livres (available-slots)
+Data: 11/11/2026 (quarta-feira) · Alvo: cópia ISOLADA da API (SQLite descartável). Dados fictícios.
+Barbearia de teste: abre 09:00, fecha 19:00. Consulta feita como cliente.
+
+domingo 2026-11-15 -> 10 horários oferecidos; serviço de 60 min, passo entre horários: ['09:00', '10:00', '11:00', '12:00', '13:00']
+
+Leitura:
+- Domingo recebe horários: não existe cadastro de dias de funcionamento nem folgas (BUS-06).
+- O passo entre horários é igual à duração do serviço; com 60 min só há horas cheias (BUS-11).
+- Em outra consulta da mesma sessão, a data de ontem retornou 18 horários (BUS-10).

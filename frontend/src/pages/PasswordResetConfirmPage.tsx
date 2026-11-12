@@ -1,153 +1,87 @@
-import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useToast } from '../contexts/ToastContext'
 import { authApi } from '../api/endpoints'
+import { AuthLayout } from '../components/AuthLayout'
+import { ButtonSpinner, Field, fieldA11y, PasswordInput } from '../components/Controls'
+import { AlertCircleIcon } from '../components/Icons'
+import { useToast } from '../contexts/ToastContext'
+import { errorMessage, fieldErrors } from '../utils/format'
 import styles from '../styles/auth.module.css'
 import ui from '../styles/ui.module.css'
 
-const resetConfirmSchema = z.object({
-  new_password: z.string().min(8, 'A nova senha deve ter pelo menos 8 caracteres'),
-  confirm_password: z.string().min(1, 'Confirmação de senha é obrigatória'),
-}).refine((data) => data.new_password === data.confirm_password, {
-  message: 'As senhas não coincidem',
+const schema = z.object({
+  uid: z.string().trim().min(1, 'Informe o identificador recebido por e-mail.'),
+  token: z.string().trim().min(1, 'Informe o token recebido por e-mail.'),
+  new_password: z.string().min(8, 'A nova senha precisa ter pelo menos 8 caracteres.'),
+  confirm_password: z.string().min(1, 'Repita a nova senha.'),
+}).refine((values) => values.new_password === values.confirm_password, {
+  message: 'As senhas não coincidem.',
   path: ['confirm_password'],
 })
+type Form = z.infer<typeof schema>
 
-type ResetConfirmForm = z.infer<typeof resetConfirmSchema>
-
+/**
+ * O e-mail do backend envia `uid` e `token` como texto. Se vierem na URL
+ * (?uid=&token=), os campos já chegam preenchidos.
+ */
 export function PasswordResetConfirmPage() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
+  const [params] = useSearchParams()
   const { showToast } = useToast()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isTokenValid, setIsTokenValid] = useState(true)
-  const [uid, setUid] = useState('')
-  const [token, setToken] = useState('')
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm<ResetConfirmForm>({
-    resolver: zodResolver(resetConfirmSchema),
+  const [formError, setFormError] = useState<string | null>(null)
+  const fromLink = Boolean(params.get('uid') && params.get('token'))
+  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<Form>({
+    resolver: zodResolver(schema),
+    defaultValues: { uid: params.get('uid') ?? '', token: params.get('token') ?? '', new_password: '', confirm_password: '' },
   })
 
-  useEffect(() => {
-    const uidParam = searchParams.get('uid')
-    const tokenParam = searchParams.get('token')
-
-    if (!uidParam || !tokenParam) {
-      setIsTokenValid(false)
-      return
-    }
-
-    setUid(uidParam)
-    setToken(tokenParam)
-  }, [searchParams])
-
-  const onSubmit = async (data: ResetConfirmForm) => {
-    setIsSubmitting(true)
+  const onSubmit = async (values: Form) => {
+    setFormError(null)
     try {
-      await authApi.confirmPasswordReset({
-        uid,
-        token,
-        new_password: data.new_password,
-      })
-      showToast('Senha redefinida com sucesso! Você será redirecionado para o login.', 'success')
-      reset()
-      setTimeout(() => {
-        navigate('/login')
-      }, 2000)
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Erro ao redefinir senha'
-      showToast(message, 'error')
-    } finally {
-      setIsSubmitting(false)
+      await authApi.confirmPasswordReset({ uid: values.uid.trim(), token: values.token.trim(), new_password: values.new_password })
+      showToast('Senha redefinida. Entre com a nova senha.', 'success')
+      navigate('/login', { replace: true })
+    } catch (error) {
+      const fields = fieldErrors(error)
+      if (fields.new_password) setError('new_password', { message: fields.new_password })
+      if (fields.token) setFormError('Os códigos são inválidos ou expiraram. Solicite uma nova recuperação de senha.')
+      else if (!fields.new_password) setFormError(errorMessage(error, 'Não foi possível redefinir a senha.'))
     }
-  }
-
-  if (!isTokenValid) {
-    return (
-      <main className={styles.authPage}>
-        <section className={styles.panel}>
-          <a href="/" className={styles.brand}>
-            <span className={styles.brandMark} aria-hidden="true">B</span>
-            BarberPro
-          </a>
-          <div className={styles.panelHeader}>
-            <h1>Link Inválido</h1>
-            <p className={styles.description}>Este link de recuperação é inválido ou expirou.</p>
-          </div>
-          <p className={styles.switch}>
-            <button
-              type="button"
-              onClick={() => navigate('/password/reset')}
-              className={ui.textButton}
-            >
-              Solicitar Novo Link
-            </button>
-          </p>
-        </section>
-      </main>
-    )
   }
 
   return (
-    <main className={styles.authPage}>
-      <section className={styles.panel}>
-        <a href="/" className={styles.brand}>
-          <span className={styles.brandMark} aria-hidden="true">B</span>
-          BarberPro
-        </a>
-        <div className={styles.panelHeader}>
-          <p className={styles.eyebrow}>Redefinir Senha</p>
-          <h1>Nova Senha</h1>
-          <p className={styles.description}>Digite sua nova senha</p>
-        </div>
-        <form className={styles.form} onSubmit={handleSubmit(onSubmit)} noValidate>
-          <div className={styles.field}>
-            <label htmlFor="new_password">Nova Senha</label>
-            <input
-              id="new_password"
-              type="password"
-              autoComplete="new-password"
-              {...register('new_password')}
-              className={errors.new_password ? styles.error : ''}
-              disabled={isSubmitting}
-            />
-            {errors.new_password && <span className={styles.errorText}>{errors.new_password.message}</span>}
+    <AuthLayout title="Criar nova senha" description={fromLink ? 'Escolha a nova senha da sua conta.' : 'Informe os códigos recebidos por e-mail e escolha a nova senha.'}>
+      <form className={ui.form} onSubmit={handleSubmit(onSubmit)} noValidate>
+        {formError && (
+          <div className={`${ui.alert} ${ui.alertDanger}`} role="alert">
+            <AlertCircleIcon size={18} />
+            <p>{formError} {formError.startsWith('Os códigos') && <Link to="/password/reset">Solicitar novamente</Link>}</p>
           </div>
-          <div className={styles.field}>
-            <label htmlFor="confirm_password">Confirmar Nova Senha</label>
-            <input
-              id="confirm_password"
-              type="password"
-              autoComplete="new-password"
-              {...register('confirm_password')}
-              className={errors.confirm_password ? styles.error : ''}
-              disabled={isSubmitting}
-            />
-            {errors.confirm_password && <span className={styles.errorText}>{errors.confirm_password.message}</span>}
+        )}
+        {!fromLink && (
+          <div className={ui.fieldRow}>
+            <Field label="Identificador (uid)" htmlFor="confirm-uid" error={errors.uid?.message}>
+              <input {...fieldA11y('confirm-uid', errors.uid?.message)} autoComplete="off" spellCheck={false} autoFocus {...register('uid')} />
+            </Field>
+            <Field label="Token" htmlFor="confirm-token" error={errors.token?.message}>
+              <input {...fieldA11y('confirm-token', errors.token?.message)} autoComplete="one-time-code" spellCheck={false} {...register('token')} />
+            </Field>
           </div>
-          <button className={styles.submitButton} disabled={isSubmitting} type="submit">
-            {isSubmitting ? 'Redefinindo...' : 'Redefinir Senha'}
-          </button>
-        </form>
-        <p className={styles.switch}>
-          <button
-            type="button"
-            onClick={() => navigate('/login')}
-            className={ui.textButton}
-            disabled={isSubmitting}
-          >
-            Voltar para o Login
-          </button>
-        </p>
-      </section>
-    </main>
+        )}
+        <Field label="Nova senha" htmlFor="confirm-new" error={errors.new_password?.message} hint="Mínimo de 8 caracteres, sem ser apenas números.">
+          <PasswordInput {...fieldA11y('confirm-new', errors.new_password?.message, true)} autoComplete="new-password" {...register('new_password')} />
+        </Field>
+        <Field label="Repita a nova senha" htmlFor="confirm-repeat" error={errors.confirm_password?.message}>
+          <PasswordInput {...fieldA11y('confirm-repeat', errors.confirm_password?.message)} autoComplete="new-password" {...register('confirm_password')} />
+        </Field>
+        <button className={`${ui.button} ${ui.block}`} disabled={isSubmitting} type="submit">
+          {isSubmitting && <ButtonSpinner />} Salvar nova senha
+        </button>
+      </form>
+      <p className={styles.switch}><Link to="/login">Voltar para o login</Link></p>
+    </AuthLayout>
   )
 }

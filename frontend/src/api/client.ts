@@ -38,8 +38,12 @@ api.interceptors.response.use(
       request.headers.Authorization = `Bearer ${data.access}`
       return api(request)
     } catch (refreshError) {
-      clearStoredTokens()
-      window.dispatchEvent(new Event('auth:expired'))
+      // Só encerra a sessão quando o servidor recusa a renovação;
+      // uma falha de rede não deve deslogar o usuário.
+      if (axios.isAxiosError(refreshError) && refreshError.response) {
+        clearStoredTokens()
+        window.dispatchEvent(new Event('auth:expired'))
+      }
       return Promise.reject(refreshError)
     }
   },

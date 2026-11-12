@@ -1,0 +1,22 @@
+Sondagem de sessão (JWT/cookie) e administração do próprio tenant
+Data: 11/11/2026 · Alvo: cópia ISOLADA da API (SQLite descartável). Dados fictícios; sem tokens ou senhas registrados.
+Conta de teste: cliente criado só para esta sondagem; tenant C criado só para o teste de autodesativação.
+
+login: 200
+refresh com cookie: 200
+troca de senha: 204
+access antigo após troca de senha: 401 (esperado 401)
+refresh após troca de senha: 401 (esperado 401)
+logout: 204
+refresh após logout: 401 (esperado 401)
+access após logout (JWT stateless, válido até expirar): 200
+reset senha e-mail inexistente / existente: 204 204 (iguais = sem enumeração)
+admin exclui a própria barbearia (só staff): 403
+admin desativa a si mesmo: 204                      -> BUS-01
+login do admin depois de se desativar: 401          -> BUS-01
+
+Leitura:
+- Renovação por cookie HttpOnly, revogação na troca de senha e blacklist no logout funcionam.
+- O access token continua válido até expirar (15 min) depois do logout: comportamento normal de JWT sem lista de bloqueio de access.
+- A recuperação de senha não revela se o e-mail existe.
+- O admin consegue se autodesativar e perde o acesso à própria barbearia (BUS-01).

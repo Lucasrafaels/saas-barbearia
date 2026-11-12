@@ -1,0 +1,29 @@
+Checagem de integridade no Postgres real — SOMENTE LEITURA (contagens, sem nomes, e-mails ou valores)
+Data: 11/11/2026 · Executado com o ORM do Django em modo consulta; nenhuma escrita.
+
+barbearias: 2 | inativas: 0
+usuários: 6 | por perfil: {'barbeiro': 1, 'cliente': 2, 'admin': 3} | superusers: 1
+usuários sem barbearia (não superuser): 1
+barbearias sem admin ativo: 0
+e-mails duplicados ignorando maiúsculas: 0
+barbers ativos com usuário não-barbeiro: 0
+usuários barbeiro sem perfil Barber ativo: 0
+barber em tenant diferente do usuário: 0
+serviços: 1 | com duração 0: 0
+agendamentos: 1 | por status: {'agendado': 1}
+agendamentos sem preco_historico: 0
+agendamentos de tenant inconsistente (serviço/barbeiro/cliente): 0
+agendamentos cujo cliente não é mais perfil cliente: 0
+passados ainda agendado/confirmado (sem desfecho): 0
+futuros já marcados realizado: 0
+futuros com barbeiro inativo: 0
+futuros de cliente com conta inativa: 0
+
+Aviso do Postgres em cada conexão:
+  o banco de dados "barbershop_db" possui uma não correspondência de versão de ordenação
+  (created using collation version 2.43, but the operating system provides version 2.44)
+
+Leitura:
+- Nenhuma inconsistência de dados no banco real.
+- Volume mínimo (1 serviço, 1 agendamento): o painel aparece praticamente vazio numa apresentação (FE-12).
+- Aviso de collation: tarefa de manutenção (DATA-03).

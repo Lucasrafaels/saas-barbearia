@@ -1,122 +1,46 @@
-import { useEffect, useState } from 'react'
-import { barberApi } from '../api/endpoints'
-import { EmptyState } from '../components/EmptyState'
-import { PageLoader } from '../components/PageLoader'
-import { Pagination } from '../components/Pagination'
-import { StarIcon, BadgeIcon, CheckCircleIcon } from '../components/Icons'
-import styles from '../styles/page.module.css'
+import { Link } from 'react-router-dom'
+import { listActiveBarbers } from '../api/endpoints'
+import { Avatar } from '../components/Controls'
+import { EmptyState, ErrorState, SkeletonBlock } from '../components/Feedback'
+import { UsersIcon } from '../components/Icons'
+import { PageHeader } from '../components/PageHeader'
+import { useAsyncData } from '../hooks/useAsyncData'
+import { firstName } from '../utils/format'
+import client from '../styles/client.module.css'
+import page from '../styles/page.module.css'
+import ui from '../styles/ui.module.css'
 
-interface Barber {
-  id: number
-  nome: string
-  especialidade: string | null
-  ativo: boolean
-}
-
+/** Equipe da barbearia, com atalho para agendar com cada profissional. */
 export function BarbersPage() {
-  const [barbers, setBarbers] = useState<Barber[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [page, setPage] = useState(1)
-  const [totalCount, setTotalCount] = useState(0)
-
-  useEffect(() => {
-    let active = true
-    setIsLoading(true)
-    barberApi.list({ page, ativo: 'true' })
-      .then((response) => {
-        if (active) {
-          setBarbers(response.data.results)
-          setTotalCount(response.data.count)
-        }
-      })
-      .catch(() => {
-        if (active) setError('Não foi possível carregar os barbeiros.')
-      })
-      .finally(() => {
-        if (active) setIsLoading(false)
-      })
-    return () => { active = false }
-  }, [page])
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2)
-  }
-
-  if (isLoading) return <PageLoader label="Carregando barbeiros..." />
-
-  if (error) {
-    return (
-      <div className={`${styles.page} ${styles.narrowPage}`}>
-        <header className={styles.pageHeader}>
-          <div>
-            <p className={styles.eyebrow}>Nossa Equipe</p>
-            <h1>Barbeiros disponíveis</h1>
-          </div>
-        </header>
-        <p className={styles.errorBox}>{error}</p>
-      </div>
-    )
-  }
-
-  if (!barbers.length) {
-    return (
-      <div className={`${styles.page} ${styles.narrowPage}`}>
-        <header className={styles.pageHeader}>
-          <div>
-            <p className={styles.eyebrow}>Nossa Equipe</p>
-            <h1>Barbeiros disponíveis</h1>
-          </div>
-        </header>
-        <EmptyState
-          title="Nenhum barbeiro disponível"
-          description="No momento não há barbeiros ativos. Volte em breve!"
-        />
-      </div>
-    )
-  }
+  const { data, isLoading, error, reload } = useAsyncData(listActiveBarbers, [])
+  const barbers = [...(data ?? [])].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
 
   return (
-    <div className={`${styles.page} ${styles.narrowPage}`}>
-      <header className={styles.pageHeader}>
-        <div>
-          <p className={styles.eyebrow}>Nossa Equipe</p>
-          <h1>Conheça nossos barbeiros</h1>
-        </div>
-        <p>Profissionais especializados prontos para te atender</p>
-      </header>
+    <div className={page.page}>
+      <PageHeader title="Equipe" description="Escolha com quem você prefere ser atendido." />
 
-      <div className={styles.cardGrid}>
-        {barbers.map((barber) => (
-          <article
-            key={barber.id}
-            className={styles.barberCard}
-          >
-            <div className={styles.serviceIcon} aria-hidden="true">{getInitials(barber.nome)}</div>
-            <h2>{barber.nome}</h2>
-            {barber.especialidade && (
-              <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-1)', color: 'var(--color-text-muted)' }}>
-                <BadgeIcon size={16} /> {barber.especialidade}
-              </p>
-            )}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-2)', marginTop: 'var(--space-2)' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', color: 'var(--color-success)', fontSize: 'var(--text-sm)', fontWeight: 'var(--font-weight-medium)' }}>
-                <CheckCircleIcon size={14} /> Ativo
-              </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', color: 'var(--color-primary-navy)', fontSize: 'var(--text-sm)' }}>
-                <StarIcon size={14} /> Barbeiro
-              </span>
-            </div>
-          </article>
-        ))}
-      </div>
-
-      <Pagination page={page} count={totalCount} onChange={setPage} />
+      {isLoading ? (
+        <div className={client.teamGrid}>{[0, 1, 2].map((key) => <SkeletonBlock key={key} height={190} />)}</div>
+      ) : error && !data ? (
+        <div className={ui.panel}><ErrorState error={error} fallback="Não foi possível carregar a equipe." onRetry={() => void reload()} /></div>
+      ) : barbers.length === 0 ? (
+        <div className={ui.panel}><EmptyState icon={<UsersIcon size={22} />} title="Nenhum barbeiro disponível" description="A barbearia ainda não tem profissionais recebendo agendamentos." /></div>
+      ) : (
+        <ul className={client.teamGrid}>
+          {barbers.map((barber) => (
+            <li key={barber.id} className={client.teamCard}>
+              <Avatar name={barber.nome} size="lg" />
+              <div>
+                <h2>{barber.nome}</h2>
+                <p>{barber.especialidade || 'Barbeiro'}</p>
+              </div>
+              <Link to={`/appointments/new?barbeiro=${barber.id}`} className={`${ui.secondaryButton} ${ui.sm}`}>
+                Agendar com {firstName(barber.nome)}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }

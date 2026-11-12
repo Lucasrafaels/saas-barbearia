@@ -1,526 +1,445 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import { z } from 'zod'
-import { appointmentApi } from '../api/endpoints'
-import { listAllServices, listAllBarbers } from '../api/endpoints'
-import { EmptyState } from '../components/EmptyState'
-import { PageLoader } from '../components/PageLoader'
+import axios from 'axios'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { appointmentApi, listActiveBarbers, listActiveServices } from '../api/endpoints'
+import { Avatar, ButtonSpinner } from '../components/Controls'
+import { EmptyState, ErrorState, PageLoader } from '../components/Feedback'
+import { AlertCircleIcon, ArrowLeftIcon, CheckIcon, ClockIcon, InfoIcon } from '../components/Icons'
+import { PageHeader } from '../components/PageHeader'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { useAsyncData } from '../hooks/useAsyncData'
-import { errorMessage, formatCurrency, todayISO } from '../utils/format'
-import styles from '../styles/page.module.css'
+import type { Appointment, Barber, Service } from '../types'
+import {
+  addDays, dateKey, dayOfMonth, errorMessage, formatClock, formatCurrency, formatDayLong, formatDuration, monthShort,
+  relativeDayLabel, todayISO, weekdayShort,
+} from '../utils/format'
+import { isOpenStatus, notifyAppointmentsChanged } from '../utils/status'
+import client from '../styles/client.module.css'
+import page from '../styles/page.module.css'
 import ui from '../styles/ui.module.css'
 
-const schema = z.object({
-  servico: z.string().min(1, 'Escolha um serviço.'),
-  barbeiro: z.string().min(1, 'Escolha um barbeiro.'),
-  data: z.string().min(1, 'Escolha uma data.'),
-  horario: z.string().min(1, 'Escolha um horário disponível.'),
-  observacoes: z.string().max(500, 'Use no máximo 500 caracteres.').optional(),
-})
-type AppointmentForm = z.infer<typeof schema>
-
 type Step = 'service' | 'barber' | 'datetime' | 'confirm'
+const steps: Step[] = ['service', 'barber', 'datetime', 'confirm']
+const stepLabels: Record<Step, string> = { service: 'Serviço', barber: 'Barbeiro', datetime: 'Data e horário', confirm: 'Confirmação' }
+const DAYS_AHEAD = 21
+const NOTE_LIMIT = 500
 
-const stepOrder: Step[] = ['service', 'barber', 'datetime', 'confirm']
-const stepLabels: Record<Step, string> = {
-  service: 'Serviço',
-  barber: 'Barbeiro',
-  datetime: 'Data e Horário',
-  confirm: 'Confirmar',
+function groupSlots(slots: string[]) {
+  const groups = [
+    { label: 'Manhã', items: slots.filter((slot) => slot < '12:00') },
+    { label: 'Tarde', items: slots.filter((slot) => slot >= '12:00' && slot < '18:00') },
+    { label: 'Noite', items: slots.filter((slot) => slot >= '18:00') },
+  ]
+  return groups.filter((group) => group.items.length > 0)
 }
 
 export function AppointmentCreatePage() {
   const { user } = useAuth()
   const { showToast } = useToast()
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const rescheduleId = searchParams.get('reschedule')
+  const [params] = useSearchParams()
+  const rescheduleId = params.get('reschedule')
+  const presetService = params.get('servico')
+  const presetBarber = params.get('barbeiro')
 
-  const [currentStepIndex, setCurrentStepIndex] = useState(0)
-  const [slots, setSlots] = useState<string[]>([])
-  const [isLoadingSlots, setIsLoadingSlots] = useState(false)
-  const [slotsError, setSlotsError] = useState<string | null>(null)
-  const [selectedDate, setSelectedDate] = useState<string>(todayISO())
-  const [weekStart, setWeekStart] = useState<string>(todayISO())
-  const [isRescheduling, setIsRescheduling] = useState(false)
-  const [rescheduleAppointment, setRescheduleAppointment] = useState<{ id: number; data_hora: string; servico: number; barbeiro: number; observacoes: string | null } | null>(null)
-
-  const { data, isLoading, error } = useAsyncData(async () => {
-    const [services, barbers] = await Promise.all([
-      listAllServices(),
-      listAllBarbers()
-    ])
-    // Filter only active services and barbers
-    return {
-      services: services.filter(s => s.ativo),
-      barbers: barbers.filter(b => b.ativo)
-    }
+  const catalog = useAsyncData(async () => {
+    const [services, barbers] = await Promise.all([listActiveServices(), listActiveBarbers()])
+    return { services, barbers }
   }, [])
 
-  const {
-    register,
-    watch,
-    setValue,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<AppointmentForm>({
-    resolver: zodResolver(schema),
-    defaultValues: { data: todayISO(), observacoes: '', horario: '' },
-  })
+  const original = useAsyncData<Appointment | null>(
+    () => (rescheduleId ? appointmentApi.get(Number(rescheduleId)).then((response) => response.data) : Promise.resolve(null)),
+    [rescheduleId],
+  )
 
-  // Handle reschedule flow - fetch existing appointment data on mount
+  const [serviceId, setServiceId] = useState<number | null>(presetService ? Number(presetService) : null)
+  const [barberId, setBarberId] = useState<number | null>(presetBarber ? Number(presetBarber) : null)
+  const [day, setDay] = useState(todayISO())
+  const [slot, setSlot] = useState('')
+  const [notes, setNotes] = useState('')
+  const [step, setStep] = useState<Step>(presetService ? (presetBarber ? 'datetime' : 'barber') : 'service')
+  const [slots, setSlots] = useState<string[]>([])
+  const [slotsLoading, setSlotsLoading] = useState(false)
+  const [slotsError, setSlotsError] = useState<unknown>(null)
+  const [slotsVersion, setSlotsVersion] = useState(0)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  // Reagendamento: pré-preenche com o agendamento original
+  const [prefilledFrom, setPrefilledFrom] = useState<number | null>(null)
+  if (original.data && prefilledFrom !== original.data.id) {
+    setPrefilledFrom(original.data.id)
+    setServiceId(original.data.servico)
+    setBarberId(original.data.barbeiro)
+    const originalDay = dateKey(original.data.data_hora)
+    setDay(originalDay < todayISO() ? todayISO() : originalDay)
+    setNotes(original.data.observacoes ?? '')
+    setStep('datetime')
+  }
+
+  const isRescheduling = Boolean(rescheduleId && original.data)
+
+  // Horários livres reais para serviço + barbeiro + dia
   useEffect(() => {
-    if (rescheduleId) {
-      const fetchAppointment = async () => {
-        try {
-          const response = await appointmentApi.get(Number(rescheduleId))
-          const appointment = response.data
-          setRescheduleAppointment(appointment)
-          setIsRescheduling(true)
-
-          // Parse date and time from data_hora (ISO string) using America/Sao_Paulo timezone
-          // This prevents date shifts due to UTC conversion
-          const dateTime = new Date(appointment.data_hora)
-          // Use timezone-aware formatting to avoid UTC shifts
-          const dateStr = dateTime.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })
-            .split('/').reverse().join('-') // Convert DD/MM/YYYY to YYYY-MM-DD
-          const timeStr = dateTime.toLocaleTimeString('pt-BR', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-            timeZone: 'America/Sao_Paulo'
-          })
-
-          // Prefill form
-          setValue('servico', String(appointment.servico))
-          setValue('barbeiro', String(appointment.barbeiro))
-          setValue('data', dateStr)
-          setValue('horario', timeStr)
-          if (appointment.observacoes) {
-            setValue('observacoes', appointment.observacoes)
-          }
-
-          // Update selected date and week
-          setSelectedDate(dateStr)
-          setWeekStart(dateStr)
-        } catch (err) {
-          showToast(errorMessage(err, 'Não foi possível carregar o agendamento para reagendamento.'), 'error')
-        }
-      }
-      fetchAppointment()
-    }
-  }, [rescheduleId, setValue, showToast])
-
-  const serviceId = watch('servico')
-  const barberId = watch('barbeiro')
-  const horario = watch('horario')
-
-  const currentStep = stepOrder[currentStepIndex]
-  const canGoNext = () => {
-    switch (currentStep) {
-      case 'service':
-        return Boolean(serviceId)
-      case 'barber':
-        return Boolean(barberId)
-      case 'datetime':
-        return Boolean(selectedDate && horario)
-      case 'confirm':
-        return true
-    }
-  }
-
-  const goNext = () => {
-    if (currentStepIndex < stepOrder.length - 1 && canGoNext()) {
-      setCurrentStepIndex(currentStepIndex + 1)
-    }
-  }
-
-  const goPrev = () => {
-    if (currentStepIndex > 0) {
-      setCurrentStepIndex(currentStepIndex - 1)
-    }
-  }
-
-  // Fetch slots when service, barber, or date changes
-  useEffect(() => {
-    if (!serviceId || !barberId || !selectedDate) {
+    if (!serviceId || !barberId) {
       setSlots([])
-      setSlotsError(null)
-      setValue('horario', '')
       return
     }
     let active = true
-    setIsLoadingSlots(true)
+    setSlotsLoading(true)
     setSlotsError(null)
-    setValue('horario', '')
-    // During rescheduling, pass the original appointment ID to exclude it from busy slots
-    const excludeId = isRescheduling && rescheduleAppointment ? rescheduleAppointment.id : undefined
-    appointmentApi.availableSlots(Number(barberId), Number(serviceId), selectedDate, excludeId)
-      .then((response) => {
-        if (active) setSlots(response.data.slots)
-      })
-      .catch((requestError) => {
-        if (active) setSlotsError(errorMessage(requestError, 'Não foi possível consultar os horários.'))
-      })
-      .finally(() => {
-        if (active) setIsLoadingSlots(false)
-      })
+    appointmentApi.availableSlots(barberId, serviceId, day, isRescheduling && original.data ? original.data.id : undefined)
+      .then((response) => { if (active) setSlots(response.data.slots) })
+      .catch((requestError) => { if (active) { setSlots([]); setSlotsError(requestError) } })
+      .finally(() => { if (active) setSlotsLoading(false) })
     return () => { active = false }
-  }, [serviceId, barberId, selectedDate, setValue, isRescheduling, rescheduleAppointment])
+  }, [serviceId, barberId, day, isRescheduling, original.data, slotsVersion])
 
-  const onSubmit = async (values: AppointmentForm) => {
-    if (!user) return
-    try {
-      const dataHora = `${values.data}T${values.horario}:00`
+  // Horário escolhido deixa de valer se não estiver mais na lista
+  useEffect(() => {
+    if (slot && !slotsLoading && !slots.includes(slot)) setSlot('')
+  }, [slots, slot, slotsLoading])
 
-      if (isRescheduling && rescheduleAppointment) {
-        // Atomic rescheduling: PATCH the existing appointment
-        // This is safe - if PATCH fails, original appointment is preserved
-        await appointmentApi.update(rescheduleAppointment.id, {
-          barbeiro: Number(values.barbeiro),
-          servico: Number(values.servico),
-          data_hora: dataHora,
-          observacoes: values.observacoes?.trim(),
-        })
-        showToast('Agendamento reagendado com sucesso!', 'success')
-      } else {
-        // Create new appointment
-        await appointmentApi.create({
-          cliente: user.id,
-          barbeiro: Number(values.barbeiro),
-          servico: Number(values.servico),
-          data_hora: dataHora,
-          observacoes: values.observacoes?.trim(),
-        })
-        showToast('Agendamento criado com sucesso!', 'success')
-      }
+  const days = useMemo(() => Array.from({ length: DAYS_AHEAD }, (_, index) => addDays(todayISO(), index)), [])
 
-      navigate('/appointments')
-    } catch (requestError) {
-      showToast(errorMessage(requestError, isRescheduling ? 'Não foi possível reagendar.' : 'Não foi possível criar o agendamento.'), 'error')
-    }
-  }
+  if (catalog.isLoading || original.isLoading) return <PageLoader label="Preparando o agendamento…" />
 
-  // Generate week dates for date picker
-  const getWeekDates = (startDate: string) => {
-    const start = new Date(startDate + 'T00:00:00')
-    const dates: string[] = []
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(start)
-      d.setDate(start.getDate() + i)
-      dates.push(d.toISOString().split('T')[0])
-    }
-    return dates
-  }
-
-  const weekDates = getWeekDates(weekStart)
-  const prevWeek = () => {
-    const d = new Date(weekStart + 'T00:00:00')
-    d.setDate(d.getDate() - 7)
-    setWeekStart(d.toISOString().split('T')[0])
-  }
-  const nextWeek = () => {
-    const d = new Date(weekStart + 'T00:00:00')
-    d.setDate(d.getDate() + 7)
-    setWeekStart(d.toISOString().split('T')[0])
-  }
-
-  const getDayNumber = (dateStr: string) => {
-    const d = new Date(dateStr + 'T00:00:00')
-    return d.getDate()
-  }
-
-  const isToday = (dateStr: string) => dateStr === todayISO()
-  const isPast = (dateStr: string) => dateStr < todayISO()
-  const isSelected = (dateStr: string) => dateStr === selectedDate
-
-  const handleDateClick = (dateStr: string) => {
-    if (isPast(dateStr)) return
-    setSelectedDate(dateStr)
-    setValue('data', dateStr)
-    setValue('horario', '')
-    // Auto-advance to next step if we have slots
-    setTimeout(() => {
-      if (slots.length > 0 && currentStep === 'datetime') {
-        goNext()
-      }
-    }, 300)
-  }
-
-  if (isLoading) return <PageLoader label="Preparando o agendamento..." />
-  if (error) return <p className={ui.errorBox}>Não foi possível preparar o agendamento.</p>
-  if (!data?.services.length || !data.barbers.length) {
+  if (catalog.error && !catalog.data) {
     return (
-      <div className={`${styles.page} ${styles.narrowPage}`}>
-        <header className={styles.pageHeader}>
-          <div><p className={styles.eyebrow}>Reserve seu horário</p><h1>Novo agendamento</h1></div>
-        </header>
-        <EmptyState title="Agendamento indisponível" description="A barbearia precisa ter ao menos um serviço e um barbeiro ativos." />
+      <div className={`${page.page} ${page.medium}`}>
+        <PageHeader title="Agendar horário" />
+        <div className={ui.panel}><ErrorState error={catalog.error} fallback="Não foi possível carregar serviços e barbeiros." onRetry={() => void catalog.reload()} /></div>
       </div>
     )
   }
 
-  const selectedService = data.services.find(s => s.id === Number(serviceId))
-  const selectedBarber = data.barbers.find(b => b.id === Number(barberId))
+  if (rescheduleId && (original.error || (original.data && !isOpenStatus(original.data.status)))) {
+    return (
+      <div className={`${page.page} ${page.medium}`}>
+        <PageHeader title="Reagendar horário" back={{ to: '/appointments', label: 'Meus agendamentos' }} />
+        <div className={ui.panel}>
+          {original.error
+            ? <ErrorState error={original.error} fallback="Não foi possível carregar o agendamento." onRetry={() => void original.reload()} />
+            : <EmptyState title="Este horário não pode ser reagendado" description="Somente horários agendados ou confirmados podem ser alterados." action={{ label: 'Voltar para meus agendamentos', to: '/appointments' }} />}
+        </div>
+      </div>
+    )
+  }
+
+  const services = catalog.data?.services ?? []
+  const barbers = catalog.data?.barbers ?? []
+
+  if (!services.length || !barbers.length) {
+    return (
+      <div className={`${page.page} ${page.medium}`}>
+        <PageHeader title="Agendar horário" />
+        <div className={ui.panel}>
+          <EmptyState title="Agendamento indisponível no momento" description="A barbearia ainda não tem serviços e barbeiros ativos para agendamento. Fale com a barbearia pelos contatos da página inicial." action={{ label: 'Voltar ao início', to: '/' }} />
+        </div>
+      </div>
+    )
+  }
+
+  const service = services.find((item) => item.id === serviceId) ?? null
+  const barber = barbers.find((item) => item.id === barberId) ?? null
+
+  // Pré-seleção inválida (ex.: link para serviço desativado): volta para a etapa certa
+  if (serviceId !== null && !service) {
+    setServiceId(null)
+    setStep('service')
+  } else if (barberId !== null && !barber) {
+    setBarberId(null)
+    if (step === 'datetime' || step === 'confirm') setStep('barber')
+  }
+  const stepIndex = steps.indexOf(step)
+
+  const nextIncomplete = (selected: { service?: Service | null; barber?: Barber | null }): Step => {
+    const s = selected.service !== undefined ? selected.service : service
+    const b = selected.barber !== undefined ? selected.barber : barber
+    if (!s) return 'service'
+    if (!b) return 'barber'
+    return 'datetime'
+  }
+
+  const chooseService = (item: Service) => {
+    setServiceId(item.id)
+    setSlot('')
+    setStep(nextIncomplete({ service: item }))
+  }
+
+  const chooseBarber = (item: Barber) => {
+    setBarberId(item.id)
+    setSlot('')
+    setStep('datetime')
+  }
+
+  const canOpen = (target: Step) => {
+    if (target === 'service') return true
+    if (target === 'barber') return Boolean(service)
+    if (target === 'datetime') return Boolean(service && barber)
+    return Boolean(service && barber && slot)
+  }
+
+  const submit = async () => {
+    if (!user || !service || !barber || !slot) return
+    if (notes.length > NOTE_LIMIT) return
+    setSubmitting(true)
+    setSubmitError(null)
+    const payload = { barbeiro: barber.id, servico: service.id, data_hora: `${day}T${slot}:00`, observacoes: notes.trim() }
+    try {
+      if (isRescheduling && original.data) {
+        await appointmentApi.update(original.data.id, payload)
+        showToast(`Horário remarcado para ${relativeDayLabel(day).toLowerCase()} às ${slot}.`, 'success')
+      } else {
+        await appointmentApi.create({ cliente: user.id, ...payload })
+        showToast(`Horário agendado para ${relativeDayLabel(day).toLowerCase()} às ${slot}.`, 'success')
+      }
+      notifyAppointmentsChanged()
+      navigate('/appointments')
+    } catch (requestError) {
+      const message = errorMessage(requestError, isRescheduling ? 'Não foi possível reagendar.' : 'Não foi possível concluir o agendamento.')
+      const conflict = axios.isAxiosError(requestError) && requestError.response?.status === 400
+        && Boolean((requestError.response.data as Record<string, unknown> | undefined)?.data_hora)
+      setSubmitError(message)
+      if (conflict) {
+        // O horário foi ocupado enquanto o cliente decidia: volta para escolher outro
+        setSlot('')
+        setSlotsVersion((value) => value + 1)
+        setStep('datetime')
+      }
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
-    <div className={`${styles.page} ${styles.narrowPage}`}>
-      <header className={styles.pageHeader}>
-        <div>
-          <p className={styles.eyebrow}>{isRescheduling ? 'Reagendamento' : 'Reserve seu horário'}</p>
-          <h1>{isRescheduling ? 'Reagendar agendamento' : 'Novo agendamento'}</h1>
-        </div>
-      </header>
+    <div className={`${page.page} ${page.medium}`}>
+      <PageHeader
+        title={isRescheduling ? 'Reagendar horário' : 'Agendar horário'}
+        description={isRescheduling && original.data
+          ? `Horário atual: ${formatDayLong(dateKey(original.data.data_hora))} às ${formatClock(original.data.data_hora)}. Ele só muda quando você confirmar o novo.`
+          : 'Escolha o serviço, o barbeiro e um horário livre.'}
+        back={isRescheduling ? { to: '/appointments', label: 'Meus agendamentos' } : undefined}
+      />
 
-      {/* Stepper */}
-      <nav className={ui.stepper} aria-label="Progresso do agendamento">
-        {stepOrder.map((step, index) => (
-          <div
-            key={step}
-            className={`${ui.stepperItem} ${
-              index < currentStepIndex ? ui.stepperItemCompleted :
-              index === currentStepIndex ? ui.stepperItemActive : ''
-            }`}
-          >
-            <div className={ui.stepperStep}>
-              {index < currentStepIndex ? '' : index + 1}
-            </div>
-            <span className={ui.stepperLabel}>{isRescheduling && step === 'confirm' ? 'Confirmar reagendamento' : stepLabels[step]}</span>
-          </div>
-        ))}
-      </nav>
-
-      {isRescheduling && rescheduleAppointment && (
-        <div style={{ background: 'var(--color-primary-red-light)', border: '1px solid var(--color-primary-red)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)', marginBottom: 'var(--space-4)', display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          <span style={{ color: 'var(--color-primary-red)', fontWeight: 'var(--font-weight-semibold)' }}>↻ Reagendando agendamento #{rescheduleAppointment.id}</span>
-          <span style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>
-            Horário original: {new Date(rescheduleAppointment.data_hora).toLocaleString('pt-BR')}
-          </span>
-        </div>
-      )}
-
-      <form className={ui.formCard} onSubmit={handleSubmit(onSubmit)} noValidate>
-        {/* Step 1: Service Selection */}
-        {currentStep === 'service' && (
-          <>
-            <h2 style={{ marginBottom: 'var(--space-6)', color: 'var(--color-text-primary)', fontSize: 'var(--text-xl)' }}>
-              Qual serviço você deseja?
-            </h2>
-            <div className={styles.cardGrid}>
-              {data.services.map((service) => (
-                <button
-                  key={service.id}
-                  type="button"
-                  className={`${ui.serviceCardEnhanced} ${
-                    serviceId === String(service.id) ? ui.serviceCardEnhancedSelected : ''
-                  }`}
-                  onClick={() => {
-                    setValue('servico', String(service.id))
-                    setTimeout(goNext, 200)
-                  }}
-                  aria-pressed={serviceId === String(service.id)}
-                >
-                  <div className={ui.serviceCardHeader}>
-                    <div className={ui.serviceCardTitle}>
-                      <div className={ui.serviceCardIcon} aria-hidden="true">✂</div>
-                      <div className={ui.serviceCardInfo}>
-                        <h3>{service.nome}</h3>
-                        {service.descricao && <p>{service.descricao}</p>}
-                      </div>
-                    </div>
-                    <div className={ui.serviceCardMeta}>
-                      <span className={ui.serviceCardPrice}>{formatCurrency(service.preco)}</span>
-                      <span className={ui.serviceCardDuration}>{service.duracao} min</span>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-            <div className={ui.buttonRow} style={{ marginTop: 'var(--space-6)', justifyContent: 'flex-end' }}>
-              <button type="button" className={ui.secondaryButton} disabled onClick={goPrev}>Voltar</button>
-              <button type="button" className={ui.button} disabled={!serviceId} onClick={goNext}>Próximo</button>
-            </div>
-          </>
-        )}
-
-        {/* Step 2: Barber Selection */}
-        {currentStep === 'barber' && (
-          <>
-            <h2 style={{ marginBottom: 'var(--space-6)', color: 'var(--color-text-primary)', fontSize: 'var(--text-xl)' }}>
-              Com qual barbeiro?
-            </h2>
-            <div className={styles.cardGrid}>
-              {data.barbers.map((barber) => (
-                <button
-                  key={barber.id}
-                  type="button"
-                  className={`${ui.barberCardEnhanced} ${
-                    barberId === String(barber.id) ? ui.barberCardEnhancedSelected : ''
-                  }`}
-                  onClick={() => {
-                    setValue('barbeiro', String(barber.id))
-                    setTimeout(goNext, 200)
-                  }}
-                  aria-pressed={barberId === String(barber.id)}
-                >
-                  <div className={ui.barberCardAvatar} aria-hidden="true">
-                    {barber.nome.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                  </div>
-                  <h3>{barber.nome}</h3>
-                  {barber.especialidade && <p className={ui.barberCardSpecialty}>{barber.especialidade}</p>}
-                  <div className={ui.barberCardMeta}>
-                    <span className={ui.barberCardMetaItem}>
-                      <span aria-hidden="true">✓</span> Ativo
-                    </span>
-                  </div>
-                </button>
-              ))}
-            </div>
-            <div className={ui.buttonRow} style={{ marginTop: 'var(--space-6)' }}>
-              <button type="button" className={ui.secondaryButton} onClick={goPrev}>Voltar</button>
-              <button type="button" className={ui.button} disabled={!barberId} onClick={goNext}>Próximo</button>
-            </div>
-          </>
-        )}
-
-        {/* Step 3: Date & Time Selection */}
-        {currentStep === 'datetime' && (
-          <>
-            <h2 style={{ marginBottom: 'var(--space-6)', color: 'var(--color-text-primary)', fontSize: 'var(--text-xl)' }}>
-              Escolha a data e o horário
-            </h2>
-
-            {/* Week navigation */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
-              <button type="button" className={ui.ghostButton} onClick={prevWeek} aria-label="Semana anterior">‹</button>
-              <span style={{ fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
-                {new Date(weekStart + 'T00:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+      <ol className={client.steps} aria-label="Etapas do agendamento">
+        {steps.map((item, index) => {
+          const state = index < stepIndex ? client.stepDone : index === stepIndex ? client.stepCurrent : ''
+          return (
+            <li key={item} className={`${client.step} ${state}`} aria-current={item === step ? 'step' : undefined}>
+              <span className={client.stepBar} />
+              <span className={client.stepLabel}>
+                {index < stepIndex && canOpen(item)
+                  ? <button type="button" className={client.stepButton} onClick={() => setStep(item)}>{stepLabels[item]}</button>
+                  : stepLabels[item]}
               </span>
-              <button type="button" className={ui.ghostButton} onClick={nextWeek} aria-label="Próxima semana">›</button>
-            </div>
+            </li>
+          )
+        })}
+      </ol>
 
-            {/* Date grid */}
-            <div className={ui.dateGrid} role="grid" aria-label="Selecione a data">
-              {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((day) => (
-                <div key={day} className={`${ui.dateGridDay} ${ui.dateGridWeekday}`} role="columnheader">{day}</div>
-              ))}
-              {weekDates.map((date) => (
-                <button
-                  key={date}
-                  type="button"
-                  className={`${ui.dateGridDay} ${
-                    isSelected(date) ? ui.dateGridDaySelected : ''
-                  } ${isToday(date) ? ui.dateGridDayToday : ''} ${isPast(date) ? ui.dateGridDayDisabled : ''}`}
-                  onClick={() => handleDateClick(date)}
-                  disabled={isPast(date)}
-                  aria-selected={isSelected(date)}
-                  aria-disabled={isPast(date)}
-                  aria-label={new Date(date + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
-                >
-                  {getDayNumber(date)}
-                </button>
-              ))}
-            </div>
-
-            {/* Time slots */}
-            {!serviceId || !barberId ? (
-              <p className={ui.hint} style={{ marginTop: 'var(--space-4)', textAlign: 'center' }}>
-                Escolha serviço e barbeiro para ver os horários.
-              </p>
-            ) : isLoadingSlots ? (
-              <div className={ui.loaderWrap} style={{ marginTop: 'var(--space-4)' }}>
-                <div className={ui.spinner} />
-                <span>Calculando horários disponíveis...</span>
-              </div>
-            ) : slotsError ? (
-              <p className={ui.error} style={{ marginTop: 'var(--space-4)', textAlign: 'center' }}>{slotsError}</p>
-            ) : slots.length === 0 ? (
-              <p className={ui.hint} style={{ marginTop: 'var(--space-4)', textAlign: 'center' }}>
-                Não há horários disponíveis nesta data. Escolha outra data.
-              </p>
-            ) : (
-              <div className={ui.slotGrid} style={{ marginTop: 'var(--space-4)' }} role="listbox" aria-label="Horários disponíveis">
-                {slots.map((slot) => (
+      <div className={client.bookingLayout}>
+        <section className={`${ui.panel} ${ui.panelBody}`}>
+          {step === 'service' && (
+            <div className={client.stepPanel} key="service">
+              <h2>Qual serviço?</h2>
+              <p className={client.stepIntro}>O preço e a duração ficam registrados no agendamento.</p>
+              <div className={client.optionGrid} role="radiogroup" aria-label="Serviços">
+                {services.map((item) => (
                   <button
-                    key={slot}
+                    key={item.id}
                     type="button"
-                    role="option"
-                    aria-selected={horario === slot}
-                    className={`${ui.slot} ${horario === slot ? ui.slotSelected : ''}`}
-                    onClick={() => setValue('horario', slot, { shouldValidate: true })}
+                    role="radio"
+                    aria-checked={item.id === serviceId}
+                    className={`${client.option} ${item.id === serviceId ? client.optionSelected : ''}`}
+                    onClick={() => chooseService(item)}
                   >
-                    {slot}
+                    <span className={client.optionCheck} aria-hidden="true"><CheckIcon size={12} strokeWidth={3} /></span>
+                    <span className={client.optionTitle}>{item.nome}</span>
+                    {item.descricao && <span className={client.optionDesc}>{item.descricao}</span>}
+                    <span className={client.optionMeta}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><ClockIcon size={14} /> {formatDuration(item.duracao)}</span>
+                      <strong>{formatCurrency(item.preco)}</strong>
+                    </span>
                   </button>
                 ))}
               </div>
-            )}
-
-            <div className={ui.buttonRow} style={{ marginTop: 'var(--space-6)' }}>
-              <button type="button" className={ui.secondaryButton} onClick={goPrev}>Voltar</button>
-              <button type="button" className={ui.button} disabled={!horario} onClick={goNext}>Próximo</button>
             </div>
-          </>
-        )}
+          )}
 
-        {/* Step 4: Confirmation */}
-        {currentStep === 'confirm' && (
-          <>
-            <h2 style={{ marginBottom: 'var(--space-6)', color: 'var(--color-text-primary)', fontSize: 'var(--text-xl)' }}>
-              Confirme seu agendamento
-            </h2>
+          {step === 'barber' && (
+            <div className={client.stepPanel} key="barber">
+              <h2>Com quem?</h2>
+              <p className={client.stepIntro}>Os horários livres dependem da agenda de cada barbeiro.</p>
+              <div className={client.optionGrid} role="radiogroup" aria-label="Barbeiros">
+                {barbers.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={item.id === barberId}
+                    className={`${client.option} ${item.id === barberId ? client.optionSelected : ''}`}
+                    onClick={() => chooseBarber(item)}
+                  >
+                    <span className={client.optionCheck} aria-hidden="true"><CheckIcon size={12} strokeWidth={3} /></span>
+                    <span className={client.optionPerson}>
+                      <Avatar name={item.nome} />
+                      <span style={{ display: 'grid' }}>
+                        <span className={client.optionTitle}>{item.nome}</span>
+                        <span className={client.optionDesc}>{item.especialidade || 'Barbeiro'}</span>
+                      </span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <StepActions onBack={() => setStep('service')} />
+            </div>
+          )}
 
-            <div className={ui.confirmSummary}>
-              <div className={ui.confirmSummaryItem}>
-                <span className={ui.confirmSummaryLabel}>Serviço</span>
-                <span className={ui.confirmSummaryValue}>
-                  {selectedService?.nome}
-                  <br />
-                  <small style={{ color: 'var(--color-text-muted)', fontWeight: 'var(--font-weight-normal)' }}>
-                    {selectedService?.duracao} min · {formatCurrency(selectedService?.preco ?? 0)}
-                  </small>
-                </span>
+          {step === 'datetime' && (
+            <div className={client.stepPanel} key="datetime">
+              <h2>Quando?</h2>
+              <p className={client.stepIntro}>Horários livres de {barber?.nome.split(' ')[0]} para {service?.nome.toLowerCase()} ({formatDuration(service?.duracao ?? 0)}).</p>
+              {submitError && (
+                <div className={`${ui.alert} ${ui.alertDanger}`} role="alert" style={{ marginBottom: 'var(--space-4)' }}>
+                  <AlertCircleIcon size={18} />
+                  <div><strong>Esse horário não está mais disponível.</strong><p>{submitError} Escolha outro horário abaixo.</p></div>
+                </div>
+              )}
+              <div className={client.dateStrip} role="radiogroup" aria-label="Dia">
+                {days.map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    role="radio"
+                    aria-checked={key === day}
+                    aria-label={relativeDayLabel(key) === formatDayLong(key) ? formatDayLong(key) : `${relativeDayLabel(key)}, ${formatDayLong(key)}`}
+                    className={`${client.dateChip} ${key === day ? client.dateChipSelected : ''} ${key === todayISO() ? client.dateChipToday : ''}`}
+                    onClick={() => { setDay(key); setSlot(''); setSubmitError(null) }}
+                  >
+                    <span>{key === todayISO() ? 'hoje' : weekdayShort(key)}</span>
+                    <strong>{dayOfMonth(key)}</strong>
+                    <span>{monthShort(key)}</span>
+                  </button>
+                ))}
               </div>
-              <div className={ui.confirmSummaryItem}>
-                <span className={ui.confirmSummaryLabel}>Barbeiro</span>
-                <span className={ui.confirmSummaryValue}>{selectedBarber?.nome}</span>
+
+              <div aria-live="polite">
+                {slotsLoading ? (
+                  <div className={ui.loaderWrap} style={{ minHeight: '8rem' }}><span className={ui.spinner} aria-hidden="true" /> Consultando horários livres…</div>
+                ) : slotsError ? (
+                  <ErrorState compact error={slotsError} fallback="Não foi possível consultar os horários." onRetry={() => setSlotsVersion((value) => value + 1)} />
+                ) : slots.length === 0 ? (
+                  <EmptyState
+                    compact
+                    title={`Sem horários livres ${day === todayISO() ? 'hoje' : 'neste dia'}`}
+                    description="A agenda deste barbeiro está cheia ou o horário de funcionamento já terminou."
+                    action={{ label: 'Ver o próximo dia', onClick: () => { setDay(addDays(day, 1)); setSlot('') } }}
+                  />
+                ) : (
+                  <div className={client.slotGroups}>
+                    {groupSlots(slots).map((group) => (
+                      <div className={client.slotGroup} key={group.label}>
+                        <h3>{group.label}</h3>
+                        <div className={client.slotGrid} role="radiogroup" aria-label={`Horários da ${group.label.toLowerCase()}`}>
+                          {group.items.map((item) => (
+                            <button
+                              key={item}
+                              type="button"
+                              role="radio"
+                              aria-checked={item === slot}
+                              className={`${client.slot} ${item === slot ? client.slotSelected : ''}`}
+                              onClick={() => { setSlot(item); setSubmitError(null) }}
+                            >
+                              {item}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              <div className={ui.confirmSummaryItem}>
-                <span className={ui.confirmSummaryLabel}>Data</span>
-                <span className={ui.confirmSummaryValue}>
-                  {new Date(selectedDate + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
-                </span>
+
+              <StepActions onBack={() => setStep('barber')} onNext={() => setStep('confirm')} nextDisabled={!slot} nextLabel="Revisar" />
+            </div>
+          )}
+
+          {step === 'confirm' && service && barber && (
+            <div className={client.stepPanel} key="confirm">
+              <h2>Tudo certo?</h2>
+              <p className={client.stepIntro}>Revise os dados antes de {isRescheduling ? 'remarcar' : 'confirmar'}.</p>
+              {submitError && (
+                <div className={`${ui.alert} ${ui.alertDanger}`} role="alert" style={{ marginBottom: 'var(--space-4)' }}>
+                  <AlertCircleIcon size={18} /><p>{submitError}</p>
+                </div>
+              )}
+              <dl className={ui.summaryList} style={{ marginBottom: 'var(--space-5)' }}>
+                <div className={ui.summaryItem}><dt>Quando</dt><dd>{relativeDayLabel(day)}{day === todayISO() || day === addDays(todayISO(), 1) ? `, ${formatDayLong(day)}` : ''}, às {slot}</dd></div>
+                <div className={ui.summaryItem}><dt>Serviço</dt><dd>{service.nome}</dd></div>
+                <div className={ui.summaryItem}><dt>Barbeiro</dt><dd>{barber.nome}</dd></div>
+                <div className={ui.summaryItem}><dt>Duração</dt><dd>{formatDuration(service.duracao)}</dd></div>
+              </dl>
+              <div className={ui.field}>
+                <label className={ui.label} htmlFor="booking-notes">Observações <span className={ui.optional}>(opcional)</span></label>
+                <textarea
+                  id="booking-notes"
+                  rows={3}
+                  value={notes}
+                  maxLength={NOTE_LIMIT + 50}
+                  aria-invalid={notes.length > NOTE_LIMIT ? true : undefined}
+                  aria-describedby="booking-notes-hint"
+                  placeholder="Ex.: prefiro máquina baixa nas laterais."
+                  onChange={(event) => setNotes(event.target.value)}
+                />
+                <p id="booking-notes-hint" className={notes.length > NOTE_LIMIT ? ui.error : ui.hint}>
+                  {notes.length > NOTE_LIMIT ? `Use no máximo ${NOTE_LIMIT} caracteres (${notes.length} agora).` : 'O barbeiro vê esta observação na agenda.'}
+                </p>
               </div>
-              <div className={ui.confirmSummaryItem}>
-                <span className={ui.confirmSummaryLabel}>Horário</span>
-                <span className={ui.confirmSummaryValue}>{horario}</span>
-              </div>
-              <div className={ui.confirmSummaryItem}>
-                <span className={ui.confirmSummaryLabel}>Total</span>
-                <span className={ui.confirmSummaryValue}>
-                  <strong>{formatCurrency(selectedService?.preco ?? 0)}</strong>
-                </span>
+              {!isRescheduling && (
+                <p className={`${ui.alert} ${ui.alertInfo}`} style={{ marginTop: 'var(--space-4)' }}>
+                  <InfoIcon size={18} /> O horário fica como agendado até a barbearia confirmar. Você pode reagendar ou cancelar em Meus agendamentos.
+                </p>
+              )}
+              <div className={client.stepActions}>
+                <button type="button" className={ui.secondaryButton} onClick={() => setStep('datetime')} disabled={submitting}>
+                  <ArrowLeftIcon size={16} /> Voltar
+                </button>
+                <button type="button" className={ui.button} onClick={() => void submit()} disabled={submitting || notes.length > NOTE_LIMIT}>
+                  {submitting && <ButtonSpinner />} {isRescheduling ? 'Remarcar horário' : 'Confirmar agendamento'}
+                </button>
               </div>
             </div>
+          )}
+        </section>
 
-            <label className={ui.field} style={{ marginTop: 'var(--space-2)' }}>
-              Observações (opcional)
-              <textarea rows={3} placeholder="Ex.: preferência de corte, alergias, etc." {...register('observacoes')} />
-              {errors.observacoes && <small className={ui.error}>{errors.observacoes.message}</small>}
-            </label>
-
-            <div className={ui.buttonRow} style={{ marginTop: 'var(--space-4)' }}>
-              <button type="button" className={ui.secondaryButton} onClick={goPrev}>Voltar</button>
-              <button type="submit" className={ui.button} disabled={isSubmitting}>
-                {isSubmitting ? 'Confirmando...' : 'Confirmar agendamento'}
-              </button>
+        <aside className={`${ui.panel} ${ui.panelBody} ${client.summary}`} aria-label="Resumo do agendamento">
+          <h2 className={client.summaryTitle}>Resumo</h2>
+          <dl className={ui.summaryList}>
+            <div className={ui.summaryItem}><dt>Serviço</dt><dd className={service ? undefined : client.summaryEmpty}>{service?.nome ?? 'A escolher'}</dd></div>
+            <div className={ui.summaryItem}><dt>Barbeiro</dt><dd className={barber ? undefined : client.summaryEmpty}>{barber?.nome ?? 'A escolher'}</dd></div>
+            <div className={ui.summaryItem}>
+              <dt>Horário</dt>
+              <dd className={slot ? undefined : client.summaryEmpty}>{slot ? `${relativeDayLabel(day)}, ${slot}` : 'A escolher'}</dd>
             </div>
-          </>
-        )}
-      </form>
+          </dl>
+          <div className={client.summaryTotal}>
+            <span>Total</span>
+            <strong>{service ? formatCurrency(service.preco) : '—'}</strong>
+          </div>
+          {isRescheduling && <Link to="/appointments" className={ui.textButton} style={{ marginTop: 'var(--space-3)' }}>Desistir e manter o horário atual</Link>}
+        </aside>
+      </div>
+    </div>
+  )
+}
+
+function StepActions({ onBack, onNext, nextDisabled, nextLabel = 'Continuar' }: { onBack: () => void; onNext?: () => void; nextDisabled?: boolean; nextLabel?: string }) {
+  return (
+    <div className={client.stepActions}>
+      <button type="button" className={ui.secondaryButton} onClick={onBack}><ArrowLeftIcon size={16} /> Voltar</button>
+      {onNext && <button type="button" className={ui.button} onClick={onNext} disabled={nextDisabled}>{nextLabel}</button>}
     </div>
   )
 }

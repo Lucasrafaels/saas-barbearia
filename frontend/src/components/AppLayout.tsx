@@ -1,346 +1,367 @@
-import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
-import { useState, useEffect } from 'react'
-import { useAuth } from '../contexts/AuthContext'
+import { Suspense, useCallback, useEffect, useRef, useState, type ComponentType } from 'react'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { appointmentApi } from '../api/endpoints'
+import { roleLabels, useAuth } from '../contexts/AuthContext'
+import { BarbershopProvider, useBarbershop } from '../contexts/BarbershopContext'
+import { useMediaQuery, useNow } from '../hooks/useUi'
+import type { User, UserRole } from '../types'
+import { formatDayLong, todayISO } from '../utils/format'
+import { shopHoursStatus } from '../utils/shop'
+import { APPOINTMENTS_CHANGED } from '../utils/status'
+import { Avatar } from './Controls'
+import { PageLoader } from './Feedback'
+import {
+  CalendarCheckIcon,
+  CalendarIcon,
+  CalendarPlusIcon,
+  ChevronDownIcon,
+  ContactIcon,
+  DashboardIcon,
+  HomeIcon,
+  LogoutIcon,
+  MenuIcon,
+  PanelLeftIcon,
+  ScissorsIcon,
+  StoreIcon,
+  UserIcon,
+  UsersIcon,
+  XIcon,
+} from './Icons'
+import { BrandMark } from './PageHeader'
 import styles from '../styles/layout.module.css'
+import page from '../styles/page.module.css'
+import ui from '../styles/ui.module.css'
 
-interface MenuItem {
+interface NavItem {
   to: string
   label: string
-  icon: React.ReactNode
+  icon: ComponentType<{ size?: number }>
   end?: boolean
-  roles?: string[]
 }
 
-const menuByRole: Record<string, MenuItem[]> = {
-  cliente: [
-    { to: '/', label: 'Início', icon: <HomeIcon />, end: true, roles: ['cliente'] },
-    { to: '/services', label: 'Serviços', icon: <ScissorsIcon />, roles: ['cliente'] },
-    { to: '/barbers', label: 'Barbeiros', icon: <UsersIcon />, roles: ['cliente'] },
-    { to: '/appointments/new', label: 'Agendar', icon: <CalendarIcon />, roles: ['cliente'] },
-    { to: '/appointments', label: 'Meus horários', icon: <ClockIcon />, roles: ['cliente'] },
+interface NavGroup {
+  label?: string
+  items: NavItem[]
+}
+
+const navigation: Record<UserRole, NavGroup[]> = {
+  admin: [
+    {
+      label: 'Operação',
+      items: [
+        { to: '/admin', label: 'Painel', icon: DashboardIcon, end: true },
+        { to: '/admin/appointments', label: 'Agendamentos', icon: CalendarIcon },
+      ],
+    },
+    {
+      label: 'Cadastros',
+      items: [
+        { to: '/admin/services', label: 'Serviços', icon: ScissorsIcon },
+        { to: '/admin/barbers', label: 'Barbeiros', icon: UsersIcon },
+        { to: '/admin/clients', label: 'Clientes', icon: ContactIcon },
+      ],
+    },
+    {
+      label: 'Barbearia',
+      items: [{ to: '/admin/barbershop', label: 'Dados da barbearia', icon: StoreIcon }],
+    },
   ],
   barbeiro: [
-    { to: '/', label: 'Início', icon: <HomeIcon />, end: true, roles: ['barbeiro'] },
-    { to: '/barber/agenda', label: 'Agenda de hoje', icon: <CalendarIcon />, roles: ['barbeiro'] },
+    { items: [{ to: '/barber/agenda', label: 'Minha agenda', icon: CalendarCheckIcon }] },
   ],
-  admin: [
-    { to: '/admin', label: 'Dashboard', icon: <DashboardIcon />, end: true, roles: ['admin'] },
-    { to: '/admin/services', label: 'Serviços', icon: <ScissorsIcon />, roles: ['admin'] },
-    { to: '/admin/barbers', label: 'Barbeiros', icon: <UsersIcon />, roles: ['admin'] },
-    { to: '/admin/appointments', label: 'Agendamentos', icon: <CalendarIcon />, roles: ['admin'] },
+  cliente: [
+    {
+      items: [
+        { to: '/', label: 'Início', icon: HomeIcon, end: true },
+        { to: '/appointments/new', label: 'Agendar horário', icon: CalendarPlusIcon },
+        { to: '/appointments', label: 'Meus agendamentos', icon: CalendarIcon, end: true },
+      ],
+    },
+    {
+      label: 'Barbearia',
+      items: [
+        { to: '/services', label: 'Serviços e preços', icon: ScissorsIcon },
+        { to: '/barbers', label: 'Equipe', icon: UsersIcon },
+      ],
+    },
   ],
 }
 
-function HomeIcon({ size = 20 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-      <polyline points="9 22 9 12 15 12 15 22" />
-    </svg>
-  )
-}
+const COLLAPSE_KEY = 'barberpro.sidebar.collapsed'
 
-function ScissorsIcon({ size = 20 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="5.5" cy="5.5" r="2.5" />
-      <circle cx="18.5" cy="5.5" r="2.5" />
-      <line x1="5.5" y1="8.5" x2="10" y2="14" />
-      <line x1="18.5" y1="8.5" x2="14" y2="14" />
-      <line x1="10" y1="14" x2="14" y2="14" />
-    </svg>
-  )
-}
-
-function UsersIcon({ size = 20 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  )
-}
-
-function CalendarIcon({ size = 20 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-      <line x1="16" y1="2" x2="16" y2="6" />
-      <line x1="8" y1="2" x2="8" y2="6" />
-      <line x1="3" y1="10" x2="21" y2="10" />
-    </svg>
-  )
-}
-
-function DashboardIcon({ size = 20 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="3" y="3" width="7" height="7" rx="1" />
-      <rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" />
-      <rect x="14" y="14" width="7" height="7" rx="1" />
-    </svg>
-  )
-}
-
-function ClockIcon({ size = 20 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
-    </svg>
-  )
-}
-
-function ChevronLeftIcon({ size = 20 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <polyline points="15 18 9 12 15 6" />
-    </svg>
-  )
-}
-
-function ChevronRightIcon({ size = 20 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <polyline points="9 18 15 12 9 6" />
-    </svg>
-  )
-}
-
-function MenuIcon({ size = 24 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <line x1="3" y1="12" x2="21" y2="12" />
-      <line x1="3" y1="6" x2="21" y2="6" />
-      <line x1="3" y1="18" x2="21" y2="18" />
-    </svg>
-  )
-}
-
-function UserIcon({ size = 20 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
-  )
-}
-
-function LogoutIcon({ size = 20 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-      <polyline points="16 17 21 12 16 7" />
-      <line x1="21" y1="12" x2="9" y2="12" />
-    </svg>
-  )
-}
-
-function SettingsIcon({ size = 20 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-    </svg>
-  )
+function readCollapsed(): boolean {
+  try { return localStorage.getItem(COLLAPSE_KEY) === '1' } catch { return false }
 }
 
 export function AppLayout() {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
+  return (
+    <BarbershopProvider>
+      <Shell />
+    </BarbershopProvider>
+  )
+}
+
+function Shell() {
+  const { user } = useAuth()
   const location = useLocation()
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
+  const [collapsed, setCollapsed] = useState(readCollapsed)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const drawerRef = useRef<HTMLElement>(null)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
+
+  // Fecha a gaveta ao navegar
+  const [lastPath, setLastPath] = useState(location.pathname)
+  if (lastPath !== location.pathname) {
+    setLastPath(location.pathname)
+    setDrawerOpen(false)
+  }
 
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024)
-      if (window.innerWidth >= 1024) {
-        setIsMobileMenuOpen(false)
-      }
+    try { localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0') } catch { /* armazenamento indisponível */ }
+  }, [collapsed])
+
+  // Gaveta móvel: Esc fecha, foco entra na gaveta e volta ao botão de menu
+  useEffect(() => {
+    if (!drawerOpen || isDesktop) return
+    const previous = document.activeElement as HTMLElement | null
+    const menuButton = menuButtonRef.current
+    drawerRef.current?.querySelector<HTMLElement>('a, button')?.focus()
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setDrawerOpen(false) }
+    document.addEventListener('keydown', onKey)
+    const { overflow } = document.body.style
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = overflow
+      ;(previous ?? menuButton)?.focus()
     }
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+  }, [drawerOpen, isDesktop])
 
   if (!user) return null
 
-  const handleLogout = async () => {
-    await logout()
-    navigate('/login', { replace: true })
-  }
-
-  const userMenuItems = menuByRole[user.tipo_perfil] || []
-
-  const getPageTitle = () => {
-    const currentItem = userMenuItems.find(item => {
-      if (item.end) return location.pathname === item.to
-      return location.pathname.startsWith(item.to)
-    })
-    return currentItem?.label || 'BarberPro'
-  }
-
-  const getPageDescription = () => {
-    const descriptions: Record<string, string> = {
-      '/': 'Visão geral do seu painel',
-      '/services': 'Gerencie os serviços disponíveis',
-      '/barbers': 'Visualize os barbeiros disponíveis',
-      '/appointments/new': 'Agende um novo horário',
-      '/appointments': 'Acompanhe seus agendamentos',
-      '/barber/agenda': 'Gerencie sua agenda de hoje',
-      '/admin': 'Visão geral da barbearia',
-      '/admin/services': 'Administre os serviços da barbearia',
-      '/admin/barbers': 'Gerencie a equipe de barbeiros',
-      '/admin/appointments': 'Visualize todos os agendamentos',
-      '/password/change': 'Altere sua senha de acesso',
-    }
-    return descriptions[location.pathname] || ''
-  }
-
-  const toggleSidebar = () => {
-    if (isMobile) {
-      setIsMobileMenuOpen(!isMobileMenuOpen)
-    } else {
-      setIsSidebarCollapsed(!isSidebarCollapsed)
-    }
-  }
-
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false)
-  }
+  const groups = navigation[user.tipo_perfil] ?? []
+  const isCollapsed = collapsed && isDesktop
+  const drawerHidden = !isDesktop && !drawerOpen
 
   return (
-    <>
-      {isMobile && isMobileMenuOpen && (
-        <div className={styles.overlay} onClick={closeMobileMenu} aria-hidden="true" />
-      )}
+    <div className={`${styles.shell} ${isCollapsed ? styles.shellCollapsed : ''}`}>
+      <a className={styles.skipLink} href="#conteudo">Pular para o conteúdo</a>
+
+      {!isDesktop && drawerOpen && <div className={styles.overlay} onClick={() => setDrawerOpen(false)} aria-hidden="true" />}
+
       <aside
-        className={`${styles.sidebar} ${isSidebarCollapsed ? styles.collapsed : ''} ${isMobile && isMobileMenuOpen ? styles.mobileOpen : ''}`}
+        ref={drawerRef}
+        id="menu-principal"
+        className={`${styles.sidebar} ${drawerOpen ? styles.sidebarOpen : ''}`}
         aria-label="Menu principal"
+        aria-hidden={drawerHidden ? true : undefined}
+        inert={drawerHidden ? true : undefined}
       >
         <div className={styles.sidebarHeader}>
-          <NavLink to="/" className={styles.brand} aria-label="BarberPro - Início">
-            <span className={styles.brandMark} aria-hidden="true">B</span>
-            <span className={isSidebarCollapsed ? styles.brandTextHidden : styles.brandText}>BarberPro</span>
-          </NavLink>
-          {!isMobile && (
-            <button
-              className={styles.collapseToggle}
-              onClick={toggleSidebar}
-              aria-label={isSidebarCollapsed ? 'Expandir menu' : 'Recolher menu'}
-              aria-expanded={!isSidebarCollapsed}
-            >
-              {isSidebarCollapsed ? <ChevronRightIcon size={18} /> : <ChevronLeftIcon size={18} />}
-            </button>
-          )}
+          <Link to="/" className={styles.brand} aria-label="BarberPro, página inicial">
+            <BrandMark />
+            <span className={styles.brandName}>BarberPro</span>
+          </Link>
+          <button type="button" className={`${ui.iconButton} ${styles.closeDrawer}`} onClick={() => setDrawerOpen(false)} aria-label="Fechar menu">
+            <XIcon size={20} />
+          </button>
         </div>
 
+        <ShopSummary />
+
         <nav className={styles.nav} aria-label="Navegação principal">
-          {userMenuItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              className={({ isActive }) =>
-                `${styles.navLink} ${isActive ? styles.navLinkActive : ''} ${isSidebarCollapsed ? styles.navLinkCollapsed : ''}`
-              }
-              onClick={closeMobileMenu}
-            >
-              <span className={styles.navIcon} aria-hidden="true">{item.icon}</span>
-              {!isSidebarCollapsed && <span className={styles.navLabel}>{item.label}</span>}
-            </NavLink>
+          {groups.map((group, index) => (
+            <div className={styles.navGroup} key={group.label ?? index}>
+              {group.label && <span className={styles.navGroupLabel}>{group.label}</span>}
+              {group.items.map(({ to, label, icon: Icon, end }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  end={end}
+                  title={isCollapsed ? label : undefined}
+                  aria-label={isCollapsed ? label : undefined}
+                  className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
+                >
+                  <Icon size={20} />
+                  <span className={styles.navText}>{label}</span>
+                </NavLink>
+              ))}
+            </div>
           ))}
         </nav>
 
         <div className={styles.sidebarFooter}>
-          <div className={isSidebarCollapsed ? styles.userInfoCollapsed : styles.userInfo}>
-            <div className={styles.userAvatar} aria-hidden="true">
-              <UserIcon size={24} />
-            </div>
-            {!isSidebarCollapsed && (
-              <div className={styles.userDetails}>
-                <strong className={styles.userName}>{user.nome}</strong>
-                <span className={styles.userRole}>{user.tipo_perfil}</span>
-              </div>
-            )}
-          </div>
-          {!isSidebarCollapsed && (
-            <div className={styles.userActions}>
-              <NavLink
-                to="/password/change"
-                className={styles.userAction}
-                onClick={closeMobileMenu}
-              >
-                <SettingsIcon size={18} />
-                <span>Alterar Senha</span>
-              </NavLink>
-              <button className={styles.logout} onClick={handleLogout}>
-                <LogoutIcon size={18} />
-                <span>Sair</span>
-              </button>
-            </div>
-          )}
-          {isSidebarCollapsed && (
-            <div className={styles.collapsedActions}>
-              <NavLink
-                to="/password/change"
-                className={styles.collapsedAction}
-                onClick={closeMobileMenu}
-                title="Alterar Senha"
-              >
-                <SettingsIcon size={20} />
-              </NavLink>
-              <button
-                className={styles.collapsedAction}
-                onClick={handleLogout}
-                title="Sair"
-              >
-                <LogoutIcon size={20} />
-              </button>
-            </div>
-          )}
+          <button
+            type="button"
+            className={styles.collapseButton}
+            onClick={() => setCollapsed((value) => !value)}
+            aria-expanded={!collapsed}
+            aria-controls="menu-principal"
+            title={collapsed ? 'Expandir menu' : undefined}
+          >
+            <PanelLeftIcon size={20} />
+            <span className={styles.collapseText}>Recolher menu</span>
+            <span className="sr-only">{collapsed ? 'Expandir menu' : ''}</span>
+          </button>
         </div>
       </aside>
 
-      <div className={styles.mainWrapper}>
-        <header className={styles.header}>
+      <div className={styles.main}>
+        <header className={styles.topbar}>
           <button
-            className={styles.mobileMenuToggle}
-            onClick={toggleSidebar}
+            ref={menuButtonRef}
+            type="button"
+            className={`${ui.iconButton} ${styles.menuButton}`}
+            onClick={() => setDrawerOpen(true)}
             aria-label="Abrir menu"
-            aria-expanded={isMobileMenuOpen}
-            aria-controls="sidebar"
+            aria-expanded={drawerOpen}
+            aria-controls="menu-principal"
           >
-            <MenuIcon />
+            <MenuIcon size={22} />
           </button>
-          <div className={styles.headerContent}>
-            <div className={styles.pageTitle}>
-              <h1>{getPageTitle()}</h1>
-              {getPageDescription() && <p>{getPageDescription()}</p>}
-            </div>
-            <div className={styles.headerActions}>
-              <div className={styles.headerUser}>
-                <div className={styles.userAvatar} aria-hidden="true">
-                  <UserIcon size={28} />
-                </div>
-                <div className={styles.userInfo}>
-                  <strong>{user.nome.split(' ')[0]}</strong>
-                  <span>{user.tipo_perfil}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <Link to="/" className={styles.mobileBrand} aria-label="BarberPro, página inicial">
+            <BrandMark size={28} /> BarberPro
+          </Link>
+          <span className={styles.topbarDate}>{formatDayLong(todayISO(), true)}</span>
+          <span className={styles.topbarSpacer} />
+          {(user.tipo_perfil === 'admin' || user.tipo_perfil === 'barbeiro') && <PendingIndicator role={user.tipo_perfil} />}
+          <UserMenu user={user} />
         </header>
 
-        <main className={styles.main} id="main-content" role="main" tabIndex={-1}>
-          <Outlet />
+        <main id="conteudo" className={styles.content} tabIndex={-1}>
+          <Suspense fallback={<PageLoader label="Carregando…" />}>
+            <div key={location.pathname} className={page.routeEnter}>
+              <Outlet />
+            </div>
+          </Suspense>
         </main>
       </div>
-    </>
+    </div>
+  )
+}
+
+function ShopSummary() {
+  const { barbershop } = useBarbershop()
+  useNow(60_000)
+  if (!barbershop) return null
+  const status = shopHoursStatus(barbershop)
+  return (
+    <div className={styles.shop}>
+      <span className={styles.shopName} title={barbershop.nome}>{barbershop.nome}</span>
+      <span className={styles.shopMeta}>
+        <span className={`${styles.openDot} ${status.open ? '' : styles.closedDot}`} aria-hidden="true" />
+        {status.label}
+      </span>
+    </div>
+  )
+}
+
+/**
+ * Agendamentos com status "agendado" aguardando confirmação (dado real da API).
+ * Atualiza ao navegar e quando qualquer tela altera um agendamento.
+ */
+function PendingIndicator({ role }: { role: 'admin' | 'barbeiro' }) {
+  const location = useLocation()
+  const [count, setCount] = useState<number | null>(null)
+
+  const load = useCallback(() => {
+    appointmentApi.list({ status: 'agendado' })
+      .then(({ data }) => setCount(data.count))
+      .catch(() => setCount(null))
+  }, [])
+
+  useEffect(() => { load() }, [load, location.pathname])
+
+  useEffect(() => {
+    window.addEventListener(APPOINTMENTS_CHANGED, load)
+    return () => window.removeEventListener(APPOINTMENTS_CHANGED, load)
+  }, [load])
+
+  if (!count) return null
+  const target = role === 'admin' ? '/admin/appointments?status=agendado' : '/barber/agenda?status=agendado'
+  return (
+    <Link to={target} className={styles.pendingLink} aria-label={`${count} agendamentos aguardando confirmação`}>
+      <span className={styles.pendingCount}>{count}</span>
+      <span className={styles.pendingText}>a confirmar</span>
+    </Link>
+  )
+}
+
+function UserMenu({ user }: { user: User }) {
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    containerRef.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus()
+    const onPointer = (event: PointerEvent) => {
+      if (!containerRef.current?.contains(event.target as Node)) setOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointer)
+    return () => document.removeEventListener('pointerdown', onPointer)
+  }, [open])
+
+  const onMenuKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const items = Array.from(containerRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])
+    const index = items.indexOf(document.activeElement as HTMLElement)
+    if (event.key === 'Escape') {
+      setOpen(false)
+      buttonRef.current?.focus()
+    } else if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      items[(index + 1) % items.length]?.focus()
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      items[(index - 1 + items.length) % items.length]?.focus()
+    } else if (event.key === 'Tab') {
+      setOpen(false)
+    }
+  }
+
+  const handleLogout = async () => {
+    setOpen(false)
+    await logout()
+    navigate('/login', { replace: true })
+  }
+
+  return (
+    <div className={styles.userMenu} ref={containerRef}>
+      <button
+        ref={buttonRef}
+        type="button"
+        className={styles.userButton}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+      >
+        <Avatar name={user.nome} />
+        <span className={styles.userButtonText}>
+          <strong>{user.nome.split(' ')[0]}</strong>
+          <span>{roleLabels[user.tipo_perfil]}</span>
+        </span>
+        <ChevronDownIcon size={16} />
+        <span className="sr-only">Menu da conta</span>
+      </button>
+
+      {open && (
+        <div className={styles.menu} role="menu" aria-label="Conta" onKeyDown={onMenuKeyDown}>
+          <div className={styles.menuHeader}>
+            <strong>{user.nome}</strong>
+            <span>{user.email}</span>
+            <span className={styles.menuRole}>{roleLabels[user.tipo_perfil]}</span>
+          </div>
+          <Link to="/account" role="menuitem" className={styles.menuItem} onClick={() => setOpen(false)}>
+            <UserIcon size={18} /> Minha conta
+          </Link>
+          <button type="button" role="menuitem" className={`${styles.menuItem} ${styles.menuItemDanger}`} onClick={() => void handleLogout()}>
+            <LogoutIcon size={18} /> Sair
+          </button>
+        </div>
+      )}
+    </div>
   )
 }

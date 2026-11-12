@@ -1,192 +1,232 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { barberApi, userApi } from '../api/endpoints'
-import { EmptyState } from '../components/EmptyState'
-import { PageLoader } from '../components/PageLoader'
-import { Pagination } from '../components/Pagination'
+import { barberApi, listAllBarbers, userApi } from '../api/endpoints'
+import { ActiveBadge, Avatar, ButtonSpinner, Field, fieldA11y, Pagination, PasswordInput, SearchField, SegmentedControl } from '../components/Controls'
+import { EmptyState, ErrorState, RefreshBar, SkeletonRows } from '../components/Feedback'
+import { EditIcon, PowerIcon, RotateCcwIcon, UserPlusIcon, UsersIcon } from '../components/Icons'
+import { Modal } from '../components/Modal'
+import { PageHeader } from '../components/PageHeader'
+import { useConfirm } from '../contexts/ConfirmContext'
 import { useToast } from '../contexts/ToastContext'
 import { useAsyncData } from '../hooks/useAsyncData'
+import { useLocalPagination } from '../hooks/useUi'
 import type { Barber } from '../types'
-import { errorMessage } from '../utils/format'
-import { XIcon } from '../components/Icons'
-import styles from '../styles/page.module.css'
+import { errorMessage, fieldErrors, firstName, matchesSearch } from '../utils/format'
+import page from '../styles/page.module.css'
 import ui from '../styles/ui.module.css'
 
-const newBarberSchema = z.object({
-  nome: z.string().min(3, 'Informe o nome completo.'),
-  email: z.string().email('Informe um e-mail válido.'),
-  password: z.string().min(8, 'A senha precisa ter pelo menos 8 caracteres.'),
-  especialidade: z.string().max(150, 'Use no máximo 150 caracteres.'),
-  ativo: z.boolean(),
-})
-const editBarberSchema = z.object({
-  especialidade: z.string().max(150, 'Use no máximo 150 caracteres.'),
-  ativo: z.boolean(),
-})
-type NewBarberForm = z.infer<typeof newBarberSchema>
-type EditBarberForm = z.infer<typeof editBarberSchema>
+const specialtyRule = z.string().trim().min(2, 'Informe a especialidade (ex.: degradê, barba).').max(100, 'Use no máximo 100 caracteres.')
 
-const newBarberDefaults: NewBarberForm = { nome: '', email: '', password: '', especialidade: '', ativo: true }
-const editBarberDefaults: EditBarberForm = { especialidade: '', ativo: true }
+const createSchema = z.object({
+  nome: z.string().trim().min(3, 'Informe o nome completo.').max(150, 'Use no máximo 150 caracteres.'),
+  email: z.string().trim().email('Informe um e-mail válido.'),
+  password: z.string().min(8, 'A senha precisa ter pelo menos 8 caracteres.'),
+  especialidade: specialtyRule,
+  ativo: z.boolean(),
+})
+const editSchema = z.object({ especialidade: specialtyRule, ativo: z.boolean() })
+
+type CreateForm = z.infer<typeof createSchema>
+type EditForm = z.infer<typeof editSchema>
+type StatusFilter = 'all' | 'active' | 'inactive'
+
+const createDefaults: CreateForm = { nome: '', email: '', password: '', especialidade: '', ativo: true }
 
 export function AdminBarbersPage() {
   const { showToast } = useToast()
-  const [showModal, setShowModal] = useState(false)
-  const [editingBarber, setEditingBarber] = useState<Barber | null>(null)
-  const [statusFilter, setStatusFilter] = useState<'all' | 'true' | 'false'>('all')
-  const [page, setPage] = useState(1)
+  const confirm = useConfirm()
+  const { data, isLoading, isRefreshing, error, reload, setData } = useAsyncData(listAllBarbers, [])
+  const [query, setQuery] = useState('')
+  const [status, setStatus] = useState<StatusFilter>('active')
+  const [mode, setMode] = useState<'closed' | 'create' | 'edit'>('closed')
+  const [editing, setEditing] = useState<Barber | null>(null)
+  const [busyId, setBusyId] = useState<number | null>(null)
 
-  // Reset page to 1 when filter changes
-  useEffect(() => {
-    setPage(1)
-  }, [statusFilter])
+  const createForm = useForm<CreateForm>({ resolver: zodResolver(createSchema), defaultValues: createDefaults })
+  const editForm = useForm<EditForm>({ resolver: zodResolver(editSchema), defaultValues: { especialidade: '', ativo: true } })
 
-  const { data: barbersData, isLoading: loadingBarbers, error: errorBarbers, reload: reloadBarbers } = useAsyncData(
-    () => barberApi.list({ page, ativo: statusFilter }).then((response) => response.data),
-    [page, statusFilter]
-  )
+  const barbers = useMemo(() => data ?? [], [data])
+  const counts = useMemo(() => ({
+    all: barbers.length,
+    active: barbers.filter((item) => item.ativo).length,
+    inactive: barbers.filter((item) => !item.ativo).length,
+  }), [barbers])
 
-  // Create form
-  const createForm = useForm<NewBarberForm>({
-    resolver: zodResolver(newBarberSchema),
-    defaultValues: newBarberDefaults,
+  const filtered = useMemo(() => barbers
+    .filter((item) => (status === 'all' || (status === 'active') === item.ativo) && matchesSearch(query, item.nome, item.email, item.especialidade))
+    .sort((a, b) => Number(b.ativo) - Number(a.ativo) || a.nome.localeCompare(b.nome, 'pt-BR')), [barbers, status, query])
+
+  const pager = useLocalPagination(filtered, 20, `${status}|${query}`)
+
+  const upsert = (barber: Barber) => setData((current) => {
+    const list = current ?? []
+    return list.some((item) => item.id === barber.id) ? list.map((item) => (item.id === barber.id ? barber : item)) : [...list, barber]
   })
 
-  // Edit form
-  const editForm = useForm<EditBarberForm>({
-    resolver: zodResolver(editBarberSchema),
-    defaultValues: editBarberDefaults,
-  })
-
-  const isEditMode = Boolean(editingBarber)
-
-  const openCreateModal = () => {
-    setEditingBarber(null)
-    createForm.reset(newBarberDefaults)
-    setShowModal(true)
+  const openCreate = () => {
+    createForm.reset(createDefaults)
+    setEditing(null)
+    setMode('create')
   }
 
-  const openEditModal = (barber: Barber) => {
-    setEditingBarber(barber)
+  const openEdit = (barber: Barber) => {
     editForm.reset({ especialidade: barber.especialidade, ativo: barber.ativo })
-    setShowModal(true)
+    setEditing(barber)
+    setMode('edit')
   }
 
-  const closeModal = () => {
-    setShowModal(false)
-    setEditingBarber(null)
-    createForm.reset(newBarberDefaults)
-    editForm.reset(editBarberDefaults)
-  }
-
-  const handleCreateSubmit = async (values: NewBarberForm) => {
+  const handleCreate = async (values: CreateForm) => {
     try {
-      // O endpoint de usuários cria o User e o perfil Barber em uma única
-      // transação. Uma segunda chamada deixaria um usuário órfão se falhasse.
+      // O endpoint de usuários cria a conta e o perfil de barbeiro na mesma
+      // transação; duas chamadas poderiam deixar um usuário órfão se a segunda falhasse.
       await userApi.create({
-        email: values.email,
-        nome: values.nome,
+        email: values.email.trim(),
+        nome: values.nome.trim(),
         password: values.password,
         tipo_perfil: 'barbeiro',
-        especialidade: values.especialidade,
+        especialidade: values.especialidade.trim(),
         ativo: values.ativo,
       })
-      await reloadBarbers()
-      showToast('Barbeiro cadastrado.', 'success')
-      closeModal()
+      await reload()
+      showToast(`${firstName(values.nome)} foi adicionado à equipe.`, 'success')
+      setMode('closed')
     } catch (requestError) {
+      const fields = fieldErrors(requestError)
+      for (const key of ['nome', 'email', 'password', 'especialidade'] as const) {
+        if (fields[key]) createForm.setError(key, { message: fields[key] })
+      }
       showToast(errorMessage(requestError, 'Não foi possível cadastrar o barbeiro.'), 'error')
     }
   }
 
-  const handleEditSubmit = async (values: EditBarberForm) => {
-    if (!editingBarber) return
+  const handleEdit = async (values: EditForm) => {
+    if (!editing) return
     try {
-      await barberApi.update(editingBarber.id, values)
-      await reloadBarbers()
-      showToast('Barbeiro atualizado.', 'success')
-      closeModal()
+      const { data: saved } = await barberApi.update(editing.id, { especialidade: values.especialidade.trim(), ativo: values.ativo })
+      upsert(saved)
+      showToast('Dados do barbeiro atualizados.', 'success')
+      setMode('closed')
     } catch (requestError) {
+      const fields = fieldErrors(requestError)
+      if (fields.especialidade) editForm.setError('especialidade', { message: fields.especialidade })
       showToast(errorMessage(requestError, 'Não foi possível atualizar o barbeiro.'), 'error')
     }
   }
 
-  const remove = async (barber: Barber) => {
-    if (!window.confirm(`Excluir o barbeiro "${barber.nome}"?`)) return
+  const toggleActive = async (barber: Barber) => {
+    if (barber.ativo) {
+      const ok = await confirm({
+        title: `Desativar ${barber.nome}?`,
+        description: 'Ele deixa de aparecer para novos agendamentos e a conta passa a ser de cliente. Os horários já marcados e o histórico continuam disponíveis, e você pode reativá-lo depois.',
+        confirmLabel: 'Desativar barbeiro',
+        tone: 'danger',
+      })
+      if (!ok) return
+    }
+    setBusyId(barber.id)
     try {
-      await barberApi.remove(barber.id)
-      await reloadBarbers()
-      showToast('Barbeiro excluído.', 'success')
+      if (barber.ativo) {
+        await barberApi.remove(barber.id)
+        upsert({ ...barber, ativo: false })
+        showToast(`${firstName(barber.nome)} foi desativado.`, 'success')
+      } else {
+        const { data: saved } = await barberApi.update(barber.id, { ativo: true })
+        upsert(saved)
+        showToast(`${firstName(barber.nome)} foi reativado.`, 'success')
+      }
     } catch (requestError) {
-      showToast(errorMessage(requestError, 'Não foi possível excluir o barbeiro.'), 'error')
+      showToast(errorMessage(requestError, 'Não foi possível alterar o barbeiro.'), 'error')
+    } finally {
+      setBusyId(null)
     }
   }
 
-  if (loadingBarbers) return <PageLoader label="Carregando barbeiros..." />
-  if (errorBarbers) return <p className={ui.errorBox}>Não foi possível carregar os barbeiros.</p>
-  const barbers = barbersData?.results ?? []
+  const createErrors = createForm.formState.errors
+  const editErrors = editForm.formState.errors
+  const submitting = createForm.formState.isSubmitting || editForm.formState.isSubmitting
 
   return (
-    <div className={styles.page}>
-      <header className={styles.pageHeader}>
-        <div>
-          <p className={styles.eyebrow}>Equipe da barbearia</p>
-          <h1>Gerenciar barbeiros</h1>
-        </div>
-        <button className={ui.button} onClick={openCreateModal}>Novo barbeiro</button>
-      </header>
+    <div className={page.page}>
+      <PageHeader
+        title="Barbeiros"
+        description="A equipe que aparece para os clientes no agendamento. Cada barbeiro tem login próprio para ver a agenda."
+        actions={<button type="button" className={ui.button} onClick={openCreate}><UserPlusIcon size={18} /> Novo barbeiro</button>}
+      />
 
-      <div className={ui.dataTable}>
-        <div className={ui.filterBar}>
-          <div className={ui.filterGroup}>
-            <label htmlFor="status-filter">Status</label>
-            <select id="status-filter" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as 'all' | 'true' | 'false')}>
-              <option value="all">Todos</option>
-              <option value="true">Ativos</option>
-              <option value="false">Inativos</option>
-            </select>
+      <section className={ui.panel}>
+        <div className={ui.toolbar}>
+          <div className={ui.toolbarGrow}>
+            <SearchField value={query} onChange={setQuery} placeholder="Buscar por nome, e-mail ou especialidade" />
           </div>
+          <SegmentedControl
+            label="Filtrar por situação"
+            value={status}
+            onChange={setStatus}
+            options={[
+              { value: 'active', label: 'Ativos', count: counts.active },
+              { value: 'inactive', label: 'Inativos', count: counts.inactive },
+              { value: 'all', label: 'Todos', count: counts.all },
+            ]}
+          />
         </div>
+        <RefreshBar active={isRefreshing} />
 
-        {barbers.length === 0 ? (
-          <EmptyState title="Nenhum barbeiro encontrado" description={statusFilter === 'all' ? 'Cadastre o primeiro barbeiro para começar.' : 'Não há barbeiros com o filtro selecionado. Tente alterar o filtro de status.'} />
+        {isLoading ? (
+          <SkeletonRows rows={4} label="Carregando barbeiros" />
+        ) : error && !data ? (
+          <ErrorState error={error} fallback="Não foi possível carregar os barbeiros." onRetry={() => void reload()} />
+        ) : barbers.length === 0 ? (
+          <EmptyState
+            icon={<UsersIcon size={22} />}
+            title="Nenhum barbeiro na equipe"
+            description="Cadastre o primeiro barbeiro. Ele recebe um login para acompanhar a própria agenda."
+            action={{ label: 'Cadastrar barbeiro', onClick: openCreate }}
+          />
+        ) : filtered.length === 0 ? (
+          <EmptyState compact title="Nenhum barbeiro encontrado" description="Ajuste a busca ou o filtro de situação." action={{ label: 'Limpar filtros', onClick: () => { setQuery(''); setStatus('all') } }} />
         ) : (
           <>
-            <div className={ui.tableContainer}>
+            <div className={ui.tableWrap}>
               <table className={ui.table}>
                 <thead>
                   <tr>
                     <th>Barbeiro</th>
-                    <th>E-mail</th>
                     <th>Especialidade</th>
-                    <th>Status</th>
-                    <th style={{ width: '140px' }}>Ações</th>
+                    <th>Situação</th>
+                    <th><span className="sr-only">Ações</span></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {barbers.map((barber) => (
-                    <tr key={barber.id}>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-                          <span className={ui.avatar} style={{ width: '2.5rem', height: '2.5rem', fontSize: 'var(--text-base)' }}>
-                            {barber.nome.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                          </span>
-                          <strong>{barber.nome}</strong>
+                  {pager.pageItems.map((barber) => (
+                    <tr key={barber.id} className={barber.ativo ? undefined : ui.rowInactive}>
+                      <td data-primary>
+                        <div className={ui.cellPerson}>
+                          <Avatar name={barber.nome} muted={!barber.ativo} />
+                          <div style={{ minWidth: 0 }}>
+                            <div className={ui.cellTitle}>{barber.nome}</div>
+                            <div className={ui.cellMuted}>{barber.email}</div>
+                          </div>
                         </div>
                       </td>
-                      <td>{barber.email}</td>
-                      <td>{barber.especialidade || <span className={ui.cellMuted}>—</span>}</td>
-                      <td>
-                        <span className={`${ui.badge} ${barber.ativo ? ui.badgeSuccess : ui.badgeWarning}`}>
-                          {barber.ativo ? 'Ativo' : 'Inativo'}
-                        </span>
-                      </td>
-                      <td>
-                        <div className={ui.actionButtons}>
-                          <button className={ui.secondaryButton} onClick={() => openEditModal(barber)}>Editar</button>
-                          <button className={ui.dangerButton} onClick={() => void remove(barber)}>Excluir</button>
+                      <td data-label="Especialidade">{barber.especialidade || <span className={ui.cellMuted}>Não informada</span>}</td>
+                      <td data-label="Situação"><ActiveBadge active={barber.ativo} /></td>
+                      <td data-actions>
+                        <div className={ui.cellActions}>
+                          <button type="button" className={`${ui.ghostButton} ${ui.sm}`} onClick={() => openEdit(barber)} aria-label={`Editar ${barber.nome}`}>
+                            <EditIcon size={16} /> Editar
+                          </button>
+                          <button
+                            type="button"
+                            className={`${ui.ghostButton} ${ui.sm}`}
+                            onClick={() => void toggleActive(barber)}
+                            disabled={busyId === barber.id}
+                            aria-label={`${barber.ativo ? 'Desativar' : 'Reativar'} ${barber.nome}`}
+                          >
+                            {busyId === barber.id ? <ButtonSpinner /> : barber.ativo ? <PowerIcon size={16} /> : <RotateCcwIcon size={16} />}
+                            {barber.ativo ? 'Desativar' : 'Reativar'}
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -194,63 +234,77 @@ export function AdminBarbersPage() {
                 </tbody>
               </table>
             </div>
-            {barbersData && <Pagination page={page} count={barbersData.count} onChange={setPage} />}
+            <Pagination page={pager.page} count={pager.total} pageSize={pager.pageSize} onChange={pager.setPage} />
           </>
         )}
-      </div>
+      </section>
 
-      {/* Modal */}
-      {showModal && (
-        <div className={ui.modalOverlay} onClick={closeModal} role="dialog" aria-modal="true" aria-labelledby="modal-title">
-          <div className={ui.modal} onClick={(e) => e.stopPropagation()}>
-            <div className={ui.modalHeader}>
-              <h2 id="modal-title">{isEditMode ? 'Editar barbeiro' : 'Novo barbeiro'}</h2>
-              <button className={ui.modalClose} onClick={closeModal} aria-label="Fechar"><XIcon size={20} /></button>
-            </div>
-            {!isEditMode ? (
-              <form className={ui.modalBody} onSubmit={createForm.handleSubmit(handleCreateSubmit)} noValidate>
-                <label className={ui.field}>Nome completo
-                  <input placeholder="João Silva" {...createForm.register('nome')} />
-                  {createForm.formState.errors.nome && <small className={ui.error}>{createForm.formState.errors.nome.message}</small>}
-                </label>
-                <label className={ui.field}>E-mail
-                  <input type="email" placeholder="joao@exemplo.com" {...createForm.register('email')} />
-                  {createForm.formState.errors.email && <small className={ui.error}>{createForm.formState.errors.email.message}</small>}
-                </label>
-                <label className={ui.field}>Senha
-                  <input type="password" placeholder="••••••••" {...createForm.register('password')} />
-                  {createForm.formState.errors.password && <small className={ui.error}>{createForm.formState.errors.password.message}</small>}
-                </label>
-                <label className={ui.field}>Especialidade
-                  <input placeholder="Ex.: Barba, Corte degradê, Colorimetria" {...createForm.register('especialidade')} />
-                  {createForm.formState.errors.especialidade && <small className={ui.error}>{createForm.formState.errors.especialidade.message}</small>}
-                </label>
-                <label className={ui.checkbox}><input type="checkbox" {...createForm.register('ativo')} /> Barbeiro ativo</label>
-                <div className={ui.modalFooter}>
-                  <button type="button" className={ui.secondaryButton} onClick={closeModal}>Cancelar</button>
-                  <button type="submit" className={ui.button} disabled={createForm.formState.isSubmitting}>
-                    {createForm.formState.isSubmitting ? 'Salvando...' : 'Cadastrar barbeiro'}
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <form className={ui.modalBody} onSubmit={editForm.handleSubmit(handleEditSubmit)} noValidate>
-                <label className={ui.field}>Especialidade
-                  <input placeholder="Ex.: Barba, Corte degradê, Colorimetria" {...editForm.register('especialidade')} />
-                  {editForm.formState.errors.especialidade && <small className={ui.error}>{editForm.formState.errors.especialidade.message}</small>}
-                </label>
-                <label className={ui.checkbox}><input type="checkbox" {...editForm.register('ativo')} /> Barbeiro ativo</label>
-                <div className={ui.modalFooter}>
-                  <button type="button" className={ui.secondaryButton} onClick={closeModal}>Cancelar</button>
-                  <button type="submit" className={ui.button} disabled={editForm.formState.isSubmitting}>
-                    {editForm.formState.isSubmitting ? 'Salvando...' : 'Salvar alterações'}
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
+      <Modal
+        open={mode === 'create'}
+        onClose={() => setMode('closed')}
+        dismissible={!submitting}
+        title="Novo barbeiro"
+        description="Cria o login do barbeiro e o perfil profissional que aparece no agendamento."
+        footer={
+          <>
+            <button type="button" className={ui.secondaryButton} onClick={() => setMode('closed')} disabled={submitting}>Cancelar</button>
+            <button type="submit" form="barber-create" className={ui.button} disabled={submitting}>
+              {createForm.formState.isSubmitting && <ButtonSpinner />} Cadastrar barbeiro
+            </button>
+          </>
+        }
+      >
+        <form id="barber-create" className={ui.form} onSubmit={createForm.handleSubmit(handleCreate)} noValidate>
+          <Field label="Nome completo" htmlFor="barber-nome" error={createErrors.nome?.message}>
+            <input {...fieldA11y('barber-nome', createErrors.nome?.message)} autoComplete="off" placeholder="Rafael Mendes" {...createForm.register('nome')} />
+          </Field>
+          <Field label="E-mail de acesso" htmlFor="barber-email" error={createErrors.email?.message}>
+            <input {...fieldA11y('barber-email', createErrors.email?.message)} type="email" autoComplete="off" placeholder="rafael@suabarbearia.com" {...createForm.register('email')} />
+          </Field>
+          <Field label="Senha inicial" htmlFor="barber-password" error={createErrors.password?.message} hint="Mínimo de 8 caracteres, sem ser apenas números. Compartilhe com o barbeiro; ele pode trocá-la depois.">
+            <PasswordInput {...fieldA11y('barber-password', createErrors.password?.message, true)} autoComplete="new-password" {...createForm.register('password')} />
+          </Field>
+          <Field label="Especialidade" htmlFor="barber-especialidade" error={createErrors.especialidade?.message} hint="Aparece para o cliente ao escolher o profissional.">
+            <input {...fieldA11y('barber-especialidade', createErrors.especialidade?.message, true)} placeholder="Degradê e navalhado" {...createForm.register('especialidade')} />
+          </Field>
+          <label className={ui.switch}>
+            <input type="checkbox" {...createForm.register('ativo')} />
+            <span className={ui.switchText}>
+              Recebendo agendamentos
+              <small>Desligado, o perfil fica salvo, mas a conta funciona como cliente até ser reativado.</small>
+            </span>
+          </label>
+        </form>
+      </Modal>
+
+      <Modal
+        open={mode === 'edit'}
+        onClose={() => setMode('closed')}
+        dismissible={!submitting}
+        title={editing ? `Editar ${editing.nome}` : 'Editar barbeiro'}
+        description={editing?.email}
+        footer={
+          <>
+            <button type="button" className={ui.secondaryButton} onClick={() => setMode('closed')} disabled={submitting}>Cancelar</button>
+            <button type="submit" form="barber-edit" className={ui.button} disabled={submitting}>
+              {editForm.formState.isSubmitting && <ButtonSpinner />} Salvar alterações
+            </button>
+          </>
+        }
+      >
+        <form id="barber-edit" className={ui.form} onSubmit={editForm.handleSubmit(handleEdit)} noValidate>
+          <Field label="Especialidade" htmlFor="edit-especialidade" error={editErrors.especialidade?.message}>
+            <input {...fieldA11y('edit-especialidade', editErrors.especialidade?.message)} {...editForm.register('especialidade')} />
+          </Field>
+          <label className={ui.switch}>
+            <input type="checkbox" {...editForm.register('ativo')} />
+            <span className={ui.switchText}>
+              Recebendo agendamentos
+              <small>Ao desligar, a conta passa a ser de cliente; o histórico é mantido.</small>
+            </span>
+          </label>
+        </form>
+      </Modal>
     </div>
   )
 }

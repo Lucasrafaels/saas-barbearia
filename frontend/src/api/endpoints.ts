@@ -14,11 +14,15 @@ import type {
   PasswordResetConfirmInput,
   PasswordResetRequestInput,
   RegisterInput,
+  RevenueReport,
   Service,
+  UpdateBarbershopInput,
   UpdateUserInput,
   User,
   UserRole,
 } from '../types'
+
+type ActiveFilter = 'true' | 'false' | 'all'
 
 export const authApi = {
   login: (payload: LoginInput) => api.post<{ access: string }>('/auth/login/', payload),
@@ -32,21 +36,34 @@ export const authApi = {
 
 export const barbershopApi = {
   list: () => api.get<Paginated<Barbershop>>('/barbershops/'),
+  /** A API devolve somente a barbearia do usuário autenticado. */
+  current: async (): Promise<Barbershop | null> => {
+    const { data } = await api.get<Paginated<Barbershop>>('/barbershops/')
+    return data.results[0] ?? null
+  },
   create: (payload: Omit<Barbershop, 'id' | 'logo' | 'ativo' | 'created_at'> & { ativo?: boolean }) =>
     api.post<Barbershop>('/barbershops/', payload),
+  update: (id: number, payload: UpdateBarbershopInput) => api.patch<Barbershop>(`/barbershops/${id}/`, payload),
 }
 
 export const barberApi = {
-  list: (params?: { page?: number; ativo?: 'true' | 'false' | 'all' }) => api.get<Paginated<Barber>>('/barbers/', { params }),
+  list: (params?: { page?: number; ativo?: ActiveFilter }) => api.get<Paginated<Barber>>('/barbers/', { params }),
   create: (payload: CreateBarberInput) => api.post<Barber>('/barbers/', payload),
   update: (id: number, payload: Partial<CreateBarberInput>) => api.patch<Barber>(`/barbers/${id}/`, payload),
+  /** No backend, DELETE desativa o perfil (soft delete) e preserva o histórico. */
   remove: (id: number) => api.delete(`/barbers/${id}/`),
 }
 
 export const serviceApi = {
-  list: (params?: { page?: number; ativo?: 'true' | 'false' | 'all' }) => api.get<Paginated<Service>>('/services/', { params }),
+  list: (params?: { page?: number; ativo?: ActiveFilter }) => api.get<Paginated<Service>>('/services/', { params }),
   create: (payload: CreateServiceInput) => api.post<Service>('/services/', payload),
-  update: (id: number, payload: Partial<CreateServiceInput>) => api.patch<Service>(`/services/${id}/`, payload),
+  /**
+   * `ativo=all` também na escrita: sem ele o queryset do backend filtra só
+   * serviços ativos e a edição/reativação de um serviço inativo retorna 404.
+   */
+  update: (id: number, payload: Partial<CreateServiceInput>) =>
+    api.patch<Service>(`/services/${id}/`, payload, { params: { ativo: 'all' } }),
+  /** No backend, DELETE desativa o serviço (soft delete) e preserva o histórico. */
   remove: (id: number) => api.delete(`/services/${id}/`),
 }
 
@@ -54,6 +71,7 @@ export const userApi = {
   list: (params?: { tipo_perfil?: UserRole }) => api.get<Paginated<User>>('/users/', { params }),
   create: (payload: CreateUserInput) => api.post<User>('/users/', payload),
   update: (id: number, payload: Partial<UpdateUserInput>) => api.patch<User>(`/users/${id}/`, payload),
+  /** No backend, DELETE desativa a conta e preserva os agendamentos vinculados. */
   remove: (id: number) => api.delete(`/users/${id}/`),
 }
 
@@ -66,77 +84,64 @@ export const appointmentApi = {
   remove: (id: number) => api.delete(`/appointments/${id}/`),
   availableSlots: (barbeiro: number, servico: number, data: string, excludeAppointmentId?: number) =>
     api.get<AvailableSlots>('/appointments/available-slots/', {
-      params: { barbeiro, servico, data, ...(excludeAppointmentId && { exclude_appointment_id: excludeAppointmentId }) }
+      params: { barbeiro, servico, data, ...(excludeAppointmentId && { exclude_appointment_id: excludeAppointmentId }) },
     }),
+  /** Faturamento por preço histórico dos atendimentos realizados (padrão: últimos 30 dias). */
+  revenueReport: (params?: { start?: string; end?: string; barbeiro?: number }) =>
+    api.get<RevenueReport>('/appointments/revenue-report/', { params }),
 }
 
-/** Busca todas as páginas. Usado apenas onde a visão precisa realmente de todos os itens (agenda do dia). */
-export async function listAllAppointments(): Promise<Appointment[]> {
-  const appointments: Appointment[] = []
-  let next: string | null = '/appointments/'
-  while (next) {
-    const response = await api.get<Paginated<Appointment>>(next)
-    const pageData: Paginated<Appointment> = response.data
-    appointments.push(...pageData.results)
-    next = pageData.next
-  }
-  return appointments
-}
-
-/** Busca todas as páginas de usuários do tenant, opcionalmente filtrando por papel. */
-export async function listAllUsers(tipoPerfil?: UserRole): Promise<User[]> {
-  const users: User[] = []
-  let next: string | null = '/users/'
+/** Percorre todas as páginas de uma listagem paginada do DRF. */
+async function collectPages<T>(url: string, params?: Record<string, string | number>): Promise<T[]> {
+  const items: T[] = []
+  let next: string | null = url
   let isFirst = true
-
   while (next) {
-    const url: string = next
-    const config = isFirst && tipoPerfil ? { params: { tipo_perfil: tipoPerfil } } : {}
-
-    const response = await api.get<Paginated<User>>(url, config)
-
-    isFirst = false
-    users.push(...response.data.results)
+    const response: { data: Paginated<T> } = await api.get<Paginated<T>>(next, isFirst ? { params } : undefined)
+    items.push(...response.data.results)
     next = response.data.next
+    isFirst = false
   }
-
-  return tipoPerfil ? users.filter((u) => u.tipo_perfil === tipoPerfil) : users
+  return items
 }
 
-/** Busca o total de serviços (paginação aware). */
+/** Todos os agendamentos visíveis ao usuário (o escopo é aplicado pelo backend). */
+export function listAllAppointments(): Promise<Appointment[]> {
+  return collectPages<Appointment>('/appointments/')
+}
+
+/** Usuários do tenant. A API não filtra por papel, então o filtro é aplicado aqui. */
+export async function listAllUsers(tipoPerfil?: UserRole): Promise<User[]> {
+  const users = await collectPages<User>('/users/')
+  return tipoPerfil ? users.filter((user) => user.tipo_perfil === tipoPerfil) : users
+}
+
+/** Todos os serviços do tenant, ativos e inativos (admin). */
+export function listAllServices(): Promise<Service[]> {
+  return collectPages<Service>('/services/', { ativo: 'all' })
+}
+
+/** Todos os barbeiros do tenant, ativos e inativos (admin). */
+export function listAllBarbers(): Promise<Barber[]> {
+  return collectPages<Barber>('/barbers/', { ativo: 'all' })
+}
+
+/** Serviços ativos (catálogo visível para qualquer perfil). */
+export function listActiveServices(): Promise<Service[]> {
+  return collectPages<Service>('/services/', { ativo: 'true' })
+}
+
+/** Barbeiros ativos (equipe visível para qualquer perfil). */
+export function listActiveBarbers(): Promise<Barber[]> {
+  return collectPages<Barber>('/barbers/', { ativo: 'true' })
+}
+
 export async function getTotalServices(): Promise<number> {
   const response = await serviceApi.list()
   return response.data.count
 }
 
-/** Busca o total de barbeiros (paginação aware). */
 export async function getTotalBarbers(): Promise<number> {
   const response = await barberApi.list()
   return response.data.count
-}
-
-/** Busca todos os serviços do tenant (traversa todas as páginas). */
-export async function listAllServices(): Promise<Service[]> {
-  const services: Service[] = []
-  let next: string | null = '/services/?ativo=all'
-  while (next) {
-    const response = await api.get<Paginated<Service>>(next)
-    const pageData: Paginated<Service> = response.data
-    services.push(...pageData.results)
-    next = pageData.next
-  }
-  return services
-}
-
-/** Busca todos os barbeiros do tenant (traversa todas as páginas). */
-export async function listAllBarbers(): Promise<Barber[]> {
-  const barbers: Barber[] = []
-  let next: string | null = '/barbers/?ativo=all'
-  while (next) {
-    const response = await api.get<Paginated<Barber>>(next)
-    const pageData: Paginated<Barber> = response.data
-    barbers.push(...pageData.results)
-    next = pageData.next
-  }
-  return barbers
 }

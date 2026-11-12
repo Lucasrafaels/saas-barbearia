@@ -1,0 +1,17 @@
+Quantidade de consultas SQL por endpoint (detecção de N+1)
+Data: 11/11/2026 · Ferramenta: django.test.utils.CaptureQueriesContext com APIClient (autenticação forçada)
+Alvo: banco SQLite descartável de teste (somente leitura).
+
+admin GET /appointments/ (20 itens)        HTTP 200  queries=2
+admin GET /barbers/?ativo=all              HTTP 200  queries=2
+admin GET /users/                          HTTP 200  queries=2
+admin GET /services/?ativo=all             HTTP 200  queries=2
+cliente GET /appointments/                 HTTP 200  queries=2
+cliente GET available-slots                HTTP 200  queries=3
+admin GET revenue-report                   HTTP 200  queries=4
+total de agendamentos no tenant de teste: 228 -> páginas de 20 que o painel percorre: 12
+
+Leitura:
+- O backend não tem N+1: 2 a 4 consultas por requisição.
+- O custo de escala está no frontend, que percorre todas as páginas em sequência (API-01):
+  228 agendamentos = 12 requisições; o número cresce linearmente com o histórico.

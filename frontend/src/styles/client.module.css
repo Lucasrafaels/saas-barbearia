@@ -1,0 +1,511 @@
+/* Área do cliente, agenda do barbeiro e fluxo de agendamento */
+
+/* ------------------------------------------------ Bilhete do próximo horário */
+.ticket {
+  display: grid;
+  grid-template-columns: 11.5rem minmax(0, 1fr);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.ticketStub {
+  position: relative;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--space-1);
+  padding: var(--space-6) var(--space-4);
+  background: var(--ink-900);
+  color: var(--paper);
+  text-align: center;
+}
+
+/* Picote entre o canhoto e o corpo */
+.ticketStub::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  right: -1px;
+  border-right: 2px dashed var(--paper);
+  opacity: 0.9;
+}
+
+.ticketDay {
+  font-size: var(--fs-14);
+  color: rgb(246 243 237 / 0.7);
+}
+
+.ticketDay::first-letter { text-transform: uppercase; }
+
+.ticketTime {
+  font-size: 2.75rem;
+  font-weight: var(--fw-semibold);
+  font-stretch: 125%;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--brass);
+}
+
+.ticketDate {
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
+
+.ticketBody {
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  min-width: 0;
+}
+
+.ticketTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.ticketTitle h2 { font-size: var(--fs-21); }
+
+.ticketFacts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--space-3) var(--space-6);
+}
+
+.ticketFacts dt {
+  font-size: var(--fs-12);
+  color: var(--color-text-muted);
+}
+
+.ticketFacts dd {
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
+
+@media (max-width: 560px) {
+  .ticket { grid-template-columns: 1fr; }
+  .ticketStub { grid-auto-flow: column; justify-content: space-between; align-items: center; padding: var(--space-4) var(--space-5); text-align: left; justify-items: start; }
+  .ticketStub::after { top: auto; bottom: -1px; left: 10px; right: 10px; border-right: 0; border-bottom: 2px dashed var(--paper); }
+  .ticketTime { font-size: var(--fs-36); }
+  .ticketBody { padding: var(--space-5); }
+}
+
+/* ------------------------------------------------------- Cartão da loja */
+.shopCard { display: grid; gap: var(--space-4); }
+
+.shopStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
+
+.dotOpen,
+.dotClosed {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 3px var(--success-soft);
+}
+
+.dotClosed { background: var(--stone-500); box-shadow: 0 0 0 3px var(--stone-100); }
+
+.contactList {
+  display: grid;
+  gap: var(--space-3);
+  font-size: var(--fs-14);
+}
+
+.contactList li {
+  display: grid;
+  grid-template-columns: 1.25rem minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+}
+
+.contactList svg { color: var(--color-text-muted); margin-top: 2px; }
+.contactList a { overflow-wrap: anywhere; }
+
+/* ------------------------------------------------------ Tabela de preços */
+.priceList { display: grid; }
+
+.priceRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2) var(--space-6);
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.priceRow:last-child { border-bottom: 0; }
+
+.priceHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.priceName {
+  font-size: var(--fs-16);
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+}
+
+/* Pontilhado guia entre o nome e o preço, como nas tabelas de barbearia */
+.priceLeader {
+  flex: 1;
+  min-width: 1.5rem;
+  border-bottom: 2px dotted var(--stone-300);
+  transform: translateY(-4px);
+}
+
+.priceValue {
+  font-size: var(--fs-18);
+  font-weight: var(--fw-semibold);
+  font-stretch: var(--stretch-numeric);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.priceDesc {
+  margin-top: var(--space-1);
+  font-size: var(--fs-14);
+  color: var(--color-text-muted);
+  max-width: 60ch;
+}
+
+.priceMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 560px) {
+  .priceRow { grid-template-columns: 1fr; padding: var(--space-4); }
+  .priceName { white-space: normal; }
+  .priceRow > :last-child { justify-self: start; }
+}
+
+/* ------------------------------------------------------------- Equipe */
+.teamGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: var(--space-4);
+}
+
+.teamCard {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.teamCard h2 { font-size: var(--fs-18); }
+
+.teamCard p {
+  font-size: var(--fs-14);
+  color: var(--color-text-muted);
+  min-height: 1.5em;
+}
+
+/* --------------------------------------------------- Agendamento: etapas */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+  counter-reset: step;
+}
+
+.step {
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--fs-14);
+  color: var(--color-text-muted);
+  min-width: 0;
+}
+
+.stepBar {
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--stone-200);
+  overflow: hidden;
+}
+
+.stepBar::after {
+  content: '';
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--ink-900);
+  transition: width var(--dur-3) var(--ease-out);
+}
+
+.stepDone .stepBar::after,
+.stepCurrent .stepBar::after { width: 100%; }
+.stepCurrent .stepBar::after { background: var(--copper); }
+
+.stepLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stepCurrent .stepLabel { color: var(--color-text); font-weight: var(--fw-semibold); }
+.stepDone .stepLabel { color: var(--color-text); }
+
+.stepButton {
+  font: inherit;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--stone-300);
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 560px) {
+  .stepLabel { font-size: var(--fs-12); }
+  .step:not(.stepCurrent) .stepLabel { visibility: hidden; }
+}
+
+.bookingLayout {
+  display: grid;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .bookingLayout { grid-template-columns: minmax(0, 1fr) 20rem; }
+  .summary { position: sticky; top: calc(var(--topbar-h) + var(--space-6)); }
+}
+
+.stepPanel {
+  animation: stepIn var(--dur-3) var(--ease-out);
+}
+
+.stepPanel h2 { font-size: var(--fs-21); margin-bottom: var(--space-1); }
+.stepIntro { font-size: var(--fs-14); color: var(--color-text-muted); margin-bottom: var(--space-5); }
+
+/* Opções selecionáveis (serviço, barbeiro) */
+.optionGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: var(--space-3);
+}
+
+.option {
+  position: relative;
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  text-align: left;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--dur-1) ease, box-shadow var(--dur-1) ease, transform var(--dur-1) var(--ease-out);
+}
+
+.option:hover { border-color: var(--stone-500); }
+.option:active { transform: scale(0.99); }
+
+.optionSelected {
+  border-color: var(--ink-900);
+  box-shadow: 0 0 0 1px var(--ink-900);
+}
+
+.optionCheck {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  display: grid;
+  place-items: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 50%;
+  border: 1.5px solid var(--stone-300);
+  color: transparent;
+  transition: background-color var(--dur-1) ease, border-color var(--dur-1) ease, color var(--dur-1) ease;
+}
+
+.optionSelected .optionCheck { background: var(--ink-900); border-color: var(--ink-900); color: var(--paper); }
+
+.optionTitle { font-weight: var(--fw-semibold); padding-right: var(--space-8); }
+.optionDesc { font-size: var(--fs-14); color: var(--color-text-muted); }
+
+.optionMeta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--fs-14);
+  color: var(--color-text-muted);
+}
+
+.optionMeta strong {
+  color: var(--color-text);
+  font-size: var(--fs-16);
+  font-stretch: var(--stretch-numeric);
+  font-variant-numeric: tabular-nums;
+}
+
+.optionPerson { display: flex; align-items: center; gap: var(--space-3); }
+
+/* Faixa de datas */
+.dateStrip {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 4.25rem;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding: 2px 2px var(--space-3);
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+
+.dateChip {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: var(--space-2) 0 var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  scroll-snap-align: start;
+  transition: border-color var(--dur-1) ease, background-color var(--dur-1) ease, color var(--dur-1) ease;
+}
+
+.dateChip:hover { border-color: var(--stone-500); }
+
+.dateChip span {
+  font-size: var(--fs-12);
+  color: var(--color-text-muted);
+  text-transform: capitalize;
+}
+
+.dateChip strong {
+  font-size: var(--fs-21);
+  font-stretch: var(--stretch-numeric);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.dateChipSelected {
+  background: var(--ink-900);
+  border-color: var(--ink-900);
+  color: var(--paper);
+}
+
+.dateChipSelected span { color: rgb(246 243 237 / 0.7); }
+
+.dateChipToday:not(.dateChipSelected) { border-color: var(--copper); }
+
+/* Horários */
+.slotGroups { display: grid; gap: var(--space-5); margin-top: var(--space-5); }
+
+.slotGroup h3 {
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+}
+
+.slotGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.25rem, 1fr));
+  gap: var(--space-2);
+}
+
+.slot {
+  min-height: var(--control-h);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  font-weight: var(--fw-semibold);
+  font-stretch: var(--stretch-numeric);
+  font-variant-numeric: tabular-nums;
+  transition: border-color var(--dur-1) ease, background-color var(--dur-1) ease, color var(--dur-1) ease, transform var(--dur-1) var(--ease-out);
+}
+
+.slot:hover { border-color: var(--ink-900); }
+.slot:active { transform: scale(0.97); }
+
+.slotSelected {
+  background: var(--ink-900);
+  border-color: var(--ink-900);
+  color: var(--paper);
+}
+
+.stepActions {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+
+@media (max-width: 560px) {
+  .stepActions > * { flex: 1; }
+}
+
+/* Resumo lateral */
+.summaryTitle { font-size: var(--fs-16); }
+
+.summaryTotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: var(--space-3);
+  margin-top: var(--space-1);
+  border-top: 1px solid var(--color-border);
+  font-weight: var(--fw-semibold);
+}
+
+.summaryTotal strong {
+  font-size: var(--fs-21);
+  font-stretch: var(--stretch-numeric);
+  font-variant-numeric: tabular-nums;
+}
+
+.summaryEmpty { color: var(--color-text-muted); font-weight: var(--fw-regular) !important; }
+
+/* Lacunas livres na agenda do barbeiro */
+.gapRow {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  gap: var(--space-5);
+  padding: var(--space-2) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--fs-14);
+  color: var(--color-text-muted);
+  background: repeating-linear-gradient(135deg, transparent 0 8px, rgb(23 25 29 / 0.025) 8px 9px);
+}
+
+.gapRow span:first-child { font-variant-numeric: tabular-nums; }
+
+@media (max-width: 760px) {
+  .gapRow { grid-template-columns: 3.75rem minmax(0, 1fr); padding: var(--space-2) var(--space-4); }
+}
+
+@keyframes stepIn {
+  from { opacity: 0; transform: translateX(8px); }
+  to { opacity: 1; transform: none; }
+}

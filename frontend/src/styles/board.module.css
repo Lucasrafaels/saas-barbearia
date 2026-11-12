@@ -1,0 +1,287 @@
+/* Quadro de cadeiras: barbeiros em colunas, horas em linhas.
+   Altura de cada bloco = duração real do serviço. */
+
+.board {
+  --minute: 1.6px;
+  --gutter: 3.5rem;
+  --col-min: 10.5rem;
+  position: relative;
+  overflow: auto;
+  max-height: 36rem;
+  overscroll-behavior: contain;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: var(--gutter) repeat(var(--cols), minmax(var(--col-min), 1fr));
+  min-width: min-content;
+}
+
+/* Cabeçalho fixo com os barbeiros */
+.corner,
+.colHeader {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.corner {
+  left: 0;
+  z-index: 4;
+}
+
+.colHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-left: 1px solid var(--color-border);
+  min-width: 0;
+}
+
+.colName {
+  display: grid;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.colName strong {
+  font-size: var(--fs-14);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.colName span {
+  font-size: var(--fs-12);
+  color: var(--color-text-muted);
+}
+
+/* Régua de horas */
+.gutter {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--color-surface);
+}
+
+.hourLabel {
+  position: absolute;
+  right: var(--space-2);
+  transform: translateY(-50%);
+  font-size: var(--fs-12);
+  font-variant-numeric: tabular-nums;
+  font-stretch: var(--stretch-numeric);
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  padding: 0 2px;
+}
+
+.hourLabel:first-child { transform: none; }
+
+.column {
+  position: relative;
+  border-left: 1px solid var(--color-border);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--color-border) 0,
+    var(--color-border) 1px,
+    transparent 1px,
+    transparent calc(60 * var(--minute))
+  );
+}
+
+/* Faixa fora do horário de funcionamento */
+.closed {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: repeating-linear-gradient(135deg, transparent 0 6px, rgb(23 25 29 / 0.035) 6px 7px);
+  pointer-events: none;
+}
+
+/* Bloco de agendamento */
+.block {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 4px 8px 4px 10px;
+  overflow: hidden;
+  text-align: left;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  font-size: var(--fs-12);
+  line-height: 1.25;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: box-shadow var(--dur-1) ease, transform var(--dur-1) var(--ease-out), border-color var(--dur-1) ease;
+  animation: blockIn var(--dur-3) var(--ease-out) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+.block::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--stone-500);
+}
+
+.block:hover {
+  z-index: 1;
+  box-shadow: var(--shadow-raise);
+  transform: translateY(-1px);
+}
+
+.block:focus-visible { z-index: 1; }
+
+.blockTime {
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+  font-stretch: var(--stretch-numeric);
+}
+
+.blockClient {
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.blockService {
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.blockTiny { flex-direction: row; align-items: center; gap: var(--space-2); padding-top: 0; padding-bottom: 0; }
+.blockTiny .blockService,
+.blockCompact .blockService { display: none; }
+.blockCompact { justify-content: center; }
+
+.s_agendado { border-style: dashed; }
+
+.s_confirmado {
+  background: var(--copper-soft);
+  border-color: var(--copper-line);
+}
+.s_confirmado::before { background: var(--copper); }
+
+.s_realizado {
+  background: var(--success-soft);
+  border-color: rgb(39 132 91 / 0.25);
+}
+.s_realizado::before { background: var(--success); }
+.s_realizado .blockClient { color: var(--stone-600); }
+
+.s_cancelado {
+  background: repeating-linear-gradient(135deg, var(--color-surface) 0 5px, var(--danger-soft) 5px 7px);
+  border-color: rgb(196 71 71 / 0.25);
+  color: var(--color-text-muted);
+}
+.s_cancelado::before { background: var(--danger); }
+.s_cancelado .blockClient,
+.s_cancelado .blockTime { text-decoration: line-through; }
+
+/* Camada sobre o corpo do quadro (linha do agora, aviso de dia vazio) */
+.overlayLayer {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Linha do agora */
+.nowLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  height: 0;
+  border-top: 2px solid var(--copper);
+  pointer-events: none;
+}
+
+.nowLine::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: -6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--copper);
+}
+
+.nowLabel {
+  position: absolute;
+  right: 2px;
+  transform: translateY(-50%);
+  z-index: 3;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--copper);
+  color: var(--ink-900);
+  font-size: 0.6875rem;
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.emptyOverlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.emptyOverlay p {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  font-size: var(--fs-14);
+  color: var(--color-text-muted);
+}
+
+/* Legenda */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  font-size: var(--fs-12);
+  color: var(--color-text-muted);
+}
+
+.legendItem { display: inline-flex; align-items: center; gap: 6px; }
+
+.legendSwatch {
+  width: 14px;
+  height: 10px;
+  border-radius: 3px;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+}
+
+.legendSwatch.s_agendado { border-style: dashed; border-color: var(--stone-500); }
+.legendSwatch.s_confirmado { background: var(--copper-soft); border-color: var(--copper); }
+.legendSwatch.s_realizado { background: var(--success-soft); border-color: var(--success); }
+.legendSwatch.s_cancelado { border-color: var(--danger); }
+
+@media (max-width: 640px) {
+  .board { --gutter: 3rem; --col-min: 9rem; max-height: 30rem; }
+}
+
+@keyframes blockIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}

@@ -1,14 +1,19 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { z } from 'zod'
+import { AuthLayout } from '../components/AuthLayout'
+import { ButtonSpinner, Field, fieldA11y, PasswordInput } from '../components/Controls'
+import { AlertCircleIcon } from '../components/Icons'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
-import { errorMessage } from '../utils/format'
+import { errorMessage, firstName } from '../utils/format'
 import styles from '../styles/auth.module.css'
+import ui from '../styles/ui.module.css'
 
 const loginSchema = z.object({
-  email: z.string().email('Informe um e-mail válido.'),
+  email: z.string().trim().email('Informe um e-mail válido.'),
   password: z.string().min(1, 'Informe sua senha.'),
 })
 
@@ -18,64 +23,51 @@ export function LoginPage() {
   const { login } = useAuth()
   const { showToast } = useToast()
   const navigate = useNavigate()
+  const location = useLocation()
+  const [formError, setFormError] = useState<string | null>(null)
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
   })
 
   const onSubmit = async (values: LoginForm) => {
+    setFormError(null)
     try {
-      const user = await login(values)
-      showToast(`Bem-vindo(a), ${user.nome.split(' ')[0]}!`, 'success')
-      navigate(user.barbershop ? '/' : '/onboarding', { replace: true })
+      const user = await login({ email: values.email.trim(), password: values.password })
+      showToast(`Bem-vindo(a), ${firstName(user.nome)}.`, 'success')
+      const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname
+      navigate(user.barbershop ? (from && from !== '/login' ? from : '/') : '/onboarding', { replace: true })
     } catch (error) {
-      showToast(errorMessage(error, 'E-mail ou senha inválidos.'), 'error')
+      setFormError(errorMessage(error, 'E-mail ou senha incorretos.'))
     }
   }
 
   return (
-    <main className={styles.authPage}>
-      <section className={styles.panel}>
-        <a href="/" className={styles.brand}>
-          <span className={styles.brandMark} aria-hidden="true">B</span>
-          BarberPro
-        </a>
-        <div className={styles.panelHeader}>
-          <p className={styles.eyebrow}>Área do cliente</p>
-          <h1>Entre na sua conta</h1>
-          <p className={styles.description}>Acompanhe sua agenda ou administre sua barbearia em um só lugar.</p>
+    <AuthLayout title="Entrar" description="Acesse a agenda da sua barbearia.">
+      <form className={ui.form} onSubmit={handleSubmit(onSubmit)} noValidate>
+        {formError && (
+          <div className={`${ui.alert} ${ui.alertDanger}`} role="alert">
+            <AlertCircleIcon size={18} />
+            <p>{formError}</p>
+          </div>
+        )}
+        <Field label="E-mail" htmlFor="login-email" error={errors.email?.message}>
+          <input {...fieldA11y('login-email', errors.email?.message)} type="email" autoComplete="email" inputMode="email" autoFocus {...register('email')} />
+        </Field>
+        <div className={ui.field}>
+          <div className={styles.labelRow}>
+            <label className={ui.label} htmlFor="login-password">Senha</label>
+            <Link to="/password/reset">Esqueci minha senha</Link>
+          </div>
+          <PasswordInput {...fieldA11y('login-password', errors.password?.message)} autoComplete="current-password" {...register('password')} />
+          {errors.password && <p className={ui.error} id="login-password-error"><AlertCircleIcon size={14} />{errors.password.message}</p>}
         </div>
-        <form className={styles.form} onSubmit={handleSubmit(onSubmit)} noValidate>
-          <div className={styles.field}>
-            <label htmlFor="email">E-mail</label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              placeholder="voce@exemplo.com"
-              {...register('email')}
-              className={errors.email ? styles.error : ''}
-            />
-            {errors.email && <span className={styles.errorText}>{errors.email.message}</span>}
-          </div>
-          <div className={styles.field}>
-            <label htmlFor="password">Senha</label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              placeholder="Sua senha"
-              {...register('password')}
-              className={errors.password ? styles.error : ''}
-            />
-            {errors.password && <span className={styles.errorText}>{errors.password.message}</span>}
-          </div>
-          <button className={styles.submitButton} disabled={isSubmitting} type="submit">
-            {isSubmitting ? 'Entrando...' : 'Entrar'}
-          </button>
-        </form>
-        <p className={styles.switch}>Ainda não tem conta? <Link to="/register">Criar conta</Link></p>
-        <p className={styles.switch}><Link to="/password/reset">Esqueci minha senha</Link></p>
-      </section>
-    </main>
+        <button className={`${ui.button} ${ui.block}`} disabled={isSubmitting} type="submit">
+          {isSubmitting && <ButtonSpinner />} Entrar
+        </button>
+      </form>
+      <div className={styles.divider} />
+      <p className={styles.switch}>Ainda não tem conta? <Link to="/register">Criar conta</Link></p>
+    </AuthLayout>
   )
 }

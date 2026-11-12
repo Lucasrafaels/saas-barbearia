@@ -66,8 +66,23 @@ export interface Appointment {
   data_hora: string
   status: AppointmentStatus
   observacoes: string
+  /** Preço praticado no momento do agendamento (definido pelo backend). */
+  preco_historico: string | null
   created_at: string
 }
+
+export interface RevenueReport {
+  period: { start: string; end: string }
+  total_revenue: string
+  total_appointments: number
+  by_barber: { barbeiro: string; revenue: string; count: number }[]
+  by_service: { servico: string; revenue: string; count: number }[]
+  daily: { date: string; revenue: string; count: number }[]
+}
+
+export type UpdateBarbershopInput = Partial<
+  Pick<Barbershop, 'nome' | 'endereco' | 'telefone' | 'email' | 'horario_abertura' | 'horario_fechamento'>
+>
 
 export interface Paginated<T> {
   count: number

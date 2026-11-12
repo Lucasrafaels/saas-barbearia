@@ -1,0 +1,21 @@
+Teste de impacto da SECRET_KEY curta (SEC-01) — forja de JWT
+Data: 11/11/2026 · Ambiente: cópia ISOLADA da API (SQLite descartável), mesmas configurações do projeto (config.settings).
+A chave foi usada apenas em memória pelo próprio processo de teste; seu valor NÃO foi exibido nem registrado.
+Requisição de verificação: GET /api/v1/users/me/ com o token forjado no header Authorization.
+
+comprimento da chave efetiva: 3
+(a) token forjado só com user_id (sem claim do hash da senha)  HTTP 401
+(b) token forjado + claim md5(hash da senha) [simula vazamento do banco] HTTP 200
+(c) controle: mesmo token assinado com outra chave             HTTP 401
+
+Leitura:
+- SIMPLE_JWT["CHECK_REVOKE_TOKEN"] = True faz a API conferir, a cada requisição, o claim "hash_password"
+  (MD5 do hash de senha armazenado) contra o usuário no banco. Por isso a chave fraca, sozinha,
+  NÃO permite forjar um token aceito (a).
+- Se os hashes de senha vazarem (backup, cópia do banco, acesso indevido ao Django Admin/DB),
+  a chave de 3 caracteres permite forjar tokens válidos para qualquer usuário SEM quebrar nenhuma
+  senha (b) — anulando o isolamento entre barbearias.
+- A chave em si é descoberta por força bruta a partir de qualquer JWT legítimo (assinatura HS256
+  com 3 caracteres).
+- Correção desta auditoria: a afirmação anterior de que seria possível "forjar tokens de qualquer
+  usuário" apenas com a chave estava exagerada; o impacto exato é o descrito acima.

@@ -1,284 +1,358 @@
-import { useMemo } from 'react'
-import { useAuth } from '../contexts/AuthContext'
-import { listAllAppointments, listAllServices, listAllBarbers } from '../api/endpoints'
-import { PageLoader } from '../components/PageLoader'
+import { useMemo, useState, type CSSProperties } from 'react'
+import { Link } from 'react-router-dom'
+import { listAllAppointments, listAllBarbers } from '../api/endpoints'
+import { AppointmentDetails } from '../components/AppointmentDetails'
+import { Avatar, StatusBadge } from '../components/Controls'
+import { BoardLegend, DayBoard } from '../components/DayBoard'
+import { EmptyState, ErrorState, RefreshBar, SkeletonBlock } from '../components/Feedback'
+import { ChevronLeftIcon, ChevronRightIcon, UsersIcon } from '../components/Icons'
+import { PageHeader } from '../components/PageHeader'
+import { useBarbershop } from '../contexts/BarbershopContext'
 import { useAsyncData } from '../hooks/useAsyncData'
-import type { AppointmentStatus } from '../types'
-import { formatCurrency, formatDateTime, todayISO, statusLabels } from '../utils/format'
-import styles from '../styles/page.module.css'
+import type { Appointment } from '../types'
+import {
+  addDays, dateKey, formatClock, formatCurrency, formatDayShort, plural, relativeDayLabel, timeToMinutes, todayISO,
+} from '../utils/format'
+import { isOpenStatus } from '../utils/status'
+import dash from '../styles/dashboard.module.css'
+import page from '../styles/page.module.css'
 import ui from '../styles/ui.module.css'
 
-function dateKey(value: string): string {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit',
-  }).formatToParts(new Date(value))
-  const get = (kind: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === kind)?.value ?? ''
-  return `${get('year')}-${get('month')}-${get('day')}`
+const PERIOD_DAYS = 30
+
+function priceOf(item: Appointment): number {
+  return Number(item.preco_historico ?? item.servico_preco ?? 0)
 }
 
-function parseDateForCompare(value: string): Date {
-  return new Date(value)
-}
+const compactCurrency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
 
 export function AdminDashboardPage() {
-  useAuth()
-
-  const { data: allAppointments, isLoading: loadingAppointments, error: errorAppointments } = useAsyncData(listAllAppointments, [])
-  const { data: services, isLoading: loadingServices, error: errorServices } = useAsyncData(listAllServices, [])
-  const { data: barbers, isLoading: loadingBarbers, error: errorBarbers } = useAsyncData(listAllBarbers, [])
-
-  const isLoading = loadingAppointments || loadingServices || loadingBarbers
-  const hasError = errorAppointments || errorServices || errorBarbers
+  const { barbershop } = useBarbershop()
+  const { data, isLoading, isRefreshing, error, reload, setData } = useAsyncData(async () => {
+    const [appointments, barbers] = await Promise.all([listAllAppointments(), listAllBarbers()])
+    return { appointments, barbers }
+  }, [])
 
   const today = todayISO()
-  const now = useMemo(() => new Date(), [])
+  const [day, setDay] = useState(today)
+  const [selected, setSelected] = useState<Appointment | null>(null)
 
-  const appointments = useMemo(() => allAppointments ?? [], [allAppointments])
-  const servicesArray = useMemo(() => services ?? [], [services])
-  const barbersArray = useMemo(() => barbers ?? [], [barbers])
+  const appointments = useMemo(() => data?.appointments ?? [], [data])
+  const barbers = useMemo(() => data?.barbers ?? [], [data])
 
-  const todayAppointments = useMemo(() =>
-    appointments
-      .filter(a => dateKey(a.data_hora) === today)
-      .sort((a, b) => a.data_hora.localeCompare(b.data_hora)),
-    [appointments, today]
-  )
+  const metrics = useMemo(() => {
+    const periodStart = addDays(today, -(PERIOD_DAYS - 1))
+    const previousStart = addDays(periodStart, -PERIOD_DAYS)
+    let todayTotal = 0
+    let todayDone = 0
+    let todayPending = 0
+    let revenue = 0
+    let done = 0
+    let inPeriod = 0
+    let cancelled = 0
+    let previousRevenue = 0
+    let previousDone = 0
+    const daily = new Map<string, { revenue: number; count: number }>()
+    const byBarber = new Map<string, { revenue: number; count: number }>()
+    const byService = new Map<string, { revenue: number; count: number }>()
 
-  const upcomingAppointments = useMemo(() =>
-    appointments
-      .filter(a => {
-        const appointmentDate = parseDateForCompare(a.data_hora)
-        return appointmentDate >= now && a.status !== 'cancelado' && a.status !== 'realizado'
-      })
+    for (const item of appointments) {
+      const key = dateKey(item.data_hora)
+      if (key === today && item.status !== 'cancelado') {
+        todayTotal++
+        if (item.status === 'realizado') todayDone++
+        if (item.status === 'agendado') todayPending++
+      }
+      if (key >= periodStart && key <= today) {
+        inPeriod++
+        if (item.status === 'cancelado') cancelled++
+        if (item.status === 'realizado') {
+          const price = priceOf(item)
+          revenue += price
+          done++
+          const bucket = daily.get(key) ?? { revenue: 0, count: 0 }
+          daily.set(key, { revenue: bucket.revenue + price, count: bucket.count + 1 })
+          const barber = byBarber.get(item.barbeiro_nome) ?? { revenue: 0, count: 0 }
+          byBarber.set(item.barbeiro_nome, { revenue: barber.revenue + price, count: barber.count + 1 })
+          const service = byService.get(item.servico_nome) ?? { revenue: 0, count: 0 }
+          byService.set(item.servico_nome, { revenue: service.revenue + price, count: service.count + 1 })
+        }
+      } else if (key >= previousStart && key < periodStart && item.status === 'realizado') {
+        previousRevenue += priceOf(item)
+        previousDone++
+      }
+    }
+
+    const days = Array.from({ length: PERIOD_DAYS }, (_, index) => {
+      const key = addDays(periodStart, index)
+      return { key, ...(daily.get(key) ?? { revenue: 0, count: 0 }) }
+    })
+
+    return {
+      todayTotal, todayDone, todayPending, revenue, done, inPeriod, cancelled, previousRevenue, previousDone, days,
+      ticket: done ? revenue / done : 0,
+      cancelRate: inPeriod ? cancelled / inPeriod : 0,
+      byBarber: [...byBarber.entries()].map(([name, v]) => ({ name, ...v })).sort((a, b) => b.revenue - a.revenue),
+      byService: [...byService.entries()].map(([name, v]) => ({ name, ...v })).sort((a, b) => b.count - a.count),
+    }
+  }, [appointments, today])
+
+  const upcoming = useMemo(() => {
+    const now = Date.now()
+    return appointments
+      .filter((item) => isOpenStatus(item.status) && new Date(item.data_hora).getTime() >= now)
       .sort((a, b) => a.data_hora.localeCompare(b.data_hora))
-      .slice(0, 10),
-    [appointments, now]
-  )
-
-  const statusCounts = useMemo(() => {
-    const counts: Record<AppointmentStatus, number> = { agendado: 0, confirmado: 0, realizado: 0, cancelado: 0 }
-    appointments.forEach(a => { counts[a.status]++ })
-    return counts
+      .slice(0, 6)
   }, [appointments])
 
-  const totalRevenue = useMemo(() =>
-    appointments
-      .filter(a => a.status === 'realizado')
-      .reduce((sum, a) => sum + Number(a.servico_preco), 0),
-    [appointments]
+  const replaceAppointment = (updated: Appointment) => {
+    setData((current) => current && {
+      ...current,
+      appointments: current.appointments.map((item) => (item.id === updated.id ? updated : item)),
+    })
+  }
+
+  const header = (
+    <PageHeader
+      title="Painel"
+      description={`A operação de hoje e o desempenho dos últimos ${PERIOD_DAYS} dias.`}
+      actions={<Link to="/admin/appointments" className={ui.secondaryButton}>Ver todos os agendamentos</Link>}
+    />
   )
 
-  const stats = [
-    { label: 'Agendamentos hoje', value: todayAppointments.length, description: 'Horários marcados para hoje' },
-    { label: 'Total de agendamentos', value: appointments.length, description: 'Todos os status' },
-    { label: 'Serviços ativos', value: errorServices ? '—' : servicesArray.filter(s => s.ativo).length, description: errorServices ? 'Erro ao carregar' : `${servicesArray.filter(s => s.ativo).length} de ${servicesArray.length} ativos` },
-    { label: 'Barbeiros ativos', value: errorBarbers ? '—' : barbersArray.filter(b => b.ativo).length, description: errorBarbers ? 'Erro ao carregar' : `${barbersArray.filter(b => b.ativo).length} de ${barbersArray.length} ativos` },
-  ]
-
-  const statusOrder: AppointmentStatus[] = ['agendado', 'confirmado', 'realizado', 'cancelado']
-  // Use design tokens directly for status colors - matching badge classes
-  const statusColors: Record<AppointmentStatus, string> = {
-    agendado: 'var(--color-primary-navy)',    // --color-primary-navy (matches badgeInfo)
-    confirmado: 'var(--color-success)',       // --color-success (matches badgeSuccess)
-    realizado: 'var(--color-error)',          // --color-error (--color-primary-red, matches badgeError)
-    cancelado: 'var(--color-warning)',        // --color-warning (matches badgeWarning)
-  }
-
-  // Badge classes mapping - using design token colors
-  // Note: ui.badgeInfo = primary-navy, ui.badgeSuccess = green, ui.badgeError = red, ui.badgeWarning = yellow
-  const statusBadgeClass: Record<AppointmentStatus, string> = {
-    agendado: ui.badgeInfo,      // --color-info (--color-primary-navy)
-    confirmado: ui.badgeSuccess, // --color-success (green)
-    realizado: ui.badgeError,    // --color-error (--color-primary-red)
-    cancelado: ui.badgeWarning,  // --color-warning (yellow)
-  }
-
-  if (isLoading) return <PageLoader label="Carregando dashboard..." />
-  const formatError = (err: unknown): string => {
-    if (err instanceof Error) return err.message
-    if (typeof err === 'string') return err
-    return 'Erro desconhecido'
-  }
-
-  const errorMessages = [
-    errorAppointments ? `Agendamentos: ${formatError(errorAppointments)}` : null,
-    errorServices ? `Serviços: ${formatError(errorServices)}` : null,
-    errorBarbers ? `Barbeiros: ${formatError(errorBarbers)}` : null,
-  ].filter(Boolean) as string[]
-
-  if (hasError) return (
-    <div className={styles.page}>
-      <div className={ui.errorBox}>
-        <p>Não foi possível carregar alguns dados do dashboard.</p>
-        {errorMessages.map((msg, i) => (
-          <p key={i}>{msg}</p>
-        ))}
+  if (isLoading) {
+    return (
+      <div className={page.page}>
+        {header}
+        <SkeletonBlock height={124} />
+        <SkeletonBlock height={420} />
       </div>
-    </div>
-  )
+    )
+  }
+
+  if (error && !data) {
+    return (
+      <div className={page.page}>
+        {header}
+        <div className={ui.panel}><ErrorState error={error} fallback="Não foi possível carregar o painel." onRetry={() => void reload()} /></div>
+      </div>
+    )
+  }
+
+  // Comparação só com base mínima no período anterior; com poucos dados a variação engana
+  const MIN_BASELINE = 20
+  const revenueDelta = metrics.previousDone >= MIN_BASELINE && metrics.previousRevenue > 0
+    ? (metrics.revenue - metrics.previousRevenue) / metrics.previousRevenue
+    : null
+  const opens = barbershop ? timeToMinutes(barbershop.horario_abertura) : 8 * 60
+  const closes = barbershop ? timeToMinutes(barbershop.horario_fechamento) : 20 * 60
+  const activeBarbers = barbers.filter((barber) => barber.ativo)
 
   return (
-    <div className={styles.page}>
-      <header className={styles.pageHeader}>
-        <div>
-          <p className={styles.eyebrow}>Painel administrativo</p>
-          <h1>Dashboard</h1>
-        </div>
-        <p>{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
-      </header>
+    <div className={page.page}>
+      {header}
 
-      <section className={styles.statsGrid} aria-label="Indicadores principais">
-        {stats.map((stat, i) => (
-          <article key={i} className={styles.statCard}>
-            <p className={styles.statLabel}>{stat.label}</p>
-            <p className={styles.statValue}>{stat.value}</p>
-            <p className={styles.statDescription}>{stat.description}</p>
-          </article>
-        ))}
-        <article className={styles.statCard} style={{ gridColumn: 'span 1' }}>
-          <p className={styles.statLabel}>Valor dos serviços concluídos</p>
-          <p className={styles.statValue}>{formatCurrency(totalRevenue.toString())}</p>
-          <p className={styles.statDescription}>Soma dos preços dos serviços com status "realizado" — não reflete pagamentos confirmados</p>
-        </article>
+      <section className={dash.ledger} aria-label="Indicadores">
+        <div className={dash.metric}>
+          <span className={dash.metricLabel}>Hoje</span>
+          <span className={dash.metricValue}>{metrics.todayTotal}<small>{metrics.todayTotal === 1 ? ' horário' : ' horários'}</small></span>
+          <span className={dash.metricNote}>
+            {metrics.todayTotal === 0 ? 'Nenhum horário marcado' : `${plural(metrics.todayDone, 'realizado')}, ${metrics.todayPending} a confirmar`}
+          </span>
+        </div>
+        <div className={dash.metric}>
+          <span className={dash.metricLabel}>Faturamento, {PERIOD_DAYS} dias</span>
+          <span className={dash.metricValue}>{compactCurrency.format(metrics.revenue)}</span>
+          <span className={dash.metricNote}>
+            {revenueDelta !== null && (
+              <span className={`${dash.delta} ${revenueDelta >= 0 ? dash.deltaUp : dash.deltaDown}`}>
+                {revenueDelta >= 0 ? '+' : '−'}{Math.abs(Math.round(revenueDelta * 100))}%
+              </span>
+            )}{revenueDelta !== null && ' '}
+            {revenueDelta !== null ? 'vs. período anterior' : `${plural(metrics.done, 'atendimento realizado', 'atendimentos realizados')}`}
+          </span>
+        </div>
+        <div className={dash.metric}>
+          <span className={dash.metricLabel}>Ticket médio</span>
+          <span className={dash.metricValue}>{formatCurrency(metrics.ticket)}</span>
+          <span className={dash.metricNote}>por atendimento realizado</span>
+        </div>
+        <div className={dash.metric}>
+          <span className={dash.metricLabel}>Cancelamentos</span>
+          <span className={dash.metricValue}>{Math.round(metrics.cancelRate * 100)}<small>%</small></span>
+          <span className={dash.metricNote}>{metrics.cancelled} de {plural(metrics.inPeriod, 'agendamento')}</span>
+        </div>
       </section>
 
-      <div className={styles.dashboardGrid}>
-        <section className={styles.dashboardCard} aria-labelledby="today-title">
-          <header className={styles.cardHeader}>
-            <h2 id="today-title">Agendamentos de hoje</h2>
-            <span className={styles.cardCount}>{todayAppointments.length}</span>
-          </header>
-          {todayAppointments.length === 0 ? (
-            <div className={ui.tableEmpty}>Nenhum agendamento para hoje</div>
-          ) : (
-            <div className={ui.tableContainer}>
-              <table className={ui.table}>
-                <thead>
-                  <tr>
-                    <th>Horário</th>
-                    <th>Cliente</th>
-                    <th>Serviço</th>
-                    <th>Barbeiro</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {todayAppointments.map((appointment) => (
-                    <tr key={appointment.id}>
-                      <td>
-                        <time dateTime={appointment.data_hora}>
-                          {new Date(appointment.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                        </time>
-                      </td>
-                      <td><strong>{appointment.cliente_nome}</strong></td>
-                      <td>{appointment.servico_nome}</td>
-                      <td>{appointment.barbeiro_nome}</td>
-                      <td>
-                        <span className={`${ui.badge} ${statusBadgeClass[appointment.status]}`}>
-                          {statusLabels[appointment.status]}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      <section className={ui.panel} aria-labelledby="board-title">
+        <div className={dash.boardHeader}>
+          <div className={dash.boardTitle}>
+            <h2 id="board-title">Agenda do dia</h2>
+            <p>Clique em um horário para ver detalhes, confirmar ou cancelar.</p>
+          </div>
+          <div className={dash.dayNav}>
+            <button type="button" className={ui.iconButton} onClick={() => setDay(addDays(day, -1))} aria-label="Dia anterior"><ChevronLeftIcon /></button>
+            <span className={dash.dayLabel} aria-live="polite">{relativeDayLabel(day)}{day === today ? `, ${formatDayShort(day)}` : ''}</span>
+            <button type="button" className={ui.iconButton} onClick={() => setDay(addDays(day, 1))} aria-label="Próximo dia"><ChevronRightIcon /></button>
+            {day !== today && <button type="button" className={`${ui.secondaryButton} ${ui.sm}`} onClick={() => setDay(today)}>Hoje</button>}
+          </div>
+        </div>
+        <RefreshBar active={isRefreshing} />
+        {activeBarbers.length === 0 && !appointments.some((item) => dateKey(item.data_hora) === day) ? (
+          <EmptyState
+            compact
+            icon={<UsersIcon size={22} />}
+            title="Nenhum barbeiro ativo"
+            description="Cadastre a equipe para que os clientes possam agendar e a agenda do dia apareça aqui."
+            action={{ label: 'Cadastrar barbeiro', to: '/admin/barbers' }}
+          />
+        ) : (
+          <DayBoard day={day} appointments={appointments} barbers={barbers} opens={opens} closes={closes} onSelect={setSelected} />
+        )}
+        <div className={dash.boardFooter}><BoardLegend /></div>
+      </section>
+
+      <div className={page.split}>
+        <section className={ui.panel} aria-labelledby="revenue-title">
+          <div className={ui.panelHeader}>
+            <div>
+              <h2 id="revenue-title">Faturamento diário</h2>
+              <p>Atendimentos realizados, pelo preço praticado no agendamento.</p>
             </div>
-          )}
+          </div>
+          <DailyRevenueChart days={metrics.days} />
         </section>
 
-        <section className={styles.dashboardCard} aria-labelledby="upcoming-title">
-          <header className={styles.cardHeader}>
+        <section className={ui.panel} aria-labelledby="upcoming-title">
+          <div className={ui.panelHeader}>
             <h2 id="upcoming-title">Próximos atendimentos</h2>
-            <span className={styles.cardCount}>{upcomingAppointments.length}</span>
-          </header>
-          {upcomingAppointments.length === 0 ? (
-            <div className={ui.tableEmpty}>Nenhum atendimento futuro</div>
+          </div>
+          {upcoming.length === 0 ? (
+            <EmptyState compact title="Nada pela frente" description="Novos agendamentos dos clientes aparecem aqui." />
           ) : (
-            <div className={ui.tableContainer}>
-              <table className={ui.table}>
-                <thead>
-                  <tr>
-                    <th>Data e Hora</th>
-                    <th>Cliente</th>
-                    <th>Serviço</th>
-                    <th>Barbeiro</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {upcomingAppointments.map((appointment) => (
-                    <tr key={appointment.id}>
-                      <td>{formatDateTime(appointment.data_hora)}</td>
-                      <td><strong>{appointment.cliente_nome}</strong></td>
-                      <td>{appointment.servico_nome}</td>
-                      <td>{appointment.barbeiro_nome}</td>
-                      <td>
-                        <span className={`${ui.badge} ${statusBadgeClass[appointment.status]}`}>
-                          {statusLabels[appointment.status]}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className={dash.upcoming}>
+              {upcoming.map((item) => {
+                const key = dateKey(item.data_hora)
+                return (
+                  <button type="button" key={item.id} className={dash.upcomingItem} onClick={() => setSelected(item)}>
+                    <span className={dash.upcomingWhen}>
+                      <strong>{formatClock(item.data_hora)}</strong>
+                      <span>{key === today ? 'Hoje' : key === addDays(today, 1) ? 'Amanhã' : formatDayShort(key)}</span>
+                    </span>
+                    <span className={dash.upcomingMain}>
+                      <strong>{item.cliente_nome}</strong>
+                      <span>{item.servico_nome} com {item.barbeiro_nome.split(' ')[0]}</span>
+                    </span>
+                    <StatusBadge status={item.status} />
+                  </button>
+                )
+              })}
             </div>
           )}
-        </section>
-
-        <section className={styles.dashboardCard} aria-labelledby="status-title">
-          <header className={styles.cardHeader}>
-            <h2 id="status-title">Distribuição por status</h2>
-          </header>
-          <div className={styles.statusDistribution}>
-            {statusOrder.map(status => (
-              <div key={status} className={styles.statusItem}>
-                <div className={styles.statusItemMain}>
-                  <span className={styles.statusDot} style={{ backgroundColor: statusColors[status] }} aria-hidden="true" />
-                  <span className={styles.statusName}>{statusLabels[status]}</span>
-                </div>
-                <div className={styles.statusItemMeta}>
-                  <span className={styles.statusCount}>{statusCounts[status]}</span>
-                  <span className={styles.statusPercent}>
-                    {appointments.length > 0
-                      ? Math.round((statusCounts[status] / appointments.length) * 100) + '%'
-                      : '0%'}
-                  </span>
-                </div>
-                <div className={styles.statusBar} role="progressbar" aria-valuenow={statusCounts[status]} aria-valuemin={0} aria-valuemax={appointments.length || 1} aria-label={statusLabels[status]}>
-                  <div className={styles.statusBarFill} style={{ width: appointments.length > 0 ? `${(statusCounts[status] / appointments.length) * 100}%` : '0%', backgroundColor: statusColors[status] }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className={styles.dashboardCard} aria-labelledby="revenue-title">
-          <header className={styles.cardHeader}>
-            <h2 id="revenue-title">Valor dos serviços por status</h2>
-          </header>
-          <div className={styles.revenueBreakdown}>
-            {statusOrder.map(status => {
-              const revenue = appointments
-                .filter(a => a.status === status)
-                .reduce((sum, a) => sum + Number(a.servico_preco), 0)
-              return (
-                <div key={status} className={styles.revenueItem}>
-                  <span className={styles.statusDot} style={{ backgroundColor: statusColors[status] }} aria-hidden="true" />
-                  <span>{statusLabels[status]}</span>
-                  <strong>{formatCurrency(revenue.toString())}</strong>
-                </div>
-              )
-            })}
-            <div className={styles.revenueTotal}>
-              <span>Total (realizados)</span>
-              <strong>{formatCurrency(totalRevenue.toString())}</strong>
-            </div>
-            <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: 'var(--space-3)' }}>
-              Valores baseados nos preços cadastrados dos serviços — não reflete pagamentos confirmados
-            </p>
-          </div>
         </section>
       </div>
+
+      <div className={page.twoCols}>
+        <RankPanel
+          title="Equipe"
+          subtitle={`Faturamento por barbeiro, últimos ${PERIOD_DAYS} dias.`}
+          rows={metrics.byBarber.map((row) => ({ name: row.name, value: row.revenue, primary: compactCurrency.format(row.revenue), secondary: plural(row.count, 'atendimento') }))}
+          withAvatar
+        />
+        <RankPanel
+          title="Serviços mais realizados"
+          subtitle={`Quantidade de atendimentos, últimos ${PERIOD_DAYS} dias.`}
+          rows={metrics.byService.map((row) => ({ name: row.name, value: row.count, primary: plural(row.count, 'vez', 'vezes'), secondary: compactCurrency.format(row.revenue) }))}
+        />
+      </div>
+
+      <AppointmentDetails appointment={selected} onClose={() => setSelected(null)} onUpdated={replaceAppointment} />
     </div>
+  )
+}
+
+function DailyRevenueChart({ days }: { days: { key: string; revenue: number; count: number }[] }) {
+  const max = Math.max(...days.map((item) => item.revenue), 0)
+  if (max === 0) {
+    return <EmptyState compact title="Sem atendimentos realizados" description="O faturamento aparece aqui conforme os atendimentos forem marcados como realizados." />
+  }
+  const step = max > 1000 ? 500 : max > 400 ? 200 : max > 100 ? 50 : 20
+  const top = Math.ceil(max / step) * step
+  return (
+    <div className={dash.chart}>
+      <div className={dash.chartBars}>
+        <div className={dash.chartGrid} style={{ top: 0 }}><span className={dash.chartGridLabel}>{compactCurrency.format(top)}</span></div>
+        <div className={dash.chartGrid} style={{ top: '50%' }}><span className={dash.chartGridLabel}>{compactCurrency.format(top / 2)}</span></div>
+        {days.map((item, index) => (
+          <div
+            key={item.key}
+            className={dash.chartCol}
+            tabIndex={0}
+            aria-label={`${formatDayShort(item.key)}: ${formatCurrency(item.revenue)}, ${plural(item.count, 'atendimento')}`}
+          >
+            <div
+              className={`${dash.chartBar} ${item.revenue === 0 ? dash.chartBarEmpty : ''}`}
+              style={{ height: `${(item.revenue / top) * 100}%`, '--delay': `${index * 12}ms` } as CSSProperties}
+            />
+            <span className={dash.tooltip} aria-hidden="true">
+              {formatDayShort(item.key)}
+              <strong>{formatCurrency(item.revenue)}</strong>
+              {plural(item.count, 'atendimento')}
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className={dash.chartAxis} aria-hidden="true">
+        <span>{formatDayShort(days[0].key)}</span>
+        <span>{formatDayShort(days[Math.floor(days.length / 2)].key)}</span>
+        <span>Hoje</span>
+      </div>
+      <table className="sr-only">
+        <caption>Faturamento diário</caption>
+        <thead><tr><th>Dia</th><th>Faturamento</th><th>Atendimentos</th></tr></thead>
+        <tbody>
+          {days.filter((item) => item.count > 0).map((item) => (
+            <tr key={item.key}><td>{formatDayShort(item.key)}</td><td>{formatCurrency(item.revenue)}</td><td>{item.count}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+interface RankRow { name: string; value: number; primary: string; secondary: string }
+
+function RankPanel({ title, subtitle, rows, withAvatar }: { title: string; subtitle: string; rows: RankRow[]; withAvatar?: boolean }) {
+  const max = Math.max(...rows.map((row) => row.value), 0)
+  return (
+    <section className={ui.panel} aria-label={title}>
+      <div className={ui.panelHeader}>
+        <div>
+          <h2>{title}</h2>
+          <p>{subtitle}</p>
+        </div>
+      </div>
+      {rows.length === 0 ? (
+        <EmptyState compact title="Sem dados no período" description="Os números aparecem quando houver atendimentos realizados." />
+      ) : (
+        <ul className={dash.rankList}>
+          {rows.slice(0, 6).map((row) => (
+            <li className={dash.rankRow} key={row.name}>
+              <span className={dash.rankName} title={row.name} style={withAvatar ? { display: 'flex', alignItems: 'center', gap: 8 } : undefined}>
+                {withAvatar && <Avatar name={row.name} size="sm" />}
+                {row.name}
+              </span>
+              <span className={dash.rankTrack} aria-hidden="true">
+                <span className={dash.rankFill} style={{ width: `${max ? (row.value / max) * 100 : 0}%`, display: 'block' }} />
+              </span>
+              <span className={dash.rankValue}>
+                <strong>{row.primary}</strong>
+                <span>{row.secondary}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   )
 }

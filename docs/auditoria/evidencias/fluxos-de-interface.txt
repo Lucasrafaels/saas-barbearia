@@ -1,0 +1,64 @@
+Fluxos de interface executados no navegador (Firefox headless via puppeteer-core)
+Data: 11/11/2026 · Frontend: Vite dev server · API: cópia ISOLADA (SQLite descartável). Dados fictícios; sem senhas registradas.
+Viewports: 1440x900 (desktop), 1280x800 (teclado/queda de API), 390x844 (celular).
+Em todas as execuções: nenhum erro de console e nenhuma chamada de API com falha, salvo onde indicado.
+
+=== Admin ===
+• login admin -> /admin OK
+• modal de detalhes aberto: Corte masculino
+• Esc fecha o modal: true
+• clicou Confirmar: true
+• avisos após confirmar: ["Agendamento confirmado."]
+• diálogo: Cancelar este agendamento?
+• avisos após cancelar: ["Agendamento confirmado.","Agendamento cancelado."]
+• erros de validação: ["Informe o nome do serviço.","Informe o preço."]
+• avisos após criar: ["Serviço cadastrado."]
+• linha criada: Hidratação capilarR$ 35,5020 minAtivo EditarDesativar
+• clicou Reativar: true
+• avisos após reativar: ["Serviço cadastrado.","Serviço reativado."]
+OK: sem erros de console/API
+(O contador "a confirmar" do topo atualizou sozinho: 20 -> 19 -> 18.)
+
+=== Cliente ===
+• login cliente -> / OK
+• etapa após escolher serviço: Barbeiro
+• etapa após escolher barbeiro: Data e horário
+• horários livres amanhã (API): 36 09:00 09:15 09:30 09:45 10:30 10:45
+• agendou -> /appointments, avisos: ["Horário agendado para amanhã às 09:00."]
+• novo agendamento aparece em Próximos: true
+• reagendar abre direto em: Data e horário
+• remarcou, avisos: ["Horário remarcado para amanhã às 18:45."]
+• cancelou, avisos: ["Horário remarcado para amanhã às 18:45.","Horário cancelado."]
+• perfil, avisos: ["Seus dados foram atualizados."] | topo: João
+OK: sem erros de console/API
+
+=== Barbeiro, teclado e menu no celular ===
+• barbeiro entrou em: /barber/agenda
+• URL da visão a confirmar: ?status=agendado
+• clicou Confirmar: true
+• avisos: ["Bem-vindo(a), Rafael.","Agendamento confirmado."]
+• clicou Marcar realizado: true
+• avisos: ["Agendamento confirmado.","Atendimento marcado como realizado."]
+• ordem do Tab: ["Pular para o conteúdo","BarberPro","Painel","Agendamentos","Serviços","Barbeiros"]
+• menu aberto, foco em: Minha conta
+• seta para baixo, foco em: Sair
+• Esc fecha o menu e devolve o foco: menu
+• gaveta aberta, foco em: BarberPro
+• Esc fecha a gaveta: true
+OK: sem erros de console/API
+
+=== Queda da API (servidor de teste realmente desligado) ===
+• logado: /admin
+• [offline] URL: /admin/services
+• [offline] título: Sem conexão com o servidor
+• [offline] token salvo: true
+• [online] URL: /admin/services
+• [online] título: Serviços
+• [online] token salvo: true
+(Sessão preservada durante a queda e restaurada sem novo login quando a API voltou.)
+
+=== Capturas de tela verificadas ===
+Desktop 1440 px: painel, agendamentos, serviços, barbeiros, clientes, dados da barbearia, minha conta,
+                 início/serviços/equipe/agendamento do cliente, agenda do barbeiro, login e cadastro.
+Celular 390 px: painel, serviços, início do cliente, agendamento, login, menu lateral.
+Não verificado: tablet (~820 px), Chrome e Safari, leitor de tela.

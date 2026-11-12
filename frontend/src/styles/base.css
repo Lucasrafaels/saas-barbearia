@@ -1,165 +1,167 @@
-/* BarberPro Base Styles — Estilos Globais e Reset */
+/* BarberPro — reset e estilos globais. A fonte é carregada no index.html. */
 
 @import './design-tokens.css';
 
-/* === GOOGLE FONTS === */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
-/* === RESET & BASE === */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
 html {
-  font-size: 16px;
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
 body {
-  min-height: 100vh;
-  font-family: var(--font-body);
-  font-size: var(--text-base);
-  line-height: var(--leading-normal);
-  font-weight: var(--font-weight-normal);
-  color: var(--color-text-primary);
-  background-color: var(--color-bg-light);
-  background-image: linear-gradient(90deg, rgba(29, 53, 87, 0.018) 1px, transparent 1px), linear-gradient(rgba(29, 53, 87, 0.018) 1px, transparent 1px);
-  background-size: 3rem 3rem;
+  min-height: 100dvh;
+  font-family: var(--font-sans);
+  font-size: var(--fs-16);
+  line-height: var(--lh-body);
+  color: var(--color-text);
+  background: var(--color-bg);
+  font-feature-settings: 'kern';
 }
 
-/* Tipografia para títulos */
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
-  font-weight: var(--font-weight-bold);
-  line-height: var(--leading-tight);
-  letter-spacing: var(--tracking-tight);
-  color: var(--color-text-primary);
+h1,
+h2,
+h3,
+h4 {
+  font-weight: var(--fw-semibold);
+  font-stretch: var(--stretch-display);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.012em;
+  color: var(--color-text);
+  text-wrap: balance;
 }
 
-button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+h1 { font-size: var(--fs-24); }
+h2 { font-size: var(--fs-18); }
+h3 { font-size: var(--fs-16); }
+h4 { font-size: var(--fs-14); }
 
-h1 { font-size: var(--text-4xl); }
-h2 { font-size: var(--text-3xl); }
-h3 { font-size: var(--text-2xl); }
-h4 { font-size: var(--text-xl); }
-h5 { font-size: var(--text-lg); }
-h6 { font-size: var(--text-base); }
-
-p {
-  line-height: var(--leading-relaxed);
-}
+p { text-wrap: pretty; }
 
 a {
-  color: var(--color-primary-navy);
-  text-decoration: none;
-  transition: color var(--transition-fast);
+  color: var(--color-accent-text);
+  text-decoration: underline;
+  text-decoration-color: var(--copper-line);
+  text-underline-offset: 3px;
+  transition: text-decoration-color var(--dur-1) ease;
 }
 
-a:hover {
-  color: var(--color-primary-red);
-}
+a:hover { text-decoration-color: currentColor; }
 
-/* Elementos de formulário */
-button, input, select, textarea {
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
+strong, b { font-weight: var(--fw-semibold); }
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
 }
 
 button {
   cursor: pointer;
-  border: none;
+  border: 0;
   background: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
+button:disabled { cursor: not-allowed; }
 
-input, select, textarea {
+a, label, summary { -webkit-tap-highlight-color: transparent; }
+
+/* Campos de formulário: estilo único para toda a aplicação.
+   :where() mantém especificidade zero para que módulos possam ajustar. */
+:where(input:not([type='checkbox'], [type='radio'], [type='range'], [type='file']), select, textarea) {
   width: 100%;
-  border: var(--border-width-thin) solid var(--color-border);
+  min-height: var(--control-h);
+  padding: 0 var(--space-3);
+  /* 16px evita zoom automático em campos no iOS */
+  font-size: var(--fs-16);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-md);
-  background-color: var(--color-white);
-  color: var(--color-text-primary);
-  padding: 0 var(--input-padding-x);
   outline: none;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: border-color var(--dur-1) ease, box-shadow var(--dur-1) ease, background-color var(--dur-1) ease;
 }
 
-input:focus, select:focus, textarea:focus {
-  border-color: var(--color-primary-red);
-  box-shadow: var(--shadow-focus);
+:where(textarea) {
+  padding: var(--space-3);
+  min-height: 6rem;
+  resize: vertical;
+  line-height: var(--lh-body);
 }
 
-input::placeholder, textarea::placeholder {
+:where(select) {
+  appearance: none;
+  padding-right: var(--space-10);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235e636d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-3) center;
+  cursor: pointer;
+}
+
+:where(input, select, textarea):hover:not(:disabled) { border-color: var(--stone-500); }
+
+:where(input, select, textarea):focus-visible,
+:where(input, select, textarea):focus {
+  border-color: var(--copper);
+  box-shadow: var(--ring-focus);
+}
+
+:where(input, select, textarea)[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
+:where(input, select, textarea)[aria-invalid='true']:focus {
+  box-shadow: 0 0 0 3px rgb(196 71 71 / 0.2);
+}
+
+:where(input, select, textarea):disabled {
+  background: var(--color-surface-muted);
   color: var(--color-text-muted);
+  cursor: not-allowed;
 }
 
-/* Imagens e mídia */
-img, video, canvas, svg {
-  display: block;
-  max-width: 100%;
-  height: auto;
+::placeholder { color: var(--stone-500); opacity: 1; }
+
+:where(input[type='checkbox'], input[type='radio']) {
+  accent-color: var(--ink-900);
+  width: 1.125rem;
+  height: 1.125rem;
 }
 
-/* Listas */
-ul, ol {
-  list-style: none;
-}
+img, svg, video { display: block; max-width: 100%; }
 
-/* Tabelas */
-table {
-  border-collapse: collapse;
-  width: 100%;
-}
+ul, ol { list-style: none; }
 
-/* Scrollbar discreta */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-border) transparent;
-}
+table { border-collapse: collapse; width: 100%; }
 
-*::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
+::selection { background: var(--copper-soft); color: var(--ink-900); }
 
-*::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-*::-webkit-scrollbar-thumb {
-  background-color: var(--color-border);
-  border-radius: var(--radius-full);
-}
-
-*::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-text-muted);
-}
-
-/* Seleção de texto */
-::selection {
-  background-color: var(--color-primary-red);
-  color: var(--color-white);
-}
-
-/* Foco visível para acessibilidade */
 :focus-visible {
-  outline: var(--border-width-thin) solid var(--color-primary-red);
+  outline: 2px solid var(--copper);
   outline-offset: 2px;
 }
 
-/* Utilitários de layout */
-.container {
-  width: min(var(--container-max), 100%);
-  margin: 0 auto;
-  padding: 0 var(--space-4);
+/* Barras de rolagem discretas */
+* { scrollbar-width: thin; scrollbar-color: var(--stone-300) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb {
+  background-color: var(--stone-300);
+  border: 3px solid transparent;
+  border-radius: var(--radius-pill);
+  background-clip: padding-box;
 }
 
 .sr-only {
@@ -174,30 +176,14 @@ table {
   border: 0;
 }
 
-/* Animações base */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-in {
-  animation: fadeIn var(--transition-normal) ease-out;
-}
-
-.animate-slide-up {
-  animation: slideUp var(--transition-normal) ease-out;
-}
-
-.animate-slide-down {
-  animation: slideDown var(--transition-normal) ease-out;
+/* Movimento reduzido: remove deslocamentos e encurta transições a quase zero. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

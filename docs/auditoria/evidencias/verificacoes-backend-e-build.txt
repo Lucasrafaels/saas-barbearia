@@ -1,0 +1,46 @@
+Verificações automatizadas — backend, banco, frontend e repositório
+Data: 11/11/2026 · Branch: desenvolvimento (commit ed5e39f + alterações não commitadas do redesign do frontend)
+Nenhum valor de SECRET_KEY, senha ou token foi registrado. Comprimentos e contagens apenas.
+
+=== Testes do backend (python manage.py test) ===
+Found 239 test(s).
+System check identified no issues (0 silenced).
+Ran 239 tests in 126.140s   (1ª execução)
+Ran 239 tests in 126.715s   (2ª execução, após o redesign do frontend)
+OK
+Aviso emitido durante os testes (PyJWT):
+  InsecureKeyLengthWarning: The HMAC key is 3 bytes long, which is below the minimum recommended length of 32 bytes for SHA256.
+Observação: com config.settings, o runner usa o Postgres (cria e destrói um banco de teste próprio; o banco principal não é alterado).
+O Postgres também emitiu o aviso de divergência de versão de collation (2.43 x 2.44).
+
+=== SECRET_KEY efetiva (sem valor) ===
+Linha SECRET_KEY no .env: 50 caracteres; contém os caracteres '#' e '$' sem aspas.
+len(settings.SECRET_KEY) = 3 | len(SIMPLE_JWT SIGNING_KEY) = 3
+Variável SECRET_KEY no ambiente do shell: ausente (o valor vem do .env).
+
+=== Migrações ===
+makemigrations --check --dry-run (settings de teste, SQLite em memória): No changes detected
+showmigrations no Postgres real (somente leitura): nenhuma migração pendente
+appointments: 0001..0005, 0007, 0008 (0007 depende de 0005; a ausência de 0006 é só numeração)
+
+=== check --deploy (DEBUG=False, chave temporária gerada só para o comando, host fictício) ===
+WARNINGS:
+?: (security.W021) You have not set the SECURE_HSTS_PRELOAD setting to True.
+System check identified 1 issue (0 silenced).
+
+=== Frontend ===
+npx tsc -b ............ sem erros
+npm run lint .......... 0 erros, 0 avisos (eslint --max-warnings=0)
+npm run build ......... OK
+  dist/assets/index-*.css   44.91 kB │ gzip:   9.14 kB
+  dist/assets/index-*.js   424.02 kB │ gzip: 134.96 kB   (antes do redesign: 466.91 kB, bundle único)
+Testes de frontend: inexistentes (nenhum arquivo de teste, nenhum script "test" no package.json)
+
+=== Repositório ===
+Arquivos versionados: 5076, dos quais 4875 em venv312/ (96%)
+.env e frontend/.env nunca foram commitados (git log --all vazio para esses caminhos)
+SECRET_KEY fixa encontrada no histórico em core/settings.py (commits 22575b0 e 3f46df2) — valor não exibido
+Branches: master 30 commits atrás de desenvolvimento; feature/painel-super-admin = mesmo commit de desenvolvimento;
+          release/barberpro-academica-v1 tem 1 commit próprio (67ef6e3, apenas documentação e comentários)
+Infra: sem .github (CI), sem Dockerfile da aplicação, sem Procfile/Makefile/pre-commit, sem endpoint de health check,
+       sem CACHES, sem whitenoise, sem sentry, sem LOGGING, sem EMAIL_BACKEND/EMAIL_HOST

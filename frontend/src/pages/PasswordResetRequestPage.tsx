@@ -1,85 +1,61 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { z } from 'zod'
 import { authApi } from '../api/endpoints'
-import { useToast } from '../contexts/ToastContext'
+import { AuthLayout } from '../components/AuthLayout'
+import { ButtonSpinner, Field, fieldA11y } from '../components/Controls'
+import { AlertCircleIcon, MailIcon } from '../components/Icons'
+import { errorMessage } from '../utils/format'
 import styles from '../styles/auth.module.css'
 import ui from '../styles/ui.module.css'
 
-const resetRequestSchema = z.object({
-  email: z.string().email('E-mail inválido'),
-})
-
-type ResetRequestForm = z.infer<typeof resetRequestSchema>
+const schema = z.object({ email: z.string().trim().email('Informe um e-mail válido.') })
+type Form = z.infer<typeof schema>
 
 export function PasswordResetRequestPage() {
-  const navigate = useNavigate()
-  const { showToast } = useToast()
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [sentTo, setSentTo] = useState<string | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<Form>({ resolver: zodResolver(schema), defaultValues: { email: '' } })
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm<ResetRequestForm>({
-    resolver: zodResolver(resetRequestSchema),
-  })
-
-  const onSubmit = async (data: ResetRequestForm) => {
-    setIsSubmitting(true)
+  const onSubmit = async (values: Form) => {
+    setFormError(null)
     try {
-      await authApi.requestPasswordReset({ email: data.email })
-      showToast('Se o e-mail estiver cadastrado, você receberá instruções para redefinir a senha.', 'success')
-      reset()
-      setTimeout(() => {
-        navigate('/login')
-      }, 3000)
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Erro ao solicitar recuperação de senha'
-      showToast(message, 'error')
-    } finally {
-      setIsSubmitting(false)
+      await authApi.requestPasswordReset({ email: values.email.trim() })
+      setSentTo(values.email.trim())
+    } catch (error) {
+      setFormError(errorMessage(error, 'Não foi possível solicitar a recuperação de senha.'))
     }
   }
 
-  return (
-    <main className={styles.authPage}>
-      <section className={styles.panel}>
-        <a href="/" className={styles.brand}>
-          <span className={styles.brandMark} aria-hidden="true">B</span>
-          BarberPro
-        </a>
-        <div className={styles.panelHeader}>
-          <p className={styles.eyebrow}>Recuperar Senha</p>
-          <h1>Esqueceu a senha?</h1>
-          <p className={styles.description}>Digite seu e-mail para receber instruções de recuperação</p>
+  if (sentTo) {
+    return (
+      <AuthLayout title="Verifique seu e-mail" description={<>Se houver uma conta ativa com <strong>{sentTo}</strong>, enviamos as instruções para criar uma nova senha.</>}>
+        <div className={`${ui.alert} ${ui.alertInfo}`}>
+          <MailIcon size={18} />
+          <span>A mensagem traz dois códigos: o identificador e o token. Use-os na próxima tela junto com a nova senha.</span>
         </div>
-        <form className={styles.form} onSubmit={handleSubmit(onSubmit)} noValidate>
-          <div className={styles.field}>
-            <label htmlFor="email">E-mail</label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              {...register('email')}
-              className={errors.email ? styles.error : ''}
-              disabled={isSubmitting}
-            />
-            {errors.email && <span className={styles.errorText}>{errors.email.message}</span>}
-          </div>
-          <button className={styles.submitButton} disabled={isSubmitting} type="submit">
-            {isSubmitting ? 'Enviando...' : 'Enviar Instruções'}
-          </button>
-        </form>
+        <Link to="/password/reset/confirm" className={`${ui.button} ${ui.block}`}>Já tenho os códigos</Link>
         <p className={styles.switch}>
-          <button type="button" onClick={() => navigate('/login')} className={ui.textButton} disabled={isSubmitting}>
-            Voltar para o Login
-          </button>
+          Não recebeu? <button type="button" className={ui.textButton} onClick={() => setSentTo(null)}>Tentar outro e-mail</button>
         </p>
-      </section>
-    </main>
+      </AuthLayout>
+    )
+  }
+
+  return (
+    <AuthLayout title="Recuperar senha" description="Informe o e-mail da sua conta para receber as instruções.">
+      <form className={ui.form} onSubmit={handleSubmit(onSubmit)} noValidate>
+        {formError && <div className={`${ui.alert} ${ui.alertDanger}`} role="alert"><AlertCircleIcon size={18} /><p>{formError}</p></div>}
+        <Field label="E-mail" htmlFor="reset-email" error={errors.email?.message}>
+          <input {...fieldA11y('reset-email', errors.email?.message)} type="email" autoComplete="email" inputMode="email" autoFocus {...register('email')} />
+        </Field>
+        <button className={`${ui.button} ${ui.block}`} disabled={isSubmitting} type="submit">
+          {isSubmitting && <ButtonSpinner />} Enviar instruções
+        </button>
+      </form>
+      <p className={styles.switch}><Link to="/login">Voltar para o login</Link></p>
+    </AuthLayout>
   )
 }
