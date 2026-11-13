@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { listAllAppointments, listAllUsers, userApi } from '../api/endpoints'
 import { ActiveBadge, Avatar, ButtonSpinner, Field, fieldA11y, Pagination, PasswordInput, SearchField, SegmentedControl } from '../components/Controls'
 import { EmptyState, ErrorState, RefreshBar, SkeletonRows } from '../components/Feedback'
-import { ContactIcon, EditIcon, PowerIcon, RotateCcwIcon, UserPlusIcon } from '../components/Icons'
+import { EditIcon, PowerIcon, RotateCcwIcon, UserPlusIcon } from '../components/Icons'
 import { Modal } from '../components/Modal'
 import { PageHeader } from '../components/PageHeader'
 import { useConfirm } from '../contexts/ConfirmContext'
@@ -195,7 +195,7 @@ export function AdminClientsPage() {
           <ErrorState error={error} fallback="Não foi possível carregar os clientes." onRetry={() => void reload()} />
         ) : clients.length === 0 ? (
           <EmptyState
-            icon={<ContactIcon size={22} />}
+            art="tesoura"
             title="Nenhum cliente cadastrado"
             description="Cadastre clientes para que eles possam entrar e agendar horários nesta barbearia."
             action={{ label: 'Cadastrar cliente', onClick: openCreate }}

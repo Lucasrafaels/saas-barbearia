@@ -1,0 +1,4 @@
+15 tentativas de login com senha errada no mesmo minuto, mesmo IP, 3 workers:
+ sequência: [401, 401, 401, 401, 401, 429, 401, 401, 401, 401, 401, 429, 429, 429, 429]
+ contagem: {401: 10, 429: 5}
+ tentativas aceitas (401) antes/apesar do limite de 5/min: 10

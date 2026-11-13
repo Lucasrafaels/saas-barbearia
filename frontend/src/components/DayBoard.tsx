@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useRef, type CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import type { Appointment, Barber } from '../types'
-import { useNow } from '../hooks/useUi'
+import { useMediaQuery, useNow } from '../hooks/useUi'
 import { dateKey, formatClock, minutesOfDay, minutesToClock, statusLabels, todayISO } from '../utils/format'
 import { statusOrder } from '../utils/status'
-import { Avatar } from './Controls'
+import { Avatar, SegmentedControl } from './Controls'
 import styles from '../styles/board.module.css'
 
 interface DayBoardProps {
@@ -17,6 +17,8 @@ interface DayBoardProps {
 }
 
 const MINUTE_PX = 1.6
+/** No celular a escala é menor: uma coluna só, sem horas vazias empurrando o resto da página. */
+const MOBILE_MINUTE_PX = 1.2
 
 const statusClass = {
   agendado: styles.s_agendado,
@@ -34,6 +36,10 @@ export function DayBoard({ day, appointments, barbers, opens, closes, onSelect }
   const now = useNow(60_000)
   const isToday = day === todayISO()
   const nowMin = minutesOfDay(now.toISOString())
+  // Celular: um barbeiro por vez, em largura total, escolhido no seletor acima do quadro
+  const single = useMediaQuery('(max-width: 640px)')
+  const [focusId, setFocusId] = useState<number | null>(null)
+  const minutePx = single ? MOBILE_MINUTE_PX : MINUTE_PX
 
   const dayAppointments = useMemo(
     () => appointments.filter((item) => dateKey(item.data_hora) === day),
@@ -71,7 +77,7 @@ export function DayBoard({ day, appointments, barbers, opens, closes, onSelect }
     return list
   }, [start, end])
 
-  const height = (end - start) * MINUTE_PX
+  const height = (end - start) * minutePx
   const showNow = isToday && nowMin >= start && nowMin <= end
 
   // Leva a rolagem para o agora (hoje) ou para o primeiro horário do dia
@@ -83,18 +89,44 @@ export function DayBoard({ day, appointments, barbers, opens, closes, onSelect }
       return min === null || value < min ? value : min
     }, null)
     const focus = showNow ? nowMin - 60 : firstItem !== null ? firstItem - 30 : start
-    element.scrollTop = Math.max(0, (focus - start) * MINUTE_PX)
+    element.scrollTop = Math.max(0, (focus - start) * minutePx)
   // Só ao trocar de dia: não deve brigar com a rolagem do usuário.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [day])
 
-  const gridStyle = { '--cols': Math.max(columns.length, 1) } as CSSProperties
+  const focused = single ? columns.find((column) => column.barber.id === focusId) ?? columns[0] : undefined
+  const visible = focused ? [focused] : columns
+  const showPicker = focused !== undefined && columns.length > 1
+  const firstNames = columns.map(({ barber }) => barber.nome.split(' ')[0])
+  const emptyText = dayAppointments.length === 0
+    ? 'Nenhum agendamento neste dia.'
+    : focused && focused.items.length === 0
+      ? `Nenhum agendamento de ${focused.barber.nome.split(' ')[0]} neste dia.`
+      : null
+
+  const gridStyle = { '--cols': Math.max(visible.length, 1) } as CSSProperties
 
   return (
-    <div className={styles.board} ref={scrollRef} style={{ '--minute': `${MINUTE_PX}px` } as CSSProperties}>
+    <>
+      {showPicker && focused && (
+        <div className={styles.picker}>
+          <SegmentedControl
+            label="Barbeiro exibido no quadro"
+            value={String(focused.barber.id)}
+            options={columns.map(({ barber, items }, index) => ({
+              value: String(barber.id),
+              // Primeiro nome; o nome inteiro só quando dois barbeiros dividem o mesmo
+              label: firstNames.filter((name) => name === firstNames[index]).length > 1 ? barber.nome : firstNames[index],
+              count: items.filter((item) => item.status !== 'cancelado').length,
+            }))}
+            onChange={(value) => setFocusId(Number(value))}
+          />
+        </div>
+      )}
+    <div className={styles.board} ref={scrollRef} style={{ '--minute': `${minutePx}px` } as CSSProperties}>
       <div className={styles.grid} style={gridStyle}>
-        <div className={styles.corner} style={{ gridColumn: 1, gridRow: 1 }} aria-hidden="true" />
-        {columns.map(({ barber, items }, columnIndex) => {
+        {!showPicker && <div className={styles.corner} style={{ gridColumn: 1, gridRow: 1 }} aria-hidden="true" />}
+        {!showPicker && visible.map(({ barber, items }, columnIndex) => {
           const active = items.filter((item) => item.status !== 'cancelado').length
           return (
             <div className={styles.colHeader} key={barber.id} style={{ gridColumn: columnIndex + 2, gridRow: 1 }}>
@@ -109,14 +141,14 @@ export function DayBoard({ day, appointments, barbers, opens, closes, onSelect }
 
         <div className={styles.gutter} style={{ height, gridColumn: 1, gridRow: 2 }} aria-hidden="true">
           {hours.map((minute) => (
-            <span key={minute} className={styles.hourLabel} style={{ top: (minute - start) * MINUTE_PX }}>
+            <span key={minute} className={styles.hourLabel} style={{ top: (minute - start) * minutePx }}>
               {minutesToClock(minute)}
             </span>
           ))}
-          {showNow && <span className={styles.nowLabel} style={{ top: (nowMin - start) * MINUTE_PX }}>{minutesToClock(nowMin)}</span>}
+          {showNow && <span className={styles.nowLabel} style={{ top: (nowMin - start) * minutePx }}>{minutesToClock(nowMin)}</span>}
         </div>
 
-        {columns.map(({ barber, items }, columnIndex) => (
+        {visible.map(({ barber, items }, columnIndex) => (
           <div
             className={styles.column}
             key={barber.id}
@@ -124,14 +156,15 @@ export function DayBoard({ day, appointments, barbers, opens, closes, onSelect }
             role="list"
             aria-label={`Agenda de ${barber.nome}`}
           >
-            {opens > start && <div className={styles.closed} style={{ top: 0, height: (opens - start) * MINUTE_PX }} />}
-            {closes < end && <div className={styles.closed} style={{ top: (closes - start) * MINUTE_PX, bottom: 0 }} />}
+            {opens > start && <div className={styles.closed} style={{ top: 0, height: (opens - start) * minutePx }} />}
+            {closes < end && <div className={styles.closed} style={{ top: (closes - start) * minutePx, bottom: 0 }} />}
             {items.map((item, index) => {
               const begin = minutesOfDay(item.data_hora)
-              const top = (begin - start) * MINUTE_PX
-              const blockHeight = Math.max(item.servico_duracao * MINUTE_PX - 3, 16)
+              const top = (begin - start) * minutePx
+              const blockHeight = Math.max(item.servico_duracao * minutePx - 3, 16)
               // Blocos curtos: uma linha (horário + cliente); médios escondem o serviço
-              const tiny = blockHeight < 32
+              // Abaixo de 40px não cabem duas linhas: horário e cliente vão lado a lado
+              const tiny = blockHeight < 40
               const compact = !tiny && blockHeight < 60
               const finish = minutesToClock(begin + item.servico_duracao)
               return (
@@ -153,12 +186,13 @@ export function DayBoard({ day, appointments, barbers, opens, closes, onSelect }
           </div>
         ))}
 
-        <div className={styles.overlayLayer} style={{ gridColumn: '2 / -1', gridRow: 2, height }} aria-hidden={dayAppointments.length > 0 ? true : undefined}>
-          {showNow && <div className={styles.nowLine} style={{ top: (nowMin - start) * MINUTE_PX }} />}
-          {dayAppointments.length === 0 && <div className={styles.emptyOverlay}><p>Nenhum agendamento neste dia.</p></div>}
+        <div className={styles.overlayLayer} style={{ gridColumn: '2 / -1', gridRow: 2, height }} aria-hidden={emptyText ? undefined : true}>
+          {showNow && <div className={styles.nowLine} style={{ top: (nowMin - start) * minutePx }} />}
+          {emptyText && <div className={styles.emptyOverlay}><p>{emptyText}</p></div>}
         </div>
       </div>
     </div>
+    </>
   )
 }
 

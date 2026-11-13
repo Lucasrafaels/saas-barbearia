@@ -1,6 +1,25 @@
-/* BarberPro — reset e estilos globais. A fonte é carregada no index.html. */
+/* BarberPro: reset e estilos globais. As fontes ficam hospedadas no próprio projeto (licença OFL). */
 
 @import './design-tokens.css';
+
+@font-face {
+  font-family: 'Public Sans';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../assets/fonts/public-sans-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'League Gothic';
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: 75% 100%;
+  font-display: swap;
+  src: url('../assets/fonts/league-gothic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 
 *,
 *::before,
@@ -32,11 +51,10 @@ h1,
 h2,
 h3,
 h4 {
-  font-weight: var(--fw-semibold);
-  font-stretch: var(--stretch-display);
+  font-weight: var(--fw-bold);
   line-height: var(--lh-tight);
-  letter-spacing: -0.012em;
-  color: var(--color-text);
+  letter-spacing: -0.01em;
+  color: var(--color-heading);
   text-wrap: balance;
 }
 
@@ -50,12 +68,13 @@ p { text-wrap: pretty; }
 a {
   color: var(--color-accent-text);
   text-decoration: underline;
-  text-decoration-color: var(--copper-line);
+  text-decoration-color: var(--marinho-200);
+  text-decoration-thickness: 1.5px;
   text-underline-offset: 3px;
-  transition: text-decoration-color var(--dur-1) ease;
+  transition: text-decoration-color var(--dur-1) ease, color var(--dur-1) ease;
 }
 
-a:hover { text-decoration-color: currentColor; }
+a:hover { text-decoration-color: currentColor; color: var(--marinho-900); }
 
 strong, b { font-weight: var(--fw-semibold); }
 
@@ -81,17 +100,20 @@ button:disabled { cursor: not-allowed; }
 a, label, summary { -webkit-tap-highlight-color: transparent; }
 
 /* Campos de formulário: estilo único para toda a aplicação.
-   :where() mantém especificidade zero para que módulos possam ajustar. */
+   :where() mantém especificidade zero para que módulos possam ajustar.
+   A borda do campo tem 3,4:1 sobre branco para o controle ser reconhecível. */
 :where(input:not([type='checkbox'], [type='radio'], [type='range'], [type='file']), select, textarea) {
   width: 100%;
   min-height: var(--control-h);
   padding: 0 var(--space-3);
   /* 16px evita zoom automático em campos no iOS */
   font-size: var(--fs-16);
+  color: var(--color-text);
   background: var(--color-surface);
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--linha-campo);
   border-radius: var(--radius-md);
   outline: none;
+  caret-color: var(--marinho-700);
   transition: border-color var(--dur-1) ease, box-shadow var(--dur-1) ease, background-color var(--dur-1) ease;
 }
 
@@ -105,38 +127,39 @@ a, label, summary { -webkit-tap-highlight-color: transparent; }
 :where(select) {
   appearance: none;
   padding-right: var(--space-10);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235e636d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23102143' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right var(--space-3) center;
   cursor: pointer;
 }
 
-:where(input, select, textarea):hover:not(:disabled) { border-color: var(--stone-500); }
+:where(input, select, textarea):hover:not(:disabled) { border-color: var(--marinho-600); }
 
 :where(input, select, textarea):focus-visible,
 :where(input, select, textarea):focus {
-  border-color: var(--copper);
+  border-color: var(--marinho-700);
   box-shadow: var(--ring-focus);
 }
 
 :where(input, select, textarea)[aria-invalid='true'] {
-  border-color: var(--danger);
+  border-color: var(--vermelho-600);
 }
 
 :where(input, select, textarea)[aria-invalid='true']:focus {
-  box-shadow: 0 0 0 3px rgb(196 71 71 / 0.2);
+  box-shadow: 0 0 0 3px rgb(193 45 46 / 0.18);
 }
 
 :where(input, select, textarea):disabled {
   background: var(--color-surface-muted);
+  border-color: var(--linha-forte);
   color: var(--color-text-muted);
   cursor: not-allowed;
 }
 
-::placeholder { color: var(--stone-500); opacity: 1; }
+::placeholder { color: var(--tinta-3); opacity: 1; }
 
 :where(input[type='checkbox'], input[type='radio']) {
-  accent-color: var(--ink-900);
+  accent-color: var(--marinho-900);
   width: 1.125rem;
   height: 1.125rem;
 }
@@ -147,18 +170,18 @@ ul, ol { list-style: none; }
 
 table { border-collapse: collapse; width: 100%; }
 
-::selection { background: var(--copper-soft); color: var(--ink-900); }
+::selection { background: var(--marinho-900); color: var(--marfim); }
 
 :focus-visible {
-  outline: 2px solid var(--copper);
+  outline: 2px solid var(--marinho-700);
   outline-offset: 2px;
 }
 
-/* Barras de rolagem discretas */
-* { scrollbar-width: thin; scrollbar-color: var(--stone-300) transparent; }
+/* Barras de rolagem discretas, na cor das linhas */
+* { scrollbar-width: thin; scrollbar-color: var(--linha-forte) transparent; }
 *::-webkit-scrollbar { width: 10px; height: 10px; }
 *::-webkit-scrollbar-thumb {
-  background-color: var(--stone-300);
+  background-color: var(--linha-forte);
   border: 3px solid transparent;
   border-radius: var(--radius-pill);
   background-clip: padding-box;

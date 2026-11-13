@@ -9,6 +9,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import environ
+from django.core.exceptions import ImproperlyConfigured
 
 # ---------------------------------------------------------------------------
 # Caminhos base e variáveis de ambiente
@@ -29,6 +30,23 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1', 'te
 
 if not DEBUG and SECRET_KEY == _DEFAULT_DEV_SECRET:
     raise RuntimeError('SECRET_KEY deve ser definido em produção.')
+
+# A SECRET_KEY assina os JWT (HS256, o SIMPLE_JWT não define SIGNING_KEY),
+# as sessões e os links de redefinição de senha. O django-environ corta um
+# valor sem aspas no primeiro "#", e isso já reduziu a chave local a poucos
+# caracteres sem nenhum erro visível. Por isso a validação vale também com
+# DEBUG=True. Os limites são os do check security.W009 do Django. A mensagem
+# informa apenas o tamanho, nunca o valor.
+SECRET_KEY_MIN_LENGTH = 50
+SECRET_KEY_MIN_UNIQUE_CHARS = 5
+if len(SECRET_KEY) < SECRET_KEY_MIN_LENGTH or len(set(SECRET_KEY)) < SECRET_KEY_MIN_UNIQUE_CHARS:
+    raise ImproperlyConfigured(
+        f'SECRET_KEY fraca: o valor carregado tem {len(SECRET_KEY)} caracteres; são '
+        f'exigidos ao menos {SECRET_KEY_MIN_LENGTH} caracteres e '
+        f'{SECRET_KEY_MIN_UNIQUE_CHARS} caracteres distintos. No .env, um "#" sem '
+        'aspas inicia um comentário e trunca o valor. Gere uma chave sem caracteres '
+        'especiais com: python -c "import secrets; print(secrets.token_urlsafe(64))"'
+    )
 
 
 # ---------------------------------------------------------------------------

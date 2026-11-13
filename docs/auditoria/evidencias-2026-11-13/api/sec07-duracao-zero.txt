@@ -1,0 +1,3 @@
+$ timeout 10s: available-slots com serviço de duração 0 (banco descartável)
+chamando available-slots com duracao=0 ...
+exit=124 (124 = processo encerrado pelo timeout: a requisição não respondeu em 10 s)

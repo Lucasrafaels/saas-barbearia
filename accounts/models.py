@@ -10,6 +10,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 from config.models import TimeStampedModel
+from .admin_integrity import GUARDED_FIELDS, active_admin_barbershop, preserving_active_admins
 from .managers import UserManager
 
 
@@ -66,6 +67,34 @@ class User(AbstractUser, TimeStampedModel):
 
     def get_short_name(self):
         return self.nome
+
+    # BUS-01: uma barbearia com admin ativo nunca fica sem nenhum, qualquer
+    # que seja o caminho (API, Django Admin, shell). Ver accounts.admin_integrity.
+    def save(self, *args, **kwargs):
+        update_fields = kwargs.get('update_fields')
+        if (
+            self._state.adding
+            or self.pk is None
+            or (update_fields is not None and GUARDED_FIELDS.isdisjoint(update_fields))
+        ):
+            return super().save(*args, **kwargs)
+        origin = active_admin_barbershop(self.pk)
+        still_admin_there = (
+            self.tipo_perfil == self.TipoPerfil.ADMIN
+            and self.is_active
+            and self.barbershop_id == origin
+        )
+        if origin is None or still_admin_there:
+            return super().save(*args, **kwargs)
+        with preserving_active_admins({origin}):
+            return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        origin = active_admin_barbershop(self.pk) if self.pk else None
+        if origin is None:
+            return super().delete(*args, **kwargs)
+        with preserving_active_admins({origin}):
+            return super().delete(*args, **kwargs)
 
     @property
     def is_admin(self):

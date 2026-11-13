@@ -1,0 +1,198 @@
+[
+ {
+  "id": "BUS-15/cliente/confirmado",
+  "verificacao": "cliente cria com status=confirmado",
+  "esperado": "403",
+  "obtido": 403,
+  "ok": true
+ },
+ {
+  "id": "BUS-15/cliente/cancelado",
+  "verificacao": "cliente cria com status=cancelado",
+  "esperado": "403",
+  "obtido": 403,
+  "ok": true
+ },
+ {
+  "id": "BUS-15/cliente/realizado",
+  "verificacao": "cliente cria com status=realizado",
+  "esperado": "403",
+  "obtido": 403,
+  "ok": true
+ },
+ {
+  "id": "BUS-15/cliente/padrao",
+  "verificacao": "cliente cria sem status",
+  "esperado": "201 agendado",
+  "obtido": "201 agendado",
+  "ok": true
+ },
+ {
+  "id": "BUS-15/admin/confirmado",
+  "verificacao": "admin registra já confirmado",
+  "esperado": "201 confirmado",
+  "obtido": "201 confirmado",
+  "ok": true
+ },
+ {
+  "id": "BUS-15/barbeiro/cancelado",
+  "verificacao": "barbeiro cria já cancelado",
+  "esperado": "400",
+  "obtido": 400,
+  "ok": true
+ },
+ {
+  "id": "BUS-03/cliente/horario",
+  "verificacao": "cliente remarca confirmado",
+  "esperado": "200 agendado",
+  "obtido": "200 agendado",
+  "ok": true
+ },
+ {
+  "id": "BUS-03/cliente/observacoes",
+  "verificacao": "cliente edita só observações",
+  "esperado": "200 confirmado",
+  "obtido": "200 confirmado",
+  "ok": true
+ },
+ {
+  "id": "BUS-03/admin/horario",
+  "verificacao": "admin remarca confirmado",
+  "esperado": "200 confirmado",
+  "obtido": "200 confirmado",
+  "ok": true
+ },
+ {
+  "id": "BUS-05/completo",
+  "verificacao": "admin salva horário completo",
+  "esperado": "400",
+  "obtido": "400 {'horario_fechamento': ['O horário de fechamento precisa ser depois do horário de abertura",
+  "ok": true
+ },
+ {
+  "id": "BUS-05/parcial",
+  "verificacao": "admin salva horário parcial",
+  "esperado": "400",
+  "obtido": "400 {'horario_fechamento': ['O horário de fechamento precisa ser depois do horário de abertura",
+  "ok": true
+ },
+ {
+  "id": "BUS-05/igual",
+  "verificacao": "admin salva horário igual",
+  "esperado": "400",
+  "obtido": "400 {'horario_fechamento': ['O horário de fechamento precisa ser depois do horário de abertura",
+  "ok": true
+ },
+ {
+  "id": "BUS-05/meia-noite",
+  "verificacao": "admin salva horário meia-noite",
+  "esperado": "400",
+  "obtido": "400 {'horario_fechamento': ['O horário de fechamento precisa ser depois do horário de abertura",
+  "ok": true
+ },
+ {
+  "id": "BUS-05/inalterado",
+  "verificacao": "horário gravado continua 09:00–19:00",
+  "esperado": "09:00:00–19:00:00",
+  "obtido": "09:00:00–19:00:00",
+  "ok": true
+ },
+ {
+  "id": "BUS-04/admin",
+  "verificacao": "admin troca 30→60 min às 18:30 (fecha 19:00)",
+  "esperado": "400",
+  "obtido": "400 {'data_hora': ['O agendamento não pode terminar depois do horário de fechamento da barbear",
+  "ok": true
+ },
+ {
+  "id": "BUS-04/cliente",
+  "verificacao": "cliente troca 30→60 min às 18:30 (fecha 19:00)",
+  "esperado": "400",
+  "obtido": "400 {'data_hora': ['O agendamento não pode terminar depois do horário de fechamento da barbear",
+  "ok": true
+ },
+ {
+  "id": "BUS-04/limite",
+  "verificacao": "troca 30→60 min às 18:00 (termina 19:00)",
+  "esperado": "200",
+  "obtido": 200,
+  "ok": true
+ },
+ {
+  "id": "BUS-06/padrao",
+  "verificacao": "padrão (todos os dias): domingo continua aberto",
+  "esperado": "horários no domingo",
+  "obtido": "20 horários",
+  "ok": true
+ },
+ {
+  "id": "BUS-06/config/cliente",
+  "verificacao": "cliente tenta mudar os dias",
+  "esperado": "403",
+  "obtido": 403,
+  "ok": true
+ },
+ {
+  "id": "BUS-06/config/barbeiro",
+  "verificacao": "barbeiro tenta mudar os dias",
+  "esperado": "403",
+  "obtido": 403,
+  "ok": true
+ },
+ {
+  "id": "BUS-06/config/vazio",
+  "verificacao": "admin salva sem nenhum dia",
+  "esperado": "400",
+  "obtido": 400,
+  "ok": true
+ },
+ {
+  "id": "BUS-06/config/admin",
+  "verificacao": "admin fecha o domingo",
+  "esperado": "200 [1..6]",
+  "obtido": "200 [1, 2, 3, 4, 5, 6]",
+  "ok": true
+ },
+ {
+  "id": "BUS-06/slots",
+  "verificacao": "horários: domingo x sábado",
+  "esperado": "domingo 0; sábado > 0",
+  "obtido": "domingo 0; sábado 20",
+  "ok": true
+ },
+ {
+  "id": "BUS-06/agendar/cliente",
+  "verificacao": "cliente agenda no domingo fechado",
+  "esperado": "400",
+  "obtido": "400 {'data_hora': ['A barbearia não abre aos domingos. Escolha outro dia.']}",
+  "ok": true
+ },
+ {
+  "id": "BUS-06/agendar/admin",
+  "verificacao": "admin agenda no domingo fechado",
+  "esperado": "400",
+  "obtido": "400 {'data_hora': ['A barbearia não abre aos domingos. Escolha outro dia.']}",
+  "ok": true
+ },
+ {
+  "id": "BUS-06/agendar/barbeiro",
+  "verificacao": "barbeiro agenda no domingo fechado",
+  "esperado": "400",
+  "obtido": "400 {'data_hora': ['A barbearia não abre aos domingos. Escolha outro dia.']}",
+  "ok": true
+ },
+ {
+  "id": "BUS-06/sabado",
+  "verificacao": "cliente agenda no sábado aberto",
+  "esperado": "201",
+  "obtido": 201,
+  "ok": true
+ },
+ {
+  "id": "BUS-06/remarcar",
+  "verificacao": "cliente remarca para o domingo fechado",
+  "esperado": "400",
+  "obtido": 400,
+  "ok": true
+ }
+]

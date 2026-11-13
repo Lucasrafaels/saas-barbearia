@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { barberApi, listAllBarbers, userApi } from '../api/endpoints'
 import { ActiveBadge, Avatar, ButtonSpinner, Field, fieldA11y, Pagination, PasswordInput, SearchField, SegmentedControl } from '../components/Controls'
 import { EmptyState, ErrorState, RefreshBar, SkeletonRows } from '../components/Feedback'
-import { EditIcon, PowerIcon, RotateCcwIcon, UserPlusIcon, UsersIcon } from '../components/Icons'
+import { EditIcon, PowerIcon, RotateCcwIcon, UserPlusIcon } from '../components/Icons'
 import { Modal } from '../components/Modal'
 import { PageHeader } from '../components/PageHeader'
 import { useConfirm } from '../contexts/ConfirmContext'
@@ -179,7 +179,7 @@ export function AdminBarbersPage() {
           <ErrorState error={error} fallback="Não foi possível carregar os barbeiros." onRetry={() => void reload()} />
         ) : barbers.length === 0 ? (
           <EmptyState
-            icon={<UsersIcon size={22} />}
+            art="navalha"
             title="Nenhum barbeiro na equipe"
             description="Cadastre o primeiro barbeiro. Ele recebe um login para acompanhar a própria agenda."
             action={{ label: 'Cadastrar barbeiro', onClick: openCreate }}

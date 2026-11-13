@@ -6,15 +6,18 @@ import { BarbershopProvider, useBarbershop } from '../contexts/BarbershopContext
 import { useMediaQuery, useNow } from '../hooks/useUi'
 import type { User, UserRole } from '../types'
 import { formatDayLong, todayISO } from '../utils/format'
+import { activeTab, TAB_ROUTES } from '../utils/navigation'
 import { shopHoursStatus } from '../utils/shop'
 import { APPOINTMENTS_CHANGED } from '../utils/status'
 import { Avatar } from './Controls'
 import { PageLoader } from './Feedback'
 import {
+  AlertCircleIcon,
   CalendarCheckIcon,
   CalendarIcon,
   CalendarPlusIcon,
   ChevronDownIcon,
+  ClockIcon,
   ContactIcon,
   DashboardIcon,
   HomeIcon,
@@ -27,7 +30,7 @@ import {
   UsersIcon,
   XIcon,
 } from './Icons'
-import { BrandMark } from './PageHeader'
+import { BrandLogo, BrandMark } from './Brand'
 import styles from '../styles/layout.module.css'
 import page from '../styles/page.module.css'
 import ui from '../styles/ui.module.css'
@@ -160,8 +163,8 @@ function Shell() {
       >
         <div className={styles.sidebarHeader}>
           <Link to="/" className={styles.brand} aria-label="BarberPro, página inicial">
-            <BrandMark />
-            <span className={styles.brandName}>BarberPro</span>
+            <span className={styles.brandFull}><BrandLogo fundo="escuro" height={30} label="" /></span>
+            <span className={styles.brandIcon}><BrandMark size={36} /></span>
           </Link>
           <button type="button" className={`${ui.iconButton} ${styles.closeDrawer}`} onClick={() => setDrawerOpen(false)} aria-label="Fechar menu">
             <XIcon size={20} />
@@ -221,7 +224,7 @@ function Shell() {
             <MenuIcon size={22} />
           </button>
           <Link to="/" className={styles.mobileBrand} aria-label="BarberPro, página inicial">
-            <BrandMark size={28} /> BarberPro
+            <BrandLogo fundo="claro" height={24} label="" />
           </Link>
           <span className={styles.topbarDate}>{formatDayLong(todayISO(), true)}</span>
           <span className={styles.topbarSpacer} />
@@ -230,6 +233,7 @@ function Shell() {
         </header>
 
         <main id="conteudo" className={styles.content} tabIndex={-1}>
+          <ShopInactiveNotice />
           <Suspense fallback={<PageLoader label="Carregando…" />}>
             <div key={location.pathname} className={page.routeEnter}>
               <Outlet />
@@ -237,6 +241,64 @@ function Shell() {
           </Suspense>
         </main>
       </div>
+
+      {!isDesktop && <TabBar role={user.tipo_perfil} />}
+    </div>
+  )
+}
+
+/** Ícone de cada aba da barra inferior; destino, rótulo e regra de aba ativa ficam em `utils/navigation`. */
+const tabIcons: Record<string, ComponentType<{ size?: number }>> = {
+  '/admin': DashboardIcon,
+  '/admin/appointments': CalendarIcon,
+  '/admin/services': ScissorsIcon,
+  '/admin/barbers': UsersIcon,
+  '/admin/clients': ContactIcon,
+  '/barber/agenda': CalendarCheckIcon,
+  '/barber/agenda?status=agendado': ClockIcon,
+  '/account': UserIcon,
+  '/': HomeIcon,
+  '/appointments/new': CalendarPlusIcon,
+  '/appointments': CalendarIcon,
+  '/services': ScissorsIcon,
+  '/barbers': UsersIcon,
+}
+
+/** Navegação principal ao alcance do polegar (celular e tablet). O menu completo segue no botão do topo. */
+function TabBar({ role }: { role: UserRole }) {
+  const location = useLocation()
+  const items = TAB_ROUTES[role] ?? []
+  if (items.length === 0) return null
+  const current = activeTab(role, location.pathname, location.search)
+  return (
+    <nav className={styles.tabbar} aria-label="Navegação rápida">
+      {items.map(({ to, label }) => {
+        const Icon = tabIcons[to]
+        const active = to === current
+        return (
+          <Link key={to} to={to} className={`${styles.tab} ${active ? styles.tabActive : ''}`} aria-current={active ? 'page' : undefined}>
+            {Icon && <Icon size={22} />}
+            <span>{label}</span>
+          </Link>
+        )
+      })}
+    </nav>
+  )
+}
+
+/** Barbearia desativada: aviso em todas as telas, com a mesma mensagem da API (FE-14). */
+function ShopInactiveNotice() {
+  const { barbershop } = useBarbershop()
+  if (!barbershop || barbershop.ativo !== false) return null
+  return (
+    <div className={`${page.page} ${styles.shopNotice}`}>
+      <p className={`${ui.alert} ${ui.alertDanger}`} role="status">
+        <AlertCircleIcon size={18} />
+        <span>
+          <strong>Barbearia desativada.</strong>
+          Não é possível criar, remarcar, confirmar ou concluir agendamentos. Consultas e cancelamentos continuam disponíveis.
+        </span>
+      </p>
     </div>
   )
 }
@@ -250,7 +312,7 @@ function ShopSummary() {
     <div className={styles.shop}>
       <span className={styles.shopName} title={barbershop.nome}>{barbershop.nome}</span>
       <span className={styles.shopMeta}>
-        <span className={`${styles.openDot} ${status.open ? '' : styles.closedDot}`} aria-hidden="true" />
+        <span className={`${styles.pole} ${status.open ? '' : styles.poleStopped}`} aria-hidden="true" />
         {status.label}
       </span>
     </div>
@@ -281,9 +343,14 @@ function PendingIndicator({ role }: { role: 'admin' | 'barbeiro' }) {
   if (!count) return null
   const target = role === 'admin' ? '/admin/appointments?status=agendado' : '/barber/agenda?status=agendado'
   return (
-    <Link to={target} className={styles.pendingLink} aria-label={`${count} agendamentos aguardando confirmação`}>
+    <Link
+      to={target}
+      className={styles.pendingLink}
+      aria-label={`${count} agendamentos aguardando confirmação, em todas as datas`}
+      title="Aguardando confirmação, em todas as datas"
+    >
       <span className={styles.pendingCount}>{count}</span>
-      <span className={styles.pendingText}>a confirmar</span>
+      <span className={styles.pendingText}>a confirmar<span className={styles.pendingScope}> no total</span></span>
     </Link>
   )
 }

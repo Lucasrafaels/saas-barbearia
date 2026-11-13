@@ -1,0 +1,154 @@
+{
+ "verificacoes": [
+  {
+   "id": "A1",
+   "verificacao": "Dados da barbearia mostra os 7 dias marcados (padrão)",
+   "ok": true,
+   "detalhe": "1:true 2:true 3:true 4:true 5:true 6:true 7:true"
+  },
+  {
+   "id": "A2",
+   "verificacao": "Sem nenhum dia: mensagem e nenhuma requisição",
+   "ok": true,
+   "detalhe": ""
+  },
+  {
+   "id": "A3",
+   "verificacao": "Fechamento antes da abertura: bloqueado no formulário",
+   "ok": true,
+   "detalhe": ""
+  },
+  {
+   "id": "A4",
+   "verificacao": "Admin fecha o domingo e salva",
+   "ok": true,
+   "detalhe": "{\"metodo\":\"PATCH\",\"caminho\":\"/api/v1/barbershops/1/\",\"status\":200}"
+  },
+  {
+   "id": "A5",
+   "verificacao": "Após recarregar: domingo desmarcado e resumo \"Segunda a sábado\"",
+   "ok": true,
+   "detalhe": "Segunda a sábado, das 09:00 às 19:00, 10 h de agenda por dia."
+  },
+  {
+   "id": "A6",
+   "verificacao": "Dados da barbearia sem rolagem horizontal a 390 px",
+   "ok": true,
+   "detalhe": "-6"
+  },
+  {
+   "id": "A7",
+   "verificacao": "Admin confirma em \"A seguir\"",
+   "ok": true,
+   "detalhe": ""
+  },
+  {
+   "id": "B1",
+   "verificacao": "Início do cliente mostra \"Segunda a sábado, das 09:00 às 19:00\"",
+   "ok": true,
+   "detalhe": "Segunda a sábado, das 09:00 às 19:00"
+  },
+  {
+   "id": "B2",
+   "verificacao": "Domingos desabilitados e marcados como \"fechado\" no calendário",
+   "ok": true,
+   "detalhe": "[{\"dia\":\"dom\",\"fechado\":true,\"rotulo\":\"Domingo, 15 de novembro, barbearia fechada\",\"texto\":\"Dom 15 Fechado\"}]"
+  },
+  {
+   "id": "B3",
+   "verificacao": "Demais dias habilitados",
+   "ok": true,
+   "detalhe": "18 de 21 habilitados"
+  },
+  {
+   "id": "B4",
+   "verificacao": "Clicar num domingo não o seleciona",
+   "ok": true,
+   "detalhe": "Hoje 13 Nov → Hoje 13 Nov"
+  },
+  {
+   "id": "B5",
+   "verificacao": "Agendamento sem rolagem horizontal a 390 px",
+   "ok": true,
+   "detalhe": "-6"
+  },
+  {
+   "id": "B6",
+   "verificacao": "1ª reserva concluída",
+   "ok": true,
+   "detalhe": "Horário reservado"
+  },
+  {
+   "id": "B7",
+   "verificacao": "FE-13: \"Agendar\" após reservar abre um agendamento novo (etapa Serviço)",
+   "ok": true,
+   "detalhe": "Agendar horário / etapa Serviço"
+  },
+  {
+   "id": "B8",
+   "verificacao": "Clique duplo em \"Confirmar agendamento\" gera uma única reserva",
+   "ok": true,
+   "detalhe": "[{\"metodo\":\"POST\",\"caminho\":\"/api/v1/appointments/\",\"status\":201}]"
+  },
+  {
+   "id": "B9",
+   "verificacao": "2ª reserva concluída (fluxo repetível)",
+   "ok": true,
+   "detalhe": ""
+  },
+  {
+   "id": "B10",
+   "verificacao": "As duas reservas do cliente nasceram \"agendado\"",
+   "ok": true,
+   "detalhe": "[[421,\"agendado\"],[420,\"agendado\"]]"
+  },
+  {
+   "id": "B11",
+   "verificacao": "FE-13: \"Agendar horário\" no menu lateral também reinicia o fluxo",
+   "ok": true,
+   "detalhe": ""
+  },
+  {
+   "id": "B12",
+   "verificacao": "Remarcar horário confirmado: aviso de nova confirmação",
+   "ok": true,
+   "detalhe": ""
+  },
+  {
+   "id": "B13",
+   "verificacao": "Remarcação do cliente volta a \"agendado\"",
+   "ok": true,
+   "detalhe": "{\"patch\":200,\"id\":\"401\",\"status\":\"agendado\"}"
+  },
+  {
+   "id": "B14",
+   "verificacao": "Tela final informa que aguarda confirmação",
+   "ok": true,
+   "detalhe": ""
+  },
+  {
+   "id": "C1",
+   "verificacao": "Barbeiro confirma na agenda",
+   "ok": true,
+   "detalhe": ""
+  }
+ ],
+ "erros": [],
+ "axeConfiguracao": [],
+ "admin": {
+  "console": [],
+  "pageErrors": [],
+  "falhasApi": []
+ },
+ "axeAgendamento": [],
+ "cliente": {
+  "console": [],
+  "pageErrors": [],
+  "falhasApi": []
+ },
+ "barbeiro": {
+  "console": [],
+  "pageErrors": [],
+  "falhasApi": []
+ }
+}

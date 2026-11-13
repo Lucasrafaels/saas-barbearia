@@ -2,1935 +2,2185 @@
 
 | | |
 |---|---|
-| **Data** | 11/11/2026 |
-| **Branch auditada** | `desenvolvimento` — commit `ed5e39f` + alterações não commitadas do redesign do frontend |
-| **Escopo** | Backend Django/DRF, frontend React, banco de dados, segurança, testes, documentação e repositório |
-| **Natureza** | Somente diagnóstico. Nenhum código, configuração ou dado foi alterado |
-| **Evidências** | [`docs/auditoria/evidencias/`](auditoria/evidencias/README.md) |
+| **Data** | 13/11/2026 |
+| **Branch auditada** | `desenvolvimento`, commit `3e0949e` + 43 arquivos modificados e 16 entradas não versionadas (backend do dono e redesign "Esmalte & Navalha") |
+| **Escopo** | Backend Django/DRF, frontend React/TypeScript/Vite, banco de dados, segurança, regras de negócio, integração ponta a ponta, três perfis, responsividade, acessibilidade, testes, dependências, documentação e repositório |
+| **Natureza** | Somente diagnóstico. Nenhum código, configuração, dependência, migração ou dado real foi alterado |
+| **Evidências** | [`docs/auditoria/evidencias-2026-11-13/`](auditoria/evidencias-2026-11-13/README.md) |
+| **Correções** | Rodada 1 em 13/11/2026: BUS-15, BUS-03, BUS-05, BUS-04 e FE-13 resolvidos e verificados; BUS-06 parcialmente resolvido. Acompanhamento na [seção 18](#18-acompanhamento-das-correções). Rodada 2 em 13/11/2026 (somente frontend): FE-14, FE-21 e FE-22 resolvidos e verificados, na [seção 19](#19-rodada-2--13112026-fe-14-fe-21-e-fe-22-somente-frontend). As seções 1 a 17 descrevem o estado no momento da auditoria e foram preservadas |
+| **Auditoria anterior** | Cópia integral em [`docs/auditorias/historico/AUDITORIA_BARBERPRO_2026-11-11.md`](auditorias/historico/AUDITORIA_BARBERPRO_2026-11-11.md); evidências antigas preservadas em [`docs/auditoria/evidencias/`](auditoria/evidencias/README.md) |
 
-> **Confidencialidade.** Este relatório não contém a `SECRET_KEY`, senhas ou tokens: apenas comprimentos, contagens e códigos HTTP. Ele descreve, porém, uma fragilidade da chave local (SEC-01). **Gere uma nova chave antes de commitar ou publicar este documento** em repositório acessível a terceiros.
+> **Confidencialidade.** Este relatório não contém a `SECRET_KEY`, senhas, tokens nem a string de conexão do banco: só comprimentos, contagens, códigos HTTP e nomes de campos. Todos os dados de teste citados são fictícios.
 
 ---
 
 ## Sumário
 
 1. [Resumo executivo](#1-resumo-executivo)
-2. [Metodologia](#2-metodologia)
-3. [Arquitetura identificada](#3-arquitetura-identificada)
-4. [Funcionalidades existentes e estado real](#4-funcionalidades-existentes-e-estado-real)
-5. [Funcionalidades ausentes](#5-funcionalidades-ausentes)
-6. [Índice dos 53 problemas](#6-índice-dos-53-problemas)
-7. [Problemas P0 — Crítico (2)](#7-problemas-p0--crítico-2)
-8. [Problemas P1 — Alto (9)](#8-problemas-p1--alto-9)
-9. [Problemas P2 — Médio (21)](#9-problemas-p2--médio-21)
-10. [Problemas P3 — Baixo (21)](#10-problemas-p3--baixo-21)
-11. [Itens não verificados (5)](#11-itens-não-verificados-5)
-12. [Resultados dos testes executados](#12-resultados-dos-testes-executados)
-13. [Evidências visuais](#13-evidências-visuais)
-14. [Plano de correção por prioridade](#14-plano-de-correção-por-prioridade)
-15. [Respostas objetivas](#15-respostas-objetivas)
-16. [Correções em relação a comunicações anteriores](#16-correções-em-relação-a-comunicações-anteriores)
+2. [Estado geral do projeto](#2-estado-geral-do-projeto)
+3. [Escopo e metodologia](#3-escopo-e-metodologia)
+4. [Ambiente e ferramentas](#4-ambiente-e-ferramentas)
+5. [Auditoria de segurança](#5-auditoria-de-segurança)
+6. [Auditoria do backend](#6-auditoria-do-backend)
+7. [Auditoria do frontend](#7-auditoria-do-frontend)
+8. [Auditoria do banco de dados](#8-auditoria-do-banco-de-dados)
+9. [Integração ponta a ponta](#9-integração-ponta-a-ponta)
+10. [Testes dos três perfis](#10-testes-dos-três-perfis)
+11. [Responsividade e acessibilidade](#11-responsividade-e-acessibilidade)
+12. [Comparação com a auditoria anterior](#12-comparação-com-a-auditoria-anterior)
+13. [Lista completa de problemas](#13-lista-completa-de-problemas)
+14. [Problemas não verificáveis e limitações](#14-problemas-não-verificáveis-e-limitações)
+15. [Matriz de prioridades](#15-matriz-de-prioridades)
+16. [Plano recomendado de correção](#16-plano-recomendado-de-correção)
+17. [Prontidão para a demonstração](#17-prontidão-para-a-demonstração)
+18. [Acompanhamento das correções](#18-acompanhamento-das-correções)
+19. [Rodada 2: FE-14, FE-21 e FE-22](#19-rodada-2--13112026-fe-14-fe-21-e-fe-22-somente-frontend)
 
 ---
 
 ## 1. Resumo executivo
 
-O BarberPro tem uma **base técnica sólida**:
+O BarberPro melhorou desde 11/11. **Os dois problemas críticos da auditoria anterior foram corrigidos e comprovados**:
 
-- o isolamento entre barbearias resistiu às **16 tentativas** de acesso cruzado, inclusive com manipulação de IDs;
-- a escalada de privilégio foi bloqueada em todos os testes;
-- o ciclo de sessão funciona (renovação por cookie HttpOnly, revogação na troca de senha, blacklist no logout, recuperação de senha sem revelar contas);
-- o backend é eficiente (2 a 4 consultas SQL por endpoint, sem N+1);
-- as migrações estão íntegras e aplicadas;
-- os 239 testes do backend passam;
-- o frontend compila sem erros de tipo, sem avisos de lint, e os fluxos principais funcionam de ponta a ponta nos três perfis.
+- a `SECRET_KEY` efetiva agora tem 86 caracteres, e o `settings.py` recusa chaves curtas (SEC-01);
+- o faturamento deixou de vazar para clientes e barbeiros (SEC-02).
 
-O sistema **não está pronto para produção**:
+Também foram corrigidos e verificados:
 
-- **Dois problemas críticos de segurança.** A chave secreta efetivamente carregada tem 3 caracteres (SEC-01), e clientes e barbeiros leem o faturamento completo da barbearia (SEC-02).
-- **Regras de negócio incorretas e confirmadas.** Admin pode se autodesativar e deixar a barbearia sem administrador; barbearia "excluída" continua operando; reagendamento mantém "confirmado"; atendimento pode terminar depois do fechamento; a API aceita fechamento antes da abertura; atendimento futuro pode ser marcado como realizado.
-- **Lacunas de produto que impedem o uso real.** Clientes não conseguem se cadastrar numa barbearia; não há dias de funcionamento (domingos recebem horários); a recuperação de senha não envia e-mail na configuração atual.
+- o admin que se rebaixava ou se desativava (BUS-01), inclusive sob concorrência;
+- o "realizado" em horário futuro (BUS-07);
+- a fonte vinda do Google Fonts (FE-08).
+
+A base continua sólida:
+
+- **isolamento entre barbearias:** 21 de 21 tentativas de acesso cruzado foram bloqueadas;
+- **concorrência:** 20 pedidos simultâneos para o mesmo horário geraram exatamente 1 agendamento (PostgreSQL 16);
+- **testes:** 327 testes passam em SQLite e em PostgreSQL, com 91% de cobertura de linhas e ramificações;
+- **frontend:** sem erros de tipo, lint ou build;
+- **navegador:** nenhuma das 105 combinações de tela × tamanho tem erro de console ou rolagem horizontal;
+- **acessibilidade:** nenhuma violação automática (axe-core) em 36 páginas.
+
+**Não há nenhum problema P0 aberto.** O sistema, porém, **não está pronto para produção** e tem pontos que podem aparecer numa demonstração:
+
+- **O fluxo de confirmação da barbearia pode ser contornado pelo cliente.**
+  - O cliente cria o agendamento já como "confirmado" (BUS-15, novo).
+  - Ao reagendar um horário confirmado, ele continua "confirmado" (BUS-03).
+- **O horário de funcionamento não é garantido pela API.**
+  - A troca de serviço ultrapassa o fechamento (BUS-04).
+  - A API aceita fechamento antes da abertura (BUS-05).
+  - Domingos e dias fechados recebem horários. A interface reservou um domingo durante esta auditoria (BUS-06).
+- **Lacunas de produto continuam:**
+  - o cliente não se cadastra numa barbearia (PROD-01);
+  - a recuperação de senha não envia e-mail (AUTH-01).
+- **Suspensão de barbearia só parcial.** A agenda congela, mas o próprio admin reativa a barbearia que a plataforma desativou, e a interface não avisa nada (BUS-02, FE-14).
+- **Dependências do backend com 91 vulnerabilidades conhecidas.** O Django 5.0 está fora de suporte (DEP-01).
+- **Dois bancos de desenvolvimento diferentes.** O app usa o PostgreSQL 18 do host. O banco do `docker-compose` indicado no README está com duas migrações pendentes e falharia nos agendamentos (DB-01).
+- **Uma regressão do redesign.** Depois de reservar, o botão "Agendar" continua mostrando "Horário reservado" (FE-13).
+
+### Números
 
 | Prioridade | Quantidade |
 |---|---|
-| P0 — Crítico | 2 |
-| P1 — Alto | 9 |
-| P2 — Médio | 21 |
-| P3 — Baixo | 21 |
-| **Total de problemas** | **53** |
-| Itens não verificados | 5 |
+| P0 — Crítico | **0** |
+| P1 — Alto | **7** |
+| P2 — Médio | **28** |
+| P3 — Baixo | **35** |
+| **Total de problemas abertos** | **70** |
 
-| Tipo | Quantidade | IDs |
+| Situação dos 53 problemas da auditoria anterior | Quantidade | IDs |
 |---|---|---|
-| Bug confirmado | 14 | SEC-01, SEC-02, BUS-01, BUS-02, BUS-03, BUS-04, BUS-05, BUS-07, AUTH-02, SEC-03, BUS-10, BUS-12, FE-03, FE-04 |
-| Funcionalidade ausente | 13 | BUS-06, PROD-01, BUS-08, BUS-13, API-01, OBS-01, OPS-01, FE-01, FE-02, SA-01, SAAS-01, SEC-08, FE-06 |
-| Funcionalidade incompleta | 4 | AUTH-01, BUS-11, BUS-14, FE-09 |
-| Risco potencial | 8 | SEC-04, SEC-05, SEC-07, BUS-09, DATA-01, SEC-06, DATA-03, FE-11 |
-| Dívida técnica | 8 | REPO-01, API-02, DATA-02, FE-05, FE-07, DOC-03, REPO-02, REPO-03 |
-| Documentação incorreta/desatualizada | 2 | DOC-01, DOC-02 |
-| Lacuna de testes | 2 | TEST-01, TEST-02 |
-| Melhoria opcional | 2 | FE-08, FE-12 |
-| **Total** | **53** | |
+| Resolvido e verificado | 5 | SEC-01, SEC-02, BUS-01, BUS-07, FE-08 |
+| Parcialmente resolvido | 3 | BUS-02, TEST-01, FE-04 |
+| Continua presente | 45 | ver seção 12 |
+| Regressão (voltou a ocorrer) | 0 | — |
+| Não reproduzido / obsoleto / não verificável | 0 | — |
 
----
-
-## 2. Metodologia
-
-### 2.1 Regras seguidas
-
-- Branch `desenvolvimento` confirmada; `git status` com as 63 alterações do redesign preservadas; nenhum commit, push ou merge; branch `release/barberpro-academica-v1` intocada.
-- **Nenhuma escrita no Postgres real.** Lá foram feitas apenas consultas: `showmigrations` e contagens de integridade pelo ORM.
-- Todos os testes dinâmicos (segurança, regras de negócio, interface) rodaram numa **cópia isolada da API**: Django com as mesmas configurações do projeto, mas com banco SQLite descartável fora do repositório, populado com uma barbearia fictícia. Para os testes de isolamento foram criadas uma segunda e uma terceira barbearia **apenas nesse banco descartável**.
-- No ambiente isolado o *throttling* foi desligado para permitir as sondagens; por isso o rate limiting real ficou como "não verificado".
-- Nenhum ataque contra serviços externos. A força bruta da chave não foi executada; o teste de forja de token usou a chave apenas em memória, sem exibi-la.
-
-### 2.2 Métodos
-
-| Método | O que cobriu |
+| Problemas novos | Quantidade |
 |---|---|
-| Leitura de código | Todos os models, serializers, views, permissões, mixins, settings, URLs, migrações, admin, managers e o frontend completo |
-| Sondagem 1 da API isolada | 42 verificações: isolamento entre barbearias (16), perfis e permissões (13), regras de negócio e recursos da API (13). Resultado: 27 OK, 15 falhas |
-| Sondagem 2 da API isolada | 12 observações de sessão (login, refresh por cookie, troca de senha, logout, recuperação) e administração do próprio tenant |
-| Sondagem 3 da API isolada | Geração de horários num domingo e passo entre horários |
-| Teste de forja de JWT | Impacto real da chave curta, com e sem acesso aos hashes de senha |
-| Contagem de consultas SQL | 7 endpoints com `CaptureQueriesContext` |
-| Navegador real | Firefox headless via `puppeteer-core`: fluxos de admin, cliente e barbeiro; teclado; queda real da API; desktop 1440 px e celular 390 px |
-| Banco real (somente leitura) | Migrações aplicadas e 17 contagens de integridade |
-| Ferramentas | 239 testes do backend (2 execuções), `tsc -b`, ESLint, build Vite, `makemigrations --check`, `check --deploy`, `git` (histórico, branches, arquivos versionados) |
+| Encontrados nesta auditoria | 22 (1 P1, 5 P2, 16 P3) |
+| Dos quais regressão introduzida pelo redesign | 1 (FE-13) |
 
-### 2.3 Classificação
+### Os cinco problemas mais importantes
 
-- **Gravidade:** P0 (segurança, perda/corrupção de dados, funcionalidade essencial inutilizável), P1 (funcionalidade principal quebrada ou regra de negócio incorreta), P2 (incompleta, usabilidade, inconsistência), P3 (qualidade, organização, performance, refinamento).
-- **Tipo:** bug confirmado, funcionalidade ausente, funcionalidade incompleta, risco potencial, dívida técnica, melhoria opcional, não verificado.
-- **"Bug confirmado"** exige reprodução dinâmica ou evidência inequívoca no código. Quando a confirmação veio só da leitura do código, isso está indicado no campo Evidência.
+| # | ID | Prioridade | Por que |
+|---|---|---|---|
+| 1 | BUS-15 | P1 | O cliente se autoconfirma ao criar o horário: a confirmação da barbearia perde o sentido. Correção de poucas linhas |
+| 2 | BUS-03 | P1 | Reagendar mantém "confirmado": a barbearia passa a ter um horário confirmado que nunca aprovou |
+| 3 | BUS-06 | P1 | Domingos e dias fechados recebem agendamentos, inclusive pela interface. É o mais visível numa demonstração |
+| 4 | BUS-05 | P1 | A API aceita fechamento antes da abertura, e a barbearia "desaparece" da agenda |
+| 5 | BUS-04 | P1 | A troca de serviço gera atendimento depois do fechamento |
 
----
+Para a operação real também pesam PROD-01, AUTH-01, DEP-01 e DB-01.
 
-## 3. Arquitetura identificada
-
-| Camada | Detalhes |
-|---|---|
-| Backend | Django 5.0.14, DRF 3.15.2, djangorestframework-simplejwt 5.3.1, django-filter 24.3, django-cors-headers 4.9.0, Pillow 10.4.0, gunicorn 22.0.0 |
-| Autenticação | Access token JWT no header `Authorization` (15 min) guardado pelo frontend em `localStorage`; refresh em cookie HttpOnly no caminho `/api/v1/auth/`, `SameSite=Lax`, rotação e blacklist; `CHECK_REVOKE_TOKEN` ativo |
-| Banco | PostgreSQL 16 via `docker-compose.yml` (porta 5433); testes também podem usar SQLite (`config.test_settings`) |
-| Apps | `accounts` (usuário com `email` como login e `tipo_perfil`), `barbershops` (barbearia = tenant, barbeiros), `services`, `appointments`, `config` (permissões, mixin de tenant, paginação) |
-| Multi-tenant | Banco e schema compartilhados. Isolamento na aplicação por `TenantScopedQuerysetMixin` (filtra por `barbershop_id`) e checagens em serializers e models. Superusuário vê todos os tenants |
-| Perfis | `admin`, `barbeiro`, `cliente`; "Super Admin" = `is_superuser`/`is_staff` do Django, usando o Django Admin |
-| Exclusão | Lógica (desativação) para usuários, barbeiros e serviços; FKs com `PROTECT` |
-| Frontend | React 19, TypeScript 5.8, Vite 6, React Router 7, Axios, React Hook Form + Zod, CSS Modules, telas carregadas sob demanda |
-| Infra | Apenas o banco em Docker; sem Dockerfile da aplicação, CI, cache compartilhado, logging ou monitoramento |
+**Veredito.** O BarberPro **pode ser apresentado** como protótipo acadêmico. Os fluxos dos três perfis funcionam de ponta a ponta, sem erros na interface, em todos os tamanhos de tela testados. É preciso garantir o banco usado e os dados de demonstração e evitar os fluxos listados na seção 17. **Não está pronto para uso real nem para produção.**
 
 ---
 
-## 4. Funcionalidades existentes e estado real
+## 2. Estado geral do projeto
+
+| Área | Situação | Resumo |
+|---|---|---|
+| Autenticação e sessão | ✅ Funciona | Login, refresh por cookie HttpOnly com rotação e blacklist, logout, troca de senha, bloqueio imediato de conta desativada. Pendentes: SEC-04, SEC-05, AUTH-01 e AUTH-02 |
+| Isolamento multi-tenant | ✅ Funciona | 21/21 tentativas de acesso cruzado bloqueadas; há só um oráculo de existência de IDs (SEC-10) |
+| Permissões por perfil | ⚠️ Quase | Faturamento protegido (SEC-02 resolvido). O cliente cria horário já confirmado (BUS-15) e o barbeiro troca o cliente de um horário (BUS-12) |
+| Regras de agenda | ❌ Incompletas | Conflito por barbeiro garantido, inclusive sob concorrência. Abertos: horário de funcionamento (BUS-04, BUS-05), dias fechados (BUS-06), confirmação (BUS-03, BUS-15), vencidos (BUS-08), duração histórica (BUS-09) e sobreposição do próprio cliente (BUS-17) |
+| Barbearia desativada | ⚠️ Parcial | A agenda congela, mas o admin reativa a barbearia por conta própria e a interface não sinaliza (BUS-02, FE-14) |
+| Financeiro | ⚠️ Quase | Usa o preço histórico. O dia é agrupado em UTC (API-02), o painel e a API usam janelas diferentes (FE-11), e o reverso de uma migração apaga preços (DATA-01) |
+| Banco de dados | ⚠️ | Migrações coerentes no banco que o app usa; sem constraints de negócio (DB-02); dois bancos de desenvolvimento divergentes (DB-01) |
+| Frontend (funcionamento) | ✅ Funciona | `tsc`, ESLint e build sem erros; 0 erros de console em 105 cargas; fluxos concluídos nos três perfis. Pendentes: FE-03, FE-13, FE-15 e a carga integral de listas (API-01) |
+| Redesign e identidade | ✅ Consistente | Paleta, League Gothic e Public Sans locais, logo e componentes coerentes entre as telas. Pequenos desvios: 45 estilos inline e cores literais (MAINT-01) |
+| Responsividade | ✅ Funciona | 0 rolagem horizontal em 5 larguras (1440, 1280, 820, 390 e 360 px) e fluxos completos no celular e no tablet. Detalhes em FE-19 e FE-20 |
+| Acessibilidade | ✅ Bom | 0 violações automáticas WCAG A/AA em 36 páginas, link "Pular para o conteúdo", foco visível. Leitor de tela não testado (NV-3) |
+| Testes | ⚠️ | 327 testes no backend, 91% de cobertura, mas as regras quebradas não têm teste (TEST-01). Nenhum teste de frontend (FE-02) |
+| Dependências | ❌ | Backend com 91 vulnerabilidades conhecidas e Django fora de suporte (DEP-01); frontend com 14 (DEP-02) |
+| Infra e operação | ❌ Ausente | Sem Dockerfile, CI, logs, monitoramento, cache compartilhado e e-mail (OPS-01, OBS-01, SEC-05, AUTH-01) |
+| Documentação | ❌ Desatualizada | Documentação da API, README e índice de `docs/` divergem do comportamento (DOC-01 a DOC-04) |
+
+### Funcionalidades e estado real
 
 | Módulo | Funcionalidade | Estado | Evidência / problema |
 |---|---|---|---|
-| Autenticação | Login | ✅ Funciona | Sondagem 2 (HTTP 200) e fluxos de interface |
-| Autenticação | Renovação de sessão por cookie | ✅ Funciona | Refresh 200; recusa do servidor encerra a sessão; queda de rede não desloga |
-| Autenticação | Logout | ✅ Funciona | 204; refresh posterior 401 |
-| Autenticação | Troca de senha | ✅ Funciona | 204; access e refresh antigos passam a 401 |
-| Autenticação | Recuperação de senha | ⚠️ Incompleta | API correta e sem enumeração, mas sem envio de e-mail configurado (AUTH-01) |
-| Autenticação | Cadastro público | ⚠️ Incompleto | Só serve a donos de barbearia (PROD-01); e-mails duplicados por maiúsculas (AUTH-02) |
-| Usuários | Gestão pelo admin | ⚠️ Bug | Admin pode se rebaixar ou se desativar (BUS-01) |
-| Permissões | Controle por perfil | ⚠️ Bug | Correto em 10 de 13 verificações de perfil (e 16 de 16 de isolamento); `revenue-report` aberto a todos (SEC-02); e-mail de barbeiros exposto (SEC-03) |
-| Barbearias | Onboarding | ✅ Funciona | Usuário já vinculado recebe 400 |
-| Barbearias | Edição | ⚠️ Bug | Fechamento antes da abertura aceito (BUS-05) |
-| Barbearias | Desativação/exclusão | ❌ Sem efeito | Barbearia inativa continua operando (BUS-02) |
-| Barbearias | Logo | ⚠️ Só API | Sem tela; mídia servida só com `DEBUG` (FE-09, OPS-01) |
-| Barbearias | Isolamento | ✅ Funciona | 16/16 tentativas bloqueadas |
-| Barbeiros | Cadastro, edição, desativação, reativação | ✅ Funciona | Fluxos testados |
-| Barbeiros | Disponibilidade própria | ❌ Ausente | BUS-06 |
-| Barbeiros | Efeito da desativação nos agendamentos | ❌ Ausente | BUS-13 |
-| Clientes | Cadastro, edição, desativação e histórico pelo admin | ✅ Funciona | Tela "Clientes" e `POST/PATCH/DELETE /users/` |
-| Clientes | Autocadastro numa barbearia | ❌ Ausente | PROD-01 |
-| Clientes | Pesquisa | ⚠️ Só no navegador | API sem busca (API-01) |
-| Serviços | Cadastro, edição, preço, duração, ativo | ✅ Funciona | Edição de inativo corrigida no frontend com `?ativo=all` |
-| Serviços | Integridade da duração | ⚠️ Risco | Duração 0 possível fora da API (SEC-07); duração não histórica (BUS-09) |
-| Agendamentos | Criação e prevenção de conflitos | ✅ Funciona | Conflitos rejeitados; horários livres excluem ocupados |
-| Agendamentos | Horários livres | ⚠️ Incompleto | Ignora dias fechados (BUS-06); passo = duração (BUS-11); devolve datas passadas (BUS-10) |
-| Agendamentos | Reagendamento | ⚠️ Bug | Mantém "confirmado" (BUS-03); troca de serviço ignora o horário de funcionamento (BUS-04) |
-| Agendamentos | Confirmação e conclusão | ⚠️ Bug | Futuro pode virar "realizado" (BUS-07) |
-| Agendamentos | Cancelamento | ✅ Funciona | Cliente, admin e barbeiro (inconsistência em BUS-12) |
-| Agendamentos | Desfecho de horários passados | ❌ Ausente | BUS-08 |
-| Dashboard | Indicadores e gráficos | ✅ Dados reais | Calculados no navegador a partir dos agendamentos reais com `preco_historico` (FE-11, API-01) |
-| Relatórios | `revenue-report` | ❌ Permissão errada | SEC-02; agrupamento por UTC (API-02) |
+| Autenticação | Login, renovação, logout, troca de senha | ✅ | SES-01 a SES-06 (`api/sondagem-api.json`) |
+| Autenticação | Recuperação de senha | ⚠️ Incompleta | Sem envio de e-mail (AUTH-01); confirmação sem teste (TEST-01) |
+| Autenticação | Cadastro público | ⚠️ Incompleto | Só serve a donos de barbearia (PROD-01); e-mail duplicado por maiúsculas (AUTH-02) |
+| Usuários | Gestão pelo admin | ✅ | BUS-01 resolvido. Sem segundo admin nem transferência de titularidade (BUS-19) |
+| Barbearias | Edição dos dados | ⚠️ | Fechamento antes da abertura aceito pela API (BUS-05); telefone sem validação (BUS-18) |
+| Barbearias | Desativação/suspensão | ⚠️ Parcial | BUS-02, FE-14 |
+| Barbearias | Logo | ❌ Só API | Sem tela (FE-09); upload sem limite (SEC-09) |
+| Barbeiros | Cadastro, edição, desativação, reativação | ✅ | Fluxos no navegador; desativação não trata a agenda (BUS-13) |
+| Clientes | Cadastro e gestão pelo admin | ✅ | Tela "Clientes"; lista carrega todos os agendamentos (API-01) |
+| Serviços | Cadastro, preço, duração, ativo | ✅ | Validações fracas (BUS-18); "1.000" vira R$ 1,00 (FE-16) |
+| Agendamentos | Criação sem conflito | ✅ | CON-01: 1 de 20 pedidos simultâneos |
+| Agendamentos | Horários livres | ⚠️ | Dias fechados (BUS-06), passo (BUS-11), datas passadas (BUS-10) |
+| Agendamentos | Confirmação | ❌ Contornável | BUS-15, BUS-03 |
+| Agendamentos | Conclusão ("realizado") | ✅ | BUS-07 resolvido; botão "Concluir às HH:MM" desabilitado antes do término |
+| Agendamentos | Cancelamento | ⚠️ | Funciona; o cliente cancela até horário já passado (BUS-16); regra do barbeiro incoerente (BUS-12) |
+| Painel / Caixa | Indicadores, quadro do dia, faturamento | ✅ Dados reais | Calculados no navegador a partir de todas as páginas (API-01, FE-11) |
+| Relatórios | `revenue-report` | ✅ Protegido | Só admin (SEC-02 resolvido); dia em UTC (API-02); não é usado pela interface |
+| Página institucional | `/conheca` | ✅ | Nova; sem rolagem horizontal; promessas coerentes com o sistema |
 | Super Admin | Painel global | ❌ Ausente | SA-01 |
 
 ---
 
-## 5. Funcionalidades ausentes
+## 3. Escopo e metodologia
 
-| # | Funcionalidade | Problema |
+### 3.1 Regras seguidas
+
+- Trabalho na branch `desenvolvimento`. Nenhum commit, push, merge, `reset`, `checkout` ou limpeza.
+- **Nenhum arquivo de código, configuração, dependência, migração ou `.env` foi alterado.** Ao final, `git diff --stat` continuava idêntico ao do início: 43 arquivos, +2065/−830. Só foram criados:
+  - este relatório;
+  - a cópia histórica, idêntica byte a byte ao original (mesmo SHA-256);
+  - a pasta de evidências nova.
+- **O banco real não sofreu nenhuma escrita.**
+  - Nele rodaram só consultas numa sessão `BEGIN READ ONLY` e `showmigrations`, que apenas lê a tabela de migrações.
+  - Nenhuma migração foi executada nele.
+- Todos os testes com escrita usaram um **PostgreSQL 16.15 descartável**:
+  - num container próprio, com dados em `tmpfs`, removido ao final;
+  - populado com dados fictícios: 2 barbearias, 14 usuários, 419 agendamentos.
+- A migração reversa (DATA-01) rodou numa segunda cópia descartável desse banco.
+- Ferramentas auxiliares foram instaladas **fora do projeto**, no diretório temporário da sessão: `coverage`, `pip-audit`, `puppeteer-core` e `axe-core`. Nada foi instalado no `venv312` nem no `node_modules` do projeto.
+- O build de produção do frontend foi gerado fora do projeto, sem sobrescrever `frontend/dist`.
+- Nenhum valor de segredo foi exibido ou gravado. O teste de `SECRET_KEY` mediu só o comprimento.
+
+### 3.2 Métodos
+
+| Método | O que cobriu |
+|---|---|
+| Leitura integral de código | Todos os models, serializers, views, permissões, mixins, settings, URLs, migrações, admin e managers. No frontend: rotas, cliente HTTP, autenticação, hooks, telas e componentes alterados pelo redesign e o diff completo desde `3e0949e` |
+| Suíte do backend | 327 testes em SQLite (`config.test_settings`) e em PostgreSQL 16 descartável, com medição de cobertura |
+| Sondagem 1 da API isolada | 91 verificações por HTTP real: isolamento (23; 21 conforme), perfis (23; 20 conforme), regras de negócio (23; 4 conforme), barbearia desativada (6; 3 conforme), sessão e segurança HTTP (15; 13 conforme), concorrência (1; conforme). Total: 62 conforme o esperado, 29 divergentes. Duas observações de transparência: PER-23 divergiu da expectativa, mas o comportamento é adequado (recusa com 400), e não virou problema; o primeiro teste de BUS-12 ficou inválido (o agendamento de partida não foi criado) e foi refeito na sondagem 2 |
+| Sondagem 2 | 13 verificações: BUS-12 refeito, BUS-09, upload de logo, validações, oráculo de tempo, contrato |
+| Testes dirigidos | Laço com duração 0 (com `timeout`), consultas SQL por endpoint, rate limit real com 3 workers do gunicorn, reverso da migração 0008, painel × relatório |
+| Navegador real | Firefox 160 headless via `puppeteer-core`, com um contexto isolado por perfil. Foram 105 cargas: 21 rotas em 5 larguras (1440, 1280, 820, 390 e 360 px). Também fluxos de cliente (celular), barbeiro (tablet) e admin (desktop), teclado e rota inexistente. No build de produção: requisições por tela, API derrubada, API travada e barbearia desativada |
+| Acessibilidade | axe-core 4.10.3 (WCAG 2.0/2.1/2.2 A e AA) em 36 páginas, com teste de controle que confirmou a detecção de 3 violações plantadas |
+| Banco real (somente leitura) | Migrações aplicadas e 26 contagens de integridade |
+| Ferramentas estáticas | `tsc`, ESLint, build Vite, `makemigrations --check`, `check --deploy`, `pip-audit`, `npm audit`, `npm outdated` e `git` (arquivos versionados, branches, histórico) |
+
+### 3.3 Classificação
+
+- **Severidade:**
+  - **P0:** comprometimento grave de segurança, perda de dados ou quebra do isolamento;
+  - **P1:** autorização importante, regra de negócio crítica ou funcionalidade essencial;
+  - **P2:** problema funcional relevante, integração, usabilidade que prejudica a operação, dependência vulnerável ou lacuna de infraestrutura;
+  - **P3:** visual, pequena inconsistência, acessibilidade, manutenção.
+- **Confiança:**
+  - **Confirmado:** reproduzido dinamicamente ou inequívoco no código, com a fonte indicada no campo Evidência;
+  - **Provável:** forte indício sem reprodução;
+  - **Não verificado:** depende de condição que não pôde ser criada.
+- **Estado em relação à auditoria anterior:** Novo, Continua presente, Parcialmente resolvido, Reclassificado.
+
+---
+
+## 4. Ambiente e ferramentas
+
+| Item | Versão / detalhe |
+|---|---|
+| Sistema | Fedora Linux 45, kernel 7.3.3 |
+| Python / Django / DRF | 3.12.16 / 5.0.14 / 3.15.2 (djangorestframework-simplejwt 5.3.1, Pillow 10.4.0) |
+| Node / npm | 26.13.0 / 11.20.0 |
+| Frontend | React 19.2.8, React Router 7.18.2, Vite 6.4.3, TypeScript 5.8.3, axios 1.19.0, zod 3.25.76 |
+| Banco que o app usa (`.env`) | PostgreSQL **18.3** no host, porta 5432 (somente leitura nesta auditoria) |
+| Banco do `docker-compose.yml` | PostgreSQL 16.15, container `barbershop_db`, porta 5433: **não é o banco que o app usa** (DB-01) |
+| Banco descartável da auditoria | PostgreSQL 16.15 (`postgres:16-alpine`), container próprio em `tmpfs` |
+| Navegador | Firefox 160.0 headless + puppeteer-core 24.10.0 |
+| Acessibilidade | axe-core 4.10.3 |
+| Cobertura / dependências | coverage 7.17.3, pip-audit 2.10.1, `npm audit` |
+| Servidores de teste | `runserver` (sondagens) e gunicorn com 3 workers (rate limit) |
+
+---
+
+## 5. Auditoria de segurança
+
+### 5.1 Verificações e resultados
+
+| Tema | Resultado | Evidência |
 |---|---|---|
-| 1 | Autocadastro de clientes numa barbearia (página pública, convite ou código) | PROD-01 |
-| 2 | Dias de funcionamento, folgas, feriados, bloqueios e horário por barbeiro | BUS-06 |
-| 3 | Envio real de e-mail (recuperação de senha) | AUTH-01 |
-| 4 | Status "não compareceu" e desfecho de horários vencidos | BUS-08 |
-| 5 | Tratamento de agendamentos futuros ao desativar barbeiro ou cliente | BUS-13 |
-| 6 | Agendamento pelo admin para cliente existente ou avulso | BUS-14 |
-| 7 | Busca, ordenação, filtro por período e tamanho de página na API | API-01 |
-| 8 | Observabilidade: logs, rastreamento de erros, trilha de auditoria, health check | OBS-01 |
-| 9 | Infra de produção: Dockerfile, CI, estáticos/mídia, limpeza de tokens, backup | OPS-01 |
-| 10 | Tratamento de erros de renderização no frontend | FE-01 |
-| 11 | Testes de frontend | FE-02 |
-| 12 | Painel de Super Admin | SA-01 |
-| 13 | Notificações, LGPD, planos e cobrança | SAAS-01 |
-| 14 | Verificação de e-mail no cadastro | SEC-08 |
-| 15 | Página 404 | FE-06 |
+| `SECRET_KEY` | ✅ 86 caracteres, 47 distintos; `settings.py` recusa chaves curtas também com `DEBUG=True`; nenhum `InsecureKeyLengthWarning` na suíte | `config/settings.py:40-49`, `config/test_secret_key.py` |
+| Faturamento por perfil | ✅ Cliente 403, barbeiro 403 (inclusive filtrando o próprio id), admin 200 | PER-08 a PER-11 |
+| Isolamento entre barbearias | ✅ 21/21 bloqueadas: leitura, alteração e exclusão de barbearia, usuários, serviços, barbeiros e agendamentos de outra barbearia; uso de barbeiro, serviço ou cliente alheios; horários livres; `exclude_appointment_id`; listas | ISO-01 a ISO-21 |
+| Oráculo de IDs | ⚠️ Mensagens distintas revelam que um ID existe em outra barbearia | ISO-22, ISO-23 → SEC-10 |
+| Escalada de privilégio | ✅ Cliente não se promove nem se reativa; barbeiro e cliente não gerenciam usuários, serviços ou barbearia; não é possível criar admin pela API | PER-01 a PER-07, PER-14, PER-15 |
+| Regras de autorização de negócio | ❌ Cliente cria horário confirmado (BUS-15); barbeiro troca o cliente de um horário e cancela por PATCH (BUS-12); admin reativa a barbearia suspensa pela plataforma (BUS-02) | NEW-STATUS, BUS-12, BUS-02f |
+| Sessão JWT | ✅ Refresh só em cookie HttpOnly, `SameSite=Lax`, caminho restrito; rotação e blacklist funcionam; logout revoga; conta desativada perde acesso imediatamente | SES-01 a SES-06 |
+| Armazenamento do access token | ⚠️ `localStorage`, sem CSP; o token traz `nome` e `hash_password` | SES-03, SES-09 → SEC-04 |
+| Rate limiting | ❌ Por processo: com 3 workers, 10 de 15 tentativas de login no mesmo minuto foram aceitas | `api/rate-limit-gunicorn-3-workers.txt` → SEC-05 |
+| Recuperação de senha | ✅ Mesma resposta e tempo equivalente para e-mail existente e inexistente (mediana de 16 ms e 15 ms em 12 amostras); ❌ não envia e-mail | SES-10, SES-10b → AUTH-01 |
+| CORS | ✅ Origem não autorizada não recebe `Access-Control-Allow-Origin`. O `.env` local libera também `localhost:3000`, que não é usado | SES-07, SES-08 → SEC-11 |
+| Cabeçalhos | ✅ `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `COOP`; ❌ sem CSP | SES-09 |
+| CSRF | ✅ API autenticada por header `Authorization`; o refresh por cookie depende de `SameSite=Lax`, que bloqueia POST de outro site | Leitura de código |
+| Entradas malformadas | ✅ 400/404, sem erro 500, em agendamento, horários e relatório | SES-13 a SES-15 |
+| SQL injection | ✅ Só ORM; o único `.extra()` usa SQL fixo | `appointments/views.py:351` |
+| XSS | ✅ React escapa os dados; os três `dangerouslySetInnerHTML` recebem SVGs estáticos do projeto | `AuthLayout.tsx:22`, `LandingPage.tsx:61,141` |
+| Uploads | ❌ Logo de 14,5 MB aceito; Pillow com 69 vulnerabilidades; SVG recusado | UPL-01, UPL-02 → SEC-09, DEP-01 |
+| Negação de serviço | ❌ Serviço com duração 0 trava a requisição (gravável pelo Django Admin) | `api/sec07-duracao-zero.txt` → SEC-07 |
+| Configuração de produção | ✅ `check --deploy` só com W021 (HSTS preload, opcional); ⚠️ `.env` local com `DEBUG=True` exibe a página técnica de rotas, e há credenciais padrão de desenvolvimento no código | SES-12 → SEC-11 |
+| Dependências | ❌ 91 vulnerabilidades no backend e 14 no frontend | DEP-01, DEP-02 |
+| Histórico do git | ⚠️ Chave antiga no commit `3f46df2`; o repositório tem remoto no GitHub (visibilidade não verificada) | SEC-06 |
+| Logs | ⚠️ Não há configuração de logging, então não há vazamento em logs, mas também não há rastreio (OBS-01). O log do `runserver` registra só método, caminho e status | `config/settings.py` |
+
+### 5.2 Problemas de segurança
+
+BUS-15 (P1); BUS-02, BUS-12, AUTH-02, SEC-03, SEC-04, SEC-05, SEC-07, SEC-09 e DEP-01 (P2); SEC-06, SEC-08, SEC-10, SEC-11 e DEP-02 (P3). **Nenhum P0.**
 
 ---
 
-## 6. Índice dos 53 problemas
+## 6. Auditoria do backend
 
-| # | ID | Prioridade | Tipo | Módulo | Título |
-|---|---|---|---|---|---|
-| 1 | SEC-01 | P0 | Bug confirmado (configuração) | Segurança / Autenticação | Chave secreta efetiva com 3 caracteres |
-| 2 | SEC-02 | P0 | Bug confirmado | Agendamentos / Relatórios | Faturamento exposto a clientes e barbeiros |
-| 3 | BUS-01 | P1 | Bug confirmado | Usuários / Permissões | Admin pode se rebaixar ou se desativar |
-| 4 | BUS-02 | P1 | Bug confirmado | Barbearias / Super Admin | Barbearia desativada continua operando |
-| 5 | BUS-03 | P1 | Bug confirmado | Agendamentos | Reagendamento mantém "confirmado" |
-| 6 | BUS-04 | P1 | Bug confirmado | Agendamentos | Troca de serviço ignora horário de funcionamento |
-| 7 | BUS-05 | P1 | Bug confirmado | Barbearias | Fechamento anterior à abertura é aceito |
-| 8 | BUS-06 | P1 | Funcionalidade ausente | Agendamentos / Barbeiros | Sem dias de funcionamento, folgas e disponibilidade |
-| 9 | PROD-01 | P1 | Funcionalidade ausente | Autenticação / Clientes | Cliente não consegue se cadastrar numa barbearia |
-| 10 | AUTH-01 | P1 | Funcionalidade incompleta | Autenticação | Recuperação de senha sem envio de e-mail |
-| 11 | BUS-07 | P1 | Bug confirmado | Agendamentos / Dashboard | Atendimento futuro pode ser marcado como realizado |
-| 12 | AUTH-02 | P2 | Bug confirmado | Usuários / Banco | E-mails duplicados por maiúsculas |
-| 13 | SEC-03 | P2 | Bug confirmado | Barbeiros / Privacidade | E-mail de login dos barbeiros exposto a clientes |
-| 14 | SEC-04 | P2 | Risco potencial | Frontend / Segurança | Access token em `localStorage` sem CSP |
-| 15 | SEC-05 | P2 | Risco potencial | Infra / Segurança | Rate limiting em cache local por processo |
-| 16 | SEC-07 | P2 | Risco potencial | Serviços / Agendamentos | Duração 0 trava a geração de horários |
-| 17 | BUS-08 | P2 | Funcionalidade ausente | Agendamentos | Sem "não compareceu" nem desfecho de horários vencidos |
-| 18 | BUS-09 | P2 | Risco potencial | Banco / Agendamentos | Duração do atendimento não é histórica |
-| 19 | BUS-11 | P2 | Funcionalidade incompleta | Agendamentos | Passo entre horários igual à duração |
-| 20 | BUS-13 | P2 | Funcionalidade ausente | Barbeiros / Clientes | Desativação não trata agendamentos futuros |
-| 21 | BUS-14 | P2 | Funcionalidade incompleta | Agendamentos | Admin não agenda pela interface; sem cliente avulso |
-| 22 | API-01 | P2 | Funcionalidade ausente | API / Integração | Sem busca, ordenação, período e page_size |
-| 23 | DATA-01 | P2 | Risco potencial | Banco | Reverso da migração 0008 apaga preços históricos |
-| 24 | OBS-01 | P2 | Funcionalidade ausente | Backend | Sem logs, monitoramento, auditoria e health check |
-| 25 | OPS-01 | P2 | Funcionalidade ausente | Infraestrutura | Sem Dockerfile, CI, estáticos/mídia, rotinas e backup |
-| 26 | FE-01 | P2 | Funcionalidade ausente | Frontend | Sem error boundary |
-| 27 | FE-02 | P2 | Funcionalidade ausente | Testes / Frontend | Nenhum teste de frontend |
-| 28 | TEST-01 | P2 | Lacuna de testes | Testes / Backend | Nenhum teste cobre os bugs confirmados |
-| 29 | DOC-01 | P2 | Documentação desatualizada | Documentação / Integração | Documentação da API contradiz o comportamento |
-| 30 | REPO-01 | P2 | Dívida técnica | Repositório | Virtualenv versionado (96% dos arquivos) |
-| 31 | SA-01 | P2 | Funcionalidade ausente | Super Admin | Sem painel de Super Admin |
-| 32 | SAAS-01 | P2 | Funcionalidade ausente | Produto | Sem notificações, LGPD e cobrança |
-| 33 | SEC-06 | P3 | Risco potencial | Repositório | Chave secreta antiga no histórico do git |
-| 34 | SEC-08 | P3 | Funcionalidade ausente | Autenticação | Sem verificação de e-mail no cadastro |
-| 35 | BUS-10 | P3 | Bug confirmado | Agendamentos | Horários livres devolvidos para datas passadas |
-| 36 | BUS-12 | P3 | Bug confirmado (inconsistência) | Agendamentos | Regras de cancelamento e edição do barbeiro inconsistentes |
-| 37 | API-02 | P3 | Dívida técnica | Relatórios | `revenue_report` com `.extra()` e dia em UTC |
-| 38 | DATA-02 | P3 | Dívida técnica | Banco | Preços históricos antigos estimados |
-| 39 | DATA-03 | P3 | Risco potencial | Banco | Divergência de versão de collation no Postgres |
-| 40 | FE-03 | P3 | Bug confirmado (código) | Frontend | Falha de recarga sem feedback |
-| 41 | FE-04 | P3 | Bug confirmado (inconsistência) | Frontend | Contador "a confirmar" inclui horários vencidos |
-| 42 | FE-05 | P3 | Dívida técnica | Integração | Fuso horário fixo no frontend |
-| 43 | FE-06 | P3 | Funcionalidade ausente | Frontend | Sem página 404 |
-| 44 | FE-07 | P3 | Dívida técnica | Frontend | Código morto |
-| 45 | FE-08 | P3 | Melhoria opcional | Frontend | Fonte carregada do Google Fonts |
-| 46 | FE-09 | P3 | Funcionalidade incompleta | Frontend | Sem tela de logo; barbeiro não reagenda |
-| 47 | FE-11 | P3 | Risco potencial | Integração | Duas fontes de cálculo de faturamento |
-| 48 | DOC-02 | P3 | Documentação incorreta | Documentação | README: testes não usam SQLite por padrão |
-| 49 | DOC-03 | P3 | Dívida técnica | Backend | Comentários obsoletos sobre o app `core` |
-| 50 | REPO-02 | P3 | Dívida técnica | Repositório | Arquivos soltos e rascunhos |
-| 51 | REPO-03 | P3 | Dívida técnica | Repositório | Branches dessincronizadas |
-| 52 | TEST-02 | P3 | Lacuna de testes | Testes | Cobertura de código não medida |
-| 53 | FE-12 | P3 | Melhoria opcional | Apresentação | Banco real quase vazio para demonstração |
+### 6.1 O que funciona
 
----
+- **Estrutura:** a regra de tenant está centralizada em `TenantScopedQuerysetMixin` e reforçada nos serializers e em `Appointment.clean()`.
+- **Concorrência:**
+  - `select_for_update` nos barbeiros ao criar e alterar agendamentos;
+  - trava dos admins ativos ao rebaixar ou desativar (BUS-01);
+  - os testes de concorrência passam em PostgreSQL 16 (0 pulados).
+- **Transações:** `transaction.atomic` nas operações compostas (usuário + perfil de barbeiro, promoção, desativação).
+- **Exclusão lógica:** usuários, barbeiros e serviços são desativados, com `deleted_at` e `deleted_by` nos dois últimos. FKs com `PROTECT` preservam o histórico.
+- **Eficiência:** 2 consultas por listagem e 4 no relatório e nos horários livres, sem N+1 (`api/consultas-sql-por-endpoint.txt`).
+- **Correções novas do dono, verificadas:**
+  - SEC-01: `config/settings.py:40-49`;
+  - SEC-02: `appointments/views.py:52-57`;
+  - BUS-01: `accounts/admin_integrity.py`, `User.save/delete`, `UserQuerySet`, Django Admin;
+  - BUS-02 parcial: `Appointment._validar_barbearia_ativa`, `available_slots`;
+  - BUS-07: `Appointment._validar_conclusao_apos_termino`.
 
-## 7. Problemas P0 — Crítico (2)
+### 6.2 O que falha
 
-### SEC-01 — Chave secreta efetiva com 3 caracteres
-
-| Campo | Valor |
+| Tema | Problemas |
 |---|---|
-| Gravidade | **P0 — Crítico** |
-| Tipo | Bug confirmado (configuração) |
-| Módulo | Segurança / Autenticação |
-| Arquivos | `.env` (local, **não** versionado); `config/settings.py` (leitura da `SECRET_KEY` e verificação de produção) |
+| Criação e status de agendamentos | BUS-15, BUS-03, BUS-12, BUS-16 |
+| Horário de funcionamento e dias | BUS-04, BUS-05, BUS-06, BUS-10, BUS-11 |
+| Integridade de agenda | BUS-09, BUS-13, BUS-17, SEC-07 |
+| Usuários e tenant | AUTH-02, PROD-01, BUS-19, BUS-02 |
+| Relatórios | API-02, FE-11 |
+| API | API-01, SEC-10, FE-17 (contrato) |
+| Operação | AUTH-01, OBS-01, OPS-01, SEC-05, DEP-01 |
+| Código | MAINT-01: código morto `_validar_campos_cliente_nao_autorizados` e `IsClientRole`; filtro `ativo` duplicado em dois ViewSets; comentários obsoletos (DOC-03) |
 
-**Descrição.** A `SECRET_KEY` efetivamente carregada pelo Django tem **3 caracteres**. A linha `SECRET_KEY=` do `.env` tem 50 caracteres, mas o valor contém um `#` sem aspas, que o `django-environ` interpreta como início de comentário; o restante é descartado. Como o `SIMPLE_JWT` não define `SIGNING_KEY`, a mesma chave assina os tokens JWT (HS256). A verificação existente em `settings.py` só bloqueia a chave padrão de desenvolvimento quando `DEBUG=False`; não verifica o tamanho.
+### 6.3 Testes do backend
 
-**Evidência.**
-- `len(settings.SECRET_KEY) == 3` e `len(SIMPLE_JWT SIGNING_KEY) == 3`; a linha no `.env` tem 50 caracteres e contém `#` e `$` sem aspas. Valores não exibidos.
-- Toda execução dos testes emite `InsecureKeyLengthWarning: The HMAC key is 3 bytes long`.
-- Teste de forja (evidência `forja-de-token-jwt.txt`):
-  - token assinado com a chave efetiva, **sem** o claim de hash de senha → **HTTP 401**;
-  - **com** o claim `hash_password` (MD5 do hash de senha armazenado, simulando vazamento do banco) → **HTTP 200**;
-  - controle com outra chave → HTTP 401.
-
-**Impacto.**
-- A chave-raiz da aplicação pode ser descoberta por força bruta a partir de qualquer JWT legítimo (3 caracteres).
-- A forja de tokens aceitos hoje é contida apenas pelo `CHECK_REVOKE_TOKEN`, que exige um claim derivado do hash da senha.
-- Se os hashes de senha vazarem (backup, cópia do banco, acesso indevido ao Django Admin), um atacante gera tokens válidos para **qualquer usuário de qualquer barbearia sem quebrar nenhuma senha**, anulando o isolamento multi-tenant.
-- Hoje afeta o ambiente local e a demonstração; seria grave se esse `.env` ou um com o mesmo problema fosse para um servidor.
-- Classificado como P0 por ser o segredo-raiz da aplicação, com uma única barreira restante e correção trivial.
-
-**Como reproduzir.**
-1. Na raiz do projeto, verifique o comprimento sem exibir o valor:
-   ```bash
-   venv312/bin/python -c "import os,django;os.environ['DJANGO_SETTINGS_MODULE']='config.settings';django.setup();from django.conf import settings;print(len(settings.SECRET_KEY))"
-   ```
-2. Resultado atual: `3`.
-3. Rode `python manage.py test` e observe o `InsecureKeyLengthWarning`.
-
-**Solução recomendada.**
-1. Gerar nova chave sem `#`, `$` e aspas, por exemplo `python -c "import secrets;print(secrets.token_urlsafe(64))"`, ou envolver o valor em aspas no `.env`.
-2. Em `settings.py`, falhar na inicialização se `len(SECRET_KEY) < 50` com `DEBUG=False`, e emitir aviso em desenvolvimento.
-3. Documentar no `.env.example` que valores com `#` ou `$` precisam de aspas.
-4. Esperado: trocar a chave encerra as sessões atuais e invalida tokens de recuperação de senha já emitidos.
-
-**Critério de aceitação.**
-- [ ] `len(settings.SECRET_KEY) >= 50` no ambiente local.
-- [ ] Nenhum `InsecureKeyLengthWarning` ao rodar os testes.
-- [ ] Iniciar com chave curta e `DEBUG=False` falha com mensagem clara.
-- [ ] `.env.example` orienta sobre caracteres especiais.
-
----
-
-### SEC-02 — Faturamento exposto a clientes e barbeiros
-
-| Campo | Valor |
+| Execução | Resultado |
 |---|---|
-| Gravidade | **P0 — Crítico** |
-| Tipo | Bug confirmado |
-| Módulo | Agendamentos / Relatórios |
-| Arquivos | `appointments/views.py` (action `revenue_report`, método `get_permissions`) |
-
-**Descrição.** O endpoint `GET /api/v1/appointments/revenue-report/` não restringe o perfil do usuário. Qualquer usuário autenticado do tenant (inclusive cliente) recebe o faturamento total, por barbeiro, por serviço e diário. A action não declara `permission_classes`, e `get_permissions` só trata `update`, `partial_update` e `destroy`, caindo em `IsAuthenticated` para todo o resto.
-
-**Evidência.** Sondagem 1 (`sondagem-permissoes-e-regras.txt`): cliente → **HTTP 200**, com o total da barbearia exposto; barbeiro → **HTTP 200**, com o faturamento dos 3 barbeiros. Nenhum teste automatizado cobre o endpoint (busca por `revenue` nos arquivos de teste: zero ocorrências).
-
-**Impacto.** Vazamento de informação financeira da empresa para clientes e de desempenho individual entre funcionários. Risco comercial e de privacidade.
-
-**Como reproduzir.**
-1. Entrar como cliente: `POST /api/v1/auth/login/` com e-mail e senha de um cliente; guardar o `access`.
-2. `GET /api/v1/appointments/revenue-report/` com `Authorization: Bearer <ACCESS_DO_CLIENTE>`.
-3. Resultado atual: HTTP 200 com `total_revenue`, `by_barber`, `by_service` e `daily`.
-
-**Solução recomendada.** Declarar `permission_classes=[IsAuthenticated, IsAdminRole]` na action, ou tratá-la em `get_permissions`. Se o barbeiro precisar ver os próprios números, filtrar pelo `perfil_barbeiro` dele numa action separada. Documentar o endpoint (ver DOC-01).
-
-**Critério de aceitação.**
-- [ ] Cliente → 403; barbeiro → 403 (ou apenas os próprios números, se essa for a regra definida); admin → 200.
-- [ ] Testes automatizados para os três perfis.
-- [ ] Endpoint documentado em `DOCUMENTACAO_API.md`.
+| SQLite (`--settings=config.test_settings`) | **327 testes, OK** (9 pulados: exigem PostgreSQL), 3,6 s |
+| PostgreSQL 16 descartável | **327 testes, OK, 0 pulados**, 8,9 s |
+| Distribuição | accounts 124 · appointments 123 · barbershops 51 · services 19 · config 10 (eram 239 em 11/11) |
+| Cobertura (linhas + ramificações) | **91%** no total. Menores: `config/permissions.py` 74%; `accounts/managers.py`, `accounts/serializers.py` e `appointments/models.py` entre 85% e 86%. **A confirmação de recuperação de senha não tem nenhum teste** (`accounts/serializers.py:427-449`) |
+| Testes sem asserção | 2, do tipo "não deve lançar erro", aceitáveis (`accounts/test_admin_integrity_paths.py:317,326`) |
+| `makemigrations --check` | Sem alterações pendentes |
+| `check --deploy` | 1 aviso (W021, HSTS preload) |
 
 ---
 
-## 8. Problemas P1 — Alto (9)
+## 7. Auditoria do frontend
 
-### BUS-01 — Admin pode se rebaixar ou se desativar, deixando a barbearia sem administrador
-
-| Campo | Valor |
-|---|---|
-| Gravidade | **P1 — Alto** |
-| Tipo | Bug confirmado |
-| Módulo | Usuários / Permissões |
-| Arquivos | `accounts/serializers.py` (`UserSerializer.validate` e `update`); `accounts/views.py` (`UserViewSet.perform_destroy`) |
-
-**Descrição.** O admin consegue alterar o próprio `tipo_perfil` para `cliente` com `PATCH /users/{seu_id}/`, porque `UserSerializer.validate` só bloqueia a conversão de admin para barbeiro. Ele também consegue desativar a própria conta com `DELETE /users/{seu_id}/`, porque `perform_destroy` não verifica se o alvo é o próprio usuário ou o último admin do tenant. Nos dois casos a barbearia fica sem nenhum administrador ativo, e a aplicação não oferece caminho de recuperação: só um superusuário, pelo Django Admin.
-
-**Evidência.**
-- Sondagem 1: `PATCH tipo_perfil=cliente` no próprio usuário → **HTTP 200**, com `tipo_perfil=cliente`. Em seguida, o ex-admin recebeu **HTTP 403** ao tentar criar usuários.
-- Sondagem 2: `DELETE /users/{próprio id}/` → **HTTP 204**; login posterior → **HTTP 401**.
-
-**Impacto.** A barbearia fica bloqueada: ninguém mais cadastra serviços, barbeiros ou clientes, edita dados da barbearia ou administra a agenda. Basta um clique equivocado, ou uma automação, para causar a interrupção.
-
-**Como reproduzir.**
-1. Entrar como admin e obter o próprio `id` em `GET /api/v1/users/me/`.
-2. `PATCH /api/v1/users/<ID>/` com `{"tipo_perfil": "cliente"}` → 200.
-3. Tentar `POST /api/v1/users/` → 403.
-4. Alternativa: `DELETE /api/v1/users/<ID>/` → 204; novo login → 401.
-
-**Solução recomendada.**
-- No serializer e na view, impedir que o usuário altere o próprio `tipo_perfil` e o próprio `is_active`.
-- Impedir rebaixar ou desativar o **último admin ativo** do tenant.
-- Responder 400 com mensagem explicando o motivo.
-
-**Critério de aceitação.**
-- [ ] Autorrebaixamento e autodesativação do admin retornam 400 com mensagem clara.
-- [ ] Rebaixar ou desativar o último admin ativo do tenant retorna 400.
-- [ ] Testes cobrindo próprio usuário, último admin e o caso permitido (outro admin, quando houver mais de um).
-
----
-
-### BUS-02 — Barbearia desativada continua operando normalmente
-
-| Campo | Valor |
-|---|---|
-| Gravidade | **P1 — Alto** |
-| Tipo | Bug confirmado |
-| Módulo | Barbearias / Super Admin |
-| Arquivos | `barbershops/views.py` (`BarbershopViewSet.perform_destroy`); `barbershops/serializers.py` (`BarbershopSerializer`, campo `ativo` gravável); `config/mixins.py`; `config/permissions.py` |
-
-**Descrição.** O campo `Barbershop.ativo` não é consultado por nenhuma regra de negócio, permissão ou queryset. A "exclusão" de barbearia (`DELETE /barbershops/{id}/?confirmar=<nome>`, restrita ao staff) apenas marca `ativo=False`, e isso não tem nenhum efeito: usuários continuam entrando, agendando e administrando. Além disso, `ativo` é gravável pelo serializer, então o próprio admin do tenant pode alterá-lo via `PATCH`.
-
-**Evidência.** Sondagem 1: `PATCH ativo=false` pelo admin do tenant → **HTTP 200**; em seguida, novo agendamento na mesma barbearia → **HTTP 201**. A busca no código por usos de `barbershop.ativo` em regras não encontrou nenhuma ocorrência (só aparece em filtros do Django Admin).
-
-**Impacto.** A plataforma não consegue suspender uma barbearia (inadimplência, abuso, encerramento de contrato). A operação de exclusão transmite uma falsa sensação de efeito.
-
-**Como reproduzir.**
-1. Como admin de uma barbearia, `PATCH /api/v1/barbershops/<ID>/` com `{"ativo": false}` → 200.
-2. Criar um agendamento nessa barbearia (`POST /api/v1/appointments/`) → 201.
-3. Entrar como cliente dessa barbearia → login normal.
-
-**Solução recomendada.**
-- Tornar `ativo` somente-leitura no `BarbershopSerializer` para usuários que não são staff.
-- Criar uma verificação central (permissão global ou no `TenantScopedQuerysetMixin` e na autenticação) que recuse requisições de usuários vinculados a barbearia inativa, com mensagem própria ("Barbearia suspensa").
-- Manter acesso de leitura ao staff.
-
-**Critério de aceitação.**
-- [ ] Usuários de barbearia inativa recebem 403 com mensagem específica em qualquer endpoint de negócio.
-- [ ] O admin do tenant não consegue alterar `ativo`.
-- [ ] O staff consegue suspender e reativar.
-- [ ] Testes cobrindo suspensão, reativação e a tentativa do admin.
-
----
-
-### BUS-03 — Reagendamento pelo cliente mantém o status "confirmado"
-
-| Campo | Valor |
-|---|---|
-| Gravidade | **P1 — Alto** |
-| Tipo | Bug confirmado |
-| Módulo | Agendamentos |
-| Arquivos | `appointments/serializers.py` (`AppointmentSerializer.update`); `appointments/views.py` (`perform_update`) |
-
-**Descrição.** Quando um cliente reagenda (altera `data_hora`, `barbeiro` ou `servico`) um agendamento que estava **confirmado**, o status permanece "confirmado". A barbearia confirmou o horário antigo, não o novo, mas a agenda passa a exibir o novo horário como confirmado, sem que ninguém o tenha aprovado.
-
-**Evidência.** Sondagem 1: agendamento criado pelo cliente, confirmado pelo admin e depois reagendado pelo cliente com `PATCH data_hora` → `status = confirmado` na resposta.
-
-**Impacto.** O barbeiro e o admin confiam numa confirmação que não existe. O status perde o significado operacional e o fluxo de confirmação é contornado.
-
-**Como reproduzir.**
-1. Cliente cria agendamento (`POST /api/v1/appointments/`).
-2. Admin confirma: `PATCH /api/v1/appointments/<ID>/` com `{"status": "confirmado"}`.
-3. Cliente reagenda: `PATCH /api/v1/appointments/<ID>/` com `{"data_hora": "<nova data>T09:00:00"}`.
-4. Resultado atual: `status = "confirmado"`.
-
-**Solução recomendada.** Quando o cliente alterar `data_hora`, `barbeiro` ou `servico`, redefinir `status` para `agendado` na mesma transação. Decidir e documentar se a mesma regra vale para alterações feitas pelo barbeiro.
-
-**Critério de aceitação.**
-- [ ] Reagendamento pelo cliente resulta em `status = agendado`.
-- [ ] Alterar apenas `observacoes` não muda o status.
-- [ ] Testes cobrindo os dois casos.
-
----
-
-### BUS-04 — Troca de serviço ignora o horário de funcionamento
-
-| Campo | Valor |
-|---|---|
-| Gravidade | **P1 — Alto** |
-| Tipo | Bug confirmado |
-| Módulo | Agendamentos |
-| Arquivos | `appointments/models.py` (`Appointment._validar_horario_funcionamento`) |
-
-**Descrição.** A validação de horário de funcionamento retorna antecipadamente quando o agendamento já existe e `data_hora` não mudou. A comparação considera apenas `data_hora`, não o serviço. Se o horário for mantido e o serviço trocado por um mais longo, o fim do atendimento pode ultrapassar o fechamento, e a validação não é executada.
-
-**Evidência.** Sondagem 1: agendamento às 18:30 numa barbearia que fecha às 19:00, trocado de um serviço de 30 min para um de 60 min → **HTTP 200**. O atendimento passa a terminar às 19:30.
-
-**Impacto.** A agenda passa a ter atendimentos fora do horário da barbearia, e o barbeiro fica com compromisso depois do expediente.
-
-**Como reproduzir.**
-1. Barbearia com fechamento às 19:00.
-2. Criar agendamento às 18:30 com um serviço de 30 min.
-3. `PATCH /api/v1/appointments/<ID>/` com `{"servico": <id de serviço de 60 min>}`.
-4. Resultado atual: HTTP 200.
-
-**Solução recomendada.** Revalidar o horário de funcionamento quando `data_hora` **ou** `servico_id` mudarem, comparando com o valor persistido. Calcular o fim com a duração do novo serviço.
-
-**Critério de aceitação.**
-- [ ] O cenário acima retorna 400 com a mensagem de fechamento.
-- [ ] Trocar para um serviço que cabe no horário continua permitido.
-- [ ] Testes para os dois casos.
-
----
-
-### BUS-05 — Fechamento anterior à abertura é aceito
-
-| Campo | Valor |
-|---|---|
-| Gravidade | **P1 — Alto** |
-| Tipo | Bug confirmado |
-| Módulo | Barbearias |
-| Arquivos | `barbershops/models.py` (`Barbershop`, sem `clean`); `barbershops/serializers.py` (`BarbershopSerializer.validate`) |
-
-**Descrição.** A API aceita `horario_fechamento` anterior ou igual a `horario_abertura`. Não há validação no model nem no serializer, que só verifica se o usuário já pertence a outra barbearia na criação. Com esses valores, a geração de horários livres não produz nenhum horário e toda tentativa de agendamento é recusada, sem explicação.
-
-**Evidência.** Sondagem 1: `PATCH horario_abertura=18:00, horario_fechamento=08:00` → **HTTP 200**. O frontend redesenhado valida esse caso nos formulários, mas o backend é a defesa real.
-
-**Impacto.** A barbearia "desaparece" da agenda: clientes não encontram horários e o admin não entende o motivo.
-
-**Como reproduzir.**
-1. Como admin, `PATCH /api/v1/barbershops/<ID>/` com `{"horario_abertura": "18:00:00", "horario_fechamento": "08:00:00"}` → 200.
-2. `GET /api/v1/appointments/available-slots/?barbeiro=<id>&servico=<id>&data=<amanhã>` → lista vazia.
-
-**Solução recomendada.** Implementar `Barbershop.clean()` exigindo `fechamento > abertura` e chamar a mesma validação no serializer, na criação e na edição, inclusive em `PATCH` parcial que altere só um dos campos.
-
-**Critério de aceitação.**
-- [ ] Criação e edição com fechamento ≤ abertura retornam 400, inclusive quando só um dos campos é enviado.
-- [ ] Testes cobrindo criação, edição completa e edição parcial.
-
----
-
-### BUS-06 — Sem dias de funcionamento, folgas e disponibilidade por barbeiro
-
-| Campo | Valor |
-|---|---|
-| Gravidade | **P1 — Alto** |
-| Tipo | Funcionalidade ausente |
-| Módulo | Agendamentos / Barbeiros |
-| Arquivos | `barbershops/models.py` (`Barbershop` só tem abertura e fechamento); `appointments/views.py` (`available_slots`); `appointments/models.py` (validações de horário) |
-
-**Descrição.** O sistema não modela dias da semana de funcionamento, feriados, bloqueios de agenda nem horário de trabalho, folga ou intervalo de cada barbeiro. A geração de horários livres e a validação de agendamentos consideram apenas `horario_abertura` e `horario_fechamento` da barbearia, aplicados a **todos os dias**, e a disponibilidade de todos os barbeiros ativos é igual a esse horário.
-
-**Evidência.** Sondagem 3 (`sondagem-agenda.txt`): domingo 15/11/2026 → **10 horários oferecidos** para um serviço de 60 min. Leitura de `available_slots`: os slots começam em `horario_abertura` e terminam em `horario_fechamento`, sem nenhuma consulta a dia da semana ou disponibilidade.
-
-**Impacto.** Em uso real, clientes agendam em dias em que a barbearia está fechada e com barbeiros de folga, gerando faltas, retrabalho e perda de confiança.
-
-**Como reproduzir.**
-1. `GET /api/v1/appointments/available-slots/?barbeiro=<id>&servico=<id>&data=<próximo domingo>`.
-2. Resultado atual: lista de horários preenchida.
-3. Um `POST /api/v1/appointments/` nesse domingo é aceito.
-
-**Solução recomendada.**
-- Modelar a grade semanal da barbearia (dia × abertura/fechamento, com intervalos).
-- Modelar exceções por data (feriados, fechamentos) e a disponibilidade e folgas por barbeiro.
-- Aplicar essas regras em `available_slots` e em `Appointment.clean`.
-- Expor no frontend as telas de configuração correspondentes.
-
-**Critério de aceitação.**
-- [ ] Dias fechados e folgas não oferecem horários.
-- [ ] A API recusa agendamento nesses dias e horários com mensagem clara.
-- [ ] Testes para dia fechado, feriado, folga de barbeiro e intervalo.
-
----
-
-### PROD-01 — Cliente não consegue se cadastrar numa barbearia existente
-
-| Campo | Valor |
-|---|---|
-| Gravidade | **P1 — Alto** |
-| Tipo | Funcionalidade ausente |
-| Módulo | Autenticação / Clientes |
-| Arquivos | `accounts/serializers.py` (`PublicRegistrationSerializer`); `accounts/views.py` (`RegistrationView`); frontend `src/pages/RegisterPage.tsx` e `src/pages/OnboardingPage.tsx` |
-
-**Descrição.** O cadastro público (`POST /auth/register/`) cria sempre um usuário `cliente` **sem barbearia**, que é encaminhado ao onboarding para **criar a própria barbearia** e virar admin. Não há página pública por barbearia, link de convite, código de acesso nem seleção de barbearia. Hoje a única forma de um cliente usar o sistema é o admin cadastrá-lo manualmente na tela "Clientes", criada no redesign, informando uma senha inicial.
-
-**Evidência.** `PublicRegistrationSerializer.create` não define `barbershop`. O `README.md` do frontend documenta a limitação. Nos fluxos de interface, uma conta criada pelo cadastro público vai para o onboarding de dono.
-
-**Impacto.** Inviabiliza a aquisição de clientes num SaaS real: a barbearia não consegue divulgar um link para seus clientes se cadastrarem e agendarem. Quem se cadastra pelo site acaba criando uma barbearia sem querer, gerando tenants vazios.
-
-**Como reproduzir.**
-1. Acessar `/register` e criar uma conta.
-2. O sistema entra e mostra "Vamos cadastrar sua barbearia". Não há como escolher uma barbearia existente.
-
-**Solução recomendada.**
-- Página pública por barbearia (ex.: `/b/<slug>`) com serviços, equipe e cadastro/agendamento vinculados ao tenant.
-- Ou convite por link/código gerado pelo admin.
-- Separar explicitamente "criar conta de dono" de "criar conta de cliente".
-
-**Critério de aceitação.**
-- [ ] Um cliente novo consegue se cadastrar e agendar numa barbearia específica sem intervenção do admin.
-- [ ] A conta fica vinculada ao tenant correto e não passa pelo onboarding de dono.
-- [ ] Testes de API para o cadastro vinculado e tentativa de vínculo a tenant inexistente/inativo.
-
----
-
-### AUTH-01 — Recuperação de senha sem envio de e-mail
-
-| Campo | Valor |
-|---|---|
-| Gravidade | **P1 — Alto** |
-| Tipo | Funcionalidade incompleta |
-| Módulo | Autenticação |
-| Arquivos | `config/settings.py` (sem `EMAIL_BACKEND`/`EMAIL_HOST`); `accounts/serializers.py` (`PasswordResetRequestSerializer.save`); frontend `src/pages/PasswordResetRequestPage.tsx` e `PasswordResetConfirmPage.tsx` |
-
-**Descrição.** Os endpoints de recuperação de senha existem e são seguros (resposta idêntica para e-mails existentes e inexistentes), mas o envio de e-mail não está configurado:
-- Não há `EMAIL_BACKEND`, `EMAIL_HOST` ou credenciais nas configurações. O Django usa o padrão: SMTP em `localhost:25`.
-- O envio é feito com `fail_silently=True`, então qualquer falha é engolida sem log.
-- A mensagem traz o `uid` e o `token` em texto, sem link para o frontend; o usuário precisa copiá-los manualmente (a tela de confirmação do redesign aceita digitação).
-- Para e-mails inexistentes, o código envia uma mensagem para o próprio `DEFAULT_FROM_EMAIL`, para manter tempo de resposta constante.
-
-**Evidência.** Busca em `config/settings.py`: nenhuma configuração `EMAIL_*`. Código de `PasswordResetRequestSerializer.save`. A entrega real **não pôde ser verificada** por falta de SMTP (ver seção 11).
-
-**Impacto.** Quem esqueceu a senha não recebe nada e não há registro do erro. Na prática, o usuário fica sem acesso até um admin intervir.
-
-**Como reproduzir.**
-1. Em `/password/reset`, informar o e-mail de uma conta existente → a tela confirma o envio.
-2. Nenhum e-mail chega, salvo se houver um servidor SMTP escutando em `localhost:25`, e nenhuma falha é registrada.
-
-**Solução recomendada.**
-- Configurar o e-mail por variáveis de ambiente (`EMAIL_BACKEND`, `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `EMAIL_USE_TLS`) e documentá-las no `.env.example`.
-- Usar o backend de console em desenvolvimento.
-- Montar um link `FRONTEND_URL/password/reset/confirm?uid=<uid>&token=<token>` na mensagem.
-- Registrar falhas de envio em log em vez de silenciá-las.
-- Avaliar envio assíncrono.
-
-**Critério de aceitação.**
-- [ ] Com SMTP configurado, o e-mail chega com um link funcional que leva à tela de nova senha já preenchida.
-- [ ] Em desenvolvimento, a mensagem aparece no console.
-- [ ] Falhas de envio aparecem no log.
-- [ ] `.env.example` documenta as variáveis.
-
----
-
-### BUS-07 — Atendimento futuro pode ser marcado como "realizado"
-
-| Campo | Valor |
-|---|---|
-| Gravidade | **P1 — Alto** |
-| Tipo | Bug confirmado |
-| Módulo | Agendamentos / Dashboard |
-| Arquivos | `appointments/models.py` (`Appointment._validar_transicao_status`) |
-
-**Descrição.** A máquina de estados permite `confirmado → realizado` sem verificar se o atendimento já começou. Um agendamento com data futura pode ser marcado como realizado.
-
-**Evidência.** Sondagem 1: agendamento 13 dias à frente, confirmado e depois `PATCH status=realizado` → **HTTP 200**.
-
-**Impacto.** Faturamento, ticket médio, rankings de equipe e serviços (painel e `revenue-report`) passam a contar receita que não aconteceu. O horário também deixa de poder ser cancelado ou reagendado, porque "realizado" é estado final.
-
-**Como reproduzir.**
-1. Criar um agendamento para daqui a alguns dias.
-2. `PATCH {"status": "confirmado"}`.
-3. `PATCH {"status": "realizado"}` → 200.
-
-**Solução recomendada.** Em `_validar_transicao_status`, permitir a transição para `realizado` somente se `data_hora <= agora` (opcionalmente com tolerância configurável). No frontend, ocultar "Marcar realizado" para horários futuros.
-
-**Critério de aceitação.**
-- [ ] A transição para "realizado" em horário futuro retorna 400 com mensagem clara.
-- [ ] A transição em horário iniciado ou passado continua permitida.
-- [ ] Testes para os dois casos.
-
----
-
-## 9. Problemas P2 — Médio (21)
-
-### AUTH-02 — E-mails duplicados por diferença de maiúsculas
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P2 — Médio |
-| Tipo | Bug confirmado |
-| Módulo | Usuários / Banco |
-| Arquivos | `accounts/managers.py` (`UserManager.create_user`); `accounts/models.py` (`email` com `unique=True`) |
-
-**Descrição.** `normalize_email` só converte o domínio para minúsculas, e a restrição de unicidade de `email` diferencia maiúsculas. É possível criar `Fulano@dominio.com` e `fulano@dominio.com` como contas distintas, e o login exige a mesma grafia do cadastro.
-
-**Evidência.** Sondagem 1: cadastro de um e-mail já existente com letras maiúsculas na parte local → **HTTP 201**. No Postgres real não há duplicados hoje (`integridade-banco-real.txt`).
-
-**Impacto.**
-- Contas duplicadas para a mesma pessoa.
-- Falha de login quando o usuário digita com outra capitalização.
-- A recuperação de senha (`email__iexact().first()`) pode escolher a conta errada.
-
-**Como reproduzir.**
-1. Com uma conta `exemplo@dominio.com` existente, `POST /api/v1/auth/register/` com `EXEMPLO@dominio.com` → 201.
-2. Tentar entrar com `Exemplo@dominio.com` → 401.
-
-**Solução recomendada.**
-- Normalizar todo o e-mail para minúsculas no manager, nos serializers de cadastro/edição e no login.
-- Criar `UniqueConstraint(Lower('email'))` precedida de uma migração que detecte duplicados existentes.
-
-**Critério de aceitação.**
-- [ ] O cadastro do exemplo retorna 400 ("e-mail já cadastrado").
-- [ ] O login aceita qualquer capitalização.
-- [ ] O banco impede duplicados por maiúsculas.
-- [ ] Testes de cadastro, login e edição.
-
----
-
-### SEC-03 — E-mail de login dos barbeiros exposto a clientes
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P2 — Médio |
-| Tipo | Bug confirmado (privacidade) |
-| Módulo | Barbeiros |
-| Arquivos | `barbershops/serializers.py` (`BarberSerializer`, campo `email`) |
-
-**Descrição.** `GET /api/v1/barbers/` é acessível a clientes (necessário para agendar) e devolve o campo `email` (e-mail de login do barbeiro) de cada profissional.
-
-**Evidência.** Sondagem 1: verificação "cliente vê e-mail de login dos barbeiros" → falha (e-mails presentes na resposta).
-
-**Impacto.** Exposição de dados pessoais de funcionários a qualquer cliente. Facilita phishing e tentativas de acesso à conta do barbeiro.
-
-**Como reproduzir.** Entrar como cliente e chamar `GET /api/v1/barbers/`; o campo `email` aparece em cada item.
-
-**Solução recomendada.** Serializer público sem `email` para cliente e barbeiro; manter o campo apenas para admin (via `get_serializer_class` ou `to_representation` conforme o perfil).
-
-**Critério de aceitação.**
-- [ ] Cliente e barbeiro não recebem `email` em `/barbers/`.
-- [ ] Admin continua recebendo.
-- [ ] Teste por perfil.
-
----
-
-### SEC-04 — Access token em `localStorage` sem Content-Security-Policy
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P2 — Médio |
-| Tipo | Risco potencial |
-| Módulo | Frontend / Segurança |
-| Arquivos | `frontend/src/utils/storage.ts`; `frontend/src/api/client.ts`; configuração do servidor web (inexistente) |
-
-**Descrição.** O access token (15 min) é salvo em `localStorage` (chave `barbearia.auth`) e não há cabeçalho Content-Security-Policy. O refresh está corretamente em cookie HttpOnly.
-
-**Evidência.** `storage.ts` usa `localStorage.setItem`; não há configuração de CSP no Django nem servidor web configurado no projeto.
-
-**Impacto.** Qualquer XSS (por exemplo, numa futura dependência comprometida) consegue ler o token e agir como o usuário por até 15 minutos. O impacto é limitado pelo tempo de vida curto e por não ser possível obter o refresh.
-
-**Como reproduzir.** Entrar no sistema e, no console do navegador, executar `localStorage.getItem('barbearia.auth')`: o token aparece.
-
-**Solução recomendada.**
-- Manter o access token apenas em memória e obter um novo pelo cookie de refresh ao carregar a página.
-- Configurar CSP restritiva (scripts apenas da própria origem) no servidor web ou com `django-csp`.
-
-**Critério de aceitação.**
-- [ ] O token não é persistido no armazenamento do navegador.
-- [ ] O app continua logado após recarregar (via refresh).
-- [ ] O cabeçalho CSP está presente em produção.
-
----
-
-### SEC-05 — Rate limiting em cache local por processo
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P2 — Médio |
-| Tipo | Risco potencial |
-| Módulo | Infra / Segurança |
-| Arquivos | `config/settings.py` (sem `CACHES`; `DEFAULT_THROTTLE_*`) |
-
-**Descrição.** O throttling do DRF (login 5/min, cadastro 10/h, recuperação 5/h etc.) usa o cache padrão do Django, que, sem `CACHES` configurado, é memória local de cada processo.
-
-**Evidência.** Nenhuma configuração `CACHES` em `settings.py`. A limitação real não foi exercitada (ver seção 11).
-
-**Impacto.** Em produção com N workers do gunicorn, cada um conta separadamente: o limite efetivo de tentativas de login vira 5×N por minuto e zera a cada reinício. Isso reduz a proteção contra força bruta de senhas.
-
-**Como reproduzir.** Inspecionar `settings.py` (sem `CACHES`). Em ambiente com vários workers, tentativas de login distribuídas entre eles excedem 5/min sem bloqueio.
-
-**Solução recomendada.** Configurar cache compartilhado (Redis) para o throttling em produção e documentar a variável.
-
-**Critério de aceitação.**
-- [ ] Com vários workers, a 6ª tentativa de login no mesmo minuto retorna 429, independentemente do worker.
-
----
-
-### SEC-07 — Serviço com duração 0 trava a geração de horários
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P2 — Médio |
-| Tipo | Risco potencial |
-| Módulo | Serviços / Agendamentos |
-| Arquivos | `services/models.py` (`duracao = PositiveIntegerField`); `services/serializers.py` (`min_value=1`); `appointments/views.py` (`available_slots`) |
-
-**Descrição.** O model aceita `duracao = 0` (`PositiveIntegerField` permite zero); só o serializer da API exige ≥ 1. Um serviço com duração 0, gravado pelo Django Admin ou direto no banco, faz o laço de `available_slots` (`while slot_atual <= limite: … slot_atual += duracao`) nunca avançar.
-
-**Evidência.** Leitura de código. **Não executado**, para não travar o servidor de teste. No Postgres real não há serviços com duração 0 (`integridade-banco-real.txt`).
-
-**Impacto.** Cada consulta de horários para esse serviço prende um worker indefinidamente, com CPU a 100%; poucas requisições derrubam a API.
-
-**Como reproduzir (não executado).**
-1. No Django Admin, editar um serviço e salvar `duração = 0`.
-2. Consultar `available-slots` para esse serviço: a requisição não retorna.
-
-**Solução recomendada.**
-- `MinValueValidator(1)` no campo e `CheckConstraint(duracao__gt=0)` no model, com migração.
-- Guarda no laço (`if duracao <= timedelta(0): return erro`).
-
-**Critério de aceitação.**
-- [ ] Banco e Django Admin recusam duração 0.
-- [ ] O endpoint responde com erro em vez de entrar em laço, caso exista dado legado inválido.
-- [ ] Teste do caso.
-
----
-
-### BUS-08 — Sem "não compareceu" e sem desfecho de horários vencidos
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P2 — Médio |
-| Tipo | Funcionalidade ausente |
-| Módulo | Agendamentos |
-| Arquivos | `appointments/models.py` (`Appointment.Status`) |
-
-**Descrição.** Os status são `agendado`, `confirmado`, `realizado` e `cancelado`. Não existe "não compareceu" nem rotina ou indicador para horários cujo horário já passou e não tiveram desfecho; eles permanecem "agendado" ou "confirmado" indefinidamente.
-
-**Evidência.** `Appointment.Status` tem 4 valores; não há tarefas agendadas no projeto. O contador "a confirmar" do frontend inclui esses horários (FE-04).
-
-**Impacto.** Agenda poluída com pendências antigas; impossível medir taxa de comparecimento; métricas de cancelamento incompletas.
-
-**Como reproduzir.** Criar um agendamento, deixá-lo passar sem alterar o status e consultar `/appointments/?status=agendado`: ele continua listado como pendente.
-
-**Solução recomendada.** Adicionar o status `nao_compareceu` (transições a partir de agendado/confirmado após o horário) e um indicador de "vencidos sem desfecho" no painel, ou uma rotina que os sinalize.
-
-**Critério de aceitação.**
-- [ ] Horários passados podem ser marcados como não comparecidos.
-- [ ] Horários vencidos aparecem separados dos "a confirmar".
-- [ ] Métricas de comparecimento no painel.
-- [ ] Testes de transição.
-
----
-
-### BUS-09 — Duração do atendimento não é histórica
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P2 — Médio |
-| Tipo | Risco potencial |
-| Módulo | Banco / Agendamentos |
-| Arquivos | `appointments/models.py` (`_validar_conflito_horario`, `_validar_horario_funcionamento`); `appointments/views.py` (`available_slots`) |
-
-**Descrição.** O agendamento guarda o preço histórico, mas não a duração. Conflitos, horários livres e o fim de cada atendimento são calculados com `servico.duracao` **atual**.
-
-**Evidência.** Leitura de código: `agendamento.servico.duracao` em `_validar_conflito_horario` e na lista de ocupados de `available_slots`; não há campo de duração em `Appointment`.
-
-**Impacto.** Alterar a duração de um serviço muda retroativamente a ocupação de agendas já marcadas: aumentar pode criar sobreposições "invisíveis"; reduzir libera horários que estavam ocupados.
-
-**Como reproduzir.**
-1. Dois agendamentos seguidos (10:00 e 10:30) com um serviço de 30 min.
-2. Alterar a duração do serviço para 60 min.
-3. Os dois passam a se sobrepor sem nenhum aviso, e novas validações consideram a nova duração.
-
-**Solução recomendada.** Adicionar `duracao_historica` ao agendamento (preenchida na criação e na troca de serviço, como `preco_historico`), com migração de dados, e usá-la em todos os cálculos.
-
-**Critério de aceitação.**
-- [ ] Alterar a duração de um serviço não muda horários nem conflitos de agendamentos existentes.
-- [ ] Testes do cenário.
-
----
-
-### BUS-11 — Passo entre horários igual à duração do serviço
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P2 — Médio |
-| Tipo | Funcionalidade incompleta |
-| Módulo | Agendamentos |
-| Arquivos | `appointments/views.py` (`available_slots`: `slot_atual += duracao`) |
-
-**Descrição.** Os horários livres avançam de acordo com a duração do serviço. Um serviço de 60 min só oferece horas cheias (09:00, 10:00…), mesmo quando 09:30 estaria livre.
-
-**Evidência.** Sondagem 3: serviço de 60 min → `['09:00', '10:00', '11:00', '12:00', '13:00', …]`.
-
-**Impacto.** Perda de encaixes: após um atendimento de 30 min às 09:00, um serviço de 60 min só pode começar às 10:00, deixando 30 min ociosos. A ocupação da barbearia diminui.
-
-**Como reproduzir.** `GET /api/v1/appointments/available-slots/` para um serviço de 60 min; observar que todos os horários são horas cheias.
-
-**Solução recomendada.** Passo configurável por barbearia (ex.: 15 min), independente da duração, mantendo a verificação de que o serviço inteiro cabe e não conflita.
-
-**Critério de aceitação.**
-- [ ] Todos os inícios possíveis no passo configurado aparecem quando livres.
-- [ ] Testes com serviços de durações diferentes.
-
----
-
-### BUS-13 — Desativar barbeiro ou cliente não trata agendamentos futuros
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P2 — Médio |
-| Tipo | Funcionalidade ausente |
-| Módulo | Barbeiros / Clientes |
-| Arquivos | `barbershops/views.py` (`BarberViewSet.perform_destroy`, `perform_update`); `accounts/views.py` (`UserViewSet.perform_destroy`); `accounts/serializers.py` (`UserSerializer.update`) |
-
-**Descrição.** Ao desativar um barbeiro (ou rebaixá-lo) ou desativar a conta de um cliente, os agendamentos futuros dessa pessoa permanecem "agendado/confirmado", sem aviso, cancelamento ou reatribuição.
-
-**Evidência.** Leitura de código: as rotinas de desativação alteram apenas o perfil, a conta e o `deleted_at/by`. No Postgres real, hoje há 0 casos (`integridade-banco-real.txt`).
-
-**Impacto.** Clientes podem comparecer para atendimento com um barbeiro desligado; a agenda mantém compromissos de clientes inativos; o painel conta horários que não vão acontecer.
-
-**Como reproduzir.**
-1. Barbeiro com agendamento futuro.
-2. Desativá-lo (`DELETE /api/v1/barbers/<id>/`).
-3. O agendamento continua "agendado/confirmado" em `/appointments/`.
-
-**Solução recomendada.** Antes de desativar, listar os horários futuros afetados e exigir uma decisão (cancelar com aviso ou reatribuir a outro barbeiro). No mínimo, retornar a lista para o frontend exibir.
-
-**Critério de aceitação.**
-- [ ] A desativação não deixa horários futuros sem decisão explícita.
-- [ ] Testes para barbeiro e cliente.
-
----
-
-### BUS-14 — Admin não agenda pela interface; sem atendimento avulso
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P2 — Médio |
-| Tipo | Funcionalidade incompleta |
-| Módulo | Agendamentos |
-| Arquivos | `appointments/views.py` (`perform_create` aceita `cliente` informado pelo admin); `appointments/models.py` (`cliente` precisa ter perfil cliente); frontend `src/App.tsx` (`/appointments/new` restrito a clientes) |
-
-**Descrição.** A API permite ao admin criar agendamento para um cliente existente, mas não há tela para isso. Também não existe "cliente avulso" (sem conta): todo agendamento exige um usuário com perfil cliente.
-
-**Evidência.** Leitura de código e de rotas. A rota de agendamento do frontend tem `allowedRoles={['cliente']}`.
-
-**Impacto.** Agendamentos por telefone ou no balcão não podem ser registrados pela interface; a agenda real fica incompleta.
-
-**Como reproduzir.** Entrar como admin e procurar uma ação "Novo agendamento": não existe. Acessar `/appointments/new` como admin redireciona para o painel.
-
-**Solução recomendada.** Tela de agendamento pelo admin, com busca de cliente e cadastro rápido. Avaliar um modelo de cliente sem login (nome e telefone) para atendimentos avulsos.
-
-**Critério de aceitação.**
-- [ ] O admin agenda para um cliente existente ou recém-criado pela interface, com as mesmas validações de horário.
-- [ ] Testes de API e de interface.
-
----
-
-### API-01 — Sem busca, ordenação, filtro por período e `page_size`
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P2 — Médio |
-| Tipo | Funcionalidade ausente |
-| Módulo | API / Integração |
-| Arquivos | `appointments/views.py`, `accounts/views.py`, `services/views.py`, `barbershops/views.py`; `config/pagination.py`; frontend `src/api/endpoints.ts` (`collectPages`) |
-
-**Descrição.**
-- A API não oferece `SearchFilter`, `OrderingFilter`, filtro por intervalo de datas, `page_size` nem filtro `tipo_perfil` em `/users/`.
-- A paginação é fixa em 20 itens.
-- Para oferecer busca e filtros, o frontend baixa todas as páginas em sequência e filtra no navegador.
-
-**Evidência.**
-- Sondagem 1: `page_size=100` ignorado (sempre 20); `?ordering`, `?search` e `?tipo_perfil` sem efeito.
-- `consultas-sql-por-endpoint.txt`: o painel percorre 12 páginas para 228 agendamentos.
-- No backend, cada página custa só 2 consultas; o gargalo é o número de requisições.
-
-**Impacto.** O tempo de carregamento do painel, dos agendamentos e dos clientes cresce linearmente com o histórico. Com milhares de registros, essas telas ficam lentas ou inviáveis, e o tráfego aumenta.
-
-**Como reproduzir.**
-1. `GET /api/v1/appointments/?page_size=100` → 20 itens.
-2. `GET /api/v1/users/?search=x` → resultado igual à listagem completa.
-3. No navegador, abrir o painel e contar as requisições a `/appointments/`.
-
-**Solução recomendada.**
-- Habilitar `SearchFilter` e `OrderingFilter` com campos explícitos.
-- Criar filtros `data_inicio/data_fim` em agendamentos e `tipo_perfil` em usuários.
-- `page_size_query_param` com `max_page_size`.
-- Endpoint de métricas agregadas para o painel.
-- No frontend, usar paginação e filtros do servidor.
-
-**Critério de aceitação.**
-- [ ] As telas fazem um número fixo de requisições independentemente do volume.
-- [ ] Busca, ordenação e filtros são resolvidos pela API.
-- [ ] Testes dos filtros.
-
----
-
-### DATA-01 — Reverso da migração 0008 apaga todos os preços históricos
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P2 — Médio |
-| Tipo | Risco potencial |
-| Módulo | Banco |
-| Arquivos | `appointments/migrations/0008_populate_preco_historico.py` |
-
-**Descrição.** A função reversa `reverse_populate_preco_historico` executa `Appointment.objects.all().update(preco_historico=None)`, apagando **todos** os preços históricos, inclusive os gravados pela aplicação depois da migração.
-
-**Evidência.** Leitura do arquivo de migração.
-
-**Impacto.** Um rollback de migração (ex.: `migrate appointments 0007`) destrói dados financeiros irrecuperáveis.
-
-**Como reproduzir (não executado; destrutivo).** `python manage.py migrate appointments 0007` em um banco com agendamentos zera `preco_historico` de todos eles.
-
-**Solução recomendada.** Tornar o reverso um no-op (`migrations.RunPython.noop`), já que a migração 0007 remove o campo ao ser desfeita, ou restringi-lo aos registros que a própria migração preencheu.
-
-**Critério de aceitação.**
-- [ ] Desfazer até a 0007 e reaplicar não altera preços gravados pela aplicação, em teste com banco descartável.
-
----
-
-### OBS-01 — Sem logs, monitoramento, trilha de auditoria e health check
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P2 — Médio |
-| Tipo | Funcionalidade ausente |
-| Módulo | Backend |
-| Arquivos | `config/settings.py` (sem `LOGGING`); `config/urls.py` (sem rota de saúde); `appointments/models.py` (sem histórico de alterações) |
-
-**Descrição.**
-- Não há configuração de logging, integração com rastreamento de erros (ex.: Sentry) nem endpoint de health check.
-- Não há trilha de auditoria: não se registra quem confirmou, cancelou ou alterou um agendamento (existem apenas `deleted_at/deleted_by` nas exclusões lógicas).
-- Falhas de envio de e-mail são silenciadas (AUTH-01).
-
-**Evidência.** Busca nas configurações e rotas (`verificacoes-backend-e-build.txt`).
-
-**Impacto.** Erros em produção passam despercebidos. Não é possível responder "quem cancelou este horário?" numa disputa com cliente, nem monitorar a disponibilidade do serviço.
-
-**Como reproduzir.** Provocar um erro 500 e verificar que não há registro estruturado. Consultar um agendamento cancelado e verificar que não há autor nem data da mudança de status.
-
-**Solução recomendada.** `LOGGING` com formato estruturado, Sentry (ou similar) por variável de ambiente, `/health/` verificando o banco, e tabela de histórico de agendamento (autor, status anterior/novo, data).
-
-**Critério de aceitação.**
-- [ ] Erros chegam a um painel.
-- [ ] Cada mudança de status registra autor e horário, visíveis ao admin.
-- [ ] `/health/` responde 200 com o banco disponível e 503 sem ele.
-
----
-
-### OPS-01 — Sem infraestrutura de implantação
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P2 — Médio |
-| Tipo | Funcionalidade ausente |
-| Módulo | Infraestrutura |
-| Arquivos | Raiz do projeto; `docker-compose.yml` (só o banco); `config/urls.py` (mídia apenas com `DEBUG`); `config/settings.py` (`STATIC_ROOT` sem servidor) |
-
-**Descrição.** Faltam:
-- Dockerfile da aplicação;
-- pipeline de CI (testes, lint, build);
-- serviço de arquivos estáticos em produção (whitenoise ou servidor web; com `DEBUG=False` o Django Admin fica sem CSS);
-- serviço de mídia (logos só são servidos com `DEBUG`);
-- rotina `flushexpiredtokens` (a tabela de tokens do blacklist cresce indefinidamente);
-- backup documentado.
-
-**Evidência.** `verificacoes-backend-e-build.txt`: sem `.github`, Dockerfile, Procfile, Makefile, pre-commit, whitenoise ou health check; trecho `if settings.DEBUG: urlpatterns += static(...)` em `config/urls.py`.
-
-**Impacto.** Implantação manual e propensa a erro; regressões chegam sem verificação automática; mídia quebrada em produção; crescimento contínuo do banco.
-
-**Como reproduzir.** Tentar subir a aplicação com `DEBUG=False`: o Django Admin aparece sem estilos e as URLs de mídia retornam 404.
-
-**Solução recomendada.**
-- Dockerfile multi-stage e compose de produção (app + banco + servidor web).
-- CI rodando `manage.py test`, `npm run lint`, `tsc` e `npm run build`.
-- Whitenoise ou nginx para estáticos, e armazenamento de mídia (volume ou S3).
-- Rotina agendada de limpeza de tokens e backup documentado.
-
-**Critério de aceitação.**
-- [ ] Um commit dispara o CI.
-- [ ] A aplicação sobe em produção por um procedimento documentado, com estáticos e mídia funcionando.
-- [ ] Rotina de limpeza e backup descritas.
-
----
-
-### FE-01 — Sem error boundary no frontend
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P2 — Médio |
-| Tipo | Funcionalidade ausente |
-| Módulo | Frontend |
-| Arquivos | `frontend/src/App.tsx`; `frontend/src/components/AppLayout.tsx` |
-
-**Descrição.** Não há componente de fronteira de erro. Uma exceção durante a renderização de qualquer tela desmonta a árvore inteira do React e deixa a página em branco.
-
-**Evidência.** Busca por `ErrorBoundary`/`componentDidCatch` em `frontend/src`: zero ocorrências.
-
-**Impacto.** Um dado inesperado vindo da API (ou um bug) derruba a interface inteira, sem mensagem nem forma de recuperação além de recarregar.
-
-**Como reproduzir.** Forçar um erro de renderização numa tela (ex.: lançar exceção num componente em desenvolvimento): a aplicação inteira fica em branco.
-
-**Solução recomendada.** Error boundary no layout e por rota, com mensagem, botão "Recarregar" e registro do erro (integrar ao OBS-01).
-
-**Critério de aceitação.**
-- [ ] Um erro forçado numa tela mostra a mensagem de falha e mantém menu e navegação funcionando.
-
----
-
-### FE-02 — Nenhum teste de frontend
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P2 — Médio |
-| Tipo | Funcionalidade ausente |
-| Módulo | Testes / Frontend |
-| Arquivos | `frontend/package.json` (sem script `test`); `frontend/src` (sem arquivos de teste) |
-
-**Descrição.** O frontend não tem testes unitários, de componente ou de ponta a ponta. A verificação desta auditoria foi feita com scripts externos ao projeto.
-
-**Evidência.** `verificacoes-backend-e-build.txt`.
-
-**Impacto.** Regressões de interface (como os bugs corrigidos no redesign: dias desalinhados, 404 ao editar serviço inativo) só são percebidas manualmente.
-
-**Como reproduzir.** `npm test` não existe; não há arquivos `*.test.*` ou `*.spec.*`.
-
-**Solução recomendada.**
-- Vitest + Testing Library para utilitários (`format.ts`, `status.ts`) e componentes críticos (ações de status, modal, agendamento).
-- Playwright para login, agendamento, reagendamento, cancelamento e ações do admin.
-- Rodar tudo no CI.
-
-**Critério de aceitação.**
-- [ ] O CI executa os testes de frontend.
-- [ ] Os fluxos de login, agendamento e ações de status têm teste automatizado.
-
----
-
-### TEST-01 — Nenhum teste cobre os bugs confirmados
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P2 — Médio |
-| Tipo | Lacuna de testes |
-| Módulo | Testes / Backend |
-| Arquivos | `*/tests*.py` e `*/test_*.py` (14 arquivos, 239 testes) |
-
-**Descrição.** A suíte é extensa e passa, mas nenhum teste exercita os comportamentos que falharam na sondagem:
-- permissão do `revenue-report`;
-- status após reagendamento;
-- troca de serviço no fim do expediente;
-- fechamento antes da abertura;
-- barbearia inativa;
-- e-mail com maiúsculas;
-- autorrebaixamento e autodesativação do admin;
-- "realizado" no futuro;
-- horários para data passada;
-- exposição de e-mail de barbeiros.
-
-**Evidência.** Busca por `revenue` nos arquivos de teste: zero. Os demais cenários falharam na sondagem com a suíte verde. Distribuição: accounts 82, appointments 98, barbershops 40, services 19.
-
-**Impacto.** A suíte transmite uma segurança que não cobre essas regras; correções futuras podem regredir sem aviso.
-
-**Como reproduzir.** Rodar `python manage.py test` (239 OK) e, em seguida, as requisições descritas em SEC-02, BUS-01, BUS-02, BUS-03, BUS-04, BUS-05, BUS-07, BUS-10, AUTH-02 e SEC-03.
-
-**Solução recomendada.** Criar um teste de regressão para cada item corrigido, escrito antes da correção, que falhe no código atual.
-
-**Critério de aceitação.**
-- [ ] Cada bug confirmado desta auditoria tem teste que falha antes e passa depois da correção.
-
----
-
-### DOC-01 — Documentação da API contradiz o comportamento
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P2 — Médio |
-| Tipo | Documentação desatualizada |
-| Módulo | Documentação / Integração |
-| Arquivos | `docs/arquitetura/DOCUMENTACAO_API.md` |
-
-**Descrição.** O documento diverge da API em vários pontos:
-
-| Linha | Documentação diz | Comportamento real |
-|---|---|---|
-| 82 | Access expira em 60 minutos | 15 minutos |
-| 77, 91, 99 | Refresh retornado e enviado no corpo | Refresh apenas em cookie HttpOnly; o corpo é ignorado |
-| 96 | Logout responde 205 | Responde 204 |
-| 126 | `DELETE /users/{id}/` remove usuário | Desativa a conta; barbeiros e serviços também são apenas desativados; barbearia exige `?confirmar=<nome>` e só marca inativa |
-| 141–142 | Após criar usuário barbeiro, criar perfil em `POST /barbers/` | `POST /users/` com `especialidade` cria o perfil na mesma transação; `especialidade` é obrigatória para barbeiro |
-| 399–402 | Recuperação de senha e relatórios não implementados | Existem `/auth/password/change/`, `/auth/password/reset/`, `/auth/password/reset/confirm/` e `revenue-report` |
-| — | — | Não documentados: `revenue-report`, `exclude_appointment_id`, `preco_historico`, `?ativo=all\|false` (inclusive a necessidade de `?ativo=all` para editar serviço inativo) |
-
-A branch `release/barberpro-academica-v1` tem parte dessas correções (commit `67ef6e3`), que não voltaram para `desenvolvimento`.
-
-**Evidência.** Comparação linha a linha com as sondagens e o código.
-
-**Impacto.** Quem integrar pela documentação implementa errado. Foi o que aconteceu com o frontend antigo, que tratava desativação como exclusão e recebia 404 ao editar serviço inativo.
-
-**Como reproduzir.** Seguir a documentação para fazer logout com refresh no corpo → a API ignora o corpo e responde 204 usando o cookie.
-
-**Solução recomendada.** Gerar a documentação a partir do código com OpenAPI (drf-spectacular) ou revisar o documento contra os testes; trazer as correções da `release`.
-
-**Critério de aceitação.**
-- [ ] Cada endpoint documentado corresponde ao comportamento testado.
-- [ ] Os endpoints e parâmetros listados acima estão documentados.
-
----
-
-### REPO-01 — Virtualenv versionado no git
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P2 — Médio |
-| Tipo | Dívida técnica |
-| Módulo | Repositório |
-| Arquivos | `venv312/` (4.875 arquivos versionados); `.gitignore` |
-
-**Descrição.** O ambiente virtual `venv312/` foi commitado (commit `2a8047f`) e representa **96% dos arquivos versionados**, incluindo binários `.so` compilados para Linux x86_64. A entrada `venv312/` foi adicionada ao `.gitignore` depois, sem efeito sobre arquivos já rastreados.
-
-**Evidência.** `git ls-files | wc -l` = 5076; `git ls-files | grep -c '^venv312/'` = 4875.
-
-**Impacto.** Repositório pesado; diffs e buscas poluídos; binários incompatíveis com outras plataformas; atualizações de dependências geram milhares de arquivos alterados.
-
-**Como reproduzir.** Executar os dois comandos acima.
-
-**Solução recomendada.** Em um commit dedicado: `git rm -r --cached venv312` (a pasta local permanece) e confirmar que o `.gitignore` cobre todos os ambientes virtuais.
-
-**Critério de aceitação.**
-- [ ] `git ls-files | grep -c '^venv312/'` retorna 0.
-- [ ] O ambiente local continua funcionando.
-
----
-
-### SA-01 — Sem painel de Super Admin
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P2 — Médio |
-| Tipo | Funcionalidade ausente |
-| Módulo | Super Admin |
-| Arquivos | `accounts/admin.py`, `barbershops/admin.py`, `services/admin.py`, `appointments/admin.py`; branch `feature/painel-super-admin` |
-
-**Descrição.**
-- **O que existe:** o Django Admin, com os models registrados (listas, filtros e buscas básicos); o superusuário enxerga todos os tenants pela API, segundo o código do `TenantScopedQuerysetMixin`; a exclusão de barbearia é restrita a `is_staff`.
-- **O que está incompleto ou ausente:** painel próprio, lista de barbearias com indicadores, suspensão efetiva (ver BUS-02), métricas da plataforma, gestão de planos, acesso de suporte auditado.
-- A branch `feature/painel-super-admin` aponta **para o mesmo commit** de `desenvolvimento`, sem nenhum trabalho.
-- **Isolamento verificado:** um admin de barbearia **não** acessa dados de outra (16/16 tentativas bloqueadas). O acesso global do superusuário foi verificado só por leitura de código.
-
-**Evidência.** `git rev-list --count desenvolvimento..feature/painel-super-admin` = 0 e vice-versa; leitura dos `admin.py` e do mixin.
-
-**Impacto.** Operar a plataforma (suporte, suspensão, acompanhamento de clientes) exige acesso direto ao Django Admin, sem regras de negócio e com risco de edição indevida de dados.
-
-**Como reproduzir.** Entrar como superusuário: não há tela da plataforma no frontend; a gestão é feita apenas em `/admin/` do Django.
-
-**Solução recomendada.**
-- Definir o escopo do Super Admin: barbearias, suspensão/reativação, métricas, usuários, auditoria.
-- Implementar endpoints restritos a staff, uma área no frontend e registro das ações de suporte.
-
-**Critério de aceitação.**
-- [ ] O operador da plataforma lista, suspende e reativa barbearias e consulta métricas sem usar o Django Admin.
-- [ ] As ações ficam registradas.
-
----
-
-### SAAS-01 — Sem notificações, LGPD e cobrança
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P2 — Médio |
-| Tipo | Funcionalidade ausente |
-| Módulo | Produto |
-| Arquivos | — (inexistentes no projeto) |
-
-**Descrição.** Faltam elementos de um SaaS comercial:
-- **notificações:** confirmação e lembrete de agendamento por e-mail ou WhatsApp;
-- **LGPD:** registro de consentimento, exportação dos dados do titular e exclusão/anonimização real (hoje "excluir" só desativa e mantém todos os dados pessoais);
-- **planos, assinatura e cobrança das barbearias.**
-
-**Evidência.** Ausência de models, endpoints, configurações e telas correspondentes.
-
-**Impacto.** Impede a comercialização. A falta de lembretes aumenta faltas, e o tratamento de dados pessoais fica exposto a riscos legais.
-
-**Como reproduzir.** Verificar que não há configuração de mensageria, tela de privacidade ou exportação de dados, nem cadastro de planos.
-
-**Solução recomendada.** Tratar como épicos separados, nesta ordem sugerida: notificações (depende de AUTH-01) → LGPD (anonimização e exportação) → planos e cobrança (depende de SA-01 e BUS-02).
-
-**Critério de aceitação.**
-- [ ] Cada épico tem requisitos escritos e critérios próprios.
-- [ ] Lembretes são enviados; o titular consegue exportar e solicitar exclusão; a barbearia tem um plano associado.
-
----
-
-## 10. Problemas P3 — Baixo (21)
-
-### SEC-06 — Chave secreta antiga no histórico do git
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P3 — Baixo |
-| Tipo | Risco potencial |
-| Módulo | Repositório |
-| Arquivos | `core/settings.py` no histórico (commits `22575b0` e `3f46df2`) |
-
-**Descrição.** Uma `SECRET_KEY` fixa existia num arquivo de configurações antigo e permanece no histórico do git. O arquivo atual lê a chave do ambiente.
-
-**Evidência.** `git grep` no histórico encontrou a atribuição; o valor não foi exibido nem copiado.
-
-**Impacto.** Nenhum, se essa chave nunca foi nem for reutilizada. Se o repositório for público e a chave tiver sido usada em algum ambiente, ela deve ser considerada comprometida.
-
-**Como reproduzir.** `git log --all --oneline -- core/settings.py` lista os commits; `git grep -c "SECRET_KEY = '" 22575b0 -- core/settings.py` conta a ocorrência sem exibir o valor.
-
-**Solução recomendada.** Confirmar que a chave não é usada em nenhum ambiente. Se o repositório for público, considerar a limpeza do histórico (`git filter-repo`), avaliando o impacto em clones existentes.
-
-**Critério de aceitação.**
-- [ ] Declaração de que a chave não é usada em nenhum ambiente, ou histórico limpo.
-
----
-
-### SEC-08 — Sem verificação de e-mail no cadastro
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P3 — Baixo |
-| Tipo | Funcionalidade ausente |
-| Módulo | Autenticação |
-| Arquivos | `accounts/views.py` (`RegistrationView`); `barbershops/views.py` (`perform_create`) |
-
-**Descrição.** Qualquer pessoa cria uma conta sem confirmar o e-mail e, em seguida, uma barbearia (um tenant por conta), limitado apenas pelo throttling de cadastro (10/h por IP).
-
-**Evidência.** Leitura de código; fluxo de cadastro e onboarding testado na interface.
-
-**Impacto.** Contas com e-mail digitado errado ficam inacessíveis na recuperação de senha; criação de tenants de spam.
-
-**Como reproduzir.** Cadastrar uma conta com e-mail inexistente: o sistema entra imediatamente e permite criar barbearia.
-
-**Solução recomendada.** Confirmação de e-mail (link com token) antes de liberar o onboarding (depende de AUTH-01).
-
-**Critério de aceitação.**
-- [ ] Contas não confirmadas não conseguem criar barbearia.
-- [ ] O link de confirmação expira.
-
----
-
-### BUS-10 — Horários livres devolvidos para datas passadas
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P3 — Baixo |
-| Tipo | Bug confirmado |
-| Módulo | Agendamentos |
-| Arquivos | `appointments/views.py` (`available_slots`) |
-
-**Descrição.** O endpoint só descarta horários já passados quando a data consultada é **hoje**. Para datas anteriores, devolve todos os horários do expediente, embora a criação seja recusada depois.
-
-**Evidência.** Sondagem 1: data de ontem → HTTP 200 com **18 horários**.
-
-**Impacto.** Inconsistência da API; um cliente de integração pode exibir horários impossíveis. O frontend atual não oferece datas passadas, então o usuário final não é afetado hoje.
-
-**Como reproduzir.** `GET /api/v1/appointments/available-slots/?barbeiro=<id>&servico=<id>&data=<ontem>` → lista preenchida.
-
-**Solução recomendada.** Para `data < hoje`, retornar lista vazia (ou 400 com mensagem).
-
-**Critério de aceitação.**
-- [ ] Consulta para data passada retorna lista vazia ou 400.
-- [ ] Teste do caso.
-
----
-
-### BUS-12 — Regras de cancelamento e edição do barbeiro inconsistentes
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P3 — Baixo |
-| Tipo | Bug confirmado (inconsistência) |
-| Módulo | Agendamentos |
-| Arquivos | `appointments/views.py` (`get_permissions`); `appointments/serializers.py` (`validate`) |
-
-**Descrição.**
-- O comentário em `get_permissions` afirma que barbeiros não podem cancelar horários de clientes, e `DELETE` é de fato proibido a eles (403). Porém `PATCH status=cancelado` é aceito.
-- Por leitura de código, o serializer só impede que o **cliente** troque o campo `cliente`; o barbeiro pode reatribuir o próprio agendamento a outro cliente do tenant.
-
-**Evidência.** Sondagem 1: barbeiro `PATCH status=cancelado` → HTTP 200. A troca de `cliente` pelo barbeiro foi constatada apenas na leitura de `AppointmentSerializer.validate`, sem execução.
-
-**Impacto.** A regra de negócio fica ambígua: o mesmo resultado é proibido por um caminho e permitido por outro.
-
-**Como reproduzir.** Como barbeiro, `DELETE /api/v1/appointments/<id próprio>/` → 403; `PATCH /api/v1/appointments/<id próprio>/` com `{"status": "cancelado"}` → 200.
-
-**Solução recomendada.** Definir se o barbeiro pode cancelar e trocar o cliente, aplicar a mesma regra nos dois caminhos e atualizar o comentário.
-
-**Critério de aceitação.**
-- [ ] `DELETE` e `PATCH` têm o mesmo resultado para o barbeiro.
-- [ ] A troca de cliente segue a regra definida.
-- [ ] Testes de ambos.
-
----
-
-### API-02 — `revenue_report` com `.extra()` e dia calculado em UTC
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P3 — Baixo |
-| Tipo | Dívida técnica |
-| Módulo | Relatórios |
-| Arquivos | `appointments/views.py` (`revenue_report`, trecho `daily`) |
-
-**Descrição.** O agrupamento diário usa `qs.extra(select={'date': 'DATE(data_hora)'})`. `.extra()` é desaconselhado pelo Django. Com `USE_TZ=True` a conexão trabalha em UTC, então `DATE()` agrupa pelo dia em UTC: atendimentos realizados depois das 21:00 (horário de Brasília) entram no dia seguinte.
-
-**Evidência.** Leitura de código. O efeito do fuso **não foi reproduzido** porque a API não permite criar atendimentos no passado e os dados de teste foram gerados em horário comercial.
-
-**Impacto.** Faturamento diário deslocado para atendimentos noturnos; dependência de SQL específico de banco.
-
-**Como reproduzir (não executado).** Pelo Django Admin, registrar um atendimento realizado às 22:00 de um dia X e consultar `revenue-report`: ele aparece em X+1.
-
-**Solução recomendada.** `TruncDate('data_hora', tzinfo=<fuso local>)` com `values().annotate()`, sem `.extra()`.
-
-**Critério de aceitação.**
-- [ ] Atendimento às 22:00 aparece no dia correto.
-- [ ] Teste com horário noturno.
-- [ ] Nenhum uso de `.extra()`.
-
----
-
-### DATA-02 — Preços históricos antigos estimados
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P3 — Baixo |
-| Tipo | Dívida técnica (limitação documentada) |
-| Módulo | Banco |
-| Arquivos | `appointments/migrations/0008_populate_preco_historico.py` |
-
-**Descrição.** Agendamentos anteriores à criação de `preco_historico` (migração 0007) receberam o preço vigente do serviço no momento da migração, não o preço praticado à época. O próprio arquivo de migração documenta isso como estimativa.
-
-**Evidência.** Comentário e código da migração 0008.
-
-**Impacto.** Relatórios financeiros de períodos anteriores à migração podem não refletir os valores cobrados.
-
-**Como reproduzir.** Ler o cabeçalho do arquivo de migração.
-
-**Solução recomendada.** Registrar a limitação na documentação e, se necessário, sinalizar nos relatórios os períodos estimados.
-
-**Critério de aceitação.**
-- [ ] Documentação de relatórios menciona a estimativa e o período afetado.
-
----
-
-### DATA-03 — Divergência de versão de collation no Postgres
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P3 — Baixo |
-| Tipo | Risco potencial (operacional) |
-| Módulo | Banco |
-| Arquivos | — (configuração do servidor Postgres no container `barbershop_db`) |
-
-**Descrição.** O Postgres avisa, a cada conexão, que o banco foi criado com a versão de collation 2.43 e o sistema operacional fornece 2.44.
-
-**Evidência.** Aviso exibido em `manage.py test`, `showmigrations` e consultas (`integridade-banco-real.txt`).
-
-**Impacto.** Índices sobre texto (como o de unicidade de `email`) podem ficar com ordenação inconsistente, em casos raros causando buscas incorretas ou violações de unicidade não detectadas.
-
-**Como reproduzir.** Executar qualquer comando Django contra o Postgres e observar o aviso.
-
-**Solução recomendada.** Em janela de manutenção, com backup: `REINDEX DATABASE barbershop_db;` e `ALTER DATABASE barbershop_db REFRESH COLLATION VERSION;`.
-
-**Critério de aceitação.**
-- [ ] O aviso deixa de aparecer.
-
----
-
-### FE-03 — Falha de recarga sem feedback
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P3 — Baixo |
-| Tipo | Bug confirmado (por leitura de código) |
-| Módulo | Frontend |
-| Arquivos | `frontend/src/hooks/useAsyncData.ts`; telas com botão "Atualizar" (`AdminAppointmentsPage.tsx`, `BarberAgendaPage.tsx`) e demais que usam `error && !data` |
-
-**Descrição.** As telas exibem o estado de erro apenas quando não há dados (`error && !data`). Se uma recarga falhar com dados já na tela (ex.: botão "Atualizar" com a API fora do ar), a barra de atualização some e nenhuma mensagem aparece; o usuário vê dados antigos sem saber.
-
-**Evidência.** Leitura de código. A queda da API foi testada apenas no carregamento inicial da sessão, onde há tratamento (tela "Sem conexão").
-
-**Impacto.** O usuário pode tomar decisões com informações desatualizadas.
-
-**Como reproduzir.** Abrir "Agendamentos", desligar a API e clicar em "Atualizar": nada indica a falha.
-
-**Solução recomendada.** Exibir aviso ou toast quando houver `error` com dados presentes, por exemplo "Não foi possível atualizar; mostrando dados de HH:MM".
-
-**Critério de aceitação.**
-- [ ] Falha de recarga com dados na tela gera mensagem visível.
-
----
-
-### FE-04 — Contador "a confirmar" inclui horários vencidos
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P3 — Baixo |
-| Tipo | Bug confirmado (inconsistência, por leitura de código) |
-| Módulo | Frontend |
-| Arquivos | `frontend/src/components/AppLayout.tsx` (`PendingIndicator`) |
-
-**Descrição.** O indicador do topo conta `GET /appointments/?status=agendado` sem filtro de data, então inclui horários passados nunca confirmados.
-
-**Evidência.** Leitura de código. No banco de teste não havia vencidos "agendado", então não foi observado na tela.
-
-**Impacto.** O número pode ser maior do que as confirmações realmente pendentes.
-
-**Como reproduzir.** Ter um agendamento passado com status "agendado": ele é contado em "a confirmar".
-
-**Solução recomendada.** Contar apenas horários futuros e mostrar os vencidos separadamente (depende de BUS-08 e do filtro de data em API-01).
-
-**Critério de aceitação.**
-- [ ] O contador considera apenas horários futuros.
-
----
-
-### FE-05 — Fuso horário fixo no frontend
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P3 — Baixo |
-| Tipo | Dívida técnica |
-| Módulo | Integração |
-| Arquivos | `frontend/src/utils/format.ts` (`SHOP_TZ = 'America/Sao_Paulo'`); `config/settings.py` (`TIME_ZONE`) |
-
-**Descrição.** O frontend exibe datas no fuso `America/Sao_Paulo`, fixo no código, enquanto o backend lê `TIME_ZONE` das configurações.
-
-**Evidência.** Leitura de código.
-
-**Impacto.** Se o backend operar em outro fuso, a interface mostra horários diferentes dos validados pelo servidor.
-
-**Como reproduzir.** Alterar `TIME_ZONE` no backend: o frontend continua exibindo em horário de Brasília.
-
-**Solução recomendada.** Expor o fuso da barbearia na API (por exemplo em `/barbershops/`) e usá-lo no frontend.
-
-**Critério de aceitação.**
-- [ ] O fuso exibido vem da API.
-
----
-
-### FE-06 — Sem página 404
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P3 — Baixo |
-| Tipo | Funcionalidade ausente |
-| Módulo | Frontend |
-| Arquivos | `frontend/src/App.tsx` (rota `*`) |
-
-**Descrição.** Qualquer rota inexistente redireciona silenciosamente para o início.
-
-**Evidência.** `<Route path="*" element={<Navigate to="/" replace />} />`.
-
-**Impacto.** Links quebrados não são percebidos; o usuário não entende por que caiu no início.
-
-**Como reproduzir.** Acessar `/qualquer-coisa`: a página inicial é exibida sem aviso.
-
-**Solução recomendada.** Página "não encontrada" com link para o início.
-
-**Critério de aceitação.**
-- [ ] Rota inexistente exibe a página 404.
-
----
-
-### FE-07 — Código morto no frontend
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P3 — Baixo |
-| Tipo | Dívida técnica |
-| Módulo | Frontend |
-| Arquivos | `frontend/src/api/endpoints.ts`; `frontend/src/utils/format.ts`; `frontend/src/components/Icons.tsx` |
-
-**Descrição.** Exportações sem nenhum uso:
-- `getTotalServices`, `getTotalBarbers`, `isPast`, `formatDateTime`;
-- 14 ícones: `StarIcon`, `BadgeIcon`, `BuildingIcon`, `RazorIcon`, `ChairIcon`, `BellIcon`, `LockIcon`, `KeyIcon`, `TrendingUpIcon`, `ReceiptIcon`, `AnalyticsIcon`, `FilterIcon`, `TrashIcon`, `MinusIcon`.
-
-**Evidência.** Busca de referências em `src` (`verificacoes-backend-e-build.txt`).
-
-**Impacto.** Ruído de manutenção.
-
-**Como reproduzir.** Buscar cada símbolo em `frontend/src`: só aparece na própria declaração.
-
-**Solução recomendada.** Remover as exportações não utilizadas.
-
-**Critério de aceitação.**
-- [ ] Nenhuma exportação sem uso, verificável com ferramenta como `ts-prune` ou `knip`.
-
----
-
-### FE-08 — Fonte carregada do Google Fonts
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P3 — Baixo |
-| Tipo | Melhoria opcional |
-| Módulo | Frontend |
-| Arquivos | `frontend/index.html` |
-
-**Descrição.** A fonte Archivo é baixada de `fonts.googleapis.com` a cada visita.
-
-**Evidência.** `<link href="https://fonts.googleapis.com/css2?family=Archivo…">` no `index.html`.
-
-**Impacto.** Dependência de serviço externo (fonte alternativa se o serviço falhar) e envio do IP do usuário a terceiros, um ponto de atenção para a LGPD.
-
-**Como reproduzir.** Abrir a aba Rede do navegador: há requisições a `fonts.googleapis.com` e `fonts.gstatic.com`.
-
-**Solução recomendada.** Hospedar a fonte junto com o app (ex.: pacote `@fontsource-variable/archivo`).
-
-**Critério de aceitação.**
-- [ ] Nenhuma requisição a domínios do Google ao carregar o app.
-
----
-
-### FE-09 — Sem tela de logo; barbeiro não reagenda pela interface
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P3 — Baixo |
-| Tipo | Funcionalidade incompleta |
-| Módulo | Frontend |
-| Arquivos | `frontend/src/pages/AdminBarbershopPage.tsx`; `frontend/src/pages/BarberAgendaPage.tsx` |
-
-**Descrição.** A API aceita upload de logo da barbearia (`multipart/form-data`), mas não há campo na tela. O barbeiro pode remarcar horários pela API, mas a agenda dele só oferece ações de status.
-
-**Evidência.** Leitura das telas e do serializer.
-
-**Impacto.** Funcionalidades disponíveis na API ficam inacessíveis ao usuário.
-
-**Como reproduzir.** Abrir "Dados da barbearia": não há campo de logo. Abrir "Minha agenda" como barbeiro: não há "Reagendar".
-
-**Solução recomendada.** Campo de upload com pré-visualização e limite de tamanho, que depende da solução de mídia em OPS-01. Avaliar com o negócio se o barbeiro deve reagendar.
-
-**Critério de aceitação.**
-- [ ] Logo enviado e exibido na interface.
-- [ ] Reagendamento pelo barbeiro implementado ou explicitamente fora do escopo.
-
----
-
-### FE-11 — Duas fontes de cálculo de faturamento
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P3 — Baixo |
-| Tipo | Risco potencial |
-| Módulo | Integração |
-| Arquivos | `frontend/src/pages/AdminDashboardPage.tsx`; `appointments/views.py` (`revenue_report`) |
-
-**Descrição.** O painel calcula faturamento, ticket médio e rankings no navegador, a partir da lista completa de agendamentos e no fuso da barbearia. O backend tem outro cálculo em `revenue-report`, com o dia agrupado em UTC (API-02).
-
-**Evidência.** Leitura de código.
-
-**Impacto.** Os números do painel e do relatório da API podem divergir para atendimentos noturnos, minando a confiança nos indicadores.
-
-**Como reproduzir (não executado).** Com atendimentos realizados após as 21:00, comparar o faturamento diário do painel com `daily` do `revenue-report`.
-
-**Solução recomendada.** Uma única fonte: endpoint de métricas no backend (corrigido para o fuso local), consumido pelo painel.
-
-**Critério de aceitação.**
-- [ ] Painel e API retornam os mesmos números para o mesmo período.
-
----
-
-### DOC-02 — README: testes não usam SQLite por padrão
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P3 — Baixo |
-| Tipo | Documentação incorreta |
-| Módulo | Documentação |
-| Arquivos | `README.md` (seção "Testes") |
-
-**Descrição.** O README afirma que `python manage.py test` usa SQLite em memória. Na prática, sem `--settings`, o runner usa `config.settings` (Postgres), criando e destruindo um banco de teste próprio. SQLite exige `--settings=config.test_settings`.
-
-**Evidência.** A execução de `python manage.py test` nesta auditoria emitiu avisos do Postgres ao destruir o banco de teste (`verificacoes-backend-e-build.txt`); `config/test_settings.py` é o único arquivo que configura SQLite.
-
-**Impacto.** Quem segue o README sem o Postgres rodando vê os testes falharem por conexão; quem tem o Postgres rodando testa nele sem saber.
-
-**Como reproduzir.** Com o container do banco parado, `python manage.py test` falha ao conectar.
-
-**Solução recomendada.** Corrigir o README com os dois comandos e quando usar cada um.
-
-**Critério de aceitação.**
-- [ ] README descreve corretamente o banco usado por cada comando.
-
----
-
-### DOC-03 — Comentários obsoletos sobre o app `core`
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P3 — Baixo |
-| Tipo | Dívida técnica |
-| Módulo | Backend |
-| Arquivos | `accounts/models.py` (linha 7: `core.mixins`); `config/settings.py` (linha 54: `"core" vem primeiro`) |
-
-**Descrição.** Comentários referenciam o antigo app `core`, substituído por `config`.
-
-**Evidência.** Leitura dos arquivos.
-
-**Impacto.** Confunde quem lê o código pela primeira vez.
-
-**Como reproduzir.** `grep -rn "core" accounts/models.py config/settings.py`.
-
-**Solução recomendada.** Atualizar os comentários para `config.mixins` e a lista atual de apps.
-
-**Critério de aceitação.**
-- [ ] Nenhuma referência ao app `core` em comentários.
-
----
-
-### REPO-02 — Arquivos soltos e rascunhos no repositório
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P3 — Baixo |
-| Tipo | Dívida técnica |
-| Módulo | Repositório |
-| Arquivos | `gerar_zip.py`; `requisitos_barbearia.docx`; `docs/auditorias/historico/` (21 arquivos); locais não versionados: `db.sqlite3` (217 KB), `test.db` (vazio), `outputs/` e `work/` (vazios), `frontend/.pytest_cache` |
-
-**Descrição.** O repositório e a pasta de trabalho acumulam:
-- **versionados:** utilitários e rascunhos — um script de geração de zip; 21 arquivos de respostas e verificações anteriores em `docs/auditorias/historico/`, incluindo `debug_test.py` e um segundo `requirements.txt`;
-- **na pasta local:** bancos SQLite soltos e pastas vazias.
-
-**Evidência.** Listagens da raiz e de `docs/auditorias/historico/` (`verificacoes-backend-e-build.txt`).
-
-**Impacto.** Dificulta a navegação e a avaliação do projeto; o segundo `requirements.txt` pode ser confundido com o oficial.
-
-**Como reproduzir.** `ls` na raiz e em `docs/auditorias/historico/`.
-
-**Solução recomendada.** Mover os rascunhos para fora do repositório ou consolidá-los num único relatório histórico; remover os arquivos locais desnecessários.
-
-**Critério de aceitação.**
-- [ ] A raiz contém apenas arquivos do projeto.
-- [ ] `docs/` tem uma estrutura clara, sem rascunhos.
-
----
-
-### REPO-03 — Branches dessincronizadas
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P3 — Baixo |
-| Tipo | Dívida técnica |
-| Módulo | Repositório |
-| Arquivos | Branches `master`, `feature/painel-super-admin`, `release/barberpro-academica-v1` |
-
-**Descrição.**
-- `master` está 30 commits atrás de `desenvolvimento`.
-- `feature/painel-super-admin` está no mesmo commit de `desenvolvimento`.
-- `release/barberpro-academica-v1` tem 1 commit próprio (`67ef6e3`, documentação e comentários), que não voltou para `desenvolvimento`.
-
-**Evidência.** `git rev-list --count` entre as branches.
-
-**Impacto.** Não fica claro qual branch é a referência; correções de documentação ficam presas na `release`.
-
-**Como reproduzir.** `git rev-list --count desenvolvimento..master` (0) e `master..desenvolvimento` (30); `desenvolvimento..release/barberpro-academica-v1` (1).
-
-**Solução recomendada.** Definir o fluxo de branches (ex.: `master` = produção), sincronizar a documentação da `release` e remover a branch vazia ou iniciar o trabalho nela.
-
-**Critério de aceitação.**
-- [ ] Fluxo documentado no README.
-- [ ] Nenhuma correção existe só na `release`.
-
----
-
-### TEST-02 — Cobertura de código não medida
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P3 — Baixo |
-| Tipo | Lacuna de testes |
-| Módulo | Testes |
-| Arquivos | `requirements.txt` (sem `coverage`) |
-
-**Descrição.** Não há medição de cobertura; não é possível dizer quais linhas e ramificações os 239 testes exercitam.
-
-**Evidência.** `coverage` não está instalado nem configurado.
-
-**Impacto.** Lacunas como as do TEST-01 passam despercebidas.
-
-**Como reproduzir.** `coverage run manage.py test` não está disponível no ambiente.
-
-**Solução recomendada.** Adicionar `coverage` como dependência de desenvolvimento e publicar o relatório no CI, com meta mínima.
-
-**Critério de aceitação.**
-- [ ] Relatório de cobertura gerado no CI, com meta definida.
-
----
-
-### FE-12 — Banco real quase vazio para a demonstração
-
-| Campo | Valor |
-|---|---|
-| Gravidade | P3 — Baixo |
-| Tipo | Melhoria opcional |
-| Módulo | Apresentação |
-| Arquivos | — (dados do Postgres local) |
-
-**Descrição.** O banco real tem 2 barbearias, 6 usuários, **1 serviço e 1 agendamento**. Não é bug, mas o painel, os gráficos e o quadro do dia vão aparecer praticamente vazios numa apresentação.
-
-**Evidência.** `integridade-banco-real.txt`.
-
-**Impacto.** A apresentação não demonstra os indicadores, gráficos e agenda.
-
-**Como reproduzir.** Entrar como admin da barbearia existente e abrir o painel.
-
-**Solução recomendada.** Comando de gerenciamento `seed_demo` que cria, num tenant separado, registros **reais** (persistidos e manipuláveis pela aplicação, não números fixos na interface): serviços, equipe, clientes e histórico de agendamentos.
-
-**Critério de aceitação.**
-- [ ] O comando cria o tenant de demonstração de forma idempotente.
-- [ ] O painel exibe dados significativos sem alterar os tenants existentes.
-
----
-
-## 11. Itens não verificados (5)
-
-| # | Item | Por que não foi verificado | Como verificar |
-|---|---|---|---|
-| NV-1 | Entrega real de e-mail (recuperação de senha) | Não há servidor SMTP configurado; enviar e-mails a terceiros estaria fora do escopo | Configurar o backend de console ou um SMTP de teste (ex.: Mailpit) e solicitar a recuperação |
-| NV-2 | Concorrência de agendamentos no Postgres | O código usa `select_for_update` nos barbeiros e há testes específicos (`config/test_postgres_settings.py`), mas não foi executada carga concorrente | `python manage.py test --settings=config.test_postgres_settings` e um teste de carga com requisições simultâneas para o mesmo horário |
-| NV-3 | Leitor de tela (NVDA, VoiceOver) | Validados apenas teclado, foco visível, rótulos ARIA e contraste calculado | Percorrer login, agendamento e painel com NVDA (Windows) e VoiceOver (macOS/iOS) |
-| NV-4 | Tablet (~820 px) e navegadores Chrome e Safari | Capturas feitas apenas em 1440 px e 390 px, no Firefox | Repetir os fluxos de interface nesses tamanhos e navegadores |
-| NV-5 | Rate limiting real | O ambiente isolado desliga o throttling para permitir as sondagens; só a configuração foi revisada (ver SEC-05) | Com as configurações reais, enviar 6 tentativas de login em 1 minuto e esperar HTTP 429 na 6ª |
-
----
-
-## 12. Resultados dos testes executados
-
-Todos os registros brutos estão em [`docs/auditoria/evidencias/`](auditoria/evidencias/README.md).
-
-### 12.1 Backend
+### 7.1 Qualidade de build
 
 | Verificação | Resultado |
 |---|---|
-| `python manage.py test` (2 execuções) | **239 testes, OK** (126 s); aviso `InsecureKeyLengthWarning` (SEC-01). Rodou no Postgres, criando um banco de teste próprio (DOC-02) |
-| Distribuição dos testes | accounts 82 · appointments 98 · barbershops 40 · services 19 |
-| `makemigrations --check --dry-run` | `No changes detected` |
-| `showmigrations` no Postgres real (leitura) | Todas aplicadas |
-| `check --deploy` (DEBUG=False, chave temporária) | 1 aviso: `security.W021` (HSTS preload, opcional) |
-| Consultas SQL por endpoint | 2 a 4 consultas; sem N+1 |
+| `tsc` (app e `vite.config`) | 0 erros |
+| ESLint `--max-warnings=0` | 0 erros, 0 avisos |
+| Build de produção | OK. JS inicial 433,7 kB (138,1 kB gzip); CSS 53,6 kB (10,8 kB gzip); fontes locais de 18,7 kB e 26,8 kB; telas carregadas sob demanda |
+| Testes automatizados | Inexistentes (FE-02) |
 
-### 12.2 Sondagens da API isolada
+### 7.2 Funcionamento e integração
 
-| Sondagem | Verificações | OK | Falhas | Problemas associados |
+| Verificação | Resultado |
+|---|---|
+| Erros de console, erros de página e respostas ≥ 400 | **0** em 105 cargas e nos fluxos |
+| Rotas e redirecionamentos por perfil | Corretos: cada perfil vai à própria página inicial; rota de outro perfil devolve à inicial; rota inexistente devolve ao início ou ao login, sem página 404 (FE-06) |
+| Fluxo do cliente (celular 390 px) | Agendar (serviço → barbeiro → dia → horário → revisar → confirmar) → "Está marcado". Cancelar → diálogo → toast. **Reservou um domingo** (BUS-06) |
+| Fluxo do barbeiro (tablet 820 px) | "A confirmar" → Confirmar → toast; "Concluir às HH:MM" desabilitado antes do término |
+| Fluxo do admin (desktop) | Painel → Confirmar em "A seguir" → toast; horário inválido barrado no formulário; falha de recarga sem aviso (FE-03) |
+| API fora do ar ao abrir | Tela "Sem conexão com o servidor", sessão preservada |
+| API travada | Carregamento sem limite de tempo (FE-15) |
+| Barbearia desativada | O admin só descobre ao agir; a lateral diz "Aberta até 19:00" (FE-14) |
+| Novo agendamento após reservar | Continua na tela "Horário reservado" (FE-13, regressão) |
+| Volume de requisições (build de produção) | Painel do admin, Agendamentos e Clientes: 25 requisições cada, 22 delas para páginas de `/appointments/` com 419 agendamentos. Cresce linearmente com o histórico (API-01). Em modo dev o `StrictMode` dobra o número |
+| Contratos | Campo `barbeiro_especialidade` inexistente na API; filtro `tipo_perfil` ignorado; `cliente` obrigatório no POST do próprio cliente (FE-17) |
+| Tratamento de erros HTTP | 400 com mensagem por campo; 401 renova a sessão uma vez e só desloga se o servidor recusar; 403 e 404 com mensagem; 429 e ≥ 500 com mensagens próprias (`utils/format.ts:222-243`) |
+
+### 7.3 Redesign e identidade visual
+
+- A identidade aprovada é aplicada de forma consistente em todas as telas auditadas:
+  - **paleta "Placa esmaltada":** marinho, vermelho só para "agora", pendências, destrutivo e CTA, marfim e branco;
+  - **tipografia:** League Gothic nos títulos e Public Sans na interface, as duas **servidas pelo próprio app**, sem Google Fonts;
+  - **marca:** logo "Navalha aberta" e o poste como indicador de "aberta/agora";
+  - **componentes:** os mesmos em admin, barbeiro, cliente e páginas públicas.
+- Estados de carregamento (skeleton e barra de recarga), vazio (ilustrações), erro (com "Tentar novamente") e sucesso (toast, carimbo de reserva) existem em todas as telas de lista.
+- Desvios pequenos (MAINT-01):
+  - 45 estilos inline (`style={{…}}`);
+  - cores literais em `ui.module.css` (ícones de toast) e `layout.module.css`, fora de `design-tokens.css`;
+  - `ui.module.css` com 1.096 linhas;
+  - 17 ícones e 3 funções sem uso (FE-07).
+- Textos da interface que prometem o que o sistema não faz (FE-18).
+
+---
+
+## 8. Auditoria do banco de dados
+
+| Tema | Resultado |
+|---|---|
+| Migrações (banco que o app usa) | Todas aplicadas (22 dos apps do projeto) |
+| Migrações (banco do `docker-compose`) | **0007 e 0008 de `appointments` pendentes**: a coluna `preco_historico` não existe ali (DB-01) |
+| Integridade do banco real (somente leitura) | Sem inconsistências em 26 contagens. Volume mínimo: 2 barbearias, 8 usuários, 2 serviços, **2 agendamentos** (FE-12); 1 conta sem barbearia criada pelo cadastro público (PROD-01) |
+| Relacionamentos | FKs com `PROTECT` (histórico preservado); `deleted_by` com `SET_NULL`; `Barber.user` `OneToOne` |
+| Constraints | Só PK, FK, `unique(email)` e `OneToOne`. **Nenhuma** constraint para: duração > 0, preço ≥ 0, fechamento > abertura, status válido, e-mail sem diferenciar maiúsculas, não sobreposição por barbeiro (DB-02) |
+| Índices | Adequados ao uso: `(barbeiro, data_hora)`, `(barbershop, data_hora)`, `(barbershop, ativo)` em barbeiros e serviços |
+| Concorrência | ✅ Comprovada em PostgreSQL 16: 20 pedidos simultâneos → 1 criado e 19 recusados |
+| Migração reversa | ❌ Desfazer a 0008 zera os 419 preços históricos; refazer grava o preço atual e o faturamento realizado passa de R$ 15.215 para R$ 16.565 (DATA-01) |
+| Fuso nos relatórios | ❌ Atendimento às 22:30 de 12/11 aparece no dia 13/11 do relatório (API-02) |
+| Collation | ⚠️ Banco do app criado com glibc 2.43; o sistema tem 2.44 (DATA-03) |
+| Consultas ineficientes | Nenhuma no backend; o gargalo é o frontend percorrer todas as páginas (API-01) |
+| Crescimento | Tabela de tokens sem rotina de limpeza (`flushexpiredtokens`, OPS-01); hoje 13 tokens, nenhum expirado |
+
+---
+
+## 9. Integração ponta a ponta
+
+Caminho de cada fluxo: Frontend → API → Backend → Banco → Resposta → Atualização da interface.
+
+| Fluxo | Resultado | Camada da falha |
+|---|---|---|
+| Login e logout | ✅ Cookie definido, `/users/me/`, redirecionamento por perfil; logout revoga o refresh | — |
+| Sessão expirada / renovação | ✅ 401 → refresh → repetição da chamada; recusa do servidor → toast e login | — |
+| Cadastro público | ⚠️ Cria conta sem barbearia → onboarding de dono | Produto (PROD-01) |
+| Onboarding (criar barbearia) | ✅ No frontend, com validação de horário; ⚠️ a API aceita horário inválido | Backend (BUS-05) |
+| Recuperação de senha | ⚠️ Tela e API respondem; nenhum e-mail é enviado | Backend/configuração (AUTH-01) |
+| Gestão de barbeiros | ✅ Criar, editar, desativar e reativar; ⚠️ a agenda futura do barbeiro desativado continua ativa | Backend (BUS-13) |
+| Gestão de clientes | ✅; ⚠️ a tela baixa todos os agendamentos | Frontend/API (API-01) |
+| Gestão de serviços | ✅; ⚠️ "1.000" vira R$ 1,00; validações fracas | Frontend (FE-16), Backend (BUS-18) |
+| Dados da barbearia | ✅ Edição; ❌ sem logo | Frontend (FE-09) |
+| Criar agendamento (cliente) | ✅ Conflito impedido e horários reais; ❌ domingos; ⚠️ "Agendar" de novo não reinicia a tela | Backend (BUS-06), Frontend (FE-13) |
+| Criar agendamento (admin) | ❌ Sem tela (a API aceita: 201) | Frontend (BUS-14) |
+| Reagendar (cliente) | ✅ Muda horário, barbeiro e serviço; ❌ mantém "confirmado" | Backend (BUS-03) |
+| Cancelar (cliente) | ✅ Diálogo + toast; ⚠️ a API aceita cancelar horário que já passou | Backend (BUS-16) |
+| Confirmar (admin/barbeiro) | ✅ Em "A seguir", na lista e na agenda | — |
+| Concluir ("realizado") | ✅ Só após o término previsto (frontend e backend) | — |
+| Agenda do barbeiro | ✅ Por dia e "a confirmar"; ⚠️ a contagem inclui vencidos | Frontend/produto (FE-04, BUS-08) |
+| Caixa (painel) | ✅ Números reais pelo preço histórico; ⚠️ diverge do relatório da API em R$ 570 | Integração (FE-11) |
+| Relatórios (`revenue-report`) | ✅ Protegido; ⚠️ dia em UTC; não é consumido pela interface | Backend (API-02) |
+| Barbearia desativada | ⚠️ A API bloqueia a agenda; a interface não sinaliza; o admin reativa | Backend + Frontend (BUS-02, FE-14) |
+| Experiência pública de agendamento | ❌ Não existe página pública por barbearia | Produto (PROD-01) |
+
+---
+
+## 10. Testes dos três perfis
+
+Permissões testadas **pela API**, não só pela interface. Os códigos vêm de `api/sondagem-api.json` e `api/sondagem-api-complementar.json`.
+
+### 10.1 Proprietário (admin)
+
+| Item | Resultado |
+|---|---|
+| Telas acessíveis | Painel, Agendamentos, Serviços, Barbeiros, Clientes, Dados da barbearia, Minha conta. Rotas de cliente e barbeiro devolvem ao painel |
+| Pode | Ver faturamento (200); gerenciar serviços, barbeiros e clientes; confirmar, concluir e cancelar qualquer horário do tenant; editar a barbearia; agendar para cliente pela API (201) |
+| Bloqueado corretamente | Rebaixar ou desativar a própria conta (400 e 400); acessar outra barbearia (404 em 11 operações); usar barbeiro, serviço ou cliente de outra barbearia (400) |
+| Problemas | Reativa a barbearia desativada pela plataforma (BUS-02f: 200); aceita fechamento antes da abertura (BUS-05); não agenda pela interface (BUS-14); não envia logo (FE-09); não sabe que a barbearia está desativada (FE-14); não cria um segundo admin (BUS-19) |
+
+### 10.2 Barbeiro
+
+| Item | Resultado |
+|---|---|
+| Telas acessíveis | Minha agenda (por dia e "a confirmar"), Minha conta |
+| Pode | Ver só a própria agenda (140 itens, todos dele); confirmar; concluir após o término; agendar para si mesmo |
+| Bloqueado corretamente | Faturamento (403, inclusive filtrando o próprio id); usuários (403); serviços (403); horário de outro barbeiro (404); agendar em nome de outro barbeiro (400); DELETE (cancelamento) de horário (403) |
+| Problemas | Cancela por PATCH (200) embora o DELETE seja proibido, e **troca o cliente** de um horário (200) (BUS-12); cria horário já "cancelado" (BUS-15); recebe o e-mail de login dos colegas (SEC-03) |
+
+### 10.3 Cliente
+
+| Item | Resultado |
+|---|---|
+| Telas acessíveis | Início, Agendar horário, Meus agendamentos, Serviços e preços, Equipe, Minha conta |
+| Pode | Agendar, reagendar e cancelar os próprios horários; ver serviços e equipe |
+| Bloqueado corretamente | Faturamento (403); usuários (403); serviços, barbeiros e barbearia (403); confirmar o próprio horário por PATCH (403); horário de outro cliente (404); agendar em nome de outro cliente (gravado para ele mesmo); autopromoção (ignorada) |
+| Problemas | **Cria horário já "confirmado"** (BUS-15: 201); reagendar mantém "confirmado" (BUS-03); cancela horário que já passou (BUS-16); marca dois horários simultâneos (BUS-17); vê o e-mail de login dos barbeiros (SEC-03); recebe 403 em vez de 404 ao consultar outro cliente por id (SEC-10); não consegue se cadastrar sozinho numa barbearia (PROD-01) |
+
+### 10.4 Plataforma (superusuário)
+
+Lê todos os tenants (419 agendamentos) e não cria recursos sem contexto de barbearia (403). Desativa uma barbearia por DELETE com confirmação, mas a desativação é revertida pelo admin do tenant (BUS-02). Não há painel próprio: no frontend, o superusuário cai no onboarding de dono (SA-01).
+
+---
+
+## 11. Responsividade e acessibilidade
+
+### 11.1 Responsividade
+
+| Largura | Rotas | Rolagem horizontal | Erros | Observações |
 |---|---|---|---|---|
-| Isolamento entre barbearias | 16 | 16 | 0 | — |
-| Perfis e permissões | 13 | 10 | 3 | SEC-02 (2), SEC-03 |
-| Regras de negócio e recursos da API | 13 | 1 | 12 | BUS-01, BUS-02, BUS-03, BUS-04, BUS-05, BUS-07, BUS-10, AUTH-02, API-01 (4); BUS-12 registrado como inconsistência |
-| **Total da sondagem 1** | **42** | **27** | **15** | |
-| Sessão e administração (sondagem 2) | 12 observações | 10 conforme esperado | 2 | BUS-01 (autodesativação e login bloqueado) |
-| Agenda (sondagem 3) | 1 | — | 1 | BUS-06, BUS-11 |
-| Forja de JWT | 3 | — | — | SEC-01 (impacto detalhado) |
+| Desktop 1440 px | 21 | 0 | 0 | — |
+| Notebook 1280 × 720 | 21 | 0 | 0 | — |
+| Tablet 820 px | 21 | 0 | 0 | Fluxo do barbeiro concluído |
+| Celular 390 px | 21 | 0 | 0 | Fluxo do cliente concluído; menu inferior por perfil; diálogo de cancelamento |
+| Celular 360 px | 21 | 0 | 0 | — |
 
-### 12.3 Frontend
+Com 390 px, as funções continuam utilizáveis: barra de navegação inferior, quadro do dia e "A seguir" reordenados para o celular, ações de status nas listas e agendamento em quatro passos.
+
+Detalhes a corrigir:
+
+- filtro de status cortado sem sinal de rolagem e placeholder da busca truncado (FE-20);
+- links de texto nas telas públicas com 16 a 22 px de altura (FE-19).
+
+### 11.2 Acessibilidade
 
 | Verificação | Resultado |
 |---|---|
-| `tsc -b` | Sem erros |
-| ESLint (`--max-warnings=0`) | 0 erros, 0 avisos |
-| `npm run build` | OK. JS inicial 424,02 kB (134,96 kB gzip); CSS 44,91 kB |
-| Testes automatizados de frontend | Inexistentes (FE-02) |
-| Fluxos no navegador — admin | Login, detalhes no quadro, Esc fecha modal, confirmar, cancelar com diálogo, validação, criar serviço com "35,50", reativar serviço inativo — sem erros de console ou API |
-| Fluxos no navegador — cliente | Agendar (serviço → barbeiro → dia → horário → confirmar), reagendar, cancelar, editar perfil — sem erros |
-| Fluxos no navegador — barbeiro | Visão "a confirmar", confirmar, marcar realizado — sem erros |
-| Teclado | Tab inicia em "Pular para o conteúdo"; menu do usuário com Enter/setas/Esc devolvendo o foco; menu lateral no celular com foco e Esc |
-| Queda real da API | Tela "Sem conexão com o servidor", sessão preservada e restaurada sem novo login |
-| Responsividade | 1440 px e 390 px verificados; tablet e outros navegadores não verificados (NV-4) |
-
-### 12.4 Banco real (somente leitura)
-
-Nenhuma inconsistência encontrada nas 17 contagens de integridade: tenants coerentes, perfis sincronizados, preços históricos preenchidos, nenhum agendamento órfão ou vencido sem desfecho. Volume mínimo de dados (FE-12) e aviso de collation (DATA-03).
-
-### 12.5 Repositório
-
-5.076 arquivos versionados, 4.875 do `venv312/` (REPO-01). `.env` nunca commitado. Chave antiga no histórico (SEC-06). Branches dessincronizadas (REPO-03). Sem CI, Dockerfile, health check, cache, logging ou e-mail configurados (OPS-01, OBS-01, SEC-05, AUTH-01).
+| axe-core, WCAG A/AA (36 páginas, desktop e celular) | **0 violações** (controle: 3 violações plantadas foram detectadas) |
+| Contraste | Aprovado pelo axe em todas as páginas |
+| Teclado | Primeiro Tab no app: "Pular para o conteúdo"; no login, ordem lógica e foco visível em todos os controles; menus e diálogos com Esc (código e auditoria anterior) |
+| Rótulos e ARIA | Campos com rótulo; grupos de opção com `role="radiogroup"`; botões de ícone com `aria-label`; gráfico com tabela alternativa para leitor de tela; `aria-live` em horários e confirmação |
+| Áreas clicáveis | Botões e controles ≥ 24 px; exceção: links de texto públicos (FE-19) |
+| Leitor de tela | Não testado (NV-3) |
 
 ---
 
-## 13. Evidências visuais
+## 12. Comparação com a auditoria anterior
 
-Capturas feitas no ambiente isolado com dados **fictícios**. Telas que exibiam e-mails e estados visuais já corrigidos foram excluídas.
+### 12.1 Situação dos 53 problemas
 
-| Arquivo | O que mostra |
+| ID | Antes | Estado atual | Agora | Verificação nesta auditoria |
+|---|---|---|---|---|
+| SEC-01 | P0 | ✅ Resolvido e verificado | — | Chave com 86 caracteres; validação em `settings.py`; 10 testes; sem aviso de chave curta |
+| SEC-02 | P0 | ✅ Resolvido e verificado | — | PER-08 a PER-11; 13 testes |
+| BUS-01 | P1 | ✅ Resolvido e verificado | — | BUS-01 e BUS-01b: 400; testes de concorrência em PostgreSQL. Efeito colateral em BUS-19 |
+| BUS-02 | P1 | ◐ Parcialmente resolvido | P2 | Agenda congela (BUS-02c: 400). O admin reativa (02f: 200), os cadastros continuam (02d e 02e: 201) e a interface não sinaliza |
+| BUS-03 | P1 | Continua presente | P1 | 200 com status `confirmado` |
+| BUS-04 | P1 | Continua presente | P1 | 200 |
+| BUS-05 | P1 | Continua presente | P1 | 200 e 200 (completo e parcial) |
+| BUS-06 | P1 | Continua presente | P1 | API: 10 horários num domingo; interface: reserva concluída num domingo |
+| PROD-01 | P1 | Continua presente | P1 | `barbershop=None` |
+| AUTH-01 | P1 | Continua presente | P1 | Sem `EMAIL_*`; `fail_silently=True` |
+| BUS-07 | P1 | ✅ Resolvido e verificado | — | 400 com mensagem; 13 testes; botão desabilitado na interface |
+| AUTH-02 | P2 | Continua presente (ampliado) | P2 | Cadastro 201, login 401 e também troca do próprio e-mail (200) |
+| SEC-03 | P2 | Continua presente | P2 | 3 de 3 barbeiros com e-mail |
+| SEC-04 | P2 | Continua presente | P2 | `localStorage`, sem CSP; comentário do settings contradiz |
+| SEC-05 | P2 | Continua presente (agora reproduzido) | P2 | 10 de 15 logins aceitos com 3 workers |
+| SEC-07 | P2 | Continua presente (agora reproduzido) | P2 | Sem resposta em 10 s |
+| BUS-08 | P2 | Continua presente | P2 | 22 vencidos como "agendado" na base de teste |
+| BUS-09 | P2 | Continua presente (agora reproduzido) | P2 | Horário das 10:00 passou a terminar às 11:00, sobrepondo o das 10:30 |
+| BUS-11 | P2 | Continua presente | P2 | Só horas cheias para 60 min |
+| BUS-13 | P2 | Continua presente | P2 | Os 20 horários futuros verificados continuam ativos, por DELETE e por rebaixamento |
+| BUS-14 | P2 | Continua presente | P2 | API 201; sem tela |
+| API-01 | P2 | Continua presente | P2 | `page_size`, `search`, `ordering` e `tipo_perfil` ignorados; 22 páginas por carga do painel |
+| DATA-01 | P2 | Continua presente (agora reproduzido) | P2 | 419 → 0 preços; R$ 15.215 → R$ 16.565 |
+| OBS-01 | P2 | Continua presente | P2 | Sem `LOGGING`, monitoramento, auditoria ou health check |
+| OPS-01 | P2 | Continua presente | P2 | Sem Dockerfile, CI, estáticos ou mídia em produção |
+| FE-01 | P2 | Continua presente | P2 | Nenhum error boundary |
+| FE-02 | P2 | Continua presente | P2 | Nenhum teste de frontend |
+| TEST-01 | P2 | ◐ Parcialmente resolvido | P2 | +88 testes (SEC-01, SEC-02, BUS-01, BUS-02, BUS-07); continuam sem teste BUS-03, 04, 05, 10, 12, 15, 16, 17, AUTH-02, SEC-03 e a confirmação de recuperação de senha |
+| DOC-01 | P2 | Continua presente | P2 | Linhas 82, 77-99, 96, 126, 142 e 399 do documento da API |
+| REPO-01 | P2 | Continua presente | P2 | 4.875 de 5.112 arquivos versionados são do `venv312/` |
+| SA-01 | P2 | Continua presente | P2 | Branch `feature/painel-super-admin` sem commits próprios |
+| SAAS-01 | P2 | Continua presente | P2 | — |
+| SEC-06 | P3 | Continua presente | P3 | Commit `3f46df2`; remoto no GitHub |
+| SEC-08 | P3 | Continua presente | P3 | — |
+| BUS-10 | P3 | Continua presente | P3 | 14 horários para ontem |
+| BUS-12 | P3 | Continua presente (**reclassificado**) | **P2** | Agora reproduzido também a troca de cliente pelo barbeiro (200), o que é mais grave que uma inconsistência |
+| API-02 | P3 | Continua presente (agora reproduzido) | P3 | 22:30 de 12/11 contado em 13/11 |
+| DATA-02 | P3 | Continua presente | P3 | Limitação documentada na migração |
+| DATA-03 | P3 | Continua presente | P3 | Collation 2.43 × 2.44 |
+| FE-03 | P3 | Continua presente (agora reproduzido) | P3 | API derrubada + "Atualizar": nenhuma mensagem |
+| FE-04 | P3 | ◐ Parcialmente resolvido | P3 | O rótulo diz "no total / em todas as datas", mas ainda conta vencidos (40, dos quais 22 vencidos) |
+| FE-05 | P3 | Continua presente | P3 | `SHOP_TZ` fixo |
+| FE-06 | P3 | Continua presente | P3 | Rota inexistente → início/login |
+| FE-07 | P3 | Continua presente (ampliado) | P3 | 17 ícones (eram 14), `getTotalServices`, `getTotalBarbers`, `isPast`, `formatDateTime` e `revenueReport` sem uso |
+| FE-08 | P3 | ✅ Resolvido e verificado | — | Fontes `woff2` locais; `index.html` sem Google Fonts |
+| FE-09 | P3 | Continua presente | P3 | Sem logo na tela; barbeiro não reagenda |
+| FE-11 | P3 | Continua presente (agora reproduzido) | P3 | R$ 570 de diferença |
+| DOC-02 | P3 | Continua presente | P3 | README: SQLite por padrão e proxy do Vite inexistente |
+| DOC-03 | P3 | Continua presente | P3 | `accounts/models.py:7`, `config/settings.py:72` |
+| REPO-02 | P3 | Continua presente (ampliado) | P3 | Também `.codex/`, `.impeccable/`, `references/` (HTML de sites de terceiros) e `media/` fora do `.gitignore` |
+| REPO-03 | P3 | Continua presente | P3 | `master` 31 commits atrás; `feature` 1 atrás e sem commits próprios; `release` com 1 commit próprio |
+| TEST-02 | P3 | Continua presente | P3 | Cobertura medida só pela auditoria (91%); o projeto não tem a ferramenta |
+| FE-12 | P3 | Continua presente | P3 | 2 agendamentos no banco real |
+
+### 12.2 Itens não verificados da auditoria anterior
+
+| ID | Antes | Agora |
+|---|---|---|
+| NV-1 | Entrega de e-mail | **Continua não verificável**: sem SMTP configurado |
+| NV-2 | Concorrência em PostgreSQL | **Verificado**: CON-01 e testes de concorrência em PostgreSQL 16 |
+| NV-3 | Leitor de tela | Continua não verificado; checagens automáticas aprovadas |
+| NV-4 | Tablet e outros navegadores | Tablet (820 px) **verificado**; Chrome e Safari continuam não verificados |
+| NV-5 | Rate limiting real | **Verificado**: funciona num processo e falha com vários (SEC-05) |
+
+### 12.3 Correções ao que a auditoria anterior afirmou
+
+| Afirmação de 11/11 | Correção |
 |---|---|
-| [`01-painel-admin-desktop.png`](auditoria/evidencias/01-painel-admin-desktop.png) | Painel: indicadores de 30 dias, quadro do dia, faturamento diário, próximos atendimentos e rankings |
-| [`02-quadro-do-dia.png`](auditoria/evidencias/02-quadro-do-dia.png) | Quadro por barbeiro com blocos pela duração real e status com forma e texto |
-| [`03-agendamentos-admin.png`](auditoria/evidencias/03-agendamentos-admin.png) | Agendamentos agrupados por dia, filtros e ações de status válidas |
-| [`04-dialogo-cancelamento.png`](auditoria/evidencias/04-dialogo-cancelamento.png) | Confirmação antes de cancelar |
-| [`05-validacao-formulario-servico.png`](auditoria/evidencias/05-validacao-formulario-servico.png) | Mensagens de validação no formulário |
-| [`06-agenda-barbeiro.png`](auditoria/evidencias/06-agenda-barbeiro.png) | Agenda do barbeiro com intervalos livres |
-| [`07-agendamento-horarios.png`](auditoria/evidencias/07-agendamento-horarios.png) | Escolha de data e horários reais |
-| [`08-api-fora-do-ar.png`](auditoria/evidencias/08-api-fora-do-ar.png) | Estado de queda da API com sessão preservada |
-| [`09-menu-celular.png`](auditoria/evidencias/09-menu-celular.png) | Menu lateral no celular |
-| [`10-servicos-celular.png`](auditoria/evidencias/10-servicos-celular.png) | Tabela convertida em cartões no celular (capturada antes da correção do ícone da marca no topo) |
+| "Banco PostgreSQL 16 via `docker-compose.yml` (porta 5433)" e "migrações íntegras e aplicadas" | O `.env` aponta para o PostgreSQL **18** do host (porta 5432), onde as migrações estão aplicadas. O banco do `docker-compose` é outro e está com duas migrações pendentes (DB-01) |
+| "Isolamento resistiu às 16 tentativas" | Confirmado e ampliado para 21 tentativas; foram encontrados dois oráculos de existência de IDs (SEC-10) |
+| SEC-07 e DATA-01 "não executados" | Agora reproduzidos em ambiente descartável |
 
 ---
 
-## 14. Plano de correção por prioridade
+## 13. Lista completa de problemas
 
-### Fase 0 — Antes da apresentação
+### 13.1 Índice dos 70 problemas abertos
 
-Alterações pequenas no backend, cada uma com teste de regressão. **Exigem autorização para alterar o código.**
+| # | ID | Sev. | Camada | Título | Estado | Confiança |
+|---|---|---|---|---|---|---|
+| 1 | BUS-15 | P1 | Backend | Cliente cria agendamento já "confirmado" | Novo | Confirmado |
+| 2 | BUS-03 | P1 | Backend | Reagendamento mantém "confirmado" | Continua | Confirmado |
+| 3 | BUS-06 | P1 | Backend + Frontend | Domingos e dias fechados recebem agendamentos | Continua | Confirmado |
+| 4 | BUS-05 | P1 | Backend | Fechamento anterior à abertura é aceito | Continua | Confirmado |
+| 5 | BUS-04 | P1 | Backend | Troca de serviço ignora o horário de funcionamento | Continua | Confirmado |
+| 6 | PROD-01 | P1 | Produto | Cliente não se cadastra numa barbearia | Continua | Confirmado |
+| 7 | AUTH-01 | P1 | Backend / Config. | Recuperação de senha não envia e-mail | Continua | Confirmado (código) |
+| 8 | BUS-02 | P2 | Backend + Frontend | Suspensão de barbearia parcial e reversível pelo próprio admin | Parcial | Confirmado |
+| 9 | BUS-12 | P2 | Backend | Barbeiro troca o cliente e cancela por PATCH, mas não por DELETE | Continua (reclass.) | Confirmado |
+| 10 | BUS-16 | P2 | Backend | Cliente cancela horário que já passou | Novo | Confirmado |
+| 11 | BUS-17 | P2 | Backend | Mesmo cliente com horários simultâneos, sem limite de reservas | Novo | Confirmado |
+| 12 | AUTH-02 | P2 | Backend / Banco | E-mails duplicados por maiúsculas (cadastro e edição) | Continua | Confirmado |
+| 13 | SEC-03 | P2 | Backend | E-mail de login dos barbeiros exposto a clientes | Continua | Confirmado |
+| 14 | SEC-04 | P2 | Frontend / Infra | Access token em `localStorage`, sem CSP | Continua | Confirmado |
+| 15 | SEC-05 | P2 | Infra | Rate limiting por processo | Continua | Confirmado |
+| 16 | SEC-07 | P2 | Backend / Banco | Serviço com duração 0 trava a requisição | Continua | Confirmado |
+| 17 | SEC-09 | P2 | Backend / Infra | Upload de logo sem limite de tamanho | Novo | Confirmado |
+| 18 | DEP-01 | P2 | Dependências | Backend com 91 vulnerabilidades conhecidas; Django fora de suporte | Novo | Confirmado |
+| 19 | DB-01 | P2 | Banco / Config. | Dois bancos de desenvolvimento divergentes | Novo | Confirmado |
+| 20 | DATA-01 | P2 | Banco | Reverso da migração 0008 apaga e altera preços | Continua | Confirmado |
+| 21 | BUS-08 | P2 | Backend / Produto | Sem "não compareceu" nem desfecho de vencidos | Continua | Confirmado |
+| 22 | BUS-09 | P2 | Backend / Banco | Duração do atendimento não é histórica | Continua | Confirmado |
+| 23 | BUS-11 | P2 | Backend | Passo entre horários igual à duração | Continua | Confirmado |
+| 24 | BUS-13 | P2 | Backend | Desativar ou rebaixar barbeiro não trata a agenda | Continua | Confirmado |
+| 25 | BUS-14 | P2 | Frontend | Admin não agenda pela interface | Continua | Confirmado |
+| 26 | API-01 | P2 | API + Frontend | Sem filtros, busca e `page_size`; telas baixam todo o histórico | Continua | Confirmado |
+| 27 | FE-01 | P2 | Frontend | Sem error boundary | Continua | Confirmado (código) |
+| 28 | FE-02 | P2 | Frontend / Testes | Nenhum teste de frontend | Continua | Confirmado |
+| 29 | TEST-01 | P2 | Testes | Regras quebradas sem teste de regressão | Parcial | Confirmado |
+| 30 | OBS-01 | P2 | Backend / Infra | Sem logs, monitoramento, trilha de auditoria e health check | Continua | Confirmado (código) |
+| 31 | OPS-01 | P2 | Infra | Sem infraestrutura de implantação | Continua | Confirmado |
+| 32 | DOC-01 | P2 | Documentação | Documentação da API contradiz o comportamento | Continua | Confirmado |
+| 33 | REPO-01 | P2 | Repositório | Virtualenv versionado | Continua | Confirmado |
+| 34 | SA-01 | P2 | Produto | Sem painel de Super Admin | Continua | Confirmado |
+| 35 | SAAS-01 | P2 | Produto | Sem notificações, LGPD e cobrança | Continua | Confirmado |
+| 36 | FE-13 | P3 | Frontend | "Agendar" após reservar continua mostrando "Horário reservado" | **Novo (regressão)** | Confirmado |
+| 37 | FE-14 | P3 | Frontend | Barbearia desativada e dia da semana ignorados no status "Aberta" | Novo | Confirmado |
+| 38 | FE-03 | P3 | Frontend | Falha de recarga sem aviso | Continua | Confirmado |
+| 39 | FE-15 | P3 | Frontend | Requisições sem tempo limite | Novo | Confirmado |
+| 40 | FE-16 | P3 | Frontend | "1.000" no preço vira R$ 1,00 | Novo | Confirmado |
+| 41 | FE-04 | P3 | Frontend | Contador "a confirmar" inclui vencidos | Parcial | Confirmado |
+| 42 | FE-17 | P3 | Integração | Contratos de API e tipos divergentes | Novo | Confirmado |
+| 43 | FE-18 | P3 | Frontend | Textos que prometem o que o sistema não faz | Novo | Confirmado |
+| 44 | FE-19 | P3 | Frontend / A11y | Links de texto pequenos para toque nas telas públicas | Novo | Confirmado |
+| 45 | FE-20 | P3 | Frontend | Filtro de status cortado e busca truncada no celular | Novo | Confirmado |
+| 46 | FE-05 | P3 | Integração | Fuso horário fixo no frontend | Continua | Confirmado (código) |
+| 47 | FE-06 | P3 | Frontend | Sem página 404 | Continua | Confirmado |
+| 48 | FE-07 | P3 | Frontend | Código morto | Continua (ampliado) | Confirmado |
+| 49 | FE-09 | P3 | Frontend | Sem tela de logo; barbeiro não reagenda | Continua | Confirmado |
+| 50 | FE-11 | P3 | Integração | Painel e relatório da API calculam o faturamento de formas diferentes | Continua | Confirmado |
+| 51 | API-02 | P3 | Backend | Relatório agrupa o dia em UTC | Continua | Confirmado |
+| 52 | BUS-10 | P3 | Backend | Horários livres para datas passadas | Continua | Confirmado |
+| 53 | BUS-18 | P3 | Backend | Validações de cadastro fracas | Novo | Confirmado |
+| 54 | BUS-19 | P3 | Backend / Produto | Sem segundo admin nem transferência de titularidade | Novo | Confirmado (código) |
+| 55 | SEC-06 | P3 | Repositório | Chave antiga no histórico do git | Continua | Confirmado |
+| 56 | SEC-08 | P3 | Backend | Sem verificação de e-mail no cadastro | Continua | Confirmado (código) |
+| 57 | SEC-10 | P3 | Backend | Oráculo de existência de IDs | Novo | Confirmado |
+| 58 | SEC-11 | P3 | Configuração | Configurações de desenvolvimento inseguras se reaproveitadas | Novo | Confirmado |
+| 59 | DEP-02 | P3 | Dependências | Frontend com 14 vulnerabilidades conhecidas | Novo | Confirmado |
+| 60 | DATA-02 | P3 | Banco | Preços históricos antigos estimados | Continua | Confirmado |
+| 61 | DATA-03 | P3 | Banco | Divergência de collation | Continua | Confirmado |
+| 62 | DB-02 | P3 | Banco | Regras de negócio sem constraints no banco | Novo | Confirmado |
+| 63 | MAINT-01 | P3 | Código | Componentes grandes, estilos inline, duplicação e código morto no backend | Novo | Confirmado |
+| 64 | DOC-02 | P3 | Documentação | README com instruções incorretas | Continua (ampliado) | Confirmado |
+| 65 | DOC-03 | P3 | Documentação | Comentários obsoletos sobre o app `core` | Continua | Confirmado |
+| 66 | DOC-04 | P3 | Documentação | Índice de `docs/` e comentários desatualizados | Novo | Confirmado |
+| 67 | REPO-02 | P3 | Repositório | Arquivos soltos e pastas fora do `.gitignore` | Continua (ampliado) | Confirmado |
+| 68 | REPO-03 | P3 | Repositório | Branches dessincronizadas | Continua | Confirmado |
+| 69 | TEST-02 | P3 | Testes | Cobertura não medida pelo projeto | Continua | Confirmado |
+| 70 | FE-12 | P3 | Dados / Apresentação | Banco real quase vazio para a demonstração | Continua | Confirmado |
 
-| Ordem | Problema | Esforço estimado | Observação |
+Os detalhes abaixo seguem esta ordem. Referências do tipo "BUS-03 (sondagem)" apontam para `api/sondagem-api.json` ou `api/sondagem-api-complementar.json` da pasta de evidências.
+
+---
+
+### 13.2 Problemas P1 — Alto (7)
+
+#### BUS-15 — Cliente cria agendamento já "confirmado"
+
+> **Rodada 1 de correções (13/11/2026): Resolvido e verificado.** Detalhes e testes na [seção 18](#18-acompanhamento-das-correções). A descrição abaixo é a original da auditoria.
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| **P1** | Backend (serializer e view) | `appointments/serializers.py:34,37`; `appointments/views.py:87-105`; `appointments/models.py:345-347` | Confirmado | **Novo** |
+
+- **Descrição.**
+  - O campo `status` do `AppointmentSerializer` é gravável também na criação.
+  - `perform_create` não fixa o status inicial.
+  - A máquina de estados (`_validar_transicao_status`) retorna cedo quando o registro ainda não existe.
+  - Resultado: qualquer perfil escolhe o status de um agendamento novo. Só "realizado" é barrado, pela regra do BUS-07.
+- **Evidência.**
+  - NEW-STATUS: cliente → **201, status `confirmado`**.
+  - NEW-STATUS-2: barbeiro → **201, status `cancelado`**.
+  - Nenhum teste cobre a criação com `status`.
+- **Reprodução.**
+  1. Entrar como cliente.
+  2. `POST /api/v1/appointments/` com `cliente` (o próprio id), `barbeiro`, `servico`, `data_hora` futura e `"status": "confirmado"`.
+- **Resultado atual.** 201 com `status: confirmado`.
+- **Resultado esperado.** Todo agendamento novo nasce `agendado`: o campo é ignorado ou a API responde 400.
+- **Impacto.**
+  - O cliente contorna a confirmação da barbearia.
+  - O horário não entra na fila "a confirmar" do admin nem do barbeiro.
+  - A agenda mostra uma confirmação que ninguém deu.
+- **Recomendação.**
+  1. Tornar `status` somente leitura quando `self.instance is None`, ou chamar `serializer.save(status=AGENDADO)` em `perform_create`.
+  2. No model, recusar registro novo com status diferente de `agendado`, salvo origem administrativa explícita.
+  3. Teste para os três perfis.
+
+#### BUS-03 — Reagendamento pelo cliente mantém "confirmado"
+
+> **Rodada 1 de correções (13/11/2026): Resolvido e verificado.** Detalhes e testes na [seção 18](#18-acompanhamento-das-correções). A descrição abaixo é a original da auditoria.
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| **P1** | Backend | `appointments/serializers.py:228-255` (`update`), `:128-170` | Confirmado | Continua presente |
+
+- **Descrição.** Quando o cliente altera `data_hora`, `barbeiro` ou `servico` de um horário confirmado, o status continua "confirmado". A barbearia confirmou o horário antigo, não o novo.
+- **Evidência.**
+  - Sondagem BUS-03: criar → admin confirma → cliente reagenda → **200 com `status: confirmado`**.
+  - A tela de sucesso do reagendamento diz "O novo horário já está na sua agenda" (`AppointmentCreatePage.tsx`).
+- **Reprodução.**
+  1. Cliente cria um horário.
+  2. Admin aplica `PATCH {"status": "confirmado"}`.
+  3. Cliente aplica `PATCH {"data_hora": "<outro horário>"}`.
+- **Resultado atual.** `confirmado`.
+- **Resultado esperado.** Volta a `agendado` quando horário, barbeiro ou serviço mudam; alterar só `observacoes` não muda o status.
+- **Impacto.** Barbeiro e admin confiam numa confirmação que não existe. Somado ao BUS-15, o fluxo de confirmação fica sem garantia.
+- **Recomendação.** Em `update`, redefinir `status = AGENDADO` na mesma transação quando esses campos mudarem; decidir se a regra vale para alterações do admin e do barbeiro; testes.
+
+#### BUS-06 — Domingos e dias fechados recebem agendamentos
+
+> **Rodada 1 de correções (13/11/2026): Parcialmente resolvido (dias da semana configuráveis; feriados, folgas e disponibilidade por barbeiro continuam ausentes).** Detalhes e testes na [seção 18](#18-acompanhamento-das-correções). A descrição abaixo é a original da auditoria.
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| **P1** | Backend + Banco + Frontend | `appointments/views.py:236-268`; `barbershops/models.py:22-23`; `frontend/src/pages/AppointmentCreatePage.tsx:25,104` | Confirmado | Continua presente |
+
+- **Descrição.**
+  - O sistema não modela dias de funcionamento, feriados, bloqueios nem folgas e horário de cada barbeiro.
+  - O mesmo horário de abertura e fechamento vale para todos os dias e todos os barbeiros.
+  - O frontend oferece os próximos 21 dias sem distinção.
+- **Evidência.**
+  - API: domingo 15/11 → **10 horários** para um serviço de 60 min.
+  - Navegador: domingo com **16 horários**, e uma reserva concluída para **domingo, 22/11** (capturas `fluxo_cliente_domingo_com_horarios.png` e `fluxo_cliente_agendamento_concluido.png`).
+- **Reprodução.** `GET /api/v1/appointments/available-slots/?barbeiro=<id>&servico=<id>&data=<próximo domingo>`, ou agendar pela tela escolhendo "Dom".
+- **Resultado atual.** Horários oferecidos e reserva aceita.
+- **Resultado esperado.** Dias fechados e folgas sem horários; a API recusa a criação com mensagem clara.
+- **Impacto.** Clientes reservam com a barbearia fechada. É o problema mais visível numa demonstração com o calendário.
+- **Recomendação.**
+  1. Grade semanal da barbearia (dia × abertura e fechamento, com intervalos).
+  2. Exceções por data e disponibilidade por barbeiro.
+  3. Aplicar em `available_slots` e em `Appointment.clean()`.
+  4. Tela de configuração.
+  5. Como medida mínima imediata: um campo "dias de funcionamento" na barbearia.
+
+#### BUS-05 — Fechamento anterior à abertura é aceito
+
+> **Rodada 1 de correções (13/11/2026): Resolvido e verificado.** Detalhes e testes na [seção 18](#18-acompanhamento-das-correções). A descrição abaixo é a original da auditoria.
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| **P1** | Backend (model e serializer) | `barbershops/models.py:12-35` (sem `clean`); `barbershops/serializers.py:20-32` | Confirmado | Continua presente |
+
+- **Descrição.** A API aceita `horario_fechamento` ≤ `horario_abertura`, na edição completa e na parcial. O frontend valida, mas a API é a defesa real.
+- **Evidência.**
+  - Sondagem BUS-05: completo **200**, parcial **200**.
+  - Navegador: o formulário bloqueou o mesmo caso (`admin_desktop_validacao_horario.png`).
+- **Reprodução.** `PATCH /api/v1/barbershops/<id>/` com `{"horario_abertura": "18:00:00", "horario_fechamento": "08:00:00"}`, ou só `{"horario_fechamento": "08:30:00"}`.
+- **Resultado atual.** 200.
+- **Resultado esperado.** 400, inclusive quando só um dos campos é enviado.
+- **Impacto.** Nenhum horário é gerado e todos os agendamentos são recusados sem explicação: a barbearia "some" da agenda.
+- **Recomendação.** `Barbershop.clean()` com `fechamento > abertura`; `validate()` do serializer comparando com o valor persistido no PATCH parcial; `CheckConstraint` (DB-02); testes.
+
+#### BUS-04 — Troca de serviço ignora o horário de funcionamento
+
+> **Rodada 1 de correções (13/11/2026): Resolvido e verificado.** Detalhes e testes na [seção 18](#18-acompanhamento-das-correções). A descrição abaixo é a original da auditoria.
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| **P1** | Backend (model) | `appointments/models.py:238-248` | Confirmado | Continua presente |
+
+- **Descrição.** `_validar_horario_funcionamento` retorna cedo se `data_hora` não mudou e não considera a troca de serviço, então um serviço mais longo ultrapassa o fechamento.
+- **Evidência.** Sondagem BUS-04: horário às 18:30 (fechamento às 19:00), serviço trocado de 30 para 60 min → **200**.
+- **Reprodução.** Criar às 18:30 com serviço de 30 min; `PATCH {"servico": <id do serviço de 60 min>}`.
+- **Resultado atual.** 200; o atendimento termina às 19:30.
+- **Resultado esperado.** 400 com a mensagem de fechamento.
+- **Impacto.** Atendimentos fora do expediente.
+- **Recomendação.** Revalidar quando `data_hora` **ou** `servico_id` mudarem; testes para os dois casos.
+
+#### PROD-01 — Cliente não se cadastra numa barbearia
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| **P1** | Produto (backend + frontend) | `accounts/serializers.py:309-321`; `accounts/views.py:119-130`; `frontend/src/pages/RegisterPage.tsx`, `OnboardingPage.tsx` | Confirmado | Continua presente |
+
+- **Descrição.** O cadastro público cria um cliente sem barbearia, que é levado a criar a própria barbearia. Não há página pública, convite nem código por barbearia.
+- **Evidência.**
+  - Sondagem PROD-01: **201, `barbershop=None`**.
+  - No banco real há 1 conta sem barbearia criada pelo cadastro.
+- **Reprodução.** `/register` → a conta entra em "Vamos cadastrar sua barbearia".
+- **Resultado atual.** Só o admin cadastra clientes, informando uma senha inicial que ele mesmo conhece.
+- **Resultado esperado.** Cliente se cadastra e agenda numa barbearia específica.
+- **Impacto.** Inviabiliza a aquisição de clientes; cria tenants vazios.
+- **Recomendação.** Página pública por barbearia (`/b/<slug>`) ou convite por link, e separação entre conta de dono e conta de cliente.
+
+#### AUTH-01 — Recuperação de senha não envia e-mail
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| **P1** | Backend / Configuração | `config/settings.py` (sem `EMAIL_*`); `accounts/serializers.py:381-419` | Confirmado por código; entrega não verificável (NV-1) | Continua presente |
+
+- **Descrição.**
+  - Sem `EMAIL_BACKEND` nem SMTP configurados: o Django tenta `localhost:25`.
+  - `fail_silently=True` engole a falha sem log.
+  - A mensagem traz `uid` e `token` em texto, sem link.
+  - A confirmação não tem nenhum teste (`accounts/serializers.py:427-449` sem cobertura).
+- **Evidência.** Busca em `settings.py`; respostas 204 para e-mail existente e inexistente (SES-10); relatório de cobertura.
+- **Reprodução.** `/password/reset` com uma conta existente → a tela confirma, mas nenhum e-mail chega.
+- **Resultado atual.** O usuário fica sem acesso até alguém intervir.
+- **Resultado esperado.** E-mail com link para a tela de nova senha; falhas registradas em log.
+- **Impacto.** Recuperação de acesso inexistente na prática.
+- **Recomendação.** Variáveis `EMAIL_*` no `.env.example`; backend de console em desenvolvimento; link `FRONTEND_URL/password/reset/confirm?uid=…&token=…`; log de falhas; testes da confirmação.
+
+---
+
+### 13.3 Problemas P2 — Médio (28)
+
+#### BUS-02 — Suspensão de barbearia parcial e reversível pelo próprio admin
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 (era P1) | Backend + Frontend | `barbershops/serializers.py:15,18` (`ativo` gravável); `barbershops/views.py:38`; `appointments/models.py:145-175`; `frontend/src/components/AppLayout.tsx:296-310` | Confirmado | **Parcialmente resolvido** |
+
+- **Descrição.**
+  - **O que foi corrigido:** com `ativo=False`, ninguém cria, remarca, confirma ou conclui agendamentos, e os horários livres são recusados. Os testes do dono cobrem isso.
+  - **O que continua:**
+    - o campo `ativo` continua gravável pelo admin do tenant, que **desfaz a desativação feita pela plataforma** (o DELETE é restrito ao staff, mas o PATCH não);
+    - login, cadastro de clientes e serviços e edição da barbearia seguem normalmente;
+    - a interface não mostra que a barbearia está desativada (FE-14).
+- **Evidência.** Sondagem BUS-02:
+  - plataforma desativa → 204;
+  - cliente agenda → **400**, como esperado;
+  - admin cria serviço → **201** e cadastra cliente → **201**;
+  - admin aplica `PATCH {"ativo": true}` → **200** e a barbearia volta a operar.
+  - O teste do dono `test_admin_desativa_e_reativa_a_barbearia` assume essa reativação como regra.
+- **Reprodução.**
+  1. Superusuário: `DELETE /api/v1/barbershops/<id>/?confirmar=<nome>`.
+  2. Admin do tenant: `PATCH /api/v1/barbershops/<id>/` com `{"ativo": true}`.
+- **Resultado atual.** Reativada pelo próprio tenant.
+- **Resultado esperado.** Distinguir "pausa pelo dono" de "suspensão pela plataforma". A suspensão só pode ser revertida pelo staff.
+- **Impacto.** A plataforma não consegue suspender uma barbearia (inadimplência, abuso). Vira P1 se houver cobrança.
+- **Recomendação.**
+  1. `ativo` somente leitura para não-staff, ou um campo separado `suspensa_pela_plataforma`.
+  2. Verificação central que bloqueie a escrita em todo o tenant suspenso.
+  3. Aviso na interface.
+  4. Testes.
+
+#### BUS-12 — Barbeiro troca o cliente e cancela por PATCH, mas não por DELETE
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 (era P3) | Backend | `appointments/serializers.py:99-126`; `appointments/views.py:40-51` | Confirmado | Continua presente — **reclassificado** |
+
+- **Descrição.**
+  - O DELETE (cancelamento) é proibido ao barbeiro, mas `PATCH {"status": "cancelado"}` é aceito.
+  - O serializer só impede o **cliente** de trocar o campo `cliente`, então o barbeiro reatribui o horário a outra pessoa.
+- **Evidência.** Sondagem complementar BUS-12, no horário do próprio barbeiro:
+  - DELETE **403**;
+  - `PATCH {"cliente": <outro>}` **200**, e o horário passou ao outro cliente;
+  - `PATCH {"status": "cancelado"}` **200**.
+- **Reprodução.** Como barbeiro, nos próprios horários, executar as três chamadas acima.
+- **Resultado atual.** Regras contraditórias, e o cliente original perde o horário sem consentimento.
+- **Resultado esperado.** Mesma regra nos dois caminhos; troca de cliente só pelo admin, ou proibida.
+- **Impacto.** Integridade da agenda e dos dados do cliente; a reclassificação para P2 decorre da troca de cliente agora reproduzida.
+- **Recomendação.** Definir a regra, aplicá-la no serializer e no `get_permissions`, e testar.
+
+#### BUS-16 — Cliente cancela horário que já passou
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Backend | `appointments/serializers.py:108-145`; `appointments/views.py:115-131` | Confirmado | **Novo** |
+
+- **Descrição.** Não há prazo para cancelamento: o cliente cancela um horário que já começou ou terminou, inclusive um confirmado que ainda não foi marcado como realizado.
+- **Evidência.** Sondagem NEW-PASTCANCEL: horário das 14:00 de hoje, cancelado depois das 15:40 → **204**.
+- **Reprodução.** `DELETE /api/v1/appointments/<id>/`, ou `PATCH {"status": "cancelado"}`, num horário próprio com `data_hora` no passado.
+- **Resultado atual.** Cancelado.
+- **Resultado esperado.** Recusado depois do início (ou de uma antecedência mínima configurável). Horários passados viram "realizado" ou "não compareceu" (BUS-08).
+- **Impacto.**
+  - Um atendimento feito pode sair do faturamento por iniciativa do cliente, antes de o barbeiro marcar "realizado".
+  - Não comparecimentos viram "cancelamentos".
+- **Recomendação.** Bloquear o cancelamento pelo cliente após `data_hora`, com antecedência mínima configurável; teste.
+
+#### BUS-17 — Mesmo cliente com horários simultâneos, sem limite de reservas
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Backend | `appointments/models.py:304-332` (conflito só por barbeiro) | Confirmado | **Novo** |
+
+- **Descrição.**
+  - A checagem de conflito considera só o barbeiro: o mesmo cliente reserva o mesmo horário com dois barbeiros.
+  - Não há limite de reservas futuras por cliente.
+  - O único freio é o throttling de 1.000 requisições por hora.
+- **Evidência.** Sondagem NEW-OVERLAP: duas reservas às 16:00 do mesmo dia, com barbeiros diferentes → **201 / 201**.
+- **Reprodução.** Dois `POST /appointments/` do mesmo cliente, mesmo horário, barbeiros diferentes.
+- **Resultado atual.** Os dois são aceitos.
+- **Resultado esperado.** O segundo é recusado; limite de reservas ativas por cliente.
+- **Impacto.** Agenda inflada e horários bloqueados para outros clientes. Um cliente mal-intencionado ocupa a agenda inteira.
+- **Recomendação.** Validar a sobreposição por cliente em `clean()`, sob a mesma trava; limite configurável de reservas futuras; testes.
+
+#### AUTH-02 — E-mails duplicados por maiúsculas (cadastro e edição)
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Backend / Banco | `accounts/managers.py:43`; `accounts/models.py:29`; `accounts/serializers.py:46-57` | Confirmado | Continua presente (ampliado) |
+
+- **Descrição.** `normalize_email` só converte o domínio para minúsculas, e a unicidade de `email` diferencia maiúsculas. Além do cadastro, o próprio usuário troca o e-mail para uma variação do e-mail de outra pessoa.
+- **Evidência.** Sondagem:
+  - AUTH-02 (cadastro de `CLIENTE1@…` existente) **201**;
+  - AUTH-02b (login com outra grafia) **401**;
+  - AUTH-02c (troca do próprio e-mail para `CLIENTE2@…`) **200**.
+  - No banco real há 0 duplicados.
+- **Reprodução.** `POST /auth/register/` com um e-mail existente em maiúsculas; `PATCH /users/<seu id>/` com `{"email": "<e-mail de outro em maiúsculas>"}`.
+- **Resultado atual.** Contas duplicadas; login sensível à grafia.
+- **Resultado esperado.** 400 "e-mail já cadastrado"; login aceita qualquer grafia.
+- **Impacto.** Contas duplicadas; a recuperação (`email__iexact().first()`) pode escolher a conta errada.
+- **Recomendação.** Normalizar para minúsculas no manager, nos serializers e no login; `UniqueConstraint(Lower('email'))` após checar duplicados; testes.
+
+#### SEC-03 — E-mail de login dos barbeiros exposto a clientes
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Backend | `barbershops/serializers.py:39` | Confirmado | Continua presente |
+
+- **Descrição.** `GET /barbers/`, necessário para agendar, devolve o `email` de login de cada barbeiro a qualquer cliente e barbeiro.
+- **Evidência.** Sondagem PER-12: **3 de 3** itens com e-mail.
+- **Reprodução.** Como cliente, `GET /api/v1/barbers/`.
+- **Resultado atual.** E-mail presente.
+- **Resultado esperado.** Só o admin recebe `email`.
+- **Impacto.** Dados pessoais de funcionários expostos; facilita phishing e ataques às contas.
+- **Recomendação.** Serializer público sem `email`, escolhido por perfil; teste.
+
+#### SEC-04 — Access token em `localStorage`, sem CSP
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Frontend / Infra | `frontend/src/utils/storage.ts:13`; `config/settings.py:219` | Confirmado | Continua presente |
+
+- **Descrição.** O access token (15 min) fica em `localStorage`, não há CSP, e o comentário do `settings.py` afirma que ele "é mantido apenas em memória". O token traz `nome`, `tipo_perfil`, `barbershop_id` e `hash_password` (derivado do hash da senha).
+- **Evidência.** Código; SES-03 (claims); SES-09 (sem `Content-Security-Policy`).
+- **Reprodução.** Entrar e executar `localStorage.getItem('barbearia.auth')` no console.
+- **Resultado atual.** Token legível por qualquer script da página.
+- **Resultado esperado.** Token só em memória, renovado pelo cookie ao recarregar; CSP restritiva.
+- **Impacto.** Um XSS futuro (por exemplo, por dependência comprometida) age como o usuário por até 15 minutos.
+- **Recomendação.** Manter o access em memória; adicionar CSP no servidor web ou com `django-csp`; corrigir o comentário.
+
+#### SEC-05 — Rate limiting por processo
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Infra / Configuração | `config/settings.py:186-200` (sem `CACHES`) | Confirmado | Continua presente (**agora reproduzido**) |
+
+- **Descrição.**
+  - O throttling usa o cache padrão em memória de cada processo.
+  - Com N workers, o limite efetivo vira N vezes maior e zera a cada reinício.
+  - Sem `NUM_PROXIES`, atrás de um proxy todos os usuários compartilham o mesmo IP e o limite.
+- **Evidência.** `api/rate-limit-gunicorn-3-workers.txt`: 15 logins errados no mesmo minuto e mesmo IP → **10 aceitos (401) e 5 bloqueados (429)**, contra o limite configurado de 5/min. Num único processo, o 6º login recebeu 429.
+- **Reprodução.** gunicorn com 3 workers e 15 `POST /auth/login/` com senha errada.
+- **Resultado atual.** 10 tentativas aceitas.
+- **Resultado esperado.** A partir da 6ª, 429 em qualquer worker.
+- **Impacto.** Proteção contra força bruta reduzida em produção.
+- **Recomendação.** Cache compartilhado (Redis) e `NUM_PROXIES` conforme a infraestrutura.
+
+#### SEC-07 — Serviço com duração 0 trava a requisição
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Backend / Banco | `services/models.py:20`; `appointments/views.py:262-268` | Confirmado | Continua presente (**agora reproduzido**) |
+
+- **Descrição.** O model aceita `duracao = 0`; só o serializer exige ≥ 1. Com 0, o laço `while slot_atual <= limite: slot_atual += duracao` não avança.
+- **Evidência.** `api/sec07-duracao-zero.txt`: serviço criado pelo ORM (como faria o Django Admin) e `available-slots` **sem resposta em 10 s** (processo encerrado pelo `timeout`, código 124).
+- **Reprodução.** Django Admin → serviço com duração 0 → consultar horários desse serviço.
+- **Resultado atual.** O worker fica preso com CPU em 100%.
+- **Resultado esperado.** O banco recusa duração 0 e o endpoint responde com erro.
+- **Impacto.** Negação de serviço com poucas requisições; exige acesso ao Django Admin ou ao banco.
+- **Recomendação.** `MinValueValidator(1)` + `CheckConstraint(duracao__gt=0)` com migração; guarda no laço; teste.
+
+#### SEC-09 — Upload de logo sem limite de tamanho
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Backend / Infra | `barbershops/models.py:24-26`; `config/settings.py:163`; `.gitignore` | Confirmado | **Novo** |
+
+- **Descrição.**
+  - O `ImageField` da logo não tem limite de tamanho nem de dimensões.
+  - O processamento usa Pillow 10.4.0, com 69 vulnerabilidades conhecidas (DEP-01).
+  - Os arquivos vão para `media/` dentro do projeto, pasta que não está no `.gitignore`.
+- **Evidência.**
+  - Sondagem complementar UPL-01: PNG de **14,5 MB → 200**, e o arquivo foi gravado.
+  - UPL-02: SVG com script → 400, corretamente.
+- **Reprodução.** `PATCH /api/v1/barbershops/<id>/` multipart com uma logo grande.
+- **Resultado atual.** Aceito.
+- **Resultado esperado.** Limite (por exemplo, 2 MB e 1.024 px), com redimensionamento.
+- **Impacto.** Consumo de disco e memória; superfície de ataque do Pillow; risco de versionar uploads de usuários.
+- **Recomendação.** Validador de tamanho e dimensões; `FILE_UPLOAD_MAX_MEMORY_SIZE` e `DATA_UPLOAD_MAX_MEMORY_SIZE` explícitos; `media/` no `.gitignore`; atualizar o Pillow.
+
+#### DEP-01 — Backend com 91 vulnerabilidades conhecidas; Django fora de suporte
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Dependências | `requirements.txt` | Confirmado | **Novo** |
+
+- **Descrição.** As 91 vulnerabilidades conhecidas estão em 5 pacotes:
+
+  | Pacote | Versão | Avisos | Observação |
+  |---|---|---|---|
+  | Django | 5.0.14 | 13 | Série 5.0 sem correções de segurança desde abril de 2025 |
+  | Pillow | 10.4.0 | 69 | Processa as logos enviadas |
+  | djangorestframework | 3.15.2 | 5 | — |
+  | PyJWT | 2.14.0 | 2 | — |
+  | djangorestframework-simplejwt | 5.3.1 | 2 | — |
+
+- **Evidência.** `dependencias/backend-pip-audit.txt`.
+- **Reprodução.** `pip-audit -r requirements.txt`.
+- **Resultado atual.** 91 avisos.
+- **Resultado esperado.** Versões com suporte e sem avisos conhecidos.
+- **Impacto.** Exposição a falhas públicas, especialmente no upload de imagens e nos componentes de autenticação.
+- **Recomendação.** Migrar para Django 5.2 LTS e versões atuais de DRF, simplejwt, PyJWT e Pillow, rodando a suíte (327 testes) a cada passo; adicionar `pip-audit` ao CI.
+
+#### DB-01 — Dois bancos de desenvolvimento divergentes
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Banco / Configuração | `.env` (`DATABASE_URL` → porta 5432); `docker-compose.yml`; `config/settings.py:127`; `config/test_postgres_settings.py`; `README.md` | Confirmado | **Novo** |
+
+- **Descrição.**
+  - O app usa o **PostgreSQL 18 do host** (porta 5432), conforme o `.env`.
+  - O `README` ("PostgreSQL via Docker"), o `docker-compose.yml`, o valor padrão do `settings.py` e o `test_postgres_settings.py` apontam para o **container PostgreSQL 16** na porta 5433.
+  - O container está **com as migrações `appointments.0007` e `0008` pendentes**, sem a coluna `preco_historico` e com dados diferentes (6 agendamentos, contra 2 no banco do app).
+- **Evidência.**
+  - `showmigrations` no banco do app: todas aplicadas.
+  - Consulta somente leitura no container: a coluna `preco_historico` não existe, e `django_migrations` vai só até `0005`.
+  - `banco/integridade-banco-real-somente-leitura.txt`.
+- **Reprodução.** Seguir o README (`docker-compose up`) e apontar o `.env` para a porta 5433: as telas de agendamento falham por coluna inexistente até um `migrate`.
+- **Resultado atual.** Duas fontes de verdade, com versões e dados diferentes.
+- **Resultado esperado.** Um único banco de desenvolvimento, documentado e migrado.
+- **Impacto.** Risco concreto na demonstração (subir o banco errado gera erros 500) e confusão sobre "o banco real".
+- **Recomendação.** Escolher um banco, alinhar `.env.example`, README e `docker-compose.yml` (inclusive a versão do PostgreSQL) e migrar o outro ou removê-lo do fluxo.
+
+#### DATA-01 — Reverso da migração 0008 apaga e altera preços
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Banco | `appointments/migrations/0008_populate_preco_historico.py:20` | Confirmado | Continua presente (**agora reproduzido**) |
+
+- **Descrição.** O reverso executa `Appointment.objects.all().update(preco_historico=None)`. Reaplicar a migração preenche com o preço **atual** do serviço.
+- **Evidência.** `banco/data01-reverso-migracao-0008.txt`, numa cópia descartável:
+  - desfazer: **419 → 0** preços;
+  - depois de o "Corte" subir de R$ 45 para R$ 60, desfazer e refazer muda o faturamento realizado de **R$ 15.215 para R$ 16.565**.
+- **Reprodução.** `migrate appointments 0007` e depois `migrate appointments`, num banco **descartável**.
+- **Resultado atual.** Dados financeiros perdidos ou alterados.
+- **Resultado esperado.** Reverso sem efeito sobre preços gravados pela aplicação.
+- **Impacto.** Um rollback operacional corrompe o histórico financeiro.
+- **Recomendação.** `migrations.RunPython.noop` como reverso; teste de ida e volta.
+
+#### BUS-08 — Sem "não compareceu" nem desfecho de vencidos
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Backend / Produto | `appointments/models.py:28-32` | Confirmado | Continua presente |
+
+- **Descrição.** Só há 4 status. Horários que passaram sem desfecho continuam "agendado" ou "confirmado" para sempre e entram em "a confirmar" (FE-04).
+- **Evidência.** Sondagem BUS-08: **22 vencidos como "agendado"** na base de teste; no banco real, 0.
+- **Reprodução.** Deixar um horário passar sem alterar o status.
+- **Resultado atual.** Continua pendente.
+- **Resultado esperado.** Status `nao_compareceu` e separação dos vencidos.
+- **Impacto.** Agenda poluída; não há como medir comparecimento.
+- **Recomendação.** Novo status com transições a partir de agendado ou confirmado após o horário; indicador de vencidos; testes.
+
+#### BUS-09 — Duração do atendimento não é histórica
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Backend / Banco | `appointments/models.py:207,251,314`; `appointments/views.py:250-257` | Confirmado | Continua presente (**agora reproduzido**) |
+
+- **Descrição.** Conflitos, horários livres, fim do atendimento e a regra do "realizado" usam a duração **atual** do serviço.
+- **Evidência.** Sondagem complementar BUS-09: horários às 10:00 e 10:30 com um serviço de 30 min. Depois de mudar a duração para 60 min, o das 10:00 passa a terminar às 11:00, **sobrepondo** o das 10:30, que continua ativo.
+- **Reprodução.** Alterar a duração de um serviço com horários seguidos.
+- **Resultado atual.** Sobreposição criada retroativamente.
+- **Resultado esperado.** Agendamentos existentes mantêm a duração com que foram marcados.
+- **Impacto.** Agenda inconsistente; a promessa "agenda sem conflito" da página institucional deixa de valer.
+- **Recomendação.** Campo `duracao_historica`, preenchido como `preco_historico`, com migração de dados e uso em todos os cálculos.
+
+#### BUS-11 — Passo entre horários igual à duração
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Backend | `appointments/views.py:268` | Confirmado | Continua presente |
+
+- **Descrição.** Os horários livres avançam pela duração do serviço.
+- **Evidência.** Sondagem BUS-11: serviço de 60 min → 09:00, 10:00, 11:00…
+- **Reprodução.** Consultar `available-slots` para um serviço de 60 min.
+- **Resultado atual.** Só horas cheias.
+- **Resultado esperado.** Passo configurável, por exemplo 15 min.
+- **Impacto.** Encaixes perdidos e menor ocupação.
+- **Recomendação.** Passo configurável por barbearia, mantendo a checagem de que o serviço inteiro cabe.
+
+#### BUS-13 — Desativar ou rebaixar barbeiro não trata a agenda
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Backend | `barbershops/views.py:160-171,177-195`; `accounts/serializers.py:148-172` | Confirmado | Continua presente |
+
+- **Descrição.** Os horários futuros continuam "agendado" ou "confirmado" com um barbeiro desativado.
+- **Evidência.** Sondagem:
+  - BUS-13: DELETE do barbeiro → os **20** horários futuros verificados (primeira página da lista) continuam ativos;
+  - BUS-13b: rebaixamento a cliente por `/users/` → os **20** verificados continuam ativos.
+- **Reprodução.** Desativar um barbeiro com horários futuros e consultar `/appointments/?barbeiro=<id>`.
+- **Resultado atual.** Horários órfãos.
+- **Resultado esperado.** Decisão explícita (cancelar com aviso ou reatribuir) antes de desativar.
+- **Impacto.** Clientes comparecem para atendimento com quem saiu.
+- **Recomendação.** Listar os afetados e exigir a decisão; testes.
+
+#### BUS-14 — Admin não agenda pela interface
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Frontend | `frontend/src/App.tsx:55` (rota só para cliente) | Confirmado | Continua presente |
+
+- **Descrição.** A API permite ao admin agendar para um cliente, mas não há tela para isso, nem cliente avulso.
+- **Evidência.** Sondagem complementar BUS-14-api: **201**; o painel não tem "Novo agendamento".
+- **Reprodução.** Como admin, procurar a ação na interface.
+- **Resultado atual.** Inexistente.
+- **Resultado esperado.** Agendamento pelo balcão, com busca de cliente.
+- **Impacto.** Agendamentos por telefone ou presenciais ficam fora do sistema.
+- **Recomendação.** Tela de agendamento do admin reutilizando o fluxo do cliente.
+
+#### API-01 — Sem filtros, busca e `page_size`; telas baixam todo o histórico
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | API + Frontend | `config/pagination.py:4`; `appointments/views.py:34`; `frontend/src/api/endpoints.ts:95-117`; `AdminDashboardPage.tsx:34`; `AdminClientsPage.tsx:40` | Confirmado | Continua presente |
+
+- **Descrição.**
+  - A paginação é fixa em 20 itens.
+  - `search`, `ordering`, filtro por período e `tipo_perfil` não existem.
+  - Painel, Agendamentos e Clientes percorrem todas as páginas de agendamentos, em sequência, e filtram no navegador.
+- **Evidência.**
+  - Sondagem API-01: `page_size=100` → 20 itens; `search`, `tipo_perfil` e `ordering` sem efeito.
+  - Build de produção (`navegador/navegador-testes-dirigidos.json`): **25 requisições por carga, 22 delas para `/appointments/`**, com 419 agendamentos e cerca de 3,2 s locais.
+  - O backend é eficiente (2 consultas por página); o gargalo é o número de requisições.
+- **Reprodução.** Abrir o painel com o histórico de teste e contar as chamadas.
+- **Resultado atual.** Tempo e tráfego crescem linearmente com o histórico.
+- **Resultado esperado.** Número fixo de requisições; filtros e agregações no servidor.
+- **Impacto.** Com alguns milhares de agendamentos, painel e listas ficam lentos.
+- **Recomendação.** `SearchFilter`, `OrderingFilter`, filtros `data_inicio`/`data_fim` e `tipo_perfil`, `page_size_query_param` com máximo, endpoint de métricas para o painel e paginação no servidor.
+
+#### FE-01 — Sem error boundary
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Frontend | `frontend/src/App.tsx`; `frontend/src/components/AppLayout.tsx` | Confirmado (código) | Continua presente |
+
+- **Descrição.** Não há fronteira de erro: uma exceção de renderização desmonta toda a interface.
+- **Evidência.** Nenhuma ocorrência de `ErrorBoundary` ou `componentDidCatch` em `frontend/src`.
+- **Reprodução.** Forçar uma exceção numa tela em modo de desenvolvimento.
+- **Resultado atual.** Página em branco.
+- **Resultado esperado.** Mensagem com "Recarregar", com menu e navegação preservados.
+- **Impacto.** Um dado inesperado derruba a aplicação inteira.
+- **Recomendação.** Error boundary no layout e por rota, com registro do erro (OBS-01).
+
+#### FE-02 — Nenhum teste de frontend
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Frontend / Testes | `frontend/package.json` (sem `test`) | Confirmado | Continua presente |
+
+- **Descrição.** Não há testes unitários, de componente nem de ponta a ponta. A verificação desta auditoria usou scripts externos (`scripts/*.mjs`).
+- **Evidência.** Nenhum `*.test.*` ou `*.spec.*`; sem script `test`.
+- **Reprodução.** `npm test` não existe.
+- **Resultado atual.** Regressões só são percebidas manualmente: a FE-13 passou pela revisão do redesign.
+- **Resultado esperado.** Testes dos fluxos críticos no CI.
+- **Impacto.** Regressões silenciosas.
+- **Recomendação.** Vitest + Testing Library para `format.ts`, `status.ts`, ações de status e agendamento; Playwright para login, agendar, reagendar e cancelar e para as ações do admin. Os scripts desta auditoria servem de ponto de partida.
+
+#### TEST-01 — Regras quebradas sem teste de regressão
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Testes | `*/test*.py` | Confirmado | **Parcialmente resolvido** |
+
+- **Descrição.**
+  - **Melhorou:** +88 testes, com regressão para SEC-01, SEC-02, BUS-01 (incluindo concorrência), BUS-02 e BUS-07.
+  - **Continua sem teste:** BUS-03, BUS-04, BUS-05, BUS-10, BUS-12, BUS-15, BUS-16, BUS-17, AUTH-02, SEC-03 e a **confirmação da recuperação de senha**, que não tem nenhum teste funcional.
+- **Evidência.** Suíte verde (327) com as sondagens falhando nesses pontos; `testes/cobertura-backend.txt` (linhas 427-449 de `accounts/serializers.py` sem cobertura).
+- **Reprodução.** Rodar a suíte e depois as requisições das sondagens.
+- **Resultado atual.** A suíte passa com as regras quebradas.
+- **Resultado esperado.** Cada bug confirmado com um teste que falhe antes da correção.
+- **Impacto.** Falsa sensação de segurança; risco de regressão.
+- **Recomendação.** Escrever primeiro o teste de cada item corrigido.
+
+#### OBS-01 — Sem logs, monitoramento, trilha de auditoria e health check
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Backend / Infra | `config/settings.py` (sem `LOGGING`); `config/urls.py` | Confirmado (código) | Continua presente |
+
+- **Descrição.** Faltam:
+  - configuração de logging e rastreamento de erros;
+  - endpoint de saúde;
+  - registro de quem confirmou, cancelou ou alterou um agendamento.
+- **Evidência.** Busca em settings e URLs.
+- **Reprodução.** Provocar um erro 500 e procurar o registro; consultar um cancelamento e procurar autor e data.
+- **Resultado atual.** Inexistentes.
+- **Resultado esperado.** Logs estruturados, Sentry ou similar, `/health/` e histórico de status.
+- **Impacto.** Erros passam despercebidos; não há como resolver disputas ("quem cancelou?").
+- **Recomendação.** `LOGGING`, integração de erros por variável de ambiente, `/health/` e tabela de histórico de agendamento.
+
+#### OPS-01 — Sem infraestrutura de implantação
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Infra | Raiz; `docker-compose.yml`; `config/urls.py:40` | Confirmado | Continua presente |
+
+- **Descrição.** Faltam:
+  - Dockerfile e CI;
+  - serviço de estáticos e mídia em produção (a mídia só é servida com `DEBUG`);
+  - rotina `flushexpiredtokens`;
+  - backup documentado.
+- **Evidência.** Nenhum Dockerfile, `.github`, Procfile, Makefile, whitenoise ou rotina.
+- **Reprodução.** Subir com `DEBUG=False`: o Django Admin fica sem CSS e a mídia retorna 404.
+- **Resultado atual.** Implantação manual.
+- **Resultado esperado.** Procedimento reproduzível com CI.
+- **Impacto.** Erro humano e regressões sem verificação.
+- **Recomendação.** Dockerfile multi-stage, CI (testes, lint, `tsc`, build, `pip-audit`, `npm audit`), whitenoise ou nginx, armazenamento de mídia e rotinas.
+
+#### DOC-01 — Documentação da API contradiz o comportamento
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Documentação | `docs/arquitetura/DOCUMENTACAO_API.md:77-99,126,142,399` | Confirmado | Continua presente |
+
+- **Descrição.** O documento diverge do comportamento em vários pontos:
+
+  | Documento diz | Comportamento real |
+  |---|---|
+  | Access de 60 min | 15 min |
+  | Refresh no corpo da requisição | Só em cookie |
+  | Logout responde 205 | 204 |
+  | `DELETE /users/{id}/` remove o usuário | Desativa a conta |
+  | Perfil de barbeiro criado depois, em `POST /barbers/` | Criado junto, em `POST /users/` |
+  | Recuperação e relatórios "não implementados" | Existem |
+
+  Também faltam `revenue-report`, `exclude_appointment_id`, `?ativo=all` e o campo `cliente` obrigatório no POST.
+- **Evidência.** Comparação com o código e as sondagens.
+- **Reprodução.** Seguir o documento para o logout com refresh no corpo.
+- **Resultado atual.** A integração pelo documento falha.
+- **Resultado esperado.** Documento fiel, de preferência gerado do código.
+- **Impacto.** Integrações erradas.
+- **Recomendação.** OpenAPI com drf-spectacular, ou revisão contra os testes; trazer as correções da branch `release`.
+
+#### REPO-01 — Virtualenv versionado
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Repositório | `venv312/` | Confirmado | Continua presente |
+
+- **Descrição.** O `venv312/` versionado responde por **4.875 dos 5.112 arquivos** versionados, inclusive binários Linux.
+- **Evidência.** `repositorio/repositorio.txt`.
+- **Reprodução.** `git ls-files | grep -c '^venv312/'`.
+- **Resultado atual.** 4.875.
+- **Resultado esperado.** 0.
+- **Impacto.** Repositório pesado e não portável.
+- **Recomendação.** `git rm -r --cached venv312` num commit dedicado.
+
+#### SA-01 — Sem painel de Super Admin
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Produto | Branch `feature/painel-super-admin` | Confirmado | Continua presente |
+
+- **Descrição.**
+  - A operação da plataforma depende do Django Admin.
+  - No frontend, o superusuário cai no onboarding de dono.
+  - A branch dedicada não tem commits próprios.
+- **Evidência.** `git rev-list` (0 commits à frente); superusuário sem barbearia → `/onboarding`.
+- **Reprodução.** Entrar como superusuário no frontend.
+- **Resultado atual.** Sem tela da plataforma.
+- **Resultado esperado.** Listar, suspender e reativar barbearias e ver métricas, com as ações registradas.
+- **Impacto.** Suporte e suspensão só por acesso direto aos dados.
+- **Recomendação.** Definir o escopo e implementar endpoints restritos ao staff e uma área no frontend.
+
+#### SAAS-01 — Sem notificações, LGPD e cobrança
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Produto | — | Confirmado | Continua presente |
+
+- **Descrição.** Faltam:
+  - confirmação e lembrete de agendamento;
+  - consentimento, exportação e anonimização de dados (hoje "excluir" só desativa e mantém tudo);
+  - planos e cobrança.
+- **Evidência.** Ausência de models, endpoints e telas.
+- **Reprodução.** —
+- **Resultado atual.** Inexistentes.
+- **Resultado esperado.** Épicos com requisitos próprios.
+- **Impacto.** Impede a comercialização e expõe a riscos legais.
+- **Recomendação.** Implementar, nesta ordem: notificações (depende de AUTH-01) → LGPD → planos (depende de SA-01 e BUS-02).
+
+---
+
+### 13.4 Problemas P3 — Baixo (35)
+
+#### FE-13 — "Agendar" após reservar continua mostrando "Horário reservado"
+
+> **Rodada 1 de correções (13/11/2026): Resolvido e verificado.** Detalhes e testes na [seção 18](#18-acompanhamento-das-correções). A descrição abaixo é a original da auditoria.
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Frontend | `frontend/src/pages/AppointmentCreatePage.tsx:67,106`; `frontend/src/components/AppLayout.tsx:235` | Confirmado | **Novo — regressão do redesign** |
+
+- **Descrição.**
+  - O redesign trocou o "toast + ir para Meus agendamentos" pela tela "Horário reservado", guardada no estado `booked`.
+  - A rota continua `/appointments/new` e o layout só remonta a tela quando o caminho muda.
+  - Por isso, clicar em "Agendar" (aba inferior ou menu) **mantém a confirmação** em vez de abrir um novo agendamento.
+- **Evidência.** `navegador/navegador-novo-agendamento-apos-confirmacao.json`:
+  - após confirmar: "Horário reservado";
+  - após clicar na aba "Agendar": **"Horário reservado"**;
+  - só depois de sair e voltar: "Agendar horário".
+  - Captura `fe_reagendar_novamente_mantem_confirmacao.png`.
+- **Reprodução.** Como cliente, concluir um agendamento e tocar em "Agendar" na barra inferior.
+- **Resultado atual.** A mesma tela de confirmação.
+- **Resultado esperado.** Um novo fluxo de agendamento.
+- **Impacto.** Confunde quem quer marcar outro horário; o contorno é ir a outra tela.
+- **Recomendação.** Limpar `booked` quando a navegação ocorrer (por exemplo, usando `location.key` como `key` do layout ou observando a localização), ou navegar para uma rota própria de confirmação.
+
+#### FE-14 — Barbearia desativada e dia da semana ignorados no status "Aberta"
+
+> **Rodada 2 de correções (13/11/2026): Resolvido e verificado.** Detalhes e testes na [seção 19](#19-rodada-2--13112026-fe-14-fe-21-e-fe-22-somente-frontend). A descrição abaixo é a original da auditoria.
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Frontend | `frontend/src/components/AppLayout.tsx:296-310`; `frontend/src/utils/shop.ts:13` | Confirmado | **Novo** |
+
+- **Descrição.** O resumo lateral calcula "Aberta até HH:MM" só pelo horário. Ignora o campo `ativo` da barbearia e o dia da semana. Nenhuma tela usa `barbershop.ativo`.
+- **Evidência.** `navegador/navegador-testes-dirigidos.json`: com a barbearia desativada, `adminVeAviso=false` e lateral "**Aberta até 19:00**". Só ao clicar em "Confirmar" aparece o toast do backend (`barbearia_desativada_painel_admin.png`).
+- **Reprodução.** Desativar a barbearia pela plataforma e abrir o painel.
+- **Resultado atual.** A barbearia aparece "Aberta".
+- **Resultado esperado.** Faixa de aviso "Barbearia desativada" e status coerente.
+- **Impacto.** O admin descobre a desativação por tentativa e erro.
+- **Recomendação.** Ler `ativo` no `BarbershopContext` e exibir um aviso global; incluir os dias de funcionamento quando BUS-06 for resolvido.
+
+#### FE-03 — Falha de recarga sem aviso
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Frontend | `frontend/src/hooks/useAsyncData.ts`; telas com `error && !data` (por exemplo, `AdminAppointmentsPage.tsx:154`) | Confirmado | Continua presente (**agora reproduzido**) |
+
+- **Descrição.** As telas só mostram erro quando não há dados. Uma recarga que falha com dados na tela não avisa nada.
+- **Evidência.** API derrubada e clique em "Atualizar" → nenhum texto novo nem mensagem (`mensagemDeErroVisivel=false`; `fe03_recarga_falhou_sem_aviso.png`).
+- **Reprodução.** Abrir "Agendamentos", parar a API e clicar em "Atualizar".
+- **Resultado atual.** Dados antigos, sem indicação.
+- **Resultado esperado.** "Não foi possível atualizar; mostrando dados de HH:MM".
+- **Impacto.** Decisões tomadas com dados desatualizados.
+- **Recomendação.** Exibir toast ou faixa quando houver `error` com dados presentes.
+
+#### FE-15 — Requisições sem tempo limite
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Frontend | `frontend/src/api/client.ts:10-14` | Confirmado | **Novo** |
+
+- **Descrição.** O cliente axios não define `timeout`. Com a API travada, sem cair, as telas ficam carregando indefinidamente.
+- **Evidência.** API pausada (`SIGSTOP`): "Atualizar" desabilitado e barra de progresso sem fim (`admin_desktop_recarga_com_api_pausada.png`).
+- **Reprodução.** Pausar o processo da API e recarregar uma lista.
+- **Resultado atual.** Espera sem limite.
+- **Resultado esperado.** Erro após um prazo (por exemplo, 15 s), com "Tentar novamente".
+- **Impacto.** Interface aparentemente congelada.
+- **Recomendação.** `timeout` no `axios.create` e tratamento de `ECONNABORTED` em `errorMessage`.
+
+#### FE-16 — "1.000" no preço vira R$ 1,00
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Frontend | `frontend/src/utils/format.ts:171-178`; `AdminServicesPage.tsx:23,88` | Confirmado (função reproduzida isoladamente) | **Novo** |
+
+- **Descrição.** Sem vírgula, o ponto é tratado como separador decimal, então o ponto de milhar brasileiro é lido errado.
+- **Evidência.** `"1.250"` → `1.25`; `"1.000"` → `1.00`; `"1.250,00"` → `1250.00`, correto.
+- **Reprodução.** Cadastrar um serviço com preço "1.000".
+- **Resultado atual.** Gravado como R$ 1,00, sem aviso.
+- **Resultado esperado.** R$ 1.000,00, ou um pedido de confirmação quando a entrada for ambígua.
+- **Impacto.** Preço errado entra no histórico financeiro. É raro em barbearias, mas silencioso.
+- **Recomendação.** Tratar `\d{1,3}(\.\d{3})+` sem vírgula como milhar; mostrar o valor interpretado ao lado do campo.
+
+#### FE-04 — Contador "a confirmar" inclui vencidos
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Frontend / Produto | `frontend/src/components/AppLayout.tsx:316-346` | Confirmado | **Parcialmente resolvido** |
+
+- **Descrição.** O rótulo agora diz "a confirmar no total" ("em todas as datas"), mas a contagem continua incluindo horários que já passaram.
+- **Evidência.** Painel com "**40 a confirmar no total**", dos quais 22 vencidos (`admin_desktop_painel_completo.png`, sondagem BUS-08).
+- **Reprodução.** Ter horários passados com status "agendado".
+- **Resultado atual.** Contados como pendentes.
+- **Resultado esperado.** Só futuros; vencidos em indicador separado.
+- **Impacto.** Número inflado.
+- **Recomendação.** Filtro de data na API (API-01) e status de desfecho (BUS-08).
+
+#### FE-17 — Contratos de API e tipos divergentes
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Integração | `frontend/src/types/index.ts:61`; `MyAppointmentsPage.tsx:114`; `frontend/src/api/endpoints.ts:71,114-117`; `appointments/serializers.py:31-36` | Confirmado | **Novo** |
+
+- **Descrição.**
+  - O tipo `Appointment.barbeiro_especialidade` não existe na API: é sempre `undefined`, e o trecho que o exibe nunca aparece.
+  - `userApi.list({tipo_perfil})` envia um filtro que a API ignora.
+  - A API exige `cliente` no POST mesmo quando quem agenda é o próprio cliente, e depois sobrescreve o valor. O contrato não está documentado.
+- **Evidência.** CTR-02: POST sem `cliente` → 400 "Este campo é obrigatório"; leitura do serializer e dos tipos.
+- **Reprodução.** `POST /appointments/` como cliente sem o campo `cliente`.
+- **Resultado atual.** 400; o frontend contorna enviando `user.id`.
+- **Resultado esperado.** Tipos gerados a partir do esquema da API; `cliente` opcional e ignorado para clientes.
+- **Impacto.** Erros de integração em novos clientes da API; código que nunca executa.
+- **Recomendação.** Esquema OpenAPI (DOC-01) com tipos gerados; `cliente` como `required=False` e preenchido em `perform_create`.
+
+#### FE-18 — Textos que prometem o que o sistema não faz
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Frontend | `AppointmentCreatePage.tsx:248,308` | Confirmado | **Novo** |
+
+- **Descrição.**
+  - "O preço e a duração ficam registrados no agendamento": a duração não é registrada (BUS-09).
+  - O alerta da etapa de horário sempre começa com "Esse horário não está mais disponível.", mesmo quando o erro é outro (barbearia desativada, barbeiro inativo) e o usuário volta a essa etapa.
+- **Evidência.** Leitura do código e a sondagem BUS-09.
+- **Reprodução.** Comparar o texto com o comportamento descrito em BUS-09.
+- **Resultado atual.** Promessas imprecisas.
+- **Resultado esperado.** Textos fiéis ao que o sistema faz.
+- **Impacto.** Expectativa errada do usuário.
+- **Recomendação.** Ajustar os textos ou corrigir BUS-09; usar o título do alerta só para erros de conflito (`data_hora`).
+
+#### FE-19 — Links de texto pequenos para toque nas telas públicas
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Frontend / Acessibilidade | `LoginPage.tsx`, `RegisterPage.tsx`, `PasswordReset*Page.tsx`, `AuthLayout.tsx` | Confirmado | **Novo** |
+
+- **Descrição.** No celular, links como "Criar conta" (73×16 px), "Entrar" (41×16), "Voltar para o login" (120×16), "Esqueci minha senha" e "Conheça o BarberPro" (22 px de altura) ficam abaixo de 24 px de altura. Os contatos clicáveis da página inicial do cliente têm 22 px.
+- **Evidência.** `navegador/navegador-resultados.json` (`smallTargets` nas telas públicas e na inicial do cliente). Os botões e controles do app têm todos ≥ 24 px.
+- **Reprodução.** Abrir `/login` com 390 px de largura e medir.
+- **Resultado atual.** Alvos estreitos.
+- **Resultado esperado.** Altura de toque ≥ 24 px (WCAG 2.5.8), de preferência 44 px.
+- **Impacto.** Toques errados em telas pequenas. Links dentro de frases têm exceção na norma.
+- **Recomendação.** `padding-block` e `display: inline-block` nos links isolados.
+
+#### FE-20 — Filtro de status cortado e busca truncada no celular
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Frontend (visual) | `AdminAppointmentsPage.tsx:117`; `ui.module.css` (controle segmentado) | Confirmado | **Novo** |
+
+- **Descrição.** Com 390 px, o controle segmentado de status corta "Confi…" sem sinal de rolagem horizontal, e o placeholder da busca aparece truncado ("…ou barbei").
+- **Evidência.** `admin_celular_admin_appointments.png`.
+- **Reprodução.** Abrir Agendamentos (admin) com 390 px.
+- **Resultado atual.** O último filtro fica oculto.
+- **Resultado esperado.** Indicação de rolagem (degradê ou seta) ou quebra em duas linhas; placeholder curto.
+- **Impacto.** Os filtros "Realizado" e "Cancelado" ficam menos visíveis.
+- **Recomendação.** Máscara de degradê nas bordas ou `flex-wrap`; placeholder "Buscar".
+
+#### FE-05 — Fuso horário fixo no frontend
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Integração | `frontend/src/utils/format.ts:9` | Confirmado (código) | Continua presente |
+
+- **Descrição.** `SHOP_TZ = 'America/Sao_Paulo'` está fixo no código; o backend usa `TIME_ZONE`.
+- **Evidência.** Código.
+- **Reprodução.** Alterar `TIME_ZONE` no backend.
+- **Resultado atual.** A interface continua no horário de Brasília.
+- **Resultado esperado.** Fuso vindo da API, por barbearia.
+- **Impacto.** Divergência se a barbearia estiver em outro fuso.
+- **Recomendação.** Expor o fuso em `/barbershops/` e usá-lo.
+
+#### FE-06 — Sem página 404
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Frontend | `frontend/src/App.tsx:65` | Confirmado | Continua presente |
+
+- **Descrição.** Rota inexistente redireciona silenciosamente.
+- **Evidência.** `/pagina-que-nao-existe` (deslogado) → `/login`; logado → início do perfil.
+- **Reprodução.** Acessar uma URL inválida.
+- **Resultado atual.** Redireciona sem aviso.
+- **Resultado esperado.** Página "não encontrada".
+- **Impacto.** Links quebrados passam despercebidos.
+- **Recomendação.** Rota `*` com página 404 na identidade visual.
+
+#### FE-07 — Código morto
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Frontend | `frontend/src/components/Icons.tsx`; `api/endpoints.ts:90,139-147`; `utils/format.ts:24,132`; `assets/brand/index.ts` | Confirmado | Continua presente (ampliado) |
+
+- **Descrição.** Sem uso:
+  - **17 ícones:** Razor, Chair, Minus, Filter, Trash, Settings, Key, Lock, Bell, XCircle, AlertTriangle, TrendingUp, Receipt, Analytics, Star, Badge, Building;
+  - **funções:** `getTotalServices`, `getTotalBarbers`, `formatDateTime`, `isPast` e `appointmentApi.revenueReport` (a interface não usa o relatório da API);
+  - **logos:** o objeto `logo` importa as variantes "emblema", que entram no build (cerca de 30 kB de SVG) sem uso.
+- **Evidência.** Busca de referências.
+- **Reprodução.** Buscar cada símbolo em `frontend/src`.
+- **Resultado atual.** Código sem uso.
+- **Resultado esperado.** Nenhuma exportação sem uso.
+- **Impacto.** Ruído e bytes extras.
+- **Recomendação.** Remover; adotar `knip` ou `ts-prune`.
+
+#### FE-09 — Sem tela de logo; barbeiro não reagenda
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Frontend | `AdminBarbershopPage.tsx`; `BarberAgendaPage.tsx` | Confirmado | Continua presente |
+
+- **Descrição.** A API aceita a logo e o reagendamento pelo barbeiro, mas as telas não oferecem essas ações.
+- **Evidência.** Nenhuma ocorrência de "logo" ou "Reagendar" nessas telas.
+- **Reprodução.** Abrir "Dados da barbearia" e "Minha agenda".
+- **Resultado atual.** Funcionalidades inacessíveis.
+- **Resultado esperado.** Upload com prévia (depois de SEC-09); decisão sobre o reagendamento pelo barbeiro.
+- **Impacto.** Funções da API sem uso.
+- **Recomendação.** Implementar as telas ou declará-las fora do escopo.
+
+#### FE-11 — Painel e relatório da API calculam o faturamento de formas diferentes
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Integração | `AdminDashboardPage.tsx:47-118`; `appointments/views.py:272-383` | Confirmado | Continua presente (**agora reproduzido**) |
+
+- **Descrição.** O painel soma no navegador os últimos **30 dias**, de hoje−29 até hoje. O `revenue-report` usa **31 dias**, de hoje−30 até hoje, e agrupa o dia em UTC.
+- **Evidência.** `api/fe11-duas-fontes-de-faturamento.txt`: painel **R$ 14.645** (293 atendimentos) contra API **R$ 15.215** (305): **R$ 570** de diferença.
+- **Reprodução.** Comparar o "Faturamento, 30 dias" do painel com `GET /appointments/revenue-report/`.
+- **Resultado atual.** Números diferentes para o "mesmo" período.
+- **Resultado esperado.** Uma única fonte, com período idêntico.
+- **Impacto.** Desconfiança nos números se a API for exposta a outro consumidor.
+- **Recomendação.** Endpoint de métricas no backend (no fuso local), consumido pelo painel.
+
+#### API-02 — Relatório agrupa o dia em UTC
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Backend | `appointments/views.py:351-356` | Confirmado | Continua presente (**agora reproduzido**) |
+
+- **Descrição.** `qs.extra(select={'date': 'DATE(data_hora)'})` agrupa pelo dia em UTC. O filtro do período usa o dia local, então o relatório chega a listar uma data fora do período pedido.
+- **Evidência.** Sondagem API-02: relatório com `start=end=2026-11-12` devolve `daily` com **2026-11-13** (o atendimento de 12/11 às 22:30).
+- **Reprodução.** Um realizado depois das 21:00 locais; `revenue-report?start=<dia>&end=<dia>`.
+- **Resultado atual.** Dia seguinte.
+- **Resultado esperado.** Dia local.
+- **Impacto.** Faturamento diário deslocado.
+- **Recomendação.** `TruncDate('data_hora', tzinfo=ZoneInfo(TIME_ZONE))` com `values().annotate()`, sem `.extra()`; teste noturno.
+
+#### BUS-10 — Horários livres para datas passadas
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Backend | `appointments/views.py:266` | Confirmado | Continua presente |
+
+- **Descrição.** Os horários já passados só são descartados quando a data consultada é hoje.
+- **Evidência.** Sondagem BUS-10: ontem → **14 horários**.
+- **Reprodução.** `available-slots?data=<ontem>`.
+- **Resultado atual.** Lista preenchida.
+- **Resultado esperado.** Lista vazia ou 400.
+- **Impacto.** Inconsistência da API; o frontend não oferece datas passadas.
+- **Recomendação.** Retornar vazio para `data < hoje`; teste.
+
+#### BUS-18 — Validações de cadastro fracas
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Backend | `barbershops/models.py:20`; `services/models.py:17-23`; `services/serializers.py:13-21`; `appointments/models.py:86` | Confirmado | **Novo** |
+
+- **Descrição.** A API aceita:
+  - telefone com qualquer texto;
+  - serviços com nome duplicado no mesmo tenant;
+  - duração de 100.000 min e preço de 999.999,99;
+  - observações de agendamento sem limite de tamanho (o frontend limita a 500).
+- **Evidência.** Sondagem complementar: VAL-01, VAL-02 e VAL-03 → **200, 201 e 201**.
+- **Reprodução.** As requisições de VAL-01 a VAL-03.
+- **Resultado atual.** Dados inválidos aceitos.
+- **Resultado esperado.** 400 com mensagens.
+- **Impacto.** Dados ruins no cadastro; serviços que nunca cabem na agenda.
+- **Recomendação.** Validadores de formato e de faixa; unicidade de nome por barbearia; `max_length` nas observações.
+
+#### BUS-19 — Sem segundo admin nem transferência de titularidade
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Backend / Produto | `accounts/serializers.py:76-84,235-240`; `accounts/admin_integrity.py` | Confirmado (código) | **Novo** (efeito colateral do BUS-01) |
+
+- **Descrição.**
+  - Nenhum endpoint cria um admin ou promove alguém a admin.
+  - Com a regra do BUS-01, o único admin não pode ser rebaixado nem desativado.
+  - A titularidade só muda pelo Django Admin, com ação do superusuário.
+- **Evidência.** `validate_tipo_perfil` recusa `admin` na criação e na edição; testes `test_recuperacao_*` usam o Django Admin.
+- **Reprodução.** Tentar criar ou promover um admin pela API → 400.
+- **Resultado atual.** Uma barbearia tem sempre um único admin, insubstituível pela aplicação.
+- **Resultado esperado.** Convite de coadministrador e transferência auditada.
+- **Impacto.** Venda da barbearia, saída do dono ou LGPD exigem suporte manual.
+- **Recomendação.** Fluxo de convite de admin com confirmação e registro.
+
+#### SEC-06 — Chave antiga no histórico do git
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Repositório | `core/settings.py` no commit `3f46df2` | Confirmado | Continua presente |
+
+- **Descrição.** Uma `SECRET_KEY` fixa permanece no histórico. O repositório tem remoto no GitHub (`origin`); a visibilidade não foi verificada.
+- **Evidência.** `git grep -c` no commit (1 ocorrência; valor não exibido).
+- **Reprodução.** `git log --all -- core/settings.py`.
+- **Resultado atual.** Chave no histórico.
+- **Resultado esperado.** Chave comprovadamente não usada, ou histórico limpo.
+- **Impacto.** Nenhum, se a chave nunca foi nem for usada; a chave atual é outra (SEC-01).
+- **Recomendação.** Declarar que a chave antiga não é usada; se o repositório for público, avaliar `git filter-repo`.
+
+#### SEC-08 — Sem verificação de e-mail no cadastro
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Backend | `accounts/views.py:119-130`; `barbershops/views.py` (`perform_create`) | Confirmado (código) | Continua presente |
+
+- **Descrição.** Qualquer pessoa cria uma conta e uma barbearia sem confirmar o e-mail.
+- **Evidência.** Código; sondagem PROD-01 (conta criada e já ativa).
+- **Reprodução.** Cadastrar com um e-mail inexistente.
+- **Resultado atual.** Entra direto.
+- **Resultado esperado.** Confirmação por link antes do onboarding.
+- **Impacto.** Tenants de spam; contas inacessíveis por e-mail digitado errado.
+- **Recomendação.** Verificação por token (depende de AUTH-01).
+
+#### SEC-10 — Oráculo de existência de IDs
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Backend | `appointments/serializers.py:82-97`; `appointments/views.py:203-213`; `config/permissions.py` (`IsSelfOrAdmin`) | Confirmado | **Novo** |
+
+- **Descrição.**
+  - Para IDs de outra barbearia, a API responde "Este barbeiro não pertence à sua barbearia"; para IDs inexistentes, "Pk inválido".
+  - `exclude_appointment_id` distingue "não pertence" de "não encontrado".
+  - Um cliente que consulta outro cliente por id recebe 403, que revela a existência, em vez de 404.
+- **Evidência.** Sondagem ISO-22, ISO-23 e PER-13.
+- **Reprodução.** POST de agendamento com `barbeiro` de outra barbearia e com um ID inexistente; comparar as mensagens.
+- **Resultado atual.** Mensagens distintas.
+- **Resultado esperado.** A mesma resposta 400/404 genérica.
+- **Impacto.** Permite mapear IDs de outras barbearias. Os dados não vazam: o isolamento continua.
+- **Recomendação.** Querysets dos campos relacionados filtrados pelo tenant; 404 para objetos alheios.
+
+#### SEC-11 — Configurações de desenvolvimento inseguras se reaproveitadas
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Configuração | `.env` local (`DEBUG=True`, `CORS_ALLOWED_ORIGINS` com `localhost:3000`); `config/settings.py:127`; `config/test_postgres_settings.py:12`; `docker-compose.yml:10` | Confirmado | **Novo** |
+
+- **Descrição.**
+  - Com o `.env` atual, rotas inexistentes exibem a página técnica do Django com a lista de URLs.
+  - O CORS libera uma origem que não é usada.
+  - Usuário e senha padrão de desenvolvimento do banco estão escritos no código e no compose (valores não reproduzidos aqui).
+- **Evidência.** Sondagem SES-12 ("Django tried these URL patterns") e SES-08.
+- **Reprodução.** `GET /api/v1/rota-inexistente/` com o `.env` atual.
+- **Resultado atual.** Página de debug.
+- **Resultado esperado.** Em qualquer ambiente acessível por terceiros, `DEBUG=False`, sem credenciais padrão e CORS mínimo.
+- **Impacto.** Baixo em uso local; alto se esse `.env` ou essas credenciais forem usados num servidor.
+- **Recomendação.** Remover os valores padrão com credenciais (exigir `DATABASE_URL`); revisar `CORS_ALLOWED_ORIGINS`; checklist de implantação.
+
+#### DEP-02 — Frontend com 14 vulnerabilidades conhecidas
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Dependências | `frontend/package-lock.json` | Confirmado | **Novo** |
+
+- **Descrição.**
+  - São 7 vulnerabilidades altas e 7 moderadas.
+  - Em tempo de execução: axios 1.19.0 (12 avisos, a maioria nos adaptadores de Node) e zod 3.25 (consumo de memória).
+  - O restante está em ferramentas de build e de desenvolvimento: vite 6.4.3, brace-expansion, js-yaml, source-map-js, minimatch, typescript-eslint.
+- **Evidência.** `dependencias/frontend-npm-audit-outdated.txt`.
+- **Reprodução.** `npm audit`.
+- **Resultado atual.** 14 avisos; correção disponível por `npm audit fix` (o zod exige versão maior).
+- **Resultado esperado.** 0 altas.
+- **Impacto.** Baixo no navegador; o servidor de desenvolvimento do Vite tem avisos de leitura de arquivos.
+- **Recomendação.** `npm audit fix` e atualização de axios e vite; avaliar zod 4 com testes.
+
+#### DATA-02 — Preços históricos antigos estimados
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Banco | `appointments/migrations/0008_populate_preco_historico.py` | Confirmado | Continua presente |
+
+- **Descrição.** Agendamentos anteriores à 0007 receberam o preço vigente na migração, o que a própria migração documenta como estimativa.
+- **Evidência.** Cabeçalho da migração.
+- **Reprodução.** Ler o arquivo.
+- **Resultado atual.** Valores estimados.
+- **Resultado esperado.** Limitação declarada nos relatórios.
+- **Impacto.** Relatórios antigos podem não refletir o valor cobrado.
+- **Recomendação.** Documentar o período afetado.
+
+#### DATA-03 — Divergência de collation
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Banco | Servidor PostgreSQL do host (banco do app) | Confirmado | Continua presente |
+
+- **Descrição.** O banco foi criado com collation 2.43 e o sistema operacional fornece 2.44.
+- **Evidência.** Aviso a cada conexão; `banco/integridade-banco-real-somente-leitura.txt`.
+- **Reprodução.** Qualquer comando Django contra o banco do app.
+- **Resultado atual.** Aviso constante.
+- **Resultado esperado.** Sem aviso.
+- **Impacto.** Índices de texto, como o `unique` de e-mail, podem ficar inconsistentes em casos raros.
+- **Recomendação.** Com backup: `REINDEX DATABASE` e `ALTER DATABASE … REFRESH COLLATION VERSION`.
+
+#### DB-02 — Regras de negócio sem constraints no banco
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Banco | `services/models.py`; `barbershops/models.py`; `appointments/models.py`; `accounts/models.py` | Confirmado | **Novo** |
+
+- **Descrição.** O banco não impede:
+  - duração ≤ 0;
+  - preço negativo;
+  - fechamento ≤ abertura;
+  - status fora da lista;
+  - e-mail duplicado por maiúsculas;
+  - sobreposição de agendamentos do mesmo barbeiro.
+
+  Toda a integridade depende da aplicação, e caminhos fora da API (Django Admin, shell, SQL) a contornam, como mostra o SEC-07.
+- **Evidência.** Migrações e models: só PK, FK, `unique(email)` e `OneToOne`.
+- **Reprodução.** Inserir um serviço com `duracao=0` pelo ORM (SEC-07).
+- **Resultado atual.** Aceito.
+- **Resultado esperado.** `CheckConstraint` e `UniqueConstraint(Lower('email'))`; opcionalmente uma constraint de exclusão (`btree_gist`) por barbeiro e intervalo.
+- **Impacto.** Dados inválidos possíveis fora da API.
+- **Recomendação.** Adicionar as constraints com migração, depois de checar os dados existentes.
+
+#### MAINT-01 — Componentes grandes, estilos inline, duplicação e código morto no backend
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Código | `AppointmentCreatePage.tsx` (508 linhas), `AppLayout.tsx` (424), `AdminDashboardPage.tsx` (397), `ui.module.css` (1.096); `barbershops/views.py:83-135` e `services/views.py:30-75`; `appointments/models.py:370-381`; `config/permissions.py:39` | Confirmado | **Novo** |
+
+- **Descrição.**
+  - Componentes com várias responsabilidades.
+  - 45 usos de `style={{…}}` e algumas cores literais fora de `design-tokens.css` (por exemplo, `ui.module.css:897-898`).
+  - Lógica do filtro `ativo` duplicada entre os ViewSets de barbeiros e serviços.
+  - Código morto: `_validar_campos_cliente_nao_autorizados` (método incompleto, nunca chamado) e `IsClientRole` (nunca usada).
+  - Comentário com erro de digitação em `appointments/views.py:47`.
+- **Evidência.** Contagens e buscas.
+- **Reprodução.** —
+- **Resultado atual.** Manutenção mais cara.
+- **Resultado esperado.** Componentes menores, tokens em vez de literais, filtro compartilhado.
+- **Impacto.** Baixo, mas acumulativo.
+- **Recomendação.** Extrair os passos do agendamento e as seções do painel; mixin para o filtro `ativo`; remover o código morto.
+
+#### DOC-02 — README com instruções incorretas
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Documentação | `README.md` | Confirmado | Continua presente (ampliado) |
+
+- **Descrição.** O README diz que:
+  - `python manage.py test` usa SQLite em memória, mas usa o banco do `.env`, criando um banco de teste no servidor;
+  - existe um proxy do Vite para a porta 8000, mas `vite.config.ts` não tem proxy;
+  - o banco roda "via Docker", mas o app usa o PostgreSQL do host (DB-01).
+- **Evidência.** `README.md`; `vite.config.ts`; `config/test_settings.py`.
+- **Reprodução.** Seguir o README.
+- **Resultado atual.** Instruções divergentes.
+- **Resultado esperado.** README fiel ao ambiente.
+- **Impacto.** Quem segue o README testa ou executa em outro banco.
+- **Recomendação.** Reescrever as seções de execução e testes.
+
+#### DOC-03 — Comentários obsoletos sobre o app `core`
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Documentação | `accounts/models.py:7`; `config/settings.py:72` | Confirmado | Continua presente |
+
+- **Descrição.** Comentários citam o antigo app `core`.
+- **Evidência.** Busca.
+- **Reprodução.** `grep -n core accounts/models.py config/settings.py`.
+- **Resultado atual.** Referências obsoletas.
+- **Resultado esperado.** `config.mixins` e a lista atual de apps.
+- **Impacto.** Confusão.
+- **Recomendação.** Atualizar os comentários.
+
+#### DOC-04 — Índice de `docs/` e comentários desatualizados
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Documentação | `docs/README.md`; `config/settings.py:218-219` | Confirmado | **Novo** |
+
+- **Descrição.**
+  - O índice de `docs/` aponta `RELATORIO_ENTREGA_FINAL.md` como documento principal e não cita a auditoria oficial nem as pastas de evidências.
+  - O comentário do `settings.py` afirma que o access token é mantido só em memória (SEC-04).
+- **Evidência.** Leitura dos arquivos.
+- **Reprodução.** —
+- **Resultado atual.** Índice e comentário desatualizados.
+- **Resultado esperado.** Índice com a auditoria oficial e o histórico; comentário fiel.
+- **Impacto.** Avaliadores encontram primeiro um relatório antigo.
+- **Recomendação.** Atualizar `docs/README.md` e o comentário.
+
+#### REPO-02 — Arquivos soltos e pastas fora do `.gitignore`
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Repositório | Raiz; `.gitignore` | Confirmado | Continua presente (ampliado) |
+
+- **Descrição.**
+  - Continuam na raiz: `gerar_zip.py`, `db.sqlite3`, `test.db` vazio, `outputs/`, `work/`, 21 rascunhos em `docs/auditorias/historico/`.
+  - Novos e **fora do `.gitignore`**:
+    - `.codex/` (hooks de ferramenta);
+    - `.impeccable/`;
+    - `references/`, com cópias de HTML de sites de terceiros (direitos autorais);
+    - `media/` (uploads) e `staticfiles/`.
+- **Evidência.** `repositorio/repositorio.txt`; `.gitignore`.
+- **Reprodução.** `git status`.
+- **Resultado atual.** Risco de versionar material de terceiros e uploads.
+- **Resultado esperado.** Raiz limpa e `.gitignore` cobrindo as ferramentas locais.
+- **Impacto.** Repositório confuso e risco legal.
+- **Recomendação.** Atualizar o `.gitignore` e mover os rascunhos.
+
+#### REPO-03 — Branches dessincronizadas
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Repositório | Branches | Confirmado | Continua presente |
+
+- **Descrição.**
+  - `master` está 31 commits atrás de `desenvolvimento`.
+  - `feature/painel-super-admin` está 1 atrás, sem commits próprios.
+  - `release/barberpro-academica-v1` tem 1 commit próprio (`67ef6e3`).
+- **Evidência.** `git rev-list --count` (`repositorio/repositorio.txt`).
+- **Reprodução.** Os mesmos comandos.
+- **Resultado atual.** Sem branch de referência clara.
+- **Resultado esperado.** Fluxo de branches documentado.
+- **Impacto.** Correções presas na `release`.
+- **Recomendação.** Definir o fluxo e sincronizar.
+
+#### TEST-02 — Cobertura não medida pelo projeto
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Testes | `requirements.txt` | Confirmado | Continua presente |
+
+- **Descrição.** O projeto não tem `coverage`. Esta auditoria mediu 91% com a ferramenta instalada fora do projeto.
+- **Evidência.** `testes/cobertura-backend.txt`.
+- **Reprodução.** `coverage run manage.py test` não está disponível no ambiente do projeto.
+- **Resultado atual.** Sem medição contínua.
+- **Resultado esperado.** Cobertura no CI, com meta.
+- **Impacto.** Lacunas como a da confirmação de senha passam despercebidas.
+- **Recomendação.** `coverage` como dependência de desenvolvimento, com meta mínima no CI.
+
+#### FE-12 — Banco real quase vazio para a demonstração
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Dados / Apresentação | Banco do app (somente leitura) | Confirmado | Continua presente |
+
+- **Descrição.** O banco do app tem 2 barbearias, 8 usuários, 2 serviços e **2 agendamentos**.
+- **Evidência.** `banco/integridade-banco-real-somente-leitura.txt`.
+- **Reprodução.** Entrar como admin e abrir o painel.
+- **Resultado atual.** Painel, gráficos e quadro do dia quase vazios.
+- **Resultado esperado.** Tenant de demonstração com histórico real, manipulável pela aplicação.
+- **Impacto.** A demonstração não mostra os indicadores. As capturas desta auditoria mostram como fica com dados.
+- **Recomendação.** Comando `seed_demo` idempotente num tenant separado. `scripts/seed.py` serve de base, adaptado para não fixar senhas.
+
+---
+
+## 14. Problemas não verificáveis e limitações
+
+| # | Item | Por que não foi verificado | Risco que permanece | Como verificar |
+|---|---|---|---|---|
+| NV-1 | Entrega real de e-mail | Não há SMTP configurado; enviar a terceiros está fora do escopo | A recuperação de senha pode falhar mesmo com o SMTP configurado | Backend de console ou Mailpit e solicitar a recuperação |
+| NV-3 | Leitor de tela (NVDA, VoiceOver, TalkBack) | Indisponível no ambiente; validados axe-core, teclado e ARIA | Problemas de anúncio e ordem de leitura | Percorrer login, agendamento e painel com leitores reais |
+| NV-4 | Chrome, Safari, Edge e aparelhos físicos | Só o Firefox estava disponível; tamanhos simulados | Diferenças de renderização (por exemplo, `inert`, controles de data e hora) | Repetir `scripts/audit.mjs` com Chromium e WebKit e testar em celulares reais |
+| NV-6 | Visibilidade do repositório no GitHub | Exigiria consulta autenticada a serviço externo | Se for público, a chave antiga (SEC-06) e a auditoria anterior estão expostas | Conferir no GitHub |
+| NV-7 | Carga e desempenho em volume real | Base de teste com 419 agendamentos; sem teste de carga | O crescimento linear (API-01) foi demonstrado, mas o limite prático não foi medido | Popular 10 mil agendamentos e medir o painel |
+| NV-8 | Implantação em produção (HTTPS, proxy, `DEBUG=False`) | Não há infraestrutura de produção (OPS-01); só `check --deploy` | Comportamento real de cookies `Secure`, CSP e estáticos | Ambiente de homologação |
+
+Limitações de método:
+
+- Revisão manual de layout feita por amostragem de capturas, em 3 das 5 larguras.
+- As métricas automáticas (rolagem, alvos de toque, erros) cobriram todas as 105 combinações.
+- As telas do frontend que **não** mudaram desde a auditoria anterior foram lidas por diff e testadas no navegador, mas não relidas linha a linha: Onboarding, Register, PasswordReset, Account.
+- NV-2 e NV-5 da auditoria anterior foram resolvidos como verificações nesta (seção 12.2).
+
+---
+
+## 15. Matriz de prioridades
+
+Esforço estimado:
+
+- **baixo:** até meio dia, com teste;
+- **médio:** de 1 a 3 dias;
+- **alto:** uma semana ou mais, ou decisão de produto.
+
+| Severidade \ Esforço | Baixo | Médio | Alto |
 |---|---|---|---|
-| 1 | SEC-01 | Baixo | Gerar nova chave; validação de tamanho em `settings.py`. Encerra sessões existentes |
-| 2 | SEC-02 | Baixo | Permissão de admin na action |
-| 3 | BUS-01 | Baixo | Bloquear autorrebaixamento/autodesativação e último admin |
-| 4 | BUS-03 | Baixo | Voltar para "agendado" no reagendamento pelo cliente |
-| 5 | BUS-04 | Baixo | Revalidar horário na troca de serviço |
-| 6 | BUS-05 | Baixo | Validar fechamento > abertura |
-| 7 | BUS-07 | Baixo | "Realizado" só após o início |
-| 8 | TEST-01 | Baixo/médio | Testes de regressão dos itens 2 a 7 |
-| 9 | FE-12 | Baixo (opcional) | `seed_demo` com dados reais num tenant próprio |
+| **P1** | BUS-15, BUS-03, BUS-04, BUS-05 | AUTH-01 | BUS-06, PROD-01 |
+| **P2** | BUS-12, BUS-16, SEC-03, SEC-07, SEC-09, DATA-01, DB-01, FE-01 | BUS-02, BUS-17, AUTH-02, SEC-04, SEC-05, DEP-01, BUS-08, BUS-09, BUS-11, BUS-13, BUS-14, API-01, FE-02, TEST-01, OBS-01, DOC-01, REPO-01 | OPS-01, SA-01, SAAS-01 |
+| **P3** | FE-13, FE-14, FE-03, FE-15, FE-16, FE-17, FE-18, FE-19, FE-20, FE-06, FE-07, API-02, BUS-10, SEC-10, SEC-11, DEP-02, DOC-02, DOC-03, DOC-04, REPO-02 | FE-04, FE-05, FE-09, FE-11, BUS-18, BUS-19, DATA-03, DB-02, MAINT-01, REPO-03, TEST-02, FE-12 | SEC-08, SEC-06 (se o histórico precisar ser limpo), DATA-02 (documentar) |
+
+Leitura sugerida:
+
+- **canto superior esquerdo:** P1 de baixo esforço, o maior ganho por hora;
+- **diagonal P2 baixo:** riscos operacionais baratos;
+- **coluna "alto":** decisões de produto que não cabem antes da apresentação.
+
+---
+
+## 16. Plano recomendado de correção
+
+A ordem é sugestão; a decisão é do dono do projeto. Cada correção deve vir com um teste de regressão escrito antes, que falhe no código atual.
+
+### Fase 0 — Antes da apresentação de 17/11
+
+Alterações pequenas, de baixo risco:
+
+| Ordem | Item | Esforço | Por que agora |
+|---|---|---|---|
+| 1 | DB-01 | Baixo | Garantir que a demonstração rode no banco migrado (o do `.env`) e alinhar README e compose, ou migrar o container |
+| 2 | FE-12 | Baixo | Tenant de demonstração com histórico, para mostrar painel, caixa e quadro do dia |
+| 3 | BUS-15 | Baixo | Status inicial sempre "agendado" |
+| 4 | BUS-03 | Baixo | Reagendar volta a "agendado" |
+| 5 | BUS-05 | Baixo | Validação de fechamento > abertura na API |
+| 6 | BUS-04 | Baixo | Revalidar o horário na troca de serviço |
+| 7 | FE-13 | Baixo | Reiniciar o fluxo de agendamento (regressão visível) |
+| 8 | SEC-03 | Baixo | Ocultar o e-mail dos barbeiros para clientes |
+| 9 | BUS-12 | Baixo | Unificar a regra de cancelamento e troca de cliente do barbeiro |
+| 10 | TEST-01 (parcial) | Baixo | Testes dos itens 3 a 9 |
+
+Se não houver tempo para BUS-06, **evitar demonstrar domingos** (seção 17).
 
 ### Fase 1 — Antes de qualquer uso real
 
-| Problema | Tema |
+| Tema | Itens |
 |---|---|
-| BUS-02 | Suspensão efetiva de barbearia |
-| AUTH-01 | E-mail transacional e link de recuperação |
-| AUTH-02 | E-mail sem diferenciar maiúsculas |
-| SEC-03 | Ocultar e-mail de barbeiros |
-| SEC-07 | Duração mínima no model |
-| DATA-01 | Reverso seguro da migração 0008 |
-| API-01 | Busca, ordenação, filtros, `page_size`; frontend usando o servidor |
-| FE-01 | Error boundary |
-| OBS-01 | Logs, monitoramento, auditoria, health check |
-| OPS-01 | Dockerfile, CI, estáticos/mídia, rotinas, backup |
-| SEC-05 | Cache compartilhado para throttling |
-| DOC-01, DOC-02 | Documentação fiel ao comportamento |
-| REPO-01 | Remover `venv312/` do versionamento |
-| FE-02 | Testes de frontend |
+| Agenda e regras | BUS-16, BUS-17, BUS-10, BUS-02 (suspensão pela plataforma), FE-14 |
+| Segurança e dependências | DEP-01 (Django 5.2 LTS, Pillow), DEP-02, SEC-05 (Redis), SEC-07, SEC-09, SEC-04 (CSP), SEC-11, SEC-10 |
+| Contas | AUTH-01 (e-mail), AUTH-02 |
+| Dados | DATA-01, DB-02, API-02 |
+| Desempenho e integração | API-01, FE-11, FE-17, FE-15, FE-03, FE-01 |
+| Operação | OBS-01, OPS-01, REPO-01, REPO-02 |
+| Qualidade | FE-02, TEST-01 (restante), TEST-02 |
+| Documentação | DOC-01, DOC-02, DOC-04 |
 
 ### Fase 2 — Produto
 
-| Problema | Tema |
-|---|---|
-| PROD-01 | Página pública da barbearia / convite de clientes |
-| BUS-06 | Grade de funcionamento, folgas e disponibilidade |
-| BUS-08 | "Não compareceu" e desfecho de vencidos |
-| BUS-09 | Duração histórica |
-| BUS-11 | Passo de horários configurável |
-| BUS-13 | Tratamento de agendamentos na desativação |
-| BUS-14 | Agendamento pelo admin e cliente avulso |
-| SA-01 | Painel de Super Admin |
-| SAAS-01 | Notificações, LGPD, cobrança |
-| SEC-04 | Token só em memória + CSP |
-| SEC-08 | Verificação de e-mail |
+PROD-01 (página pública e convite), BUS-06 (grade de funcionamento, folgas e feriados), BUS-08 (não compareceu), BUS-09 (duração histórica), BUS-11 (passo configurável), BUS-13 (agenda ao desativar), BUS-14 (agendamento pelo balcão), BUS-19 (coadministradores), SA-01, SAAS-01, SEC-08, FE-09.
 
 ### Fase 3 — Acabamento
 
-SEC-06, BUS-10, BUS-12, API-02, DATA-02, DATA-03, FE-03, FE-04, FE-05, FE-06, FE-07, FE-08, FE-09, FE-11, DOC-03, REPO-02, REPO-03, TEST-02 e os itens não verificados NV-1 a NV-5.
+FE-04, FE-05, FE-06, FE-07, FE-16, FE-18, FE-19, FE-20, MAINT-01, DATA-02, DATA-03, DOC-03, REPO-03, SEC-06, e os itens não verificados NV-1, NV-3, NV-4, NV-6, NV-7 e NV-8.
 
 ---
 
-## 15. Respostas objetivas
+## 17. Prontidão para a demonstração
 
-**O que impede o BarberPro de ser utilizado atualmente?**
-- Para demonstração acadêmica, nada bloqueia: os fluxos funcionam de ponta a ponta quando o admin cadastra os clientes.
-- Para uma barbearia real:
-  - clientes não conseguem se cadastrar sozinhos (PROD-01);
-  - dias fechados recebem agendamentos (BUS-06);
-  - a recuperação de senha não envia e-mail (AUTH-01);
-  - clientes e barbeiros veem o faturamento (SEC-02).
+### 17.1 Conclusão
 
-**O que impede de ser considerado pronto para produção?**
-- Os dois P0: chave secreta truncada e vazamento de faturamento.
-- As regras de negócio P1 confirmadas.
-- A ausência de logs, monitoramento, CI e infraestrutura de implantação (OBS-01, OPS-01).
-- Rate limiting que não funciona com vários processos (SEC-05).
-- A falta de testes para as regras corrigidas e para o frontend (TEST-01, FE-02).
+**O BarberPro está em condições de ser apresentado como protótipo acadêmico. Não está em condições de uso real nem de produção.**
 
-**Quais funcionalidades ainda precisam ser implementadas?**
-Autocadastro ou página pública por barbearia; grade de funcionamento, folgas e disponibilidade por barbeiro; e-mail transacional; "não compareceu"; agendamento pelo admin e atendimento avulso; busca, ordenação e filtros na API; tratamento de agendamentos ao desativar pessoas; painel de Super Admin com suspensão efetiva; notificações, LGPD e cobrança; error boundary, página 404 e testes de frontend.
+A favor:
 
-**Quais são os riscos mais graves?**
-1. Chave-raiz com 3 caracteres: com qualquer vazamento dos hashes de senha, permite forjar acesso a qualquer conta de qualquer barbearia (SEC-01).
-2. Exposição do faturamento a clientes e barbeiros (SEC-02).
-3. Barbearia sem administrador por autorrebaixamento ou autodesativação (BUS-01).
-4. Suspensão de barbearia sem efeito (BUS-02).
-5. Métricas financeiras distorcidas por "realizado" no futuro (BUS-07).
+- Nenhum P0. Os dois críticos anteriores foram corrigidos e testados.
+- O isolamento entre barbearias resistiu a todas as tentativas.
+- As permissões principais dos três perfis valem na API, não só na interface.
+- Os fluxos centrais funcionam de ponta a ponta, sem erros de console ou de API, do desktop ao celular de 360 px: login, cadastro de serviços e equipe, agendamento, reagendamento, cancelamento, confirmação, conclusão, painel e caixa.
+- O redesign é consistente e acessível nas verificações automáticas.
+- 327 testes passam, inclusive concorrência em PostgreSQL.
 
-**O que deve ser corrigido primeiro?**
-SEC-01 e SEC-02; depois BUS-01, BUS-03, BUS-04, BUS-05 e BUS-07, cada um com teste de regressão (Fase 0).
+Contra:
 
-**O que pode ficar para versões futuras?**
-Cobrança e planos, notificações, painel de Super Admin completo, LGPD avançada, passo de horários configurável, duração histórica, hospedagem própria de fontes e os demais itens P3.
+- Sete problemas P1 de regra de negócio e de produto.
+- Dependências vulneráveis.
+- Ausência de infraestrutura, e-mail, observabilidade e testes de frontend.
+- A demonstração depende do banco certo (DB-01) e de dados preparados (FE-12).
 
----
+### 17.2 Recomendações para o roteiro da apresentação
 
-## 16. Correções em relação a comunicações anteriores
-
-Para manter a rastreabilidade, registro onde este relatório corrige o que foi dito antes nesta auditoria:
-
-| Afirmação anterior | Correção |
+| Fazer | Evitar (enquanto não corrigido) |
 |---|---|
-| "A `SECRET_KEY` do `.env` tem só 3 caracteres" (entrega do redesign) | A linha no `.env` tem 50 caracteres; o `django-environ` a trunca para 3 por causa de um `#` sem aspas |
-| A chave curta permitiria "forjar tokens de qualquer usuário" | O `CHECK_REVOKE_TOKEN` exige um claim derivado do hash da senha: só com a chave, o token forjado é recusado (401). Com acesso aos hashes, é aceito (200). Ver SEC-01 e `forja-de-token-jwt.txt` |
-| "14 falhas confirmadas" na sondagem | Foram **15 falhas** em 42 verificações (27 OK) |
-| Metodologia com "40 cenários" e divisão 16/6/12/8/4 | Sondagem 1: 42 verificações (16 isolamento, 13 perfis, 13 regras/recursos); sondagem 2: 12 observações de sessão/administração; sondagem 3: 1 verificação de agenda |
-| Relatório em `docs/auditorias/AUDITORIA_TECNICA_2026-11-11.md` | Substituído por este documento, que é a versão completa e corrigida. O arquivo anterior não foi removido |
+| Rodar no banco do `.env` (migrado) e conferir `showmigrations` antes | Subir o banco do `docker-compose` sem migrar (DB-01) |
+| Usar um tenant de demonstração com histórico (FE-12) | Mostrar o painel com o banco atual: 2 agendamentos |
+| Demonstrar login dos três perfis, agendamento em dia útil, confirmação pelo barbeiro, conclusão após o término, cancelamento, painel e caixa | Agendar num domingo (BUS-06) |
+| Mostrar a recusa de horário ocupado e o isolamento entre barbearias | Reagendar um horário já confirmado (BUS-03) |
+| Mostrar a interface no celular | Tocar em "Agendar" logo após reservar (FE-13) |
+| Explicar as limitações declaradas: e-mail, cadastro de cliente, dias de funcionamento | Recuperação de senha (AUTH-01) e cadastro público como cliente (PROD-01) |
+
+### 17.3 Respostas objetivas
+
+- **Quantidade total de problemas:** 70 (P0 0, P1 7, P2 28, P3 35).
+- **Problemas antigos resolvidos:** 5 resolvidos e verificados, 3 parcialmente.
+- **Problemas antigos que continuam presentes:** 45.
+- **Regressões:** nenhum problema antigo voltou. O redesign introduziu 1 regressão nova (FE-13).
+- **Cinco problemas mais importantes:** BUS-15, BUS-03, BUS-06, BUS-05 e BUS-04 (seção 1).
+- **Pode ser apresentado?** Sim, como protótipo acadêmico, com as precauções da tabela acima. Não está pronto para produção.
+
+---
+
+## 18. Acompanhamento das correções
+
+### 18.1 Rodada 1 — 13/11/2026: integridade dos agendamentos
+
+**Escopo autorizado:** BUS-15, BUS-03, BUS-06, BUS-05, BUS-04 e a regressão FE-13. Nenhum outro problema foi tratado. Ficaram fora, por instrução, PROD-01, AUTH-01 e todos os P2 e P3.
+
+**Restrições cumpridas:**
+- sem commit, push ou merge, na branch `desenvolvimento`;
+- sem alteração de `.env`, `SECRET_KEY`, settings, dependências ou infraestrutura;
+- sem migração no banco real;
+- alterações já existentes (redesign e backend do dono) preservadas.
+
+Evidências em [`docs/auditoria/evidencias-2026-11-13/rodada-1-correcoes/`](auditoria/evidencias-2026-11-13/rodada-1-correcoes/README.md).
+
+#### Resumo
+
+| ID | Sev. | Situação após a rodada | Prova de falha antes / correção depois |
+|---|---|---|---|
+| BUS-15 | P1 | ✅ **Resolvido e verificado** | 6 testes falham no código anterior; 14 de 14 passam depois |
+| BUS-03 | P1 | ✅ **Resolvido e verificado** | 5 falham antes; 14 de 14 passam depois |
+| BUS-06 | P1 | ◐ **Parcialmente resolvido** | 15 falham antes; 16 de 16 passam depois |
+| BUS-05 | P1 | ✅ **Resolvido e verificado** | 7 falham antes; 10 de 10 passam depois |
+| BUS-04 | P1 | ✅ **Resolvido e verificado** | 5 falham antes; 10 de 10 passam depois |
+| FE-13 | P3 | ✅ **Resolvido e verificado** | Reproduzido na auditoria; corrigido e verificado no navegador (B6, B7, B9, B11) |
+
+Os testes que passam nos dois estados (26 no total) protegem os fluxos legítimos que precisavam continuar funcionando: admin e barbeiro registrando horário confirmado, remarcação pelo lado da barbearia, limites exatos de horário, edição de outros campos. Detalhe por teste em `testes/antes-e-depois-por-teste.txt`.
+
+#### BUS-15 — Cliente cria agendamento já "confirmado"
+
+| Campo | Registro |
+|---|---|
+| Arquivos modificados | `appointments/serializers.py` (`validate`); `appointments/models.py` (`clean`, novo `_validar_status_inicial`) |
+| Solução implementada | **Na API:** o cliente só cria horários `agendado`. Mandar outro `status` na criação (JSON ou formulário) responde **403** e não grava nada. **No modelo** (vale também para Django Admin e shell): todo registro novo nasce `agendado` ou `confirmado`, e ninguém cria um agendamento já cancelado (400). Admin e barbeiro continuam podendo registrar um horário já confirmado (por exemplo, agendamento por telefone). "Realizado" na criação continua recusado pela regra do BUS-07 |
+| Testes executados | `appointments/test_status_inicial.py` (14): status `confirmado`, `cancelado` e `realizado` pelo cliente; envio por formulário; combinação com outro `cliente`; status inválido sem erro 500; fluxo normal do cliente; entrada na fila "a confirmar"; admin e barbeiro com e sem status; modelo fora da API. Sondagem HTTP `BUS-15/*` (6) |
+| Resultado | 14/14 no código corrigido (6 falhavam antes). Sondagem: cliente `confirmado`, `cancelado` e `realizado` → 403; sem status → 201 `agendado`; admin `confirmado` → 201; barbeiro `cancelado` → 400. Na repetição da sondagem da auditoria, NEW-STATUS passou de 201 `confirmado` para 403 |
+| Situação | **Resolvido e verificado** |
+
+#### BUS-03 — Reagendamento pelo cliente mantém "confirmado"
+
+| Campo | Registro |
+|---|---|
+| Arquivos modificados | `appointments/serializers.py` (`validate`, novo `_altera_agenda`); `appointments/models.py` (`_validar_transicao_status`); `frontend/src/pages/AppointmentCreatePage.tsx` (aviso e texto da tela final) |
+| Solução implementada | **Regra na API:** quando o **cliente** muda de fato o horário, o barbeiro ou o serviço de um horário `confirmado`, o status volta a `agendado` na mesma gravação e a barbearia precisa confirmar de novo. Mandar `status: confirmado` junto não impede a volta. **No modelo:** `confirmado → agendado` só é aceito quando há remarcação; reabrir sem remarcar continua proibido. **Preservado:** remarcação feita pelo admin ou pelo barbeiro, que já são o lado da barbearia, mantém o status; editar só as observações também. **Na interface:** ao remarcar um horário confirmado, um aviso informa que ele volta a aguardar confirmação, e a tela final diz que o novo horário aguarda a barbearia |
+| Testes executados | `appointments/test_remarcacao_status.py` (14): mudança de horário, barbeiro e serviço; status enviado junto; status final junto (403); preço histórico preservado; nova confirmação; só observações; reenvio dos mesmos dados; horário ainda agendado; admin e barbeiro mantendo `confirmado`; reabertura sem remarcar; modelo. Sondagem `BUS-03/*` (3). Navegador B12–B14 |
+| Resultado | 14/14 (5 falhavam antes). Sondagem: cliente → `agendado`; só observações → `confirmado`; admin → `confirmado`. No navegador, o horário 401 (confirmado, qua 18/11 15:00) foi remarcado pelo cliente para qui 19/11 09:00 e ficou `agendado`; o aviso e o texto final aparecem |
+| Situação | **Resolvido e verificado** |
+
+#### BUS-06 — Domingos e dias fechados recebem agendamentos
+
+| Campo | Registro |
+|---|---|
+| Arquivos modificados | **Backend:** `barbershops/models.py` (campo `dias_funcionamento`, `clean`, `abre_no_dia`); `barbershops/migrations/0006_barbershop_dias_funcionamento.py` (nova); `barbershops/serializers.py`; `appointments/models.py` (`_validar_horario_funcionamento`); `appointments/views.py` (`available_slots`). **Frontend:** `types/index.ts`, `api/endpoints.ts`, `utils/format.ts` (`isoWeekday`), `utils/shop.ts`, `pages/AdminBarbershopPage.tsx`, `pages/AppointmentCreatePage.tsx`, `pages/HomePage.tsx`, `styles/client.module.css`, `styles/settings.module.css` |
+| Solução implementada | **Configuração:** o projeto não tinha nenhuma configuração de dias, então foi criado o mínimo necessário, `Barbershop.dias_funcionamento`: lista de dias ISO, 1 = segunda … 7 = domingo. Ela é validada (pelo menos um dia, valores de 1 a 7, sem repetição) e editável só pelo admin. **Padrão:** todos os dias. Assim nenhuma barbearia existente perde dias, e domingos não são bloqueados de forma indiscriminada: cada barbearia escolhe os seus em "Dados da barbearia". **API:** dia fechado devolve lista de horários vazia, e criação ou remarcação para esse dia recebe 400 ("A barbearia não abre aos domingos"), pelos três perfis. O dia da semana é o do horário local da barbearia, não o de UTC. Fechar um dia **não** trava horários que já estavam marcados nele: confirmar, editar observações e cancelar continuam possíveis. **Interface:** seletor de dias em "Dados da barbearia"; no agendamento, dias fechados aparecem desabilitados com "fechado", e o dia inicial pula para o próximo dia aberto; a tela inicial do cliente mostra os dias ("Segunda a sábado, das 09:00 às 19:00"); o status lateral considera o dia. **Fora, por instrução:** feriados, exceções por data, folgas e disponibilidade por barbeiro |
+| Testes executados | `barbershops/test_dias_funcionamento.py` (16): padrão; onboarding; normalização; valores inválidos (vazio, 0, 8, booleano, texto, nulo, decimal); permissão de cliente e barbeiro (403); modelo fora da API; agendamento em dia fechado pelos três perfis; horários vazios; domingo aberto continua aceitando; barbearia que fecha na segunda; remarcação para dia fechado; horário existente num dia que depois fechou; fuso (sábado 22:00 local = domingo em UTC); isolamento entre barbearias. Migração 0006 aplicada, desfeita e reaplicada num banco com 419 agendamentos. Sondagem `BUS-06/*` (11). Navegador A1–A6, B1–B5 |
+| Resultado | 16/16 (15 falhavam antes). Sondagem: no padrão, domingo com 20 horários; com o domingo fechado, 0 horários no domingo e 20 no sábado; agendar no domingo → 400 para cliente, admin e barbeiro; cliente e barbeiro não alteram os dias (403). Navegador: domingos desabilitados e rotulados "barbearia fechada"; formulário recusa nenhum dia marcado; sem rolagem horizontal a 390 px; axe sem violações |
+| Situação | **Parcialmente resolvido.** Os dias de funcionamento da semana estão resolvidos e verificados. Continuam ausentes feriados, exceções por data, folgas e horário por barbeiro, que a recomendação original incluía. Até o dono desmarcar o domingo, ele continua aberto (padrão "todos os dias"). A parte restante tem impacto menor; sugere-se reavaliá-la como P2 |
+
+#### BUS-05 — Fechamento anterior à abertura é aceito
+
+| Campo | Registro |
+|---|---|
+| Arquivos modificados | `barbershops/models.py` (`clean`, mensagem `HORARIO_INVALIDO_MENSAGEM`); `barbershops/serializers.py` (`validate`) |
+| Solução implementada | **Verificação prévia:** o projeto não suporta horário que atravesse a meia-noite. `Appointment` recusa atendimento que termina em outro dia, e os horários livres vão da abertura ao fechamento do mesmo dia. **Validação:** fechamento ≤ abertura é sempre inválido, na criação (onboarding), na edição completa e no PATCH parcial, que compara com o valor gravado, também no modelo (Django Admin). A mensagem: "O horário de fechamento precisa ser depois do horário de abertura. A agenda não atravessa a meia-noite: abertura e fechamento são do mesmo dia." O frontend já validava; nada mudou nele |
+| Testes executados | `barbershops/test_horario_funcionamento.py` (10): antes, igual, PATCH parcial só do fechamento e só da abertura, meia-noite (22:00–02:00 e fechamento 00:00), limite de 1 minuto aceito, edição válida, edição de outros campos, onboarding inválido sem criar barbearia nem promover o usuário, modelo. Sondagem `BUS-05/*` (5). Navegador A3 |
+| Resultado | 10/10 (7 falhavam antes). Sondagem: completo, parcial, igual e meia-noite → 400, e o horário gravado permanece 09:00–19:00. Na repetição da sondagem da auditoria, BUS-05 passou de 200/200 para 400/400 |
+| Situação | **Resolvido e verificado** |
+
+#### BUS-04 — Troca de serviço ignora o horário de funcionamento
+
+| Campo | Registro |
+|---|---|
+| Arquivos modificados | `appointments/models.py` (`_validar_horario_funcionamento`) |
+| Solução implementada | A validação de horário de funcionamento passa a rodar quando muda o horário **ou o serviço**. O término é calculado com a duração do novo serviço e comparado ao fechamento no fuso local. Terminar exatamente no fechamento continua permitido. O preço histórico só muda numa troca aceita, como antes; numa troca recusada nada é gravado. Mudar só o status ou as observações continua sem revalidar (a duração não histórica é o BUS-09, fora do escopo) |
+| Testes executados | `appointments/test_troca_servico_fechamento.py` (10): cenário da auditoria pelos três perfis; horário fora da grade (18:15); limite exato (18:00 + 60 min); troca por serviço de mesma duração; troca de serviço com antecipação do horário; horário enviado em UTC; mudança só de status; modelo. Sondagem `BUS-04/*` (3) |
+| Resultado | 10/10 (5 falhavam antes). Sondagem: troca 30 → 60 min às 18:30 → 400 para admin e cliente; às 18:00 → 200. Na repetição da sondagem da auditoria, BUS-04 passou de 200 para 400 |
+| Situação | **Resolvido e verificado** |
+
+#### FE-13 — "Agendar" após reservar continua mostrando "Horário reservado"
+
+| Campo | Registro |
+|---|---|
+| Arquivos modificados | `frontend/src/pages/AppointmentCreatePage.tsx` |
+| Solução implementada | A página virou um invólucro que remonta o fluxo a cada navegação (`key={location.key}`). Tocar em "Agendar", na barra inferior ou no menu lateral, estando na tela de horário reservado começa um agendamento novo, sem o estado da reserva anterior. Uma trava (`useRef`) impede que um segundo clique em "Confirmar agendamento" antes da resposta gere outra reserva |
+| Testes executados | Navegador, build de produção (`navegador/navegador-rodada1.json`): B6 (1ª reserva), B7 (aba "Agendar" → etapa Serviço), B8 (clique duplo → um único POST, 201), B9 (2ª reserva concluída), B10 (as duas nascem `agendado`), B11 (menu lateral). O projeto não tem infraestrutura de testes de frontend (FE-02, P2, fora do escopo), por isso a verificação é por navegador |
+| Resultado | Todas conformes. Antes, a aba mantinha "Horário reservado" (`navegador-novo-agendamento-apos-confirmacao.json` da auditoria) |
+| Situação | **Resolvido e verificado** |
+
+#### Verificação geral da rodada
+
+| Verificação | Resultado |
+|---|---|
+| Suíte completa do backend, SQLite | **391 testes, OK** (9 pulados, exigem PostgreSQL). Eram 327; +64 novos |
+| Suíte completa do backend, PostgreSQL 16 descartável | **391 testes, OK**, 0 pulados |
+| Testes novos no código anterior | 38 de 64 falham (reproduzem os defeitos) e 26 passam (fluxos legítimos) |
+| `makemigrations --check` | Sem alterações pendentes depois da `0006` |
+| Migração `0006` | Aditiva, padrão "todos os dias"; aplicada, desfeita e reaplicada sem perda (419 agendamentos) |
+| Cobertura dos módulos alterados | 92% (linhas + ramificações); o que ficou de fora são guardas defensivas e código morto anterior |
+| Frontend | `tsc` 0 erros, ESLint 0 avisos, build OK (JS inicial 434,7 kB, 138,5 kB gzip) |
+| Sondagem HTTP da rodada | 28/28 conforme |
+| Sondagem da auditoria repetida (91 verificações) | 66 conforme, contra 62 antes. 4 passaram a conforme (NEW-STATUS, BUS-03, BUS-04, BUS-05) e **nenhuma regrediu**. NEW-STATUS-2 continua marcado só porque o script antigo esperava `agendado` no corpo: agora a API recusa com 400, o comportamento correto. BUS-06 continua com horários no domingo porque o seed está no padrão "todos os dias" |
+| Navegador da rodada (três perfis) | 22/22 conforme; 0 erros de console ou de página; 0 respostas ≥ 400; axe sem violações em "Dados da barbearia" e no agendamento (a tela inicial do cliente não passou pelo axe nesta rodada) |
+| Varredura completa repetida | 105 cargas (21 rotas × 5 larguras): 0 rolagem horizontal, 0 erros |
+| Diff | Só os 15 arquivos listados acima, mais 5 arquivos de teste novos e este documento (`diff/diff-somente-correcoes.patch`) |
+
+#### Ação necessária antes de usar o código corrigido
+
+A rodada criou a migração `barbershops.0006_barbershop_dias_funcionamento`. Ela **não foi aplicada no banco real**, por restrição da tarefa. Antes de rodar o app com este código, é preciso aplicá-la no banco que o `.env` usa:
+
+```bash
+python manage.py migrate
+```
+
+Sem isso, toda tela que lê a barbearia falha, porque a coluna não existe. A migração só adiciona a coluna, com o padrão "todos os dias", e pode ser desfeita (`migrate barbershops 0005`). O banco do `docker-compose` (DB-01) já estava com outras migrações pendentes.
+
+#### Observações encontradas durante a rodada (não corrigidas, fora do escopo)
+
+| ID | Sev. | Observação |
+|---|---|---|
+| FE-21 | P3 | No agendamento, o `aria-label` dos dias que não são "hoje", "amanhã" ou "ontem" sai repetido ("Domingo, 15 de novembro, domingo, 15 de novembro"). A comparação entre `relativeDayLabel` e `formatDayLong` diferencia maiúsculas. Defeito anterior à rodada |
+| FE-22 | P3 | Na barra inferior do celular, a aba "Barbeiros" fica ativa em "Dados da barbearia": `'/admin/barbershop'.startsWith('/admin/barbers')` é verdadeiro. Defeito anterior à rodada |
+| FE-14 | P3 | Para manter a interface coerente com o BUS-06, o status lateral passou a mostrar "Fechada hoje" em dia fechado. Essa parte não tem teste dedicado, e a parte de barbearia desativada continua aberta. **FE-14 continua aberto** |
+| TEST-01 | P2 | Os itens desta rodada agora têm testes de regressão. TEST-01 continua **parcialmente resolvido** pelos demais itens (BUS-10, BUS-12, BUS-16, BUS-17, AUTH-02, SEC-03, confirmação de recuperação de senha) |
+
+**Correção de comunicação:** durante a execução foi informado que "48 de 63" testes novos falhavam no código anterior. O número correto era **37 de 63** (leitura errada da saída). Com o teste acrescentado depois, são **38 de 64**.
+
+#### Contagem após a rodada 1
+
+| | Na auditoria | Após a rodada 1 |
+|---|---|---|
+| P0 | 0 | 0 |
+| P1 | 7 | 3 (BUS-06 parcial, PROD-01, AUTH-01) |
+| P2 | 28 | 28 |
+| P3 | 35 | 34, mais 2 observações novas (FE-21, FE-22) |
+| **Abertos** | **70** | **65 dos 70 originais** (BUS-06 entre eles, parcial), mais 2 observações novas |
+
+---
+
+## 19. Rodada 2 — 13/11/2026: FE-14, FE-21 e FE-22 (somente frontend)
+
+**Escopo autorizado:** FE-14 (indicador de barbearia aberta ou fechada), FE-21 (rótulos acessíveis do calendário) e FE-22 (aba ativa no celular). Nenhum outro item foi tratado.
+
+**Restrições cumpridas:**
+- Nenhum arquivo do backend, API, banco, migração, autenticação, `.env` ou configuração foi alterado. Os 93 arquivos `.py` têm o mesmo SHA-256 do início da rodada, e não há migração nova.
+- **Dependências:** nenhuma adicionada. O `package-lock.json` é idêntico ao HEAD. O `package.json` ganhou só o script `"test"`. **Justificativa:** o projeto não tinha como rodar testes de frontend (FE-02). Os testes usam o executor nativo do Node 26 (`node --test`, que já remove os tipos do TypeScript), com um gancho de resolução de imports, sem Vitest nem Jest.
+- Sem commit, push ou merge. Branch `desenvolvimento`. Alterações já existentes preservadas.
+- **Sem redesign.** O aviso de barbearia desativada reaproveita o alerta existente (`ui.alert` / `alertDanger`). Nenhuma cor, fonte ou componente novo, e a faixa de dias do calendário ficou idêntica pixel a pixel.
+
+Evidências em [`docs/auditoria/evidencias-2026-11-13/rodada-2-correcoes/`](auditoria/evidencias-2026-11-13/rodada-2-correcoes/README.md).
+
+#### Resumo
+
+| ID | Situação | Causa técnica |
+|---|---|---|
+| FE-14 | ✅ **Resolvido e verificado** | O status ignorava `ativo` e, depois de fechar, presumia que a barbearia abria no dia seguinte. A barbearia era carregada uma vez por sessão, então outras sessões ficavam com dados velhos: o calendário do cliente oferecia hoje como dia aberto e a lateral dizia "Aberta" depois de o dono fechar o dia |
+| FE-21 | ✅ **Resolvido e verificado** | `relativeDayLabel` devolve a data com inicial maiúscula ("Domingo, 15 de novembro") e `formatDayLong`, com minúscula. A comparação entre os dois diferenciava maiúsculas, falhava e juntava as duas formas |
+| FE-22 | ✅ **Resolvido e verificado** | A aba "Barbeiros" usava `path.startsWith('/admin/barbers')`, e `/admin/barbershop` começa com esse texto |
+
+#### FE-14 — Indicador de barbearia aberta ou fechada
+
+| Campo | Registro |
+|---|---|
+| Arquivos alterados | `frontend/src/utils/shop.ts` (`shopHoursStatus`); `frontend/src/contexts/BarbershopContext.tsx`; `frontend/src/components/AppLayout.tsx` (aviso `ShopInactiveNotice`); `frontend/src/styles/layout.module.css` (espaçamento do aviso) |
+| Comportamento esperado (auditoria) | Status coerente com a barbearia desativada e com o dia da semana, e um aviso de barbearia desativada |
+| Solução | **1. Status calculado só com dados que já existem** (`ativo`, `dias_funcionamento`, abertura e fechamento), com a mesma função `isOpenOn` que o calendário usa: <br>• "Barbearia desativada"; <br>• "Aberta até 19:00"; <br>• "Fechada, abre às 09:00" (hoje, mais tarde); <br>• "Fechada, abre amanhã às 09:00"; <br>• "Fechada, abre segunda às 09:00", que pula os dias em que ela não abre. <br>Antes, depois do fechamento de sábado, a lateral prometia "abre às 09:00" mesmo com o domingo fechado. <br>**2. Aviso "Barbearia desativada"** no topo de todas as telas, para os três perfis, com a mesma mensagem que a API devolve. <br>**3. Dados atualizados entre sessões:** a barbearia é conferida de novo a cada navegação interna e quando a aba volta a ficar visível. Uma mudança feita pelo dono (dias, horário, desativação) chega à lateral, ao início do cliente, ao calendário e ao aviso sem recarregar. Se nada mudou, o estado não é trocado, e uma falha de rede mantém os dados atuais |
+| Testes automatizados | `frontend/tests/shop-status.test.ts`, 13 testes: <br>• dia ISO; <br>• aberta e limites de horário; <br>• antes de abrir; <br>• hoje fechado; <br>• fim de semana fechado; <br>• sábado à noite com domingo fechado; <br>• um dia por semana; <br>• sem configuração de dias; <br>• desativada e reativada; <br>• mudança de configuração; <br>• **teste de coerência com o calendário**: 7 configurações × 14 dias × 7 horários (686 casos), que confere que "aberta" só aparece em dia de funcionamento e dentro do horário, e que o dia prometido é aberto e é o primeiro aberto. <br>No código anterior, 7 dos 13 falham |
+| Navegador (build de produção) | Roteiro `scripts/rodada2.mjs`, igual nos dois builds: <br>• **padrão:** status conforme o relógio; <br>• **admin:** fecha hoje em "Dados da barbearia" e a lateral muda **sem recarregar**; <br>• **cliente em outra sessão:** a lateral se atualiza ao navegar pelo menu; o início do cliente mostra o mesmo status; o calendário mostra hoje como fechado; <br>• **API muda os dias em outra sessão:** a lateral do cliente se atualiza quando a aba volta à frente (`hidden` → `visible`); <br>• **barbeiro:** mesmo status; <br>• **desativação pela plataforma:** aviso e "Barbearia desativada" para admin e cliente, inclusive no celular; <br>• **reativação:** o aviso some ao navegar. <br>No build anterior, 8 dessas 11 verificações falham. Por exemplo, a sessão do cliente continuava "Aberta até 19:00", com hoje habilitado no calendário, depois de o dono fechar o dia. No build corrigido, todas conformes |
+| Largura | O rótulo mais longo ("Fechada, abre segunda às 09:00") cabe no cartão da lateral: termina em 223 px, com limite em 232 px no desktop e 264 px na gaveta do celular (`navegador/rotulo-mais-longo-lateral.json`) |
+| Limitações | <br>• Outra sessão vê a mudança ao navegar ou ao voltar para a aba, não em tempo real: se a pessoa fica parada na mesma tela com a aba à frente, a atualização vem na próxima navegação. Não há consulta periódica. <br>• Cada navegação faz uma requisição a mais (`GET /barbershops/`, 2 consultas SQL), no mesmo padrão do contador "a confirmar". <br>• No celular, o status da lateral fica dentro do menu (gaveta), como antes; o aviso de desativação aparece no topo em todos os tamanhos |
+| Situação | **Resolvido e verificado** |
+
+#### FE-21 — Rótulos acessíveis do calendário
+
+| Campo | Registro |
+|---|---|
+| Arquivos alterados | `frontend/src/utils/format.ts` (nova `dateChipLabel`); `frontend/src/pages/AppointmentCreatePage.tsx` (usa a função) |
+| Solução | Uma única função monta o rótulo, e a data aparece uma vez: <br>• "Hoje, sexta-feira, 13 de novembro"; <br>• "Amanhã, sábado, 14 de novembro"; <br>• "Domingo, 15 de novembro"; <br>• dia fechado: "…, barbearia fechada". <br>A semântica não mudou: dias abertos e fechados são botões com `role="radio"`, os fechados ficam `disabled`, e o dia escolhido tem `aria-checked="true"`. A aparência é a mesma: a imagem da faixa de dias tem o mesmo SHA-256 nos dois builds, e os textos visíveis são idênticos |
+| Testes automatizados | `frontend/tests/calendar-labels.test.ts`, 6 testes: hoje, amanhã, demais dias, dia fechado, virada de ano, e os 21 dias do agendamento (rótulos únicos, data e dia da semana uma vez só, sufixo de fechado só nos fechados), com e sem dias fechados |
+| Navegador | Os 21 rótulos são distintos e cada um tem a data uma única vez; os 3 domingos aparecem desabilitados e terminam em ", barbearia fechada"; há um único dia marcado, e ele é aberto; o axe-core não acusa violações; escolher um dia aberto mostra os horários. No build anterior: "Domingo, 15 de novembro, domingo, 15 de novembro, barbearia fechada" |
+| Limitações | Não foi testado com leitor de tela real (NV-3); a verificação foi pelos rótulos expostos e pelo axe-core |
+| Situação | **Resolvido e verificado** |
+
+#### FE-22 — Aba ativa incorreta no celular
+
+| Campo | Registro |
+|---|---|
+| Arquivos alterados | `frontend/src/utils/navigation.ts` (novo: `isSectionPath`, `TAB_ROUTES`, `activeTab`); `frontend/src/components/AppLayout.tsx` (a barra inferior usa o módulo; os ícones ficam mapeados por destino) |
+| Solução | A aba ativa compara por **segmento de caminho**: uma seção é a própria rota ou uma subpágina dela (`/admin/barbers` ou `/admin/barbers/...`), não qualquer texto que comece igual. As abas e as regras de cada perfil ficaram num módulo puro e testável; a barra inferior marca no máximo uma aba. Telas sem aba, como "Dados da barbearia" e "Minha conta" do admin, não marcam nenhuma. O menu lateral do desktop (`NavLink`) não mudou |
+| Testes automatizados | `frontend/tests/navigation.test.ts`, 26 testes: <br>• seção por segmento (incluindo o caso da auditoria); <br>• todas as rotas autenticadas de `App.tsx` nos três perfis (admin, barbeiro e cliente), com parâmetros de busca e barra final; <br>• no máximo uma aba ativa por rota; <br>• cada aba fica ativa na própria tela |
+| Navegador | Celular (390 px) e tablet (820 px): <br>• admin: 8 rotas; <br>• barbeiro: 3 rotas; <br>• cliente: 6 rotas; <br>• tocar em cada aba marca só ela; <br>• desktop: o menu lateral marca o item certo e não há barra inferior. <br>No build anterior, "Dados da barbearia" marcava "Barbeiros" no celular e no tablet |
+| Situação | **Resolvido e verificado** |
+
+#### Perfis verificados
+
+| Perfil | O que foi verificado |
+|---|---|
+| Administrador da plataforma (superusuário) | Comportamento anterior mantido: entra no onboarding (não há painel de plataforma, SA-01). Desativa e reativa a barbearia pela API para o teste do aviso |
+| Administrador da barbearia | Abas no celular e no tablet, menu lateral no desktop, mudança de dias com atualização imediata da lateral, aviso de desativação |
+| Barbeiro | Abas (Agenda, A confirmar, Conta) e status da lateral coerente com a configuração |
+| Cliente | Abas, calendário (rótulos, dias fechados, horários), status no início e na lateral, aviso de desativação no celular |
+
+#### Testes executados nesta rodada
+
+| Tipo | Resultado |
+|---|---|
+| Typecheck (`tsc`, app e node) | 0 erros |
+| Lint (ESLint, `--max-warnings=0`) | 0 erros, 0 avisos |
+| Build de produção | OK (JS inicial 436,3 kB, 139,0 kB gzip; antes, 434,7 kB) |
+| Testes automatizados de frontend (`npm test`, novos) | **45/45** (13 FE-14, 6 FE-21, 26 FE-22). No código do início da rodada, 7 de 13 do FE-14 falham; os arquivos de FE-21 e FE-22 não carregam, porque a lógica antiga estava embutida nos componentes |
+| Suíte do backend (SQLite, sem alteração de backend) | 391 testes, OK (9 pulados, exigem PostgreSQL) |
+| Navegador, roteiro da rodada (build anterior × corrigido) | Anterior: 57/68. Corrigido: **68/68**. 11 itens passaram a conformes, nenhum regrediu, 0 erros de console, de página ou de API |
+| Reexecução do roteiro da rodada 1 no build corrigido | **22/22**: as correções da rodada 1 continuam funcionando (dias de funcionamento, calendário, FE-13, clique duplo, remarcação), com 0 erros de console, página ou API e axe sem violações |
+| Varredura completa da auditoria no build corrigido | **105 cargas** (21 rotas × 5 larguras, de 1440 a 360 px): 0 erros de carga, 0 rolagem horizontal, 0 erros de console, página ou API; os 3 fluxos (cliente no celular, barbeiro no tablet, admin no desktop) concluídos sem erros |
+
+**Verificações manuais:** inspeção visual das capturas (aviso de desativação no desktop e no celular, lateral com o rótulo mais longo, "Dados da barbearia" sem aba marcada, calendário). **Não testados:** leitor de tela real; Chrome e Safari (só Firefox disponível); celular físico.
+
+#### Fora do escopo, apenas registrado
+
+- **`PRODUCT.md`** ainda diz que "não existem dias fechados" e que os horários livres ignoram dias fechados (BUS-06). Isso deixou de ser verdade na rodada 1 para os dias da semana. É documentação, não foi alterada.
+- **Leitura de dados por sessão:** a atualização entre sessões resolve a barbearia. Outras listas (por exemplo, serviços e barbeiros no agendamento) continuam carregadas ao abrir cada tela, como antes.
+
+#### Contagem após a rodada 2
+
+| | Após a rodada 1 | Após a rodada 2 |
+|---|---|---|
+| P1 | 3 | 3 (BUS-06 parcial, PROD-01, AUTH-01) |
+| P2 | 28 | 28 |
+| P3 | 34, mais 2 observações (FE-21, FE-22) | 33 (FE-14 resolvido), sem observações pendentes (FE-21 e FE-22 resolvidos) |
+| **Abertos** | 65 dos 70 originais, mais 2 observações | **64 dos 70 originais** |

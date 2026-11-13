@@ -1,0 +1,119 @@
+[
+ {
+  "grupo": "Regras de negócio",
+  "id": "BUS-12",
+  "verificacao": "barbeiro: DELETE, troca de cliente e PATCH cancelado no próprio horário",
+  "esperado": "mesma regra para DELETE e PATCH; troca de cliente definida",
+  "obtido": "criação=201; DELETE=403; PATCH cliente=200 (cliente agora=8); PATCH cancelado=200",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "BUS-09",
+  "verificacao": "alterar duração do serviço com dois horários seguidos (10:00 e 10:30)",
+  "esperado": "horários existentes preservados",
+  "obtido": "PATCH duracao=200; 10:00 agora dura 60 min e termina às 11:00, sobrepondo 10:30 (agendado)",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "BUS-14-api",
+  "verificacao": "admin agenda para cliente pela API",
+  "esperado": 201,
+  "obtido": 201,
+  "ok": true,
+  "obs": "a API permite; falta tela"
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "AUTH-02c",
+  "verificacao": "cliente troca o próprio e-mail para variação em maiúsculas de outro cliente",
+  "esperado": 400,
+  "obtido": 200,
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "VAL-01",
+  "verificacao": "telefone da barbearia sem validação de formato",
+  "esperado": 400,
+  "obtido": 200,
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "VAL-02",
+  "verificacao": "serviço com nome duplicado no mesmo tenant",
+  "esperado": 400,
+  "obtido": 201,
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "VAL-03",
+  "verificacao": "serviço com duração de 100.000 min e preço 999.999,99",
+  "esperado": 400,
+  "obtido": 201,
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Segurança",
+  "id": "UPL-01",
+  "verificacao": "upload de logo PNG de 14.5 MB",
+  "esperado": "400 (limite de tamanho)",
+  "obtido": "200 logo=definido",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Segurança",
+  "id": "UPL-02",
+  "verificacao": "upload de SVG com script",
+  "esperado": 400,
+  "obtido": 400,
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Segurança",
+  "id": "SES-10b",
+  "verificacao": "tempo da recuperação: e-mail existente x inexistente (12 amostras)",
+  "esperado": "tempos equivalentes",
+  "obtido": "mediana existente=16 ms; inexistente=15 ms",
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "BUS-13b",
+  "verificacao": "rebaixar barbeiro a cliente por /users/",
+  "esperado": "tratar horários futuros",
+  "obtido": "PATCH=200; 20 horários ativos permanecem",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Contrato",
+  "id": "CTR-01",
+  "verificacao": "PATCH /users/me/",
+  "esperado": 405,
+  "obtido": 405,
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Contrato",
+  "id": "CTR-02",
+  "verificacao": "cliente agenda sem enviar o próprio id em \"cliente\"",
+  "esperado": 201,
+  "obtido": "400 {\"cliente\": [\"Este campo é obrigatório.\"]}",
+  "ok": false,
+  "obs": "o backend sobrescreve o cliente, mas exige o campo"
+ }
+]

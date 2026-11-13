@@ -15,6 +15,7 @@
 
 .intro h2 {
   font-size: var(--fs-18);
+  color: var(--marinho-900);
   margin-bottom: var(--space-2);
 }
 
@@ -47,7 +48,62 @@
 }
 
 .hoursPreview strong {
-  color: var(--color-text);
+  color: var(--marinho-900);
   font-variant-numeric: tabular-nums;
-  font-stretch: var(--stretch-numeric);
 }
+
+/* Dias de funcionamento: mesmo vocabulário dos botões de horário
+   (branco com borda; marinho cheio quando marcado). */
+.days {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.days legend { padding: 0; margin-bottom: var(--space-2); }
+
+.dayToggles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(3rem, 1fr));
+  gap: var(--space-2);
+}
+
+.dayToggle { position: relative; display: grid; }
+
+.dayToggle input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.dayToggle span {
+  display: grid;
+  place-items: center;
+  min-height: var(--control-h);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--linha-forte);
+  background: var(--color-surface);
+  color: var(--marinho-900);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-bold);
+  transition: border-color var(--dur-1) ease, background-color var(--dur-1) ease, color var(--dur-1) ease;
+}
+
+.dayToggle abbr { text-decoration: none; }
+
+.dayToggle input:hover + span { border-color: var(--marinho-900); background: var(--marinho-50); }
+
+.dayToggle input:checked + span {
+  background: var(--marinho-900);
+  border-color: var(--marinho-900);
+  color: var(--marfim);
+}
+
+.dayToggle input:focus-visible + span { outline: 2px solid var(--marinho-700); outline-offset: 2px; }

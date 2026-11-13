@@ -41,7 +41,7 @@ export const barbershopApi = {
     const { data } = await api.get<Paginated<Barbershop>>('/barbershops/')
     return data.results[0] ?? null
   },
-  create: (payload: Omit<Barbershop, 'id' | 'logo' | 'ativo' | 'created_at'> & { ativo?: boolean }) =>
+  create: (payload: Omit<Barbershop, 'id' | 'logo' | 'ativo' | 'created_at' | 'dias_funcionamento'> & { ativo?: boolean; dias_funcionamento?: number[] }) =>
     api.post<Barbershop>('/barbershops/', payload),
   update: (id: number, payload: UpdateBarbershopInput) => api.patch<Barbershop>(`/barbershops/${id}/`, payload),
 }

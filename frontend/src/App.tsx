@@ -19,6 +19,7 @@ const AppointmentCreatePage = lazy(() => import('./pages/AppointmentCreatePage')
 const BarberAgendaPage = lazy(() => import('./pages/BarberAgendaPage').then((module) => ({ default: module.BarberAgendaPage })))
 const BarbersPage = lazy(() => import('./pages/BarbersPage').then((module) => ({ default: module.BarbersPage })))
 const HomePage = lazy(() => import('./pages/HomePage').then((module) => ({ default: module.HomePage })))
+const LandingPage = lazy(() => import('./pages/LandingPage').then((module) => ({ default: module.LandingPage })))
 const MyAppointmentsPage = lazy(() => import('./pages/MyAppointmentsPage').then((module) => ({ default: module.MyAppointmentsPage })))
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage').then((module) => ({ default: module.OnboardingPage })))
 const PasswordResetConfirmPage = lazy(() => import('./pages/PasswordResetConfirmPage').then((module) => ({ default: module.PasswordResetConfirmPage })))
@@ -38,6 +39,8 @@ export default function App() {
   return (
     <Suspense fallback={<PageLoader label="Carregando…" />}>
       <Routes>
+        {/* Página institucional pública: aberta para qualquer visitante, não altera o fluxo de login */}
+        <Route path="/conheca" element={<LandingPage />} />
         <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
         <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
         <Route path="/password/reset" element={<PublicRoute><PasswordResetRequestPage /></PublicRoute>} />

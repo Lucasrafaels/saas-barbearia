@@ -1,0 +1,29 @@
+28 verificações; 28 conforme; 0 divergentes
+OK  BUS-15/cliente/confirmado | 403
+OK  BUS-15/cliente/cancelado | 403
+OK  BUS-15/cliente/realizado | 403
+OK  BUS-15/cliente/padrao | 201 agendado
+OK  BUS-15/admin/confirmado | 201 confirmado
+OK  BUS-15/barbeiro/cancelado | 400
+OK  BUS-03/cliente/horario | 200 agendado
+OK  BUS-03/cliente/observacoes | 200 confirmado
+OK  BUS-03/admin/horario | 200 confirmado
+OK  BUS-05/completo | 400 {'horario_fechamento': ['O horário de fechamento precisa ser depois do horário de abertura
+OK  BUS-05/parcial | 400 {'horario_fechamento': ['O horário de fechamento precisa ser depois do horário de abertura
+OK  BUS-05/igual | 400 {'horario_fechamento': ['O horário de fechamento precisa ser depois do horário de abertura
+OK  BUS-05/meia-noite | 400 {'horario_fechamento': ['O horário de fechamento precisa ser depois do horário de abertura
+OK  BUS-05/inalterado | 09:00:00–19:00:00
+OK  BUS-04/admin | 400 {'data_hora': ['O agendamento não pode terminar depois do horário de fechamento da barbear
+OK  BUS-04/cliente | 400 {'data_hora': ['O agendamento não pode terminar depois do horário de fechamento da barbear
+OK  BUS-04/limite | 200
+OK  BUS-06/padrao | 20 horários
+OK  BUS-06/config/cliente | 403
+OK  BUS-06/config/barbeiro | 403
+OK  BUS-06/config/vazio | 400
+OK  BUS-06/config/admin | 200 [1, 2, 3, 4, 5, 6]
+OK  BUS-06/slots | domingo 0; sábado 20
+OK  BUS-06/agendar/cliente | 400 {'data_hora': ['A barbearia não abre aos domingos. Escolha outro dia.']}
+OK  BUS-06/agendar/admin | 400 {'data_hora': ['A barbearia não abre aos domingos. Escolha outro dia.']}
+OK  BUS-06/agendar/barbeiro | 400 {'data_hora': ['A barbearia não abre aos domingos. Escolha outro dia.']}
+OK  BUS-06/sabado | 201
+OK  BUS-06/remarcar | 400

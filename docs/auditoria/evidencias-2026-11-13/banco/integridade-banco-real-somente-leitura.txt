@@ -1,0 +1,37 @@
+Banco usado pelo app (DATABASE_URL do .env: localhost:5432/barbershop_db). Sessão READ ONLY; nenhuma escrita.
+AVISO:  o banco de dados "barbershop_db" possui uma não correspondência de versão de ordenação
+DETALHE:  The database was created using collation version 2.43, but the operating system provides version 2.44.
+DICA:  Rebuild all objects in this database that use the default collation and run ALTER DATABASE barbershop_db REFRESH COLLATION VERSION, or build PostgreSQL with the right library version.
+-- sessão somente leitura
+ barbearias                                                  |     2
+ barbearias inativas                                         |     0
+ usuarios                                                    |     8
+ usuarios por perfil: admin                                  |     3
+ usuarios por perfil: barbeiro                               |     2
+ usuarios por perfil: cliente                                |     3
+ usuarios sem barbearia (nao superusuario)                   |     1
+ barbeiros (perfil)                                          |     2
+ servicos                                                    |     2
+ agendamentos                                                |     2
+ agendamentos sem preco_historico                            |     0
+ agendamentos vencidos agendado/confirmado                   |     0
+ realizados no futuro                                        |     0
+ cliente do agendamento sem perfil cliente                   |     0
+ agendamento com barbeiro/servico/cliente de outra barbearia |     0
+ barbeiro ativo com usuario sem perfil barbeiro              |     0
+ usuario barbeiro sem perfil ativo                           |     0
+ barbeiro em barbearia diferente do usuario                  |     0
+ servicos com duracao <= 0                                   |     0
+ barbearias com fechamento <= abertura                       |     0
+ e-mails duplicados ignorando maiusculas                     |     0
+ barbearias sem admin ativo                                  |     0
+ sobreposicoes ativas do mesmo barbeiro                      |     0
+ tokens emitidos (outstanding)                               |    13
+ tokens expirados ainda na tabela                            |     0
+ migracoes aplicadas (apps do projeto)                       |    22
+ ultima migracao accounts: 0005_protect_barbershop
+ ultima migracao appointments: 0008_populate_preco_historico
+ ultima migracao barbershops: 0005_barber_deleted_at_barber_deleted_by_and_more
+ ultima migracao services: 0005_service_deleted_at_service_deleted_by_and_more
+ collation do banco: registrada=2.43 sistema=2.44
+ versao do servidor: 18.3

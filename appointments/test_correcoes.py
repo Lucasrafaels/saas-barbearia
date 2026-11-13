@@ -15,7 +15,7 @@ Cobertura deste módulo:
 """
 from datetime import time, timedelta
 
-from unittest import skipUnless
+from unittest import mock, skipUnless
 
 from django.db import connection, connections
 from django.test import TransactionTestCase
@@ -208,12 +208,15 @@ class AppointmentPermissoesTests(BaseAgendaSetup, APITestCase):
 
     def test_barbeiro_pode_confirmar_e_realizar(self):
         self.client.force_authenticate(self.barbeiro_user)
-        for novo_status in ('confirmado', 'realizado'):
-            resposta = self.client.patch(
-                reverse('appointment-detail', args=[self.agendamento.pk]),
-                {'status': novo_status},
-                format='json',
-            )
+        # "realizado" só é aceito a partir do término previsto (BUS-07).
+        termino = self.horario + timedelta(minutes=self.servico.duracao)
+        for novo_status, agora in (('confirmado', timezone.now()), ('realizado', termino)):
+            with mock.patch('django.utils.timezone.now', return_value=agora):
+                resposta = self.client.patch(
+                    reverse('appointment-detail', args=[self.agendamento.pk]),
+                    {'status': novo_status},
+                    format='json',
+                )
             self.assertEqual(resposta.status_code, status.HTTP_200_OK, novo_status)
 
 

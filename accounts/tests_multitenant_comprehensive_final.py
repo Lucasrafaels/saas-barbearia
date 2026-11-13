@@ -347,9 +347,12 @@ class ComprehensiveMultiTenantIsolationTests(APITestCase):
         self.admin_b.refresh_from_db()
         self.assertEqual(self.admin_b.nome, 'Hacked by superuser')
 
-        # Can delete user from tenant B
+        # Can delete user from tenant B. admin_b é o único admin ativo da
+        # barbearia B e não pode ser desativado (BUS-01); um cliente pode.
         url = reverse('user-detail', args=[self.admin_b.id])
         response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = self.client.delete(reverse('user-detail', args=[self.client_b.id]))
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     # Test anonymous access denied

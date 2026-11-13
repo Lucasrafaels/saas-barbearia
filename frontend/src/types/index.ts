@@ -24,6 +24,8 @@ export interface Barbershop {
   email: string
   horario_abertura: string
   horario_fechamento: string
+  /** Dias da semana em que atende, no padrão ISO: 1 = segunda … 7 = domingo. */
+  dias_funcionamento: number[]
   logo: string | null
   ativo: boolean
   created_at: string
@@ -81,7 +83,7 @@ export interface RevenueReport {
 }
 
 export type UpdateBarbershopInput = Partial<
-  Pick<Barbershop, 'nome' | 'endereco' | 'telefone' | 'email' | 'horario_abertura' | 'horario_fechamento'>
+  Pick<Barbershop, 'nome' | 'endereco' | 'telefone' | 'email' | 'horario_abertura' | 'horario_fechamento' | 'dias_funcionamento'>
 >
 
 export interface Paginated<T> {

@@ -1,0 +1,889 @@
+# Diff somente das correções da 1ª rodada (pós-auditoria de 13/11/2026).
+# Base: estado do projeto no início da rodada (HEAD 3e0949e + alterações não commitadas já existentes).
+
+--- antes/appointments/models.py
++++ depois/appointments/models.py
+@@ -141,6 +141,26 @@
+         self._validar_conflito_horario()
+         self._validar_transicao_status()
+         self._validar_conclusao_apos_termino()
++        self._validar_status_inicial()
++
++    def _validar_status_inicial(self):
++        """
++        Um agendamento novo nasce "agendado" (aguardando a barbearia) ou,
++        quando registrado pela própria barbearia, já "confirmado". Ninguém
++        cria um registro novo como cancelado ou realizado. O status
++        "realizado" já é recusado antes por `_validar_conclusao_apos_termino`,
++        com uma mensagem mais específica.
++
++        Quem pode escolher "confirmado" é decidido na API
++        (`AppointmentSerializer.validate`): o cliente não pode.
++        """
++        if self.pk:
++            return
++        if self.status not in (self.Status.AGENDADO, self.Status.CONFIRMADO):
++            raise ValidationError({
++                'status': 'Um agendamento novo começa como agendado (ou confirmado, '
++                          'quando registrado pela própria barbearia).'
++            })
+ 
+     def _validar_barbearia_ativa(self):
+         """
+@@ -224,33 +244,54 @@
+         horários "de parede" da barbearia, não horários em UTC.
+ 
+         Só reavalia a regra quando `data_hora` está sendo definida pela
+-        primeira vez (criação) ou alterada (remarcação): editar outros
+-        campos — por exemplo, mudar o status para "realizado" ou incluir
+-        uma observação — em um agendamento cujo horário já foi validado
+-        continua permitido.
++        primeira vez (criação) ou alterada (remarcação), ou quando o serviço
++        muda: a troca por um serviço mais longo muda o horário de término
++        (BUS-04). Editar outros campos — por exemplo, mudar o status para
++        "realizado" ou incluir uma observação — em um agendamento cujo
++        horário já foi validado continua permitido.
++
++        O dia da semana precisa estar entre os dias de funcionamento da
++        barbearia (BUS-06). Essa parte só é verificada quando `data_hora`
++        muda, para que fechar um dia não trave a edição de horários já
++        marcados nele.
+         """
+         if not self.barbershop_id or not self.servico_id or not self.data_hora:
+             return
+ 
+-        # Se o agendamento já existe e o data_hora não mudou, pular validação
+-        # de horário de funcionamento. Isso permite PATCH parcial (ex.: só
+-        # observacoes ou status) sem revalidar horário comercial.
++        # Se o agendamento já existe e nem o data_hora nem o serviço mudaram,
++        # pular a validação. Isso permite PATCH parcial (ex.: só observacoes
++        # ou status) sem revalidar horário comercial.
++        data_hora_mudou = True
++        servico_mudou = True
+         if self.pk:
+-            data_hora_persistida = (
++            persistido = (
+                 type(self).objects
+                 .filter(pk=self.pk)
+-                .values_list('data_hora', flat=True)
++                .values('data_hora', 'servico_id')
+                 .first()
+             )
+-            # Comparar timestamps para evitar problemas de representação de timezone
+-            # (ex.: UTC vs aware local) quando ambos representam o mesmo instante.
+-            if data_hora_persistida is not None and data_hora_persistida.timestamp() == self.data_hora.timestamp():
+-                return
++            if persistido is not None:
++                # Comparar timestamps para evitar problemas de representação de timezone
++                # (ex.: UTC vs aware local) quando ambos representam o mesmo instante.
++                data_hora_mudou = persistido['data_hora'].timestamp() != self.data_hora.timestamp()
++                servico_mudou = persistido['servico_id'] != self.servico_id
++        if not data_hora_mudou and not servico_mudou:
++            return
+ 
+         inicio = timezone.localtime(self.data_hora)
+         fim = inicio + timedelta(minutes=self.servico.duracao)
+         barbershop = self.barbershop
+ 
++        if data_hora_mudou and not barbershop.abre_no_dia(inicio.date()):
++            from barbershops.models import DIAS_DA_SEMANA_NO_PLURAL
++
++            raise ValidationError({
++                'data_hora': (
++                    f'A barbearia não abre {DIAS_DA_SEMANA_NO_PLURAL[inicio.isoweekday()]}. '
++                    'Escolha outro dia.'
++                )
++            })
++
+         if inicio.time() < barbershop.horario_abertura:
+             raise ValidationError({
+                 'data_hora': (
+@@ -339,16 +380,25 @@
+         - confirmado → realizado ou cancelado
+         - realizado → estado final (sem transições)
+         - cancelado → estado final (sem transições)
++        - confirmado → agendado só numa remarcação (horário, barbeiro ou
++          serviço alterados): o novo horário volta a aguardar a aprovação
++          da barbearia (BUS-03). Sem remarcação, a reabertura é recusada.
+ 
+-        Não permite agendado → realizado diretamente.
++        Não permite agendado → realizado diretamente. O status de um
++        registro novo é tratado por `_validar_status_inicial`.
+         """
+         if not self.pk:
+-            # Nova instância: status padrão 'agendado' é válido
+             return
+ 
+-        status_atual = type(self).objects.filter(pk=self.pk).values_list('status', flat=True).first()
+-        if status_atual is None:
++        persistido = (
++            type(self).objects
++            .filter(pk=self.pk)
++            .values('status', 'data_hora', 'barbeiro_id', 'servico_id')
++            .first()
++        )
++        if persistido is None:
+             return
++        status_atual = persistido['status']
+ 
+         # Define transições permitidas conforme a política única
+         transicoes_permitidas = {
+@@ -360,7 +410,14 @@
+ 
+         novo_status = self.status
+         if novo_status != status_atual:
+-            permitidos = transicoes_permitidas.get(status_atual, [])
++            permitidos = list(transicoes_permitidas.get(status_atual, []))
++            remarcando = self.data_hora is not None and (
++                persistido['data_hora'].timestamp() != self.data_hora.timestamp()
++                or persistido['barbeiro_id'] != self.barbeiro_id
++                or persistido['servico_id'] != self.servico_id
++            )
++            if status_atual == self.Status.CONFIRMADO and remarcando:
++                permitidos.append(self.Status.AGENDADO)
+             if novo_status not in permitidos:
+                 raise ValidationError({
+                     'status': f'Transição inválida: {status_atual} → {novo_status}. '
+--- antes/appointments/serializers.py
++++ depois/appointments/serializers.py
+@@ -96,6 +96,20 @@
+                 {'cliente': 'Este cliente não pertence à sua barbearia.'}
+             )
+ 
++        # BUS-15: o status inicial é definido pelo backend. O cliente só cria
++        # horários "agendado", que aguardam a confirmação da barbearia; mandar
++        # outro status na requisição não contorna essa aprovação.
++        if (
++            self.instance is None
++            and request
++            and request.user.is_cliente
++            and attrs.get('status', Appointment.Status.AGENDADO) != Appointment.Status.AGENDADO
++        ):
++            raise PermissionDenied(
++                'O status inicial é definido pela barbearia: o agendamento começa como '
++                'agendado e aguarda confirmação.'
++            )
++
+         if (
+             self.instance
+             and request
+@@ -169,6 +183,18 @@
+                         {'data_hora': 'Não é possível reagendar para uma data/hora que já passou.'}
+                     )
+ 
++                # BUS-03: a barbearia confirmou o horário antigo, não o novo.
++                # Quando o cliente muda horário, barbeiro ou serviço de um
++                # horário confirmado, ele volta a "agendado" e precisa de nova
++                # confirmação. Alterações do admin e do barbeiro (o lado da
++                # barbearia) mantêm o status.
++                if (
++                    self.instance.status == Appointment.Status.CONFIRMADO
++                    and self._altera_agenda(self.instance, attrs)
++                ):
++                    attrs['status'] = Appointment.Status.AGENDADO
++                    appointment.status = Appointment.Status.AGENDADO
++
+         try:
+             appointment.full_clean()
+         except DjangoValidationError as error:
+@@ -177,6 +203,17 @@
+         return attrs
+ 
+     @staticmethod
++    def _altera_agenda(instance, attrs):
++        """Verdadeiro se o PATCH muda de fato o horário, o barbeiro ou o serviço."""
++        if 'data_hora' in attrs and attrs['data_hora'].timestamp() != instance.data_hora.timestamp():
++            return True
++        if 'barbeiro' in attrs and attrs['barbeiro'].pk != instance.barbeiro_id:
++            return True
++        if 'servico' in attrs and attrs['servico'].pk != instance.servico_id:
++            return True
++        return False
++
++    @staticmethod
+     def _raise_django_validation_error(error):
+         detail = getattr(error, 'message_dict', None) or {
+             'non_field_errors': error.messages,
+--- antes/appointments/views.py
++++ depois/appointments/views.py
+@@ -139,7 +139,8 @@
+         atendimento do serviço informado na data informada: slots gerados a
+         partir da abertura da barbearia até caber mais um serviço antes do
+         fechamento, com passo igual à duração do serviço, excluindo os que
+-        conflitam com agendamentos existentes (status != cancelado).
++        conflitam com agendamentos existentes (status != cancelado). Num dia
++        da semana fora de `Barbershop.dias_funcionamento`, a lista é vazia.
+ 
+         Parâmetro opcional `exclude_appointment_id`: durante um reagendamento,
+         informe o ID do agendamento original para que ele não seja considerado
+@@ -233,6 +234,11 @@
+             if exclude_appointment.barbeiro_id != int(barbeiro_id):
+                 exclude_appointment = None
+ 
++        # BUS-06: dia em que a barbearia não abre não tem horários livres
++        # (a criação também é recusada em Appointment.clean()).
++        if not barbeiro.barbershop.abre_no_dia(data):
++            return Response({'data': data.isoformat(), 'slots': []})
++
+         duracao = timedelta(minutes=servico.duracao)
+ 
+         inicio = timezone.make_aware(datetime.combine(data, barbeiro.barbershop.horario_abertura))
+--- antes/barbershops/models.py
++++ depois/barbershops/models.py
+@@ -8,6 +8,49 @@
+ 
+ from config.models import TimeStampedModel
+ 
++# Dias da semana no padrão ISO 8601 (date.isoweekday()): 1 = segunda-feira,
++# 7 = domingo. O mesmo número é usado pela API e pelo frontend.
++DIAS_DA_SEMANA = {
++    1: 'segunda-feira',
++    2: 'terça-feira',
++    3: 'quarta-feira',
++    4: 'quinta-feira',
++    5: 'sexta-feira',
++    6: 'sábado',
++    7: 'domingo',
++}
++# Forma usada nas mensagens: "A barbearia não abre aos domingos."
++DIAS_DA_SEMANA_NO_PLURAL = {
++    1: 'às segundas-feiras',
++    2: 'às terças-feiras',
++    3: 'às quartas-feiras',
++    4: 'às quintas-feiras',
++    5: 'às sextas-feiras',
++    6: 'aos sábados',
++    7: 'aos domingos',
++}
++
++HORARIO_INVALIDO_MENSAGEM = (
++    'O horário de fechamento precisa ser depois do horário de abertura. '
++    'A agenda não atravessa a meia-noite: abertura e fechamento são do mesmo dia.'
++)
++
++
++def todos_os_dias():
++    """Padrão de `dias_funcionamento`: mantém o comportamento anterior (todos os dias)."""
++    return list(DIAS_DA_SEMANA)
++
++
++def validar_dias_funcionamento(valor):
++    """Normaliza e valida a lista de dias (ISO 1..7). Devolve a lista ordenada, sem repetição."""
++    if not isinstance(valor, (list, tuple)):
++        raise ValidationError('Informe os dias de funcionamento como uma lista de 1 (segunda) a 7 (domingo).')
++    if any(isinstance(dia, bool) or not isinstance(dia, int) or dia not in DIAS_DA_SEMANA for dia in valor):
++        raise ValidationError('Cada dia de funcionamento deve ser um número de 1 (segunda) a 7 (domingo).')
++    if not valor:
++        raise ValidationError('Escolha ao menos um dia de funcionamento.')
++    return sorted(set(valor))
++
+ 
+ class Barbershop(TimeStampedModel):
+     """
+@@ -25,6 +68,14 @@
+         'logo', upload_to='barbershops/logos/', null=True, blank=True,
+     )
+     ativo = models.BooleanField('ativo', default=True)
++    # Dias da semana em que a barbearia atende (ISO: 1 = segunda ... 7 = domingo).
++    # O padrão são todos os dias, para não fechar nenhum dia de barbearias
++    # já cadastradas: cada uma configura os seus em "Dados da barbearia".
++    dias_funcionamento = models.JSONField(
++        'dias de funcionamento',
++        default=todos_os_dias,
++        help_text='Dias da semana em que a barbearia atende: 1 = segunda-feira ... 7 = domingo.',
++    )
+ 
+     class Meta:
+         verbose_name = 'barbearia'
+@@ -34,6 +85,27 @@
+     def __str__(self):
+         return self.nome
+ 
++    def clean(self):
++        """Horário de funcionamento coerente e dias válidos (vale para API e Django Admin)."""
++        super().clean()
++        errors = {}
++        if (
++            self.horario_abertura is not None
++            and self.horario_fechamento is not None
++            and self.horario_fechamento <= self.horario_abertura
++        ):
++            errors['horario_fechamento'] = HORARIO_INVALIDO_MENSAGEM
++        try:
++            self.dias_funcionamento = validar_dias_funcionamento(self.dias_funcionamento)
++        except ValidationError as error:
++            errors['dias_funcionamento'] = error.messages
++        if errors:
++            raise ValidationError(errors)
++
++    def abre_no_dia(self, data):
++        """Verdadeiro se a barbearia atende no dia da semana de `data` (um `date`)."""
++        return data.isoweekday() in (self.dias_funcionamento or [])
++
+ 
+ class Barber(TimeStampedModel):
+     """
+--- antes/barbershops/serializers.py
++++ depois/barbershops/serializers.py
+@@ -4,19 +4,32 @@
+ from django.core.exceptions import ValidationError as DjangoValidationError
+ from rest_framework import serializers
+ 
+-from .models import Barber, Barbershop
++from .models import HORARIO_INVALIDO_MENSAGEM, Barber, Barbershop, validar_dias_funcionamento
+ 
+ 
+ class BarbershopSerializer(serializers.ModelSerializer):
++    # Dias da semana em que a barbearia atende (ISO: 1 = segunda ... 7 = domingo).
++    dias_funcionamento = serializers.ListField(
++        child=serializers.IntegerField(min_value=1, max_value=7),
++        allow_empty=False,
++        required=False,
++    )
++
+     class Meta:
+         model = Barbershop
+         fields = [
+             'id', 'nome', 'endereco', 'telefone', 'email',
+-            'horario_abertura', 'horario_fechamento', 'logo', 'ativo',
++            'horario_abertura', 'horario_fechamento', 'dias_funcionamento', 'logo', 'ativo',
+             'created_at',
+         ]
+         read_only_fields = ['id', 'created_at']
+ 
++    def validate_dias_funcionamento(self, value):
++        try:
++            return validar_dias_funcionamento(value)
++        except DjangoValidationError as error:
++            raise serializers.ValidationError(error.messages) from error
++
+     def validate(self, attrs):
+         # Criar uma barbearia é o fluxo de onboarding (ver
+         # BarbershopViewSet.perform_create): só faz sentido para quem
+@@ -29,6 +42,12 @@
+             raise serializers.ValidationError(
+                 'Você já pertence a uma barbearia e não pode criar outra.'
+             )
++        # Fechamento depois da abertura, também em PATCH parcial: o campo que
++        # não veio na requisição é comparado com o valor gravado.
++        abertura = attrs.get('horario_abertura', getattr(self.instance, 'horario_abertura', None))
++        fechamento = attrs.get('horario_fechamento', getattr(self.instance, 'horario_fechamento', None))
++        if abertura is not None and fechamento is not None and fechamento <= abertura:
++            raise serializers.ValidationError({'horario_fechamento': HORARIO_INVALIDO_MENSAGEM})
+         return attrs
+ 
+ 
+diff --git a/frontend/src/api/endpoints.ts b/frontend/src/api/endpoints.ts
+index ea439b9..7da42ac 100644
+--- a/frontend/src/api/endpoints.ts
++++ b/frontend/src/api/endpoints.ts
+@@ -41,7 +41,7 @@ export const barbershopApi = {
+     const { data } = await api.get<Paginated<Barbershop>>('/barbershops/')
+     return data.results[0] ?? null
+   },
+-  create: (payload: Omit<Barbershop, 'id' | 'logo' | 'ativo' | 'created_at'> & { ativo?: boolean }) =>
++  create: (payload: Omit<Barbershop, 'id' | 'logo' | 'ativo' | 'created_at' | 'dias_funcionamento'> & { ativo?: boolean; dias_funcionamento?: number[] }) =>
+     api.post<Barbershop>('/barbershops/', payload),
+   update: (id: number, payload: UpdateBarbershopInput) => api.patch<Barbershop>(`/barbershops/${id}/`, payload),
+ }
+diff --git a/frontend/src/pages/AdminBarbershopPage.tsx b/frontend/src/pages/AdminBarbershopPage.tsx
+index 0cfb5fd..c96e82e 100644
+--- a/frontend/src/pages/AdminBarbershopPage.tsx
++++ b/frontend/src/pages/AdminBarbershopPage.tsx
+@@ -5,11 +5,12 @@ import { z } from 'zod'
+ import { barbershopApi } from '../api/endpoints'
+ import { ButtonSpinner, Field, fieldA11y } from '../components/Controls'
+ import { ErrorState, SkeletonBlock } from '../components/Feedback'
+-import { ClockIcon } from '../components/Icons'
++import { AlertCircleIcon, ClockIcon } from '../components/Icons'
+ import { PageHeader } from '../components/PageHeader'
+ import { useBarbershop } from '../contexts/BarbershopContext'
+ import { useToast } from '../contexts/ToastContext'
+ import { errorMessage, fieldErrors, formatDayShort, formatDuration, dateKey, formatTime, timeToMinutes } from '../utils/format'
++import { formatOpenDays, openDays, WEEKDAYS } from '../utils/shop'
+ import page from '../styles/page.module.css'
+ import settings from '../styles/settings.module.css'
+ import ui from '../styles/ui.module.css'
+@@ -21,6 +22,8 @@ const schema = z.object({
+   endereco: z.string().trim().min(5, 'Informe o endereço completo.').max(255, 'Use no máximo 255 caracteres.'),
+   horario_abertura: z.string().regex(/^\d{2}:\d{2}$/, 'Informe o horário de abertura.'),
+   horario_fechamento: z.string().regex(/^\d{2}:\d{2}$/, 'Informe o horário de fechamento.'),
++  // Caixas de seleção com o mesmo nome: o formulário entrega os valores marcados como texto
++  dias_funcionamento: z.array(z.string()).min(1, 'Marque ao menos um dia de funcionamento.'),
+ }).refine((values) => timeToMinutes(values.horario_fechamento) > timeToMinutes(values.horario_abertura), {
+   message: 'O fechamento precisa ser depois da abertura.',
+   path: ['horario_fechamento'],
+@@ -41,12 +44,14 @@ export function AdminBarbershopPage() {
+       endereco: barbershop.endereco,
+       horario_abertura: formatTime(barbershop.horario_abertura),
+       horario_fechamento: formatTime(barbershop.horario_fechamento),
++      dias_funcionamento: openDays(barbershop).map(String),
+     })
+   }, [barbershop, reset])
+ 
+   const opens = watch('horario_abertura')
+   const closes = watch('horario_fechamento')
+   const openMinutes = opens && closes ? timeToMinutes(closes) - timeToMinutes(opens) : 0
++  const selectedDays = (watch('dias_funcionamento') ?? []).map(Number)
+ 
+   const onSubmit = async (values: Form) => {
+     if (!barbershop) return
+@@ -55,12 +60,13 @@ export function AdminBarbershopPage() {
+         ...values,
+         horario_abertura: `${values.horario_abertura}:00`,
+         horario_fechamento: `${values.horario_fechamento}:00`,
++        dias_funcionamento: values.dias_funcionamento.map(Number).sort((a, b) => a - b),
+       })
+       setBarbershop(data)
+       showToast('Dados da barbearia salvos.', 'success')
+     } catch (requestError) {
+       const fields = fieldErrors(requestError)
+-      for (const key of ['nome', 'email', 'telefone', 'endereco', 'horario_abertura', 'horario_fechamento'] as const) {
++      for (const key of ['nome', 'email', 'telefone', 'endereco', 'horario_abertura', 'horario_fechamento', 'dias_funcionamento'] as const) {
+         if (fields[key]) setError(key, { message: fields[key] })
+       }
+       showToast(errorMessage(requestError, 'Não foi possível salvar os dados.'), 'error')
+@@ -106,9 +112,23 @@ export function AdminBarbershopPage() {
+           <section className={settings.section}>
+             <div className={settings.intro}>
+               <h2>Horário de funcionamento</h2>
+-              <p>Os horários livres oferecidos aos clientes começam na abertura e terminam quando o serviço ainda cabe antes do fechamento. Vale para todos os dias.</p>
++              <p>Os horários livres oferecidos aos clientes começam na abertura e terminam quando o serviço ainda cabe antes do fechamento. O mesmo horário vale para todos os dias marcados; nos outros, a barbearia não recebe agendamentos.</p>
+             </div>
+             <div className={`${ui.panel} ${ui.panelBody} ${ui.form}`}>
++              <fieldset className={settings.days} aria-describedby={errors.dias_funcionamento ? 'shop-dias-error' : undefined}>
++                <legend className={ui.label}>Dias de funcionamento</legend>
++                <div className={settings.dayToggles}>
++                  {WEEKDAYS.map((weekday) => (
++                    <label key={weekday.iso} className={settings.dayToggle}>
++                      <input type="checkbox" value={String(weekday.iso)} {...register('dias_funcionamento')} />
++                      <span><abbr title={weekday.name}>{weekday.short}</abbr></span>
++                    </label>
++                  ))}
++                </div>
++                {errors.dias_funcionamento && (
++                  <p className={ui.error} id="shop-dias-error"><AlertCircleIcon size={14} />{errors.dias_funcionamento.message}</p>
++                )}
++              </fieldset>
+               <div className={ui.fieldRow}>
+                 <Field label="Abre às" htmlFor="shop-abertura" error={errors.horario_abertura?.message}>
+                   <input {...fieldA11y('shop-abertura', errors.horario_abertura?.message)} type="time" step={900} {...register('horario_abertura')} />
+@@ -120,7 +140,7 @@ export function AdminBarbershopPage() {
+               {openMinutes > 0 && (
+                 <p className={settings.hoursPreview}>
+                   <ClockIcon size={18} />
+-                  <span>Aberta das <strong>{opens}</strong> às <strong>{closes}</strong>, {formatDuration(openMinutes)} de agenda por dia.</span>
++                  <span>{selectedDays.length > 0 ? `${formatOpenDays(selectedDays)}, das ` : 'Aberta das '}<strong>{opens}</strong> às <strong>{closes}</strong>, {formatDuration(openMinutes)} de agenda por dia.</span>
+                 </p>
+               )}
+             </div>
+diff --git a/frontend/src/types/index.ts b/frontend/src/types/index.ts
+index 07a4b09..d5386a0 100644
+--- a/frontend/src/types/index.ts
++++ b/frontend/src/types/index.ts
+@@ -24,6 +24,8 @@ export interface Barbershop {
+   email: string
+   horario_abertura: string
+   horario_fechamento: string
++  /** Dias da semana em que atende, no padrão ISO: 1 = segunda … 7 = domingo. */
++  dias_funcionamento: number[]
+   logo: string | null
+   ativo: boolean
+   created_at: string
+@@ -81,7 +83,7 @@ export interface RevenueReport {
+ }
+ 
+ export type UpdateBarbershopInput = Partial<
+-  Pick<Barbershop, 'nome' | 'endereco' | 'telefone' | 'email' | 'horario_abertura' | 'horario_fechamento'>
++  Pick<Barbershop, 'nome' | 'endereco' | 'telefone' | 'email' | 'horario_abertura' | 'horario_fechamento' | 'dias_funcionamento'>
+ >
+ 
+ export interface Paginated<T> {
+diff --git a/frontend/src/utils/format.ts b/frontend/src/utils/format.ts
+index 2c1bf11..f9cd4cb 100644
+--- a/frontend/src/utils/format.ts
++++ b/frontend/src/utils/format.ts
+@@ -59,6 +59,12 @@ function keyToUTCNoon(key: string): Date {
+   return new Date(Date.UTC(y, m - 1, d, 12))
+ }
+ 
++/** Dia da semana ISO (1 = segunda … 7 = domingo) de uma chave YYYY-MM-DD, sem depender do fuso do navegador. */
++export function isoWeekday(key: string): number {
++  const day = keyToUTCNoon(key).getUTCDay()
++  return day === 0 ? 7 : day
++}
++
+ /** "quarta-feira, 11 de novembro" a partir de uma chave YYYY-MM-DD. */
+ export function formatDayLong(key: string, withYear = false): string {
+   return new Intl.DateTimeFormat('pt-BR', {
+diff --git a/frontend/src/utils/shop.ts b/frontend/src/utils/shop.ts
+index bcebc5b..5b6b554 100644
+--- a/frontend/src/utils/shop.ts
++++ b/frontend/src/utils/shop.ts
+@@ -1,16 +1,60 @@
+ import type { Barbershop } from '../types'
+-import { formatTime, nowMinutes, timeToMinutes } from './format'
++import { formatTime, isoWeekday, nowMinutes, timeToMinutes, todayISO } from './format'
+ 
+ export interface ShopHoursStatus {
+   open: boolean
+   label: string
+ }
+ 
++/** Dias da semana no padrão da API (ISO: 1 = segunda … 7 = domingo). */
++export const WEEKDAYS = [
++  { iso: 1, short: 'Seg', name: 'segunda' },
++  { iso: 2, short: 'Ter', name: 'terça' },
++  { iso: 3, short: 'Qua', name: 'quarta' },
++  { iso: 4, short: 'Qui', name: 'quinta' },
++  { iso: 5, short: 'Sex', name: 'sexta' },
++  { iso: 6, short: 'Sáb', name: 'sábado' },
++  { iso: 7, short: 'Dom', name: 'domingo' },
++] as const
++
++const ALL_DAYS = WEEKDAYS.map((day) => day.iso)
++
++type ShopDays = Partial<Pick<Barbershop, 'dias_funcionamento'>>
++
++/** Dias em que a barbearia atende. Sem a informação, vale o padrão da API: todos os dias. */
++export function openDays(shop: ShopDays): number[] {
++  return shop.dias_funcionamento?.length ? shop.dias_funcionamento : ALL_DAYS
++}
++
++/** Verdadeiro se a barbearia atende no dia (chave YYYY-MM-DD). */
++export function isOpenOn(shop: ShopDays, key: string): boolean {
++  return openDays(shop).includes(isoWeekday(key))
++}
++
++/** "Todos os dias", "Segunda a sábado" ou "Segunda, quarta e sexta". */
++export function formatOpenDays(days: number[]): string {
++  const sorted = [...new Set(days)].sort((a, b) => a - b)
++  if (sorted.length === 0 || sorted.length === 7) return 'Todos os dias'
++  const name = (iso: number) => WEEKDAYS.find((day) => day.iso === iso)?.name ?? ''
++  const contiguous = sorted.every((iso, index) => index === 0 || iso === sorted[index - 1] + 1)
++  const text = contiguous && sorted.length >= 3
++    ? `${name(sorted[0])} a ${name(sorted[sorted.length - 1])}`
++    : sorted.length === 1
++      ? name(sorted[0])
++      : `${sorted.slice(0, -1).map(name).join(', ')} e ${name(sorted[sorted.length - 1])}`
++  return text.charAt(0).toUpperCase() + text.slice(1)
++}
++
+ /**
+- * Situação atual da barbearia a partir do horário de funcionamento cadastrado.
+- * O backend não modela dias fechados; o mesmo horário vale para todos os dias.
++ * Situação atual da barbearia a partir dos dias e do horário de funcionamento
++ * cadastrados (o mesmo horário vale para todos os dias em que ela abre).
+  */
+-export function shopHoursStatus(shop: Pick<Barbershop, 'horario_abertura' | 'horario_fechamento'>, minutes = nowMinutes()): ShopHoursStatus {
++export function shopHoursStatus(
++  shop: Pick<Barbershop, 'horario_abertura' | 'horario_fechamento'> & ShopDays,
++  minutes = nowMinutes(),
++  today = todayISO(),
++): ShopHoursStatus {
++  if (!isOpenOn(shop, today)) return { open: false, label: 'Fechada hoje' }
+   const opens = timeToMinutes(shop.horario_abertura)
+   const closes = timeToMinutes(shop.horario_fechamento)
+   const open = minutes >= opens && minutes < closes
+--- frontend/src/pages/AppointmentCreatePage.tsx	2026-11-13 16:47:43.253659948 -0300
++++ frontend/src/pages/AppointmentCreatePage.tsx	2026-11-13 16:39:30.342032437 -0300
+@@ -1,6 +1,6 @@
+ import axios from 'axios'
+-import { useEffect, useId, useMemo, useState } from 'react'
+-import { Link, useSearchParams } from 'react-router-dom'
++import { useEffect, useId, useMemo, useRef, useState } from 'react'
++import { Link, useLocation, useSearchParams } from 'react-router-dom'
+ import { appointmentApi, listActiveBarbers, listActiveServices } from '../api/endpoints'
+ import { Avatar, ButtonSpinner } from '../components/Controls'
+ import { EmptyState, ErrorState, PageLoader } from '../components/Feedback'
+@@ -14,6 +14,7 @@
+   addDays, dateKey, dayOfMonth, errorMessage, formatClock, formatCurrency, formatDayLong, formatDuration, monthShort,
+   relativeDayLabel, todayISO, weekdayShort,
+ } from '../utils/format'
++import { isOpenOn } from '../utils/shop'
+ import { isOpenStatus, notifyAppointmentsChanged } from '../utils/status'
+ import client from '../styles/client.module.css'
+ import page from '../styles/page.module.css'
+@@ -34,7 +35,17 @@
+   return groups.filter((group) => group.items.length > 0)
+ }
+ 
++/**
++ * Cada navegação para esta rota começa um fluxo novo, inclusive tocar em
++ * "Agendar" estando na tela de horário reservado (FE-13): a chave da
++ * localização muda a cada navegação e descarta o estado da reserva anterior.
++ */
+ export function AppointmentCreatePage() {
++  const location = useLocation()
++  return <AppointmentCreateFlow key={location.key} />
++}
++
++function AppointmentCreateFlow() {
+   const { user } = useAuth()
+   const { barbershop } = useBarbershop()
+   const [params] = useSearchParams()
+@@ -64,6 +75,7 @@
+   const [slotsVersion, setSlotsVersion] = useState(0)
+   const [submitError, setSubmitError] = useState<string | null>(null)
+   const [submitting, setSubmitting] = useState(false)
++  const submittingRef = useRef(false)
+   const [booked, setBooked] = useState<Booked | null>(null)
+ 
+   // Reagendamento: pré-preenche com o agendamento original
+@@ -80,9 +92,13 @@
+ 
+   const isRescheduling = Boolean(rescheduleId && original.data)
+ 
++  // Dias em que a barbearia não abre ficam indisponíveis (BUS-06, mesma regra da API)
++  const isClosed = (key: string) => Boolean(barbershop && !isOpenOn(barbershop, key))
++  const dayClosed = isClosed(day)
++
+   // Horários livres reais para serviço + barbeiro + dia
+   useEffect(() => {
+-    if (!serviceId || !barberId) {
++    if (!serviceId || !barberId || dayClosed) {
+       setSlots([])
+       return
+     }
+@@ -94,7 +110,7 @@
+       .catch((requestError) => { if (active) { setSlots([]); setSlotsError(requestError) } })
+       .finally(() => { if (active) setSlotsLoading(false) })
+     return () => { active = false }
+-  }, [serviceId, barberId, day, isRescheduling, original.data, slotsVersion])
++  }, [serviceId, barberId, day, dayClosed, isRescheduling, original.data, slotsVersion])
+ 
+   // Horário escolhido deixa de valer se não estiver mais na lista
+   useEffect(() => {
+@@ -102,6 +118,12 @@
+   }, [slots, slot, slotsLoading])
+ 
+   const days = useMemo(() => Array.from({ length: DAYS_AHEAD }, (_, index) => addDays(todayISO(), index)), [])
++  const nextOpenDay = (from: string) => days.find((key) => key > from && !isClosed(key)) ?? null
++  // O dia inicial (hoje ou o do horário original) pode ser um dia fechado: avança para o próximo aberto
++  if (dayClosed) {
++    const next = nextOpenDay(day)
++    if (next) setDay(next)
++  }
+ 
+   if (booked) return <BookingDone booked={booked} shopName={barbershop?.nome} />
+ 
+@@ -186,6 +208,9 @@
+   const submit = async () => {
+     if (!user || !service || !barber || !slot) return
+     if (notes.length > NOTE_LIMIT) return
++    // Um único envio por vez: um segundo clique antes da resposta não cria outra reserva
++    if (submittingRef.current) return
++    submittingRef.current = true
+     setSubmitting(true)
+     setSubmitError(null)
+     const payload = { barbeiro: barber.id, servico: service.id, data_hora: `${day}T${slot}:00`, observacoes: notes.trim() }
+@@ -210,6 +235,7 @@
+         setStep('datetime')
+       }
+     } finally {
++      submittingRef.current = false
+       setSubmitting(false)
+     }
+   }
+@@ -309,21 +335,26 @@
+                 </div>
+               )}
+               <div className={client.dateStrip} role="radiogroup" aria-label="Dia">
+-                {days.map((key) => (
+-                  <button
+-                    key={key}
+-                    type="button"
+-                    role="radio"
+-                    aria-checked={key === day}
+-                    aria-label={relativeDayLabel(key) === formatDayLong(key) ? formatDayLong(key) : `${relativeDayLabel(key)}, ${formatDayLong(key)}`}
+-                    className={`${client.dateChip} ${key === day ? client.dateChipSelected : ''} ${key === todayISO() ? client.dateChipToday : ''}`}
+-                    onClick={() => { setDay(key); setSlot(''); setSubmitError(null) }}
+-                  >
+-                    <span>{key === todayISO() ? 'hoje' : weekdayShort(key)}</span>
+-                    <strong>{dayOfMonth(key)}</strong>
+-                    <span>{monthShort(key)}</span>
+-                  </button>
+-                ))}
++                {days.map((key) => {
++                  const closed = isClosed(key)
++                  const label = relativeDayLabel(key) === formatDayLong(key) ? formatDayLong(key) : `${relativeDayLabel(key)}, ${formatDayLong(key)}`
++                  return (
++                    <button
++                      key={key}
++                      type="button"
++                      role="radio"
++                      aria-checked={key === day}
++                      aria-label={closed ? `${label}, barbearia fechada` : label}
++                      disabled={closed}
++                      className={`${client.dateChip} ${key === day ? client.dateChipSelected : ''} ${key === todayISO() ? client.dateChipToday : ''} ${closed ? client.dateChipClosed : ''}`}
++                      onClick={() => { setDay(key); setSlot(''); setSubmitError(null) }}
++                    >
++                      <span>{key === todayISO() ? 'hoje' : weekdayShort(key)}</span>
++                      <strong>{dayOfMonth(key)}</strong>
++                      <span>{closed ? 'fechado' : monthShort(key)}</span>
++                    </button>
++                  )
++                })}
+               </div>
+ 
+               <div aria-live="polite">
+@@ -334,9 +365,9 @@
+                 ) : slots.length === 0 ? (
+                   <EmptyState
+                     compact
+-                    title={`Sem horários livres ${day === todayISO() ? 'hoje' : 'neste dia'}`}
+-                    description="A agenda deste barbeiro está cheia ou o horário de funcionamento já terminou."
+-                    action={{ label: 'Ver o próximo dia', onClick: () => { setDay(addDays(day, 1)); setSlot('') } }}
++                    title={dayClosed ? 'A barbearia não abre neste dia' : `Sem horários livres ${day === todayISO() ? 'hoje' : 'neste dia'}`}
++                    description={dayClosed ? 'Escolha um dos dias de funcionamento.' : 'A agenda deste barbeiro está cheia ou o horário de funcionamento já terminou.'}
++                    action={{ label: 'Ver o próximo dia', onClick: () => { setDay(nextOpenDay(day) ?? addDays(day, 1)); setSlot('') } }}
+                   />
+                 ) : (
+                   <div className={client.slotGroups}>
+@@ -403,6 +434,11 @@
+                   <InfoIcon size={18} /> O horário fica como agendado até a barbearia confirmar. Você pode reagendar ou cancelar em Meus agendamentos.
+                 </p>
+               )}
++              {isRescheduling && original.data?.status === 'confirmado' && (
++                <p className={`${ui.alert} ${ui.alertInfo}`} style={{ marginTop: 'var(--space-4)' }}>
++                  <InfoIcon size={18} /> A barbearia confirmou o horário atual. Ao remarcar, o novo horário volta a aguardar a confirmação dela.
++                </p>
++              )}
+               <div className={client.stepActions}>
+                 <button type="button" className={ui.secondaryButton} onClick={() => setStep('datetime')} disabled={submitting}>
+                   <ArrowLeftIcon size={16} /> Voltar
+@@ -456,7 +492,7 @@
+           <h2>Está marcado.</h2>
+           <p>
+             {rescheduled
+-              ? 'O novo horário já está na sua agenda. Acompanhe o status em Meus agendamentos.'
++              ? 'O novo horário já está na sua agenda e aguarda a confirmação da barbearia. Acompanhe o status em Meus agendamentos.'
+               : 'A barbearia ainda vai confirmar o horário. Você acompanha o status em Meus agendamentos.'}
+           </p>
+           <dl className={`${ui.summaryList} ${client.doneSummary}`}>
+--- frontend/src/pages/HomePage.tsx	2026-11-13 16:47:10.459023572 -0300
++++ frontend/src/pages/HomePage.tsx	2026-11-13 16:38:49.118507643 -0300
+@@ -12,7 +12,7 @@
+   dateKey, dayOfMonth, firstName, formatClock, formatCurrency, formatDayCompact, formatDuration, formatTime, monthShort,
+   relativeDayLabel,
+ } from '../utils/format'
+-import { shopHoursStatus } from '../utils/shop'
++import { formatOpenDays, openDays, shopHoursStatus } from '../utils/shop'
+ import { isOpenStatus } from '../utils/status'
+ import client from '../styles/client.module.css'
+ import page from '../styles/page.module.css'
+@@ -138,7 +138,7 @@
+         </span>
+       </div>
+       <ul className={client.contactList}>
+-        <li><ClockIcon size={16} /><span>Todos os dias, das {formatTime(barbershop.horario_abertura)} às {formatTime(barbershop.horario_fechamento)}</span></li>
++        <li><ClockIcon size={16} /><span>{formatOpenDays(openDays(barbershop))}, das {formatTime(barbershop.horario_abertura)} às {formatTime(barbershop.horario_fechamento)}</span></li>
+         <li><LocationIcon size={16} /><span>{barbershop.endereco}</span></li>
+         <li><PhoneIcon size={16} /><a href={`tel:${barbershop.telefone.replace(/[^\d+]/g, '')}`}>{barbershop.telefone}</a></li>
+         <li><MailIcon size={16} /><a href={`mailto:${barbershop.email}`}>{barbershop.email}</a></li>
+--- frontend/src/styles/client.module.css	2026-11-13 16:47:10.458947230 -0300
++++ frontend/src/styles/client.module.css	2026-11-13 16:39:35.879169485 -0300
+@@ -518,6 +518,19 @@
+ 
+ .dateChipToday:not(.dateChipSelected) { border: 1.5px solid var(--vermelho-600); }
+ 
++/* Dia em que a barbearia não abre: indisponível, como os campos desabilitados */
++.dateChipClosed,
++.dateChipClosed:hover {
++  background: var(--color-surface-muted);
++  border-color: var(--color-border);
++  border-style: dashed;
++  cursor: not-allowed;
++}
++
++.dateChipClosed:active { transform: none; }
++.dateChipClosed span,
++.dateChipClosed strong { color: var(--color-text-muted); }
++
+ /* Horários */
+ .slotGroups { display: grid; gap: var(--space-5); margin-top: var(--space-5); }
+ 
+--- frontend/src/styles/settings.module.css	2026-11-13 16:47:10.458801007 -0300
++++ frontend/src/styles/settings.module.css	2026-11-13 16:40:06.332845420 -0300
+@@ -51,3 +51,59 @@
+   color: var(--marinho-900);
+   font-variant-numeric: tabular-nums;
+ }
++
++/* Dias de funcionamento: mesmo vocabulário dos botões de horário
++   (branco com borda; marinho cheio quando marcado). */
++.days {
++  display: grid;
++  gap: var(--space-2);
++  min-width: 0;
++  margin: 0;
++  padding: 0;
++  border: 0;
++}
++
++.days legend { padding: 0; margin-bottom: var(--space-2); }
++
++.dayToggles {
++  display: grid;
++  grid-template-columns: repeat(auto-fit, minmax(3rem, 1fr));
++  gap: var(--space-2);
++}
++
++.dayToggle { position: relative; display: grid; }
++
++.dayToggle input {
++  position: absolute;
++  inset: 0;
++  width: 100%;
++  height: 100%;
++  margin: 0;
++  opacity: 0;
++  cursor: pointer;
++}
++
++.dayToggle span {
++  display: grid;
++  place-items: center;
++  min-height: var(--control-h);
++  border-radius: var(--radius-md);
++  border: 1px solid var(--linha-forte);
++  background: var(--color-surface);
++  color: var(--marinho-900);
++  font-size: var(--fs-14);
++  font-weight: var(--fw-bold);
++  transition: border-color var(--dur-1) ease, background-color var(--dur-1) ease, color var(--dur-1) ease;
++}
++
++.dayToggle abbr { text-decoration: none; }
++
++.dayToggle input:hover + span { border-color: var(--marinho-900); background: var(--marinho-50); }
++
++.dayToggle input:checked + span {
++  background: var(--marinho-900);
++  border-color: var(--marinho-900);
++  color: var(--marfim);
++}
++
++.dayToggle input:focus-visible + span { outline: 2px solid var(--marinho-700); outline-offset: 2px; }
+--- /dev/null
++++ depois/barbershops/migrations/0006_barbershop_dias_funcionamento.py
+@@ -0,0 +1,19 @@
++# Generated by Django 5.0.14 on 2026-11-13 19:34
++
++import barbershops.models
++from django.db import migrations, models
++
++
++class Migration(migrations.Migration):
++
++    dependencies = [
++        ('barbershops', '0005_barber_deleted_at_barber_deleted_by_and_more'),
++    ]
++
++    operations = [
++        migrations.AddField(
++            model_name='barbershop',
++            name='dias_funcionamento',
++            field=models.JSONField(default=barbershops.models.todos_os_dias, help_text='Dias da semana em que a barbearia atende: 1 = segunda-feira ... 7 = domingo.', verbose_name='dias de funcionamento'),
++        ),
++    ]

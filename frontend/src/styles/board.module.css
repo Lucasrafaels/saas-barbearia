@@ -1,5 +1,8 @@
 /* Quadro de cadeiras: barbeiros em colunas, horas em linhas.
-   Altura de cada bloco = duração real do serviço. */
+   Altura de cada bloco = duração real do serviço.
+   Status por preenchimento e forma (nunca só cor, nunca faixa lateral):
+   agendado = contorno tracejado · confirmado = marinho cheio ·
+   realizado = marfim recuado com visto · cancelado = hachura e nome riscado. */
 
 .board {
   --minute: 1.6px;
@@ -7,7 +10,7 @@
   --col-min: 10.5rem;
   position: relative;
   overflow: auto;
-  max-height: 36rem;
+  max-height: 42rem;
   overscroll-behavior: contain;
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
@@ -50,6 +53,7 @@
 
 .colName strong {
   font-size: var(--fs-14);
+  color: var(--marinho-900);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -73,9 +77,9 @@
   right: var(--space-2);
   transform: translateY(-50%);
   font-size: var(--fs-12);
+  font-weight: var(--fw-semibold);
   font-variant-numeric: tabular-nums;
-  font-stretch: var(--stretch-numeric);
-  color: var(--color-text-muted);
+  color: var(--tinta-2);
   background: var(--color-surface);
   padding: 0 2px;
 }
@@ -84,6 +88,7 @@
 
 .column {
   position: relative;
+  z-index: 1;
   border-left: 1px solid var(--color-border);
   background-image: repeating-linear-gradient(
     to bottom,
@@ -99,7 +104,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  background: repeating-linear-gradient(135deg, transparent 0 6px, rgb(23 25 29 / 0.035) 6px 7px);
+  background: repeating-linear-gradient(135deg, rgb(236 230 216 / 0.45) 0 6px, rgb(16 33 67 / 0.05) 6px 7px);
   pointer-events: none;
 }
 
@@ -111,29 +116,19 @@
   display: flex;
   flex-direction: column;
   gap: 1px;
-  padding: 4px 8px 4px 10px;
+  padding: 4px 8px;
   overflow: hidden;
   text-align: left;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--linha-forte);
   background: var(--color-surface);
   font-size: var(--fs-12);
   line-height: 1.25;
-  color: var(--color-text);
+  color: var(--tinta);
   cursor: pointer;
   transition: box-shadow var(--dur-1) ease, transform var(--dur-1) var(--ease-out), border-color var(--dur-1) ease;
   animation: blockIn var(--dur-3) var(--ease-out) both;
   animation-delay: var(--delay, 0ms);
-}
-
-.block::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: var(--stone-500);
 }
 
 .block:hover {
@@ -142,12 +137,13 @@
   transform: translateY(-1px);
 }
 
+.block:active { transform: scale(0.98); }
+
 .block:focus-visible { z-index: 1; }
 
 .blockTime {
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
-  font-stretch: var(--stretch-numeric);
 }
 
 .blockClient {
@@ -158,7 +154,7 @@
 }
 
 .blockService {
-  color: var(--color-text-muted);
+  color: var(--tinta-2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -169,68 +165,80 @@
 .blockCompact .blockService { display: none; }
 .blockCompact { justify-content: center; }
 
-.s_agendado { border-style: dashed; }
+.s_agendado {
+  border: 1.5px dashed var(--marinho-600);
+  color: var(--marinho-900);
+}
 
 .s_confirmado {
-  background: var(--copper-soft);
-  border-color: var(--copper-line);
+  background: var(--marinho-900);
+  border-color: var(--marinho-900);
+  color: var(--marfim);
 }
-.s_confirmado::before { background: var(--copper); }
+.s_confirmado .blockService { color: var(--marinho-200); }
+.s_confirmado:focus-visible { outline-color: var(--vermelho-600); }
 
 .s_realizado {
-  background: var(--success-soft);
-  border-color: rgb(39 132 91 / 0.25);
+  background: var(--marfim-2);
+  border-color: var(--linha-forte);
+  color: var(--tinta-2);
+  padding-right: 1.5rem;
 }
-.s_realizado::before { background: var(--success); }
-.s_realizado .blockClient { color: var(--stone-600); }
+.s_realizado .blockClient { color: var(--tinta-2); }
+
+/* Visto desenhado (não um caractere) no canto do bloco realizado */
+.s_realizado::after {
+  content: '';
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  width: 5px;
+  height: 9px;
+  border-right: 2px solid var(--verde);
+  border-bottom: 2px solid var(--verde);
+  transform: rotate(45deg);
+}
 
 .s_cancelado {
-  background: repeating-linear-gradient(135deg, var(--color-surface) 0 5px, var(--danger-soft) 5px 7px);
-  border-color: rgb(196 71 71 / 0.25);
-  color: var(--color-text-muted);
+  background: repeating-linear-gradient(135deg, var(--color-surface) 0 5px, var(--vermelho-100) 5px 7px);
+  border: 1px dashed var(--vermelho-200);
+  color: var(--tinta-2);
 }
-.s_cancelado::before { background: var(--danger); }
 .s_cancelado .blockClient,
-.s_cancelado .blockTime { text-decoration: line-through; }
+.s_cancelado .blockTime { text-decoration: line-through; text-decoration-color: var(--vermelho-600); }
 
-/* Camada sobre o corpo do quadro (linha do agora, aviso de dia vazio) */
+/* Camada sob os blocos (linha do agora, aviso de dia vazio).
+   Fica atrás das colunas: os blocos cobrem a linha e nada parece riscado. */
 .overlayLayer {
   position: relative;
-  z-index: 2;
+  z-index: 0;
   pointer-events: none;
 }
 
-/* Linha do agora */
+/* Linha do agora: o poste de barbearia deitado, girando enquanto o dia corre */
 .nowLine {
   position: absolute;
   left: 0;
   right: 0;
-  z-index: 2;
-  height: 0;
-  border-top: 2px solid var(--copper);
+  height: 6px;
+  margin-top: -3px;
+  border-radius: var(--radius-pill);
+  background: var(--listras-poste);
+  background-size: 18px 18px;
+  box-shadow: 0 0 0 1.5px var(--branco);
   pointer-events: none;
-}
-
-.nowLine::before {
-  content: '';
-  position: absolute;
-  left: -5px;
-  top: -6px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--copper);
+  animation: poleSlide 3s linear infinite;
 }
 
 .nowLabel {
   position: absolute;
-  right: 2px;
+  right: 3px;
   transform: translateY(-50%);
   z-index: 3;
-  padding: 1px 6px;
-  border-radius: var(--radius-pill);
-  background: var(--copper);
-  color: var(--ink-900);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--vermelho-600);
+  color: var(--branco);
   font-size: 0.6875rem;
   font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
@@ -250,38 +258,58 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   font-size: var(--fs-14);
-  color: var(--color-text-muted);
+  font-weight: var(--fw-medium);
+  color: var(--tinta-2);
 }
 
 /* Legenda */
 .legend {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2) var(--space-4);
+  gap: var(--space-2) var(--space-5);
   font-size: var(--fs-12);
-  color: var(--color-text-muted);
+  font-weight: var(--fw-medium);
+  color: var(--tinta-2);
 }
 
 .legendItem { display: inline-flex; align-items: center; gap: 6px; }
 
 .legendSwatch {
-  width: 14px;
-  height: 10px;
+  position: relative;
+  width: 18px;
+  height: 12px;
+  padding: 0;
   border-radius: 3px;
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--linha-forte);
   background: var(--color-surface);
 }
 
-.legendSwatch.s_agendado { border-style: dashed; border-color: var(--stone-500); }
-.legendSwatch.s_confirmado { background: var(--copper-soft); border-color: var(--copper); }
-.legendSwatch.s_realizado { background: var(--success-soft); border-color: var(--success); }
-.legendSwatch.s_cancelado { border-color: var(--danger); }
+.legendSwatch.s_agendado { border: 1.5px dashed var(--marinho-600); }
+.legendSwatch.s_confirmado { background: var(--marinho-900); border-color: var(--marinho-900); }
+.legendSwatch.s_realizado { background: var(--marfim-2); border-color: var(--linha-forte); }
+.legendSwatch.s_realizado::after { top: 1px; right: 6px; width: 3px; height: 6px; border-width: 0 1.5px 1.5px 0; }
+.legendSwatch.s_cancelado { border: 1px dashed var(--vermelho-600); }
 
+/* Seletor de barbeiro: só no celular, quando há mais de um */
+.picker {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Celular: um barbeiro por vez em largura total; o quadro rola com a página, sem rolagem interna */
 @media (max-width: 640px) {
-  .board { --gutter: 3rem; --col-min: 9rem; max-height: 30rem; }
+  .board { --gutter: 3rem; --col-min: 0px; max-height: none; overflow: visible; }
+  .corner,
+  .colHeader { position: static; }
 }
 
 @keyframes blockIn {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: none; }
+}
+
+@keyframes poleSlide { to { background-position: 36px 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .nowLine { animation: none; }
 }

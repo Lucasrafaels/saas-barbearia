@@ -1,9 +1,11 @@
-/* BarberPro — componentes de interface reutilizáveis.
-   Os tokens vêm de design-tokens.css (carregado uma vez em base.css). */
+/* BarberPro: componentes de interface reutilizáveis.
+   Os tokens vêm de design-tokens.css (carregado uma vez em base.css).
+   Mundo: placa esmaltada. Superfícies de porcelana branca sobre papel marfim,
+   marinho na estrutura e nas ações, vermelho só para atenção. */
 
 /* ======================================================================
    Botões
-   Hierarquia: primário (grafite) > secundário (contorno) > fantasma > texto.
+   Hierarquia: primário (marinho) > secundário (contorno) > fantasma > texto.
    O vermelho aparece apenas em ações destrutivas.
    ====================================================================== */
 .button,
@@ -23,6 +25,7 @@
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);
   line-height: 1;
+  letter-spacing: 0.005em;
   white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
@@ -31,7 +34,7 @@
     background-color var(--dur-1) ease,
     border-color var(--dur-1) ease,
     color var(--dur-1) ease,
-    box-shadow var(--dur-1) ease,
+    box-shadow var(--dur-2) ease,
     transform var(--dur-1) var(--ease-out);
 }
 
@@ -45,50 +48,59 @@
 .secondaryButton:active:not(:disabled),
 .ghostButton:active:not(:disabled),
 .dangerButton:active:not(:disabled),
-.dangerSolidButton:active:not(:disabled) { transform: scale(0.98); }
+.dangerSolidButton:active:not(:disabled) { transform: scale(0.97); }
 
 .button:disabled,
 .secondaryButton:disabled,
 .ghostButton:disabled,
 .dangerButton:disabled,
-.dangerSolidButton:disabled { opacity: 0.5; }
+.dangerSolidButton:disabled { opacity: 0.45; filter: saturate(0.4); box-shadow: none; }
 
 .button {
-  background: var(--ink-900);
-  color: var(--paper);
+  background: var(--marinho-900);
+  color: var(--marfim);
+  box-shadow: 0 1px 0 rgb(16 33 67 / 0.12), inset 0 1px 0 rgb(255 255 255 / 0.06);
 }
 
-.button:hover:not(:disabled) { background: var(--ink-700); color: var(--white); }
+.button:hover:not(:disabled) {
+  background: var(--marinho-800);
+  color: var(--branco);
+  box-shadow: 0 6px 14px -8px rgb(16 33 67 / 0.6);
+}
 
 .secondaryButton {
   background: var(--color-surface);
-  color: var(--color-text);
-  border-color: var(--color-border-strong);
+  color: var(--marinho-900);
+  border-color: var(--linha-campo);
 }
 
-.secondaryButton:hover:not(:disabled) { border-color: var(--stone-500); background: var(--color-surface-muted); }
+.secondaryButton:hover:not(:disabled) { border-color: var(--marinho-900); background: var(--marinho-50); }
 
 .ghostButton {
-  color: var(--color-text);
+  color: var(--marinho-900);
   padding: 0 var(--space-3);
 }
 
-.ghostButton:hover:not(:disabled) { background: rgb(23 25 29 / 0.06); }
+.ghostButton:hover:not(:disabled) { background: rgb(16 33 67 / 0.06); }
+
+/* Ação destrutiva discreta (ex.: "Cancelar" ao lado de "Confirmar") */
+.ghostDanger { color: var(--vermelho-700); }
+.ghostDanger:hover:not(:disabled) { background: var(--vermelho-100); }
 
 .dangerButton {
   background: var(--color-surface);
-  color: var(--danger-ink);
-  border-color: rgb(196 71 71 / 0.35);
+  color: var(--vermelho-700);
+  border-color: var(--vermelho-200);
 }
 
-.dangerButton:hover:not(:disabled) { background: var(--danger-soft); border-color: var(--danger); }
+.dangerButton:hover:not(:disabled) { background: var(--vermelho-100); border-color: var(--vermelho-600); }
 
 .dangerSolidButton {
-  background: var(--danger);
-  color: var(--white);
+  background: var(--vermelho-600);
+  color: var(--branco);
 }
 
-.dangerSolidButton:hover:not(:disabled) { background: var(--danger-ink); }
+.dangerSolidButton:hover:not(:disabled) { background: var(--vermelho-700); }
 
 .sm {
   min-height: var(--control-h-sm);
@@ -104,27 +116,29 @@
   width: var(--control-h);
   height: var(--control-h);
   border-radius: var(--radius-md);
-  color: var(--color-text-muted);
-  transition: background-color var(--dur-1) ease, color var(--dur-1) ease;
+  color: var(--marinho-900);
+  transition: background-color var(--dur-1) ease, color var(--dur-1) ease, transform var(--dur-1) var(--ease-out);
 }
 
-.iconButton:hover:not(:disabled) { background: rgb(23 25 29 / 0.06); color: var(--color-text); }
-.iconButton:disabled { opacity: 0.4; }
+.iconButton:hover:not(:disabled) { background: rgb(16 33 67 / 0.07); }
+.iconButton:active:not(:disabled) { transform: scale(0.94); }
+.iconButton:disabled { opacity: 0.35; }
 
 .textButton {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
   padding: var(--space-1) 0;
-  color: var(--color-accent-text);
+  color: var(--marinho-700);
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);
   text-decoration: underline;
-  text-decoration-color: var(--copper-line);
+  text-decoration-color: var(--marinho-200);
+  text-decoration-thickness: 1.5px;
   text-underline-offset: 3px;
 }
 
-.textButton:hover:not(:disabled) { text-decoration-color: currentColor; }
+.textButton:hover:not(:disabled) { text-decoration-color: currentColor; color: var(--marinho-900); }
 
 .buttonRow {
   display: flex;
@@ -163,7 +177,7 @@
 .label {
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);
-  color: var(--color-text);
+  color: var(--marinho-900);
 }
 
 .optional {
@@ -182,7 +196,8 @@
   align-items: flex-start;
   gap: var(--space-1);
   font-size: var(--fs-14);
-  color: var(--danger-ink);
+  font-weight: var(--fw-medium);
+  color: var(--vermelho-700);
   line-height: var(--lh-snug);
   animation: fieldError var(--dur-2) var(--ease-out);
 }
@@ -224,7 +239,7 @@
 
 .inputWithPrefix > input { padding-left: calc(var(--space-3) + 1.75rem); }
 
-/* Interruptor (checkbox nativo com aparência de switch) */
+/* Interruptor (checkbox nativo com aparência de chave) */
 .switch {
   display: inline-flex;
   align-items: center;
@@ -239,10 +254,10 @@
   appearance: none;
   position: relative;
   flex-shrink: 0;
-  width: 2.5rem;
+  width: 2.625rem;
   height: 1.5rem;
   border-radius: var(--radius-pill);
-  background: var(--stone-300);
+  background: var(--linha-forte);
   cursor: pointer;
   transition: background-color var(--dur-2) ease;
 }
@@ -255,25 +270,26 @@
   width: 1.125rem;
   height: 1.125rem;
   border-radius: 50%;
-  background: var(--white);
-  box-shadow: 0 1px 2px rgb(23 25 29 / 0.25);
+  background: var(--branco);
+  box-shadow: 0 1px 2px rgb(16 33 67 / 0.3);
   transition: transform var(--dur-2) var(--ease-out);
 }
 
-.switch input:checked { background: var(--success); }
-.switch input:checked::after { transform: translateX(1rem); }
-.switch input:focus-visible { outline: 2px solid var(--copper); outline-offset: 2px; }
+.switch input:checked { background: var(--verde); }
+.switch input:checked::after { transform: translateX(1.125rem); }
+.switch input:focus-visible { outline: 2px solid var(--marinho-700); outline-offset: 2px; }
 
 .switchText { display: grid; gap: 2px; }
 .switchText small { font-weight: var(--fw-regular); color: var(--color-text-muted); font-size: var(--fs-14); }
 
 /* ======================================================================
-   Painéis
+   Painéis: porcelana branca com borda fina, como placa sobre o papel
    ====================================================================== */
 .panel {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
+  box-shadow: 0 1px 0 rgb(16 33 67 / 0.03);
   min-width: 0;
 }
 
@@ -289,6 +305,7 @@
 .panelHeader h2 { font-size: var(--fs-16); }
 
 .panelHeader p {
+  margin-top: 2px;
   font-size: var(--fs-14);
   color: var(--color-text-muted);
 }
@@ -316,6 +333,8 @@
   gap: var(--space-3);
   padding: var(--space-4) var(--space-5);
   border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .toolbarGrow { flex: 1 1 16rem; min-width: 0; }
@@ -361,7 +380,7 @@
 .search > svg {
   position: absolute;
   left: var(--space-3);
-  color: var(--stone-500);
+  color: var(--tinta-3);
   pointer-events: none;
 }
 
@@ -383,17 +402,16 @@
   color: var(--color-text-muted);
 }
 
-.searchClear:hover { background: var(--stone-100); color: var(--color-text); }
+.searchClear:hover { background: var(--marinho-50); color: var(--marinho-900); }
 
-/* Controle segmentado (radios nativos) */
+/* Controle segmentado (rádios nativos) */
 .segmented {
   display: inline-flex;
   flex-wrap: wrap;
   gap: 2px;
   padding: 3px;
-  background: var(--stone-100);
+  background: var(--marfim-2);
   border-radius: calc(var(--radius-md) + 2px);
-  border: 1px solid var(--color-border);
 }
 
 .segment {
@@ -419,29 +437,49 @@
   padding: 0 var(--space-3);
   border-radius: var(--radius-sm);
   font-size: var(--fs-14);
-  font-weight: var(--fw-medium);
-  color: var(--color-text-muted);
+  font-weight: var(--fw-semibold);
+  color: var(--tinta-2);
   transition: background-color var(--dur-1) ease, color var(--dur-1) ease, box-shadow var(--dur-1) ease;
 }
 
-.segment:hover span { color: var(--color-text); }
+.segment:hover span { color: var(--marinho-900); }
 
 .segment input:checked + span {
   background: var(--color-surface);
-  color: var(--color-text);
-  box-shadow: 0 1px 2px rgb(23 25 29 / 0.08), 0 0 0 1px var(--color-border);
+  color: var(--marinho-900);
+  box-shadow: 0 1px 2px rgb(16 33 67 / 0.12), 0 0 0 1px rgb(16 33 67 / 0.08);
 }
 
-.segment input:focus-visible + span { outline: 2px solid var(--copper); outline-offset: 1px; }
+.segment input:focus-visible + span { outline: 2px solid var(--marinho-700); outline-offset: 1px; }
+
+/* No celular, os filtros ficam numa linha só e rolam de lado */
+@media (max-width: 640px) {
+  .segmented {
+    display: flex;
+    flex-wrap: nowrap;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .segmented::-webkit-scrollbar { display: none; }
+  .segment { flex-shrink: 0; }
+}
 
 .segmentCount {
+  min-width: 1.375rem;
+  padding: 0 5px;
+  border-radius: var(--radius-pill);
+  background: rgb(16 33 67 / 0.08);
   font-size: var(--fs-12);
   font-variant-numeric: tabular-nums;
-  color: var(--color-text-muted);
+  text-align: center;
+  color: var(--marinho-900);
 }
 
+.segment input:checked + span .segmentCount { background: var(--marinho-900); color: var(--marfim); }
+
 /* ======================================================================
-   Tabelas — viram listas empilhadas em telas estreitas
+   Tabelas: viram listas empilhadas em telas estreitas
    ====================================================================== */
 .tableWrap {
   overflow-x: auto;
@@ -456,8 +494,10 @@
   padding: var(--space-3) var(--space-5);
   text-align: left;
   font-size: var(--fs-12);
-  font-weight: var(--fw-semibold);
-  color: var(--color-text-muted);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tinta-2);
   background: var(--color-surface-muted);
   border-bottom: 1px solid var(--color-border);
   white-space: nowrap;
@@ -468,10 +508,12 @@
   align-items: center;
   gap: var(--space-1);
   font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
   color: inherit;
 }
 
-.table th[aria-sort] button:hover { color: var(--color-text); }
+.table th[aria-sort] button:hover { color: var(--marinho-900); }
 
 .table td {
   padding: var(--space-4) var(--space-5);
@@ -482,14 +524,14 @@
 .table tbody tr:last-child td { border-bottom: 0; }
 
 .table tbody tr { transition: background-color var(--dur-1) ease; }
-.table tbody tr:hover { background: var(--color-surface-muted); }
+.table tbody tr:hover { background: var(--marinho-50); }
 
 .alignRight { text-align: right; }
 .numeric { font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 .cellTitle {
   font-weight: var(--fw-semibold);
-  color: var(--color-text);
+  color: var(--marinho-900);
 }
 
 .cellMuted {
@@ -521,6 +563,7 @@
 }
 
 .rowInactive td:not(:last-child) { color: var(--color-text-muted); }
+.rowInactive .cellTitle { color: var(--tinta-2); }
 
 @media (max-width: 760px) {
   .table thead { display: none; }
@@ -577,6 +620,8 @@
 /* ======================================================================
    Badges e status
    Status sempre com forma + texto, nunca só cor.
+   agendado: contorno + anel · confirmado: marinho cheio + ponto
+   realizado: verde + visto · cancelado: vermelho claro + xis
    ====================================================================== */
 .badge {
   display: inline-flex;
@@ -585,17 +630,19 @@
   height: 1.5rem;
   padding: 0 var(--space-2);
   border-radius: var(--radius-pill);
+  border: 1px solid transparent;
   font-size: var(--fs-12);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.01em;
   white-space: nowrap;
   line-height: 1;
-  transition: background-color var(--dur-2) ease, color var(--dur-2) ease;
+  transition: background-color var(--dur-2) ease, color var(--dur-2) ease, border-color var(--dur-2) ease;
 }
 
-.badgeNeutral { background: var(--stone-100); color: var(--stone-600); }
-.badgeSuccess { background: var(--success-soft); color: var(--success); }
-.badgeDanger { background: var(--danger-soft); color: var(--danger-ink); }
-.badgeAccent { background: var(--copper-soft); color: var(--copper-ink); }
+.badgeNeutral { background: var(--stone-100); color: var(--tinta-2); border-color: var(--linha); }
+.badgeSuccess { background: var(--verde-100); color: var(--verde); }
+.badgeDanger { background: var(--vermelho-100); color: var(--vermelho-700); }
+.badgeAccent { background: var(--marinho-100); color: var(--marinho-900); }
 
 .statusMark {
   flex-shrink: 0;
@@ -604,11 +651,15 @@
   border-radius: 50%;
 }
 
-.status_agendado { background: var(--status-agendado-bg); color: var(--status-agendado); }
-.status_agendado .statusMark { border: 1.5px solid currentColor; }
+.status_agendado {
+  background: var(--status-agendado-bg);
+  color: var(--status-agendado);
+  border-color: var(--marinho-300);
+}
+.status_agendado .statusMark { border: 1.75px solid currentColor; }
 
 .status_confirmado { background: var(--status-confirmado-bg); color: var(--status-confirmado); }
-.status_confirmado .statusMark { background: var(--copper); }
+.status_confirmado .statusMark { background: var(--marfim); }
 
 .status_realizado { background: var(--status-realizado-bg); color: var(--status-realizado); }
 .status_cancelado { background: var(--status-cancelado-bg); color: var(--status-cancelado); }
@@ -617,7 +668,7 @@
 .status_cancelado svg { width: 12px; height: 12px; }
 
 /* ======================================================================
-   Avatar (iniciais)
+   Avatar (iniciais): selo marinho com filete interno, como medalha esmaltada
    ====================================================================== */
 .avatar {
   display: inline-grid;
@@ -626,17 +677,17 @@
   width: 2.25rem;
   height: 2.25rem;
   border-radius: 50%;
-  background: var(--ink-800);
-  color: var(--brass);
+  background: var(--marinho-900);
+  color: var(--marfim);
+  box-shadow: inset 0 0 0 2px var(--marinho-900), inset 0 0 0 3px rgb(248 244 235 / 0.35);
   font-size: var(--fs-12);
   font-weight: var(--fw-bold);
-  font-stretch: var(--stretch-numeric);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
 }
 
-.avatarSm { width: 1.75rem; height: 1.75rem; font-size: 0.6875rem; }
-.avatarLg { width: 3.5rem; height: 3.5rem; font-size: var(--fs-18); }
-.avatarMuted { background: var(--stone-200); color: var(--stone-600); }
+.avatarSm { width: 1.75rem; height: 1.75rem; font-size: 0.6875rem; box-shadow: none; }
+.avatarLg { width: 3.5rem; height: 3.5rem; font-size: var(--fs-18); box-shadow: inset 0 0 0 3px var(--marinho-900), inset 0 0 0 4.5px rgb(248 244 235 / 0.4); }
+.avatarMuted { background: var(--marfim-2); color: var(--tinta-2); box-shadow: none; }
 
 /* ======================================================================
    Alertas em linha
@@ -655,10 +706,10 @@
 .alert svg { flex-shrink: 0; margin-top: 1px; }
 .alert strong { display: block; margin-bottom: 2px; }
 
-.alertDanger { background: var(--danger-soft); border-color: rgb(196 71 71 / 0.3); color: var(--danger-ink); }
-.alertInfo { background: var(--color-surface-muted); border-color: var(--color-border); color: var(--color-text); }
-.alertAccent { background: var(--copper-soft); border-color: var(--copper-line); color: var(--ink-900); }
-.alertSuccess { background: var(--success-soft); border-color: rgb(39 132 91 / 0.3); color: var(--ink-900); }
+.alertDanger { background: var(--vermelho-100); border-color: var(--vermelho-200); color: var(--vermelho-700); }
+.alertInfo { background: var(--marinho-50); border-color: var(--marinho-100); color: var(--marinho-900); }
+.alertAccent { background: var(--marinho-100); border-color: var(--marinho-200); color: var(--marinho-900); }
+.alertSuccess { background: var(--verde-100); border-color: rgb(41 115 78 / 0.3); color: var(--tinta); }
 
 .alertDanger p, .alertInfo p, .alertAccent p, .alertSuccess p { color: inherit; }
 
@@ -672,20 +723,29 @@
   gap: var(--space-2);
   padding: var(--space-12) var(--space-6);
   text-align: center;
+  animation: fadeUp var(--dur-3) var(--ease-out);
 }
 
 .emptyIcon {
   display: grid;
   place-items: center;
-  width: 3rem;
-  height: 3rem;
+  width: 3.25rem;
+  height: 3.25rem;
   margin-bottom: var(--space-2);
   border-radius: 50%;
-  background: var(--stone-100);
-  color: var(--stone-600);
+  background: var(--marinho-50);
+  color: var(--marinho-900);
+  box-shadow: inset 0 0 0 1.5px var(--marinho-200);
 }
 
-.errorState .emptyIcon { background: var(--danger-soft); color: var(--danger-ink); }
+.emptyArt {
+  width: min(13rem, 70%);
+  height: auto;
+  margin-bottom: var(--space-3);
+  opacity: 0.92;
+}
+
+.errorState .emptyIcon { background: var(--vermelho-100); color: var(--vermelho-700); box-shadow: inset 0 0 0 1.5px var(--vermelho-200); }
 
 .emptyState h2,
 .errorState h2 { font-size: var(--fs-18); }
@@ -703,7 +763,8 @@
 .compact { padding: var(--space-8) var(--space-4); }
 
 /* ======================================================================
-   Carregamento
+   Carregamento. O indicador é o poste de barbearia girando:
+   na barbearia, poste girando quer dizer "aberto, trabalhando".
    ====================================================================== */
 .loaderWrap {
   display: flex;
@@ -713,25 +774,28 @@
   min-height: 12rem;
   color: var(--color-text-muted);
   font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
 }
 
 .loaderFull { min-height: 100dvh; }
 
 .spinner {
-  width: 1.25rem;
-  height: 1.25rem;
-  border-radius: 50%;
-  border: 2px solid var(--stone-300);
-  border-top-color: var(--ink-900);
-  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+  width: 0.875rem;
+  height: 1.75rem;
+  border-radius: var(--radius-pill);
+  background: var(--listras-poste);
+  background-size: 18px 18px;
+  box-shadow: 0 0 0 2px var(--branco), 0 0 0 3.5px var(--marinho-900);
+  animation: poleTurn 0.9s linear infinite;
 }
 
 .skeleton {
   display: block;
   border-radius: var(--radius-sm);
-  background: linear-gradient(90deg, var(--stone-100) 0%, var(--paper-deep) 40%, var(--stone-100) 80%);
+  background: linear-gradient(90deg, var(--stone-100) 0%, var(--marfim-claro) 40%, var(--stone-100) 80%);
   background-size: 300% 100%;
-  animation: shimmer 1.4s ease-in-out infinite;
+  animation: shimmer 1.6s ease-in-out infinite;
 }
 
 .skeletonStack {
@@ -766,7 +830,7 @@
   position: absolute;
   inset: 0;
   width: 30%;
-  background: var(--copper);
+  background: var(--marinho-700);
   animation: indeterminate 1s var(--ease-in-out) infinite;
 }
 
@@ -782,6 +846,7 @@
   border-top: 1px solid var(--color-border);
   font-size: var(--fs-14);
   color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .paginationButtons { display: flex; gap: var(--space-2); }
@@ -800,11 +865,11 @@
   pointer-events: none;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 1023px) {
   .toastRegion {
     right: var(--space-4);
     left: var(--space-4);
-    bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+    bottom: calc(var(--tabbar-h) + var(--space-3) + env(safe-area-inset-bottom));
     width: auto;
   }
 }
@@ -816,9 +881,10 @@
   gap: var(--space-3);
   padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
-  background: var(--ink-900);
-  color: var(--paper);
+  background: var(--marinho-900);
+  color: var(--marfim);
   font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
   line-height: var(--lh-snug);
   box-shadow: var(--shadow-overlay);
   pointer-events: auto;
@@ -828,9 +894,9 @@
 .toastLeaving { animation: toastOut var(--dur-2) ease-in forwards; }
 
 .toastIcon { margin-top: 1px; }
-.toastSuccess .toastIcon { color: #7fd1a8; }
-.toastError .toastIcon { color: #f0a3a3; }
-.toastInfo .toastIcon { color: var(--brass); }
+.toastSuccess .toastIcon { color: #8fd3ae; }
+.toastError .toastIcon { color: #f3a9a4; }
+.toastInfo .toastIcon { color: var(--marinho-200); }
 
 .toastMessage { padding-top: 1px; }
 
@@ -841,13 +907,13 @@
   height: 1.75rem;
   margin: -2px -2px 0 0;
   border-radius: var(--radius-sm);
-  color: rgb(246 243 237 / 0.6);
+  color: rgb(248 244 235 / 0.7);
 }
 
-.toastClose:hover { color: var(--paper); background: rgb(255 255 255 / 0.08); }
+.toastClose:hover { color: var(--marfim); background: rgb(255 255 255 / 0.1); }
 
 /* ======================================================================
-   Modal — no celular vira folha inferior
+   Modal: no celular vira folha inferior
    ====================================================================== */
 .modalBackdrop {
   position: fixed;
@@ -856,7 +922,7 @@
   display: grid;
   place-items: center;
   padding: var(--space-6);
-  background: rgb(23 25 29 / 0.45);
+  background: rgb(16 33 67 / 0.5);
   animation: fadeIn var(--dur-2) ease-out;
 }
 
@@ -886,7 +952,7 @@
   padding: var(--space-5) var(--space-5) var(--space-4) var(--space-6);
 }
 
-.modalHeader h2 { font-size: var(--fs-18); padding-top: var(--space-2); }
+.modalHeader h2 { font-size: var(--fs-21); padding-top: var(--space-2); }
 
 .modalDescription {
   margin-top: var(--space-2);
@@ -919,6 +985,18 @@
     max-height: 92dvh;
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
     animation: sheetIn var(--dur-3) var(--ease-drawer);
+  }
+
+  /* Alça da folha inferior */
+  .modal::before {
+    content: '';
+    align-self: center;
+    flex-shrink: 0;
+    width: 2.5rem;
+    height: 4px;
+    margin-top: var(--space-2);
+    border-radius: var(--radius-pill);
+    background: var(--linha-forte);
   }
 
   .modalClosing .modal { animation: sheetOut var(--dur-2) ease-in forwards; }
@@ -955,6 +1033,7 @@
 
 .summaryItem dd {
   font-weight: var(--fw-semibold);
+  color: var(--marinho-900);
   text-align: right;
 }
 
@@ -962,6 +1041,8 @@
    Animações
    ====================================================================== */
 @keyframes spin { to { transform: rotate(360deg); } }
+
+@keyframes poleTurn { to { background-position: 0 36px; } }
 
 @keyframes shimmer {
   0% { background-position: 100% 0; }
@@ -976,8 +1057,13 @@
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
 
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
 @keyframes modalIn {
-  from { opacity: 0; transform: translateY(8px) scale(0.985); }
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
   to { opacity: 1; transform: none; }
 }
 
@@ -990,7 +1076,7 @@
 @keyframes sheetOut { from { transform: none; } to { transform: translateY(100%); } }
 
 @keyframes toastIn {
-  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
   to { opacity: 1; transform: none; }
 }
 
@@ -1005,5 +1091,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .skeleton { animation: none; }
+  .spinner { animation: none; }
   .refreshBar::after { animation: none; width: 100%; opacity: 0.4; }
 }

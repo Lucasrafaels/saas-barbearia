@@ -1,0 +1,464 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-12T00:00:00Z",
+  "title": "Design System: BarberPro",
+  "extensions": {
+    "colorMeta": {
+      "marinho-900": {
+        "role": "primary",
+        "displayName": "Marinho Placa",
+        "canonical": "#102143",
+        "tonalRamp": [
+          "#102143",
+          "#192f57",
+          "#284273",
+          "#3a5488",
+          "#9fb0cf",
+          "#c9d4e8",
+          "#e7edf8",
+          "#f3f6fb"
+        ]
+      },
+      "marinho-800": {
+        "role": "primary",
+        "displayName": "Marinho Fundo de Trilho",
+        "canonical": "#192f57",
+        "tonalRamp": [
+          "#102143",
+          "#192f57",
+          "#284273",
+          "#3a5488",
+          "#9fb0cf",
+          "#c9d4e8",
+          "#e7edf8",
+          "#f3f6fb"
+        ]
+      },
+      "marinho-700": {
+        "role": "primary",
+        "displayName": "Marinho Tinta de Link",
+        "canonical": "#284273",
+        "tonalRamp": [
+          "#102143",
+          "#192f57",
+          "#284273",
+          "#3a5488",
+          "#9fb0cf",
+          "#c9d4e8",
+          "#e7edf8",
+          "#f3f6fb"
+        ]
+      },
+      "marinho-600": {
+        "role": "primary",
+        "displayName": "Marinho Médio",
+        "canonical": "#3a5488",
+        "tonalRamp": [
+          "#102143",
+          "#192f57",
+          "#284273",
+          "#3a5488",
+          "#9fb0cf",
+          "#c9d4e8",
+          "#e7edf8",
+          "#f3f6fb"
+        ]
+      },
+      "marinho-300": {
+        "role": "primary",
+        "displayName": "Marinho Claro 300",
+        "canonical": "#9fb0cf"
+      },
+      "marinho-200": {
+        "role": "primary",
+        "displayName": "Marinho Claro 200",
+        "canonical": "#c9d4e8"
+      },
+      "marinho-100": {
+        "role": "primary",
+        "displayName": "Marinho Claro 100",
+        "canonical": "#e7edf8"
+      },
+      "marinho-50": {
+        "role": "primary",
+        "displayName": "Marinho Névoa",
+        "canonical": "#f3f6fb"
+      },
+      "vermelho-600": {
+        "role": "secondary",
+        "displayName": "Vermelho Poste",
+        "canonical": "#c12d2e",
+        "tonalRamp": [
+          "#5e1415",
+          "#82191b",
+          "#a32224",
+          "#c12d2e",
+          "#d8625f",
+          "#edc1bc",
+          "#f6d8d4",
+          "#fbe7e4"
+        ]
+      },
+      "vermelho-700": {
+        "role": "secondary",
+        "displayName": "Vermelho Texto",
+        "canonical": "#a32224"
+      },
+      "vermelho-200": {
+        "role": "secondary",
+        "displayName": "Vermelho Borda",
+        "canonical": "#edc1bc"
+      },
+      "vermelho-100": {
+        "role": "secondary",
+        "displayName": "Vermelho Fundo",
+        "canonical": "#fbe7e4"
+      },
+      "verde": {
+        "role": "tertiary",
+        "displayName": "Verde Realizado",
+        "canonical": "#29734e",
+        "tonalRamp": [
+          "#123522",
+          "#1d5238",
+          "#29734e",
+          "#3f8f66",
+          "#78b496",
+          "#b3d5c3",
+          "#d3e6db",
+          "#e3efe8"
+        ]
+      },
+      "verde-100": {
+        "role": "tertiary",
+        "displayName": "Verde Fundo",
+        "canonical": "#e3efe8"
+      },
+      "marfim": {
+        "role": "neutral",
+        "displayName": "Marfim",
+        "canonical": "#f8f4eb",
+        "tonalRamp": [
+          "#5c5649",
+          "#8f8878",
+          "#d2cbbe",
+          "#e4dfd4",
+          "#ece6d8",
+          "#f1ede4",
+          "#f8f4eb",
+          "#fbf9f4"
+        ]
+      },
+      "marfim-2": {
+        "role": "neutral",
+        "displayName": "Marfim Fundo",
+        "canonical": "#ece6d8"
+      },
+      "marfim-claro": {
+        "role": "neutral",
+        "displayName": "Marfim Claro",
+        "canonical": "#fbf9f4"
+      },
+      "branco": {
+        "role": "neutral",
+        "displayName": "Branco Porcelana",
+        "canonical": "#ffffff"
+      },
+      "tinta": {
+        "role": "neutral",
+        "displayName": "Tinta",
+        "canonical": "#0e1727",
+        "tonalRamp": [
+          "#0e1727",
+          "#2a3344",
+          "#535d6e",
+          "#666e7e",
+          "#8a919e",
+          "#b0b5be",
+          "#d5d8dd",
+          "#eef0f2"
+        ]
+      },
+      "tinta-2": {
+        "role": "neutral",
+        "displayName": "Tinta Suave",
+        "canonical": "#535d6e"
+      },
+      "tinta-3": {
+        "role": "neutral",
+        "displayName": "Tinta Placeholder",
+        "canonical": "#666e7e"
+      },
+      "linha": {
+        "role": "neutral",
+        "displayName": "Linha",
+        "canonical": "#e4dfd4"
+      },
+      "linha-forte": {
+        "role": "neutral",
+        "displayName": "Linha Forte",
+        "canonical": "#d2cbbe"
+      },
+      "linha-campo": {
+        "role": "neutral",
+        "displayName": "Linha de Campo",
+        "canonical": "#8f8878"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display (League Gothic)",
+        "purpose": "Título de página, sempre em caixa-alta. 2.5rem no celular, 3.25rem a partir de 900px."
+      },
+      "headline": {
+        "displayName": "Headline (League Gothic)",
+        "purpose": "Títulos de bloco com voz de marca (Caixa, etapa do agendamento, resumo), em caixa-alta."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Títulos de painel em Public Sans 700."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Texto corrido e campos de formulário (16px evita zoom no iOS)."
+      },
+      "body-sm": {
+        "displayName": "Body pequeno",
+        "purpose": "Texto secundário, células de tabela, botões."
+      },
+      "numeric": {
+        "displayName": "Numérico",
+        "purpose": "Valores e horários com algarismos tabulares."
+      },
+      "label": {
+        "displayName": "Rótulo de dado",
+        "purpose": "Cabeçalho de tabela, rótulo de indicador e de fatos, em caixa-alta, preso ao valor."
+      }
+    },
+    "signatures": [
+      {
+        "name": "--listras-poste",
+        "value": "repeating-linear-gradient(-45deg, var(--vermelho-600) 0 6px, var(--branco) 6px 9px, var(--marinho-900) 9px 15px, var(--branco) 15px 18px)",
+        "purpose": "Significa aberta/agora: indicador de barbearia aberta, linha do agora, loader. Nas superfícies de marca (tela de entrada e página pública) é a placa da casa: faixa na base do painel de entrada e poste lateral que gira com a rolagem."
+      }
+    ],
+    "shadows": [
+      {
+        "name": "--shadow-raise",
+        "value": "0 1px 2px rgb(16 33 67 / 0.06), 0 8px 18px -10px rgb(16 33 67 / 0.22)",
+        "purpose": "Hover de bloco e opção; comanda."
+      },
+      {
+        "name": "--shadow-overlay",
+        "value": "0 1px 2px rgb(16 33 67 / 0.08), 0 22px 44px -16px rgb(16 33 67 / 0.38)",
+        "purpose": "Modal, toast, menus, gaveta."
+      },
+      {
+        "name": "--ring-focus",
+        "value": "0 0 0 3px rgb(40 66 115 / 0.24)",
+        "purpose": "Anel de foco de campos."
+      }
+    ],
+    "motion": [
+      {
+        "name": "--ease-out",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Entradas e respostas ao toque."
+      },
+      {
+        "name": "--ease-in-out",
+        "value": "cubic-bezier(0.65, 0, 0.35, 1)",
+        "purpose": "Barra de atualização indeterminada."
+      },
+      {
+        "name": "--ease-drawer",
+        "value": "cubic-bezier(0.32, 0.72, 0, 1)",
+        "purpose": "Gaveta, folha inferior e recolher do trilho."
+      },
+      {
+        "name": "--dur-1",
+        "value": "120ms",
+        "purpose": "Cor, borda, pressão."
+      },
+      {
+        "name": "--dur-2",
+        "value": "180ms",
+        "purpose": "Sombras, saídas, interruptor."
+      },
+      {
+        "name": "--dur-3",
+        "value": "240ms",
+        "purpose": "Entradas de modal, toast, painéis."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "celular-estreito",
+        "value": "420px"
+      },
+      {
+        "name": "celular",
+        "value": "640px"
+      },
+      {
+        "name": "tabela-empilhada",
+        "value": "760px"
+      },
+      {
+        "name": "titulo-grande",
+        "value": "900px"
+      },
+      {
+        "name": "trilho-lateral",
+        "value": "1024px"
+      },
+      {
+        "name": "painel-com-a-seguir",
+        "value": "1180px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botão principal",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "Ação principal de cada tela: marinho cheio, letra marfim.",
+      "html": "<button class=\"ds-button\">Novo agendamento</button>",
+      "css": ".ds-button { display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; padding: 0 1rem; border-radius: 8px; border: 1px solid transparent; background: var(--marinho-900, #102143); color: var(--marfim, #f8f4eb); font: 600 0.875rem/1 'Public Sans', system-ui, sans-serif; letter-spacing: 0.005em; box-shadow: 0 1px 0 rgb(16 33 67 / 0.12), inset 0 1px 0 rgb(255 255 255 / 0.06); cursor: pointer; transition: background-color 120ms ease, box-shadow 180ms ease, transform 120ms cubic-bezier(0.22, 1, 0.36, 1); } .ds-button:hover { background: var(--marinho-800, #192f57); color: #fff; box-shadow: 0 6px 14px -8px rgb(16 33 67 / 0.6); } .ds-button:active { transform: scale(0.97); } .ds-button:focus-visible { outline: 2px solid #284273; outline-offset: 2px; }"
+    },
+    {
+      "name": "Botão secundário",
+      "kind": "button",
+      "refersTo": "secondaryButton",
+      "description": "Contorno sobre branco, letra marinho (ex.: Confirmar na lista A seguir).",
+      "html": "<button class=\"ds-secondary\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"20 6 9 17 4 12\"/></svg>Confirmar</button>",
+      "css": ".ds-secondary { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.75rem; padding: 0 1rem; border-radius: 8px; border: 1px solid #8f8878; background: #fff; color: #102143; font: 600 0.875rem/1 'Public Sans', system-ui, sans-serif; cursor: pointer; transition: background-color 120ms ease, border-color 120ms ease; } .ds-secondary:hover { border-color: #102143; background: #f3f6fb; } .ds-secondary:active { transform: scale(0.97); } .ds-secondary:focus-visible { outline: 2px solid #284273; outline-offset: 2px; }"
+    },
+    {
+      "name": "Campo de texto",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Campo único da aplicação: borda de 3,4:1, foco com anel marinho.",
+      "html": "<label class=\"ds-field\"><span>Nome do cliente</span><input class=\"ds-input\" placeholder=\"Ex.: João Pereira\"></label>",
+      "css": ".ds-field { display: grid; gap: 0.5rem; font: 600 0.875rem 'Public Sans', system-ui, sans-serif; color: #102143; } .ds-input { width: 100%; min-height: 2.75rem; padding: 0 0.75rem; font: 400 1rem 'Public Sans', system-ui, sans-serif; color: #0e1727; background: #fff; border: 1px solid #8f8878; border-radius: 8px; outline: none; transition: border-color 120ms ease, box-shadow 120ms ease; } .ds-input::placeholder { color: #666e7e; } .ds-input:hover { border-color: #3a5488; } .ds-input:focus-visible, .ds-input:focus { border-color: #284273; box-shadow: 0 0 0 3px rgb(40 66 115 / 0.24); }"
+    },
+    {
+      "name": "Trilho de navegação",
+      "kind": "nav",
+      "refersTo": "navLink",
+      "description": "Trilho marinho; o item ativo vira plaqueta marfim. Inclui o poste de barbearia aberta.",
+      "html": "<nav class=\"ds-rail\"><div class=\"ds-shop\"><strong>Navalha &amp; Co.</strong><span><i class=\"ds-pole\"></i>Aberta até 19:00</span></div><a class=\"ds-nav ds-nav-active\" href=\"#\">Painel</a><a class=\"ds-nav\" href=\"#\">Agendamentos</a><a class=\"ds-nav\" href=\"#\">Serviços</a></nav>",
+      "css": ".ds-rail { display: grid; gap: 2px; width: 16rem; padding: 0.75rem; background: #102143; font-family: 'Public Sans', system-ui, sans-serif; } .ds-shop { margin-bottom: 1rem; padding: 0.75rem 0.75rem 0.75rem 1rem; border-radius: 8px; background: #192f57; box-shadow: inset 0 0 0 1px rgb(248 244 235 / 0.08); } .ds-shop strong { display: block; color: #f8f4eb; font-size: 0.875rem; font-weight: 600; } .ds-shop span { display: flex; align-items: center; gap: 0.5rem; margin-top: 4px; font-size: 0.75rem; color: #c9d4e8; } .ds-pole { width: 7px; height: 15px; border-radius: 999px; background: repeating-linear-gradient(-45deg, #c12d2e 0 6px, #fff 6px 9px, #102143 9px 15px, #fff 15px 18px); background-size: 12px 12px; box-shadow: 0 0 0 1.5px #fff; animation: ds-pole-turn 1.4s linear infinite; } @keyframes ds-pole-turn { to { background-position: 0 24px; } } .ds-nav { display: flex; align-items: center; min-height: 2.625rem; padding: 0 0.75rem; border-radius: 8px; color: rgb(248 244 235 / 0.82); font-size: 0.875rem; font-weight: 500; text-decoration: none; transition: background-color 120ms ease, color 120ms ease; } .ds-nav:hover { background: #192f57; color: #f8f4eb; } .ds-nav-active, .ds-nav-active:hover { background: #f8f4eb; color: #102143; font-weight: 700; box-shadow: 0 1px 0 rgb(0 0 0 / 0.2); } .ds-nav:focus-visible { outline: 2px solid #f8f4eb; outline-offset: 2px; } @media (prefers-reduced-motion: reduce) { .ds-pole { animation: none; } }"
+    },
+    {
+      "name": "Blocos de status do quadro",
+      "kind": "custom",
+      "refersTo": "s_confirmado",
+      "description": "Vocabulário de status por forma: agendado tracejado, confirmado marinho cheio, realizado marfim recuado com visto, cancelado hachurado e riscado.",
+      "html": "<div class=\"ds-blocks\"><button class=\"ds-block ds-agendado\"><b>13:15</b><span>Henrique Costa</span></button><button class=\"ds-block ds-confirmado\"><b>14:45</b><span>Matheus Oliveira</span></button><button class=\"ds-block ds-realizado\"><b>10:00</b><span>Lucas Martins</span></button><button class=\"ds-block ds-cancelado\"><b>15:45</b><span>Paulo Henrique</span></button></div>",
+      "css": ".ds-blocks { display: grid; gap: 6px; width: 14rem; font-family: 'Public Sans', system-ui, sans-serif; } .ds-block { position: relative; display: flex; flex-direction: column; gap: 1px; padding: 4px 8px; text-align: left; border-radius: 6px; border: 1px solid #d2cbbe; background: #fff; font-size: 0.75rem; line-height: 1.25; color: #0e1727; cursor: pointer; transition: box-shadow 120ms ease, transform 120ms cubic-bezier(0.22, 1, 0.36, 1); } .ds-block b { font-weight: 700; font-variant-numeric: tabular-nums; } .ds-block span { font-weight: 600; } .ds-block:hover { box-shadow: 0 1px 2px rgb(16 33 67 / 0.06), 0 8px 18px -10px rgb(16 33 67 / 0.22); transform: translateY(-1px); } .ds-block:focus-visible { outline: 2px solid #284273; outline-offset: 2px; } .ds-agendado { border: 1.5px dashed #3a5488; color: #102143; } .ds-confirmado { background: #102143; border-color: #102143; color: #f8f4eb; } .ds-confirmado:focus-visible { outline-color: #c12d2e; } .ds-realizado { background: #ece6d8; color: #535d6e; padding-right: 1.5rem; } .ds-realizado::after { content: ''; position: absolute; top: 7px; right: 8px; width: 5px; height: 9px; border-right: 2px solid #29734e; border-bottom: 2px solid #29734e; transform: rotate(45deg); } .ds-cancelado { background: repeating-linear-gradient(135deg, #fff 0 5px, #fbe7e4 5px 7px); border: 1px dashed #edc1bc; color: #535d6e; } .ds-cancelado b, .ds-cancelado span { text-decoration: line-through; text-decoration-color: #c12d2e; }"
+    },
+    {
+      "name": "Selos de status",
+      "kind": "chip",
+      "refersTo": "status_confirmado",
+      "description": "Pílulas de status com marcador e rótulo, usadas em listas e tabelas.",
+      "html": "<div class=\"ds-badges\"><span class=\"ds-badge ds-b-agendado\"><i></i>Agendado</span><span class=\"ds-badge ds-b-confirmado\"><i></i>Confirmado</span><span class=\"ds-badge ds-b-realizado\">Realizado</span><span class=\"ds-badge ds-b-cancelado\">Cancelado</span></div>",
+      "css": ".ds-badges { display: flex; flex-wrap: wrap; gap: 8px; } .ds-badge { display: inline-flex; align-items: center; gap: 6px; height: 1.5rem; padding: 0 0.5rem; border-radius: 999px; border: 1px solid transparent; font: 700 0.75rem/1 'Public Sans', system-ui, sans-serif; letter-spacing: 0.01em; } .ds-badge i { width: 8px; height: 8px; border-radius: 50%; } .ds-b-agendado { background: #fff; color: #102143; border-color: #9fb0cf; } .ds-b-agendado i { border: 1.75px solid currentColor; } .ds-b-confirmado { background: #102143; color: #f8f4eb; } .ds-b-confirmado i { background: #f8f4eb; } .ds-b-realizado { background: #e3efe8; color: #29734e; } .ds-b-cancelado { background: #fbe7e4; color: #a32224; }"
+    },
+    {
+      "name": "Linha do agora",
+      "kind": "custom",
+      "refersTo": "nowLine",
+      "description": "O poste deitado marcando a hora atual, com rótulo vermelho tabular.",
+      "html": "<div class=\"ds-now\"><b>14:58</b><span></span></div>",
+      "css": ".ds-now { display: grid; grid-template-columns: 4.5rem 1fr; align-items: center; gap: 1.25rem; width: 22rem; padding: 0.5rem 1.25rem; background: #fff; font-family: 'Public Sans', system-ui, sans-serif; } .ds-now b { justify-self: start; padding: 2px 7px; border-radius: 6px; background: #c12d2e; color: #fff; font-size: 0.75rem; font-weight: 700; font-variant-numeric: tabular-nums; } .ds-now span { height: 5px; border-radius: 999px; background: repeating-linear-gradient(-45deg, #c12d2e 0 6px, #fff 6px 9px, #102143 9px 15px, #fff 15px 18px); background-size: 18px 18px; box-shadow: 0 0 0 1.5px #fff; animation: ds-pole-slide 2.4s linear infinite; } @keyframes ds-pole-slide { to { background-position: 36px 0; } } @media (prefers-reduced-motion: reduce) { .ds-now span { animation: none; } }"
+    },
+    {
+      "name": "Loader de poste",
+      "kind": "custom",
+      "refersTo": "spinner",
+      "description": "Indicador de carregamento: o poste girando, aberto e trabalhando.",
+      "html": "<div class=\"ds-loader\" role=\"status\"><span class=\"ds-spinner\"></span>Carregando agenda</div>",
+      "css": ".ds-loader { display: flex; align-items: center; gap: 0.75rem; color: #535d6e; font: 500 0.875rem 'Public Sans', system-ui, sans-serif; } .ds-spinner { width: 0.875rem; height: 1.75rem; border-radius: 999px; background: repeating-linear-gradient(-45deg, #c12d2e 0 6px, #fff 6px 9px, #102143 9px 15px, #fff 15px 18px); background-size: 18px 18px; box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px #102143; animation: ds-turn 0.9s linear infinite; } @keyframes ds-turn { to { background-position: 0 36px; } } @media (prefers-reduced-motion: reduce) { .ds-spinner { animation: none; } }"
+    },
+    {
+      "name": "Painel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Porcelana branca sobre marfim, borda de 1px, cabeçalho separado por filete.",
+      "html": "<section class=\"ds-panel\"><header><h2>Quadro do dia</h2><p>Toque em um horário para ver detalhes.</p></header><div class=\"ds-panel-body\">Conteúdo</div></section>",
+      "css": ".ds-panel { width: 22rem; background: #fff; border: 1px solid #e4dfd4; border-radius: 12px; box-shadow: 0 1px 0 rgb(16 33 67 / 0.03); font-family: 'Public Sans', system-ui, sans-serif; } .ds-panel header { padding: 1rem 1.25rem; border-bottom: 1px solid #e4dfd4; } .ds-panel h2 { font-size: 1rem; font-weight: 700; color: #102143; } .ds-panel p { margin-top: 2px; font-size: 0.875rem; color: #535d6e; } .ds-panel-body { padding: 1.25rem; color: #0e1727; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Esmalte & Navalha",
+    "overview": "O BarberPro é a placa esmaltada da barbearia americana dos anos 30 e 40 transformada em ferramenta. O marinho é a estrutura (trilho lateral, ação principal, títulos, o status confirmado), o vermelho de poste aparece só para \"agora, atenção, ação\", e o marfim é o papel sobre o qual as superfícies de porcelana branca descansam. Os títulos e os numerais de letreiro falam com a letra de letreiro (League Gothic em caixa-alta); a interface é Public Sans, sóbria e legível, com algarismos tabulares onde há hora ou dinheiro.\n\nNa área autenticada (modo Operate) o mundo empresta só tipografia, paleta, densidade e uma assinatura: layout, navegação e controles seguem o padrão da web. A densidade é de ferramenta de trabalho: painéis divididos por filetes de 1px, tabelas que viram listas no celular, quadro do dia como protagonista. Na página pública (`/conheca`, modo Persuade) o mesmo mundo aparece por inteiro: campo marinho, títulos enormes de letreiro e ilustrações em traço de gravura.\n\nO sistema recusa dois desvios na mesma medida: o back-office genérico (cards iguais, blocos de KPI, roxo de tecnologia) e a caricatura vintage (bigodes, \"EST. 19XX\", desgaste falso, grão). A época vem da letra, da cor e do filete, nunca de textura envelhecida.",
+    "keyCharacteristics": [
+      "Marinho estrutural, vermelho raro e com significado, marfim como papel, branco como superfície.",
+      "O vermelho nunca toca o marinho sem branco entre os dois.",
+      "League Gothic em caixa-alta nos títulos e nos numerais de letreiro; Public Sans com algarismos tabulares na interface.",
+      "Assinatura única: as listras do poste (`--listras-poste`) querem dizer \"aberta/agora\" na área autenticada; nas superfícies de marca (tela de entrada e página pública) são a placa da casa.",
+      "Status lido pela forma, não só pela cor.",
+      "Plano por padrão; sombra só no que flutua ou responde ao toque."
+    ],
+    "rules": [
+      {
+        "name": "The Branco no Meio Rule",
+        "body": "O vermelho nunca encosta no marinho (contraste de só 2,8:1). Entre os dois há sempre branco: listras do poste, anel do emblema, contorno branco interno do CTA sobre o campo marinho, anel branco das pendências.",
+        "section": "colors"
+      },
+      {
+        "name": "The Vermelho Significa Agora Rule",
+        "body": "O vermelho de poste só marca \"agora, atenção, ação\". Nunca decora, nunca é cor de marca em área grande, nunca é a ação principal da área autenticada (essa é marinho).",
+        "section": "colors"
+      },
+      {
+        "name": "The Verde Só Sucesso Rule",
+        "body": "O verde aparece apenas para sucesso e \"realizado\".",
+        "section": "colors"
+      },
+      {
+        "name": "The Letreiro Rule",
+        "body": "League Gothic em títulos e nos numerais de letreiro (hora grande da comanda, número do dia no seletor de datas, números dos passos da página pública, carimbo da reserva), sempre em caixa-alta e peso 400. Texto corrido, botões, rótulos, campos e dados de tabela ficam em Public Sans.",
+        "section": "typography"
+      },
+      {
+        "name": "The Algarismo Tabular Rule",
+        "body": "Todo horário, valor em reais, contagem e eixo de gráfico usa `font-variant-numeric: tabular-nums`, para as colunas não dançarem.",
+        "section": "typography"
+      },
+      {
+        "name": "The Plano em Repouso Rule",
+        "body": "Painéis em repouso não têm sombra (no máximo `0 1px 0` a 3% de marinho). Sombra é estado ou camada, nunca enfeite.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Filete Reservado Rule",
+        "body": "O filete duplo aparece só nas duas placas marinho grandes (trilho lateral e painel da tela de entrada), em selos, na comanda e na tabela de preços. Painel comum tem uma borda de 1px e mais nada.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "**Do** usar `--marinho-900` como estrutura e ação principal, e `--marfim` como fundo de página com superfícies `--branco` por cima.",
+      "**Do** separar vermelho e marinho com branco sempre que se encontrarem.",
+      "**Do** reservar `--vermelho-600` para \"agora, atenção, ação\": hora atual, pendências, dia de hoje, passo atual, destruição confirmada.",
+      "**Do** escrever títulos em League Gothic 400 em caixa-alta e todo o resto em Public Sans.",
+      "**Do** usar algarismos tabulares em todo horário e valor.",
+      "**Do** distinguir status pela forma, nunca só pela cor: no quadro do dia, agendado tracejado, confirmado marinho cheio, realizado marfim recuado com visto, cancelado hachurado e riscado; nos selos em pílula, rótulo com marcador (anel, ponto, visto, xis).",
+      "**Do** usar `--listras-poste` só para \"aberta/agora\" (indicador de aberta, linha do agora, loader) e, nas superfícies de marca, como a placa da casa (faixa da tela de entrada, poste lateral da página pública).",
+      "**Do** parar toda animação do poste com `prefers-reduced-motion`."
+    ],
+    "donts": [
+      "**Don't** usar cards iguais repetidos, blocos de KPI genéricos ou roxo de tecnologia.",
+      "**Don't** usar caricatura vintage: bigodes, \"EST. 19XX\", desgaste falso, grão.",
+      "**Don't** pôr faixas laterais coloridas em cards ou linhas; status vem de preenchimento e forma.",
+      "**Don't** usar o filete duplo fora das placas marinho, dos selos, da comanda e da tabela de preços.",
+      "**Don't** comunicar status só por cor.",
+      "**Don't** usar League Gothic em texto corrido, botões ou rótulos.",
+      "**Don't** usar o vermelho como cor de destaque decorativa ou como ação principal da área autenticada.",
+      "**Don't** usar os aliases de compatibilidade (`--ink-*`, `--stone-*`, `--copper*`, `--danger*`) em código novo."
+    ]
+  }
+}

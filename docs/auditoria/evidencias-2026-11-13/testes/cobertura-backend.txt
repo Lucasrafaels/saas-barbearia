@@ -1,0 +1,44 @@
+Name                          Stmts   Miss Branch BrPart  Cover   Missing
+-------------------------------------------------------------------------
+accounts/__init__.py              0      0      0      0   100%
+accounts/admin.py                67      2      8      0    97%   90-91
+accounts/admin_integrity.py      50      0     20      0   100%
+accounts/apps.py                  5      0      0      0   100%
+accounts/forms.py                25      1      4      1    93%   39
+accounts/managers.py             33      3      8      3    85%   42, 55, 57
+accounts/models.py               55      2      6      0    97%   66, 101
+accounts/serializers.py         255     36     56      7    86%   91->99, 104, 160-161, 212, 217-218, 237, 246, 277, 299-300, 302-303, 368-369, 417-419, 428-441, 444-449
+accounts/urls.py                  6      0      0      0   100%
+accounts/views.py               151     14     22      7    88%   45->47, 71, 79->81, 96, 103, 105-106, 175-184, 206, 245->exit, 256-257
+appointments/__init__.py          0      0      0      0   100%
+appointments/admin.py             9      0      0      0   100%
+appointments/apps.py              5      0      0      0   100%
+appointments/models.py          129     15     68     12    85%   98, 106->118, 112, 117, 128, 130, 132, 134, 136, 205, 233, 285, 351, 372-376
+appointments/serializers.py     127      4     58      3    95%   153, 160-161, 242
+appointments/urls.py              6      0      0      0   100%
+appointments/views.py           170     12     70      7    92%   70, 89, 103, 158, 221->225, 296, 306-307, 311-312, 315, 329-330
+barbershops/__init__.py           0      0      0      0   100%
+barbershops/admin.py             13      0      0      0   100%
+barbershops/apps.py               5      0      0      0   100%
+barbershops/models.py            45      2      8      1    94%   82, 88
+barbershops/serializers.py       50      0     14      2    97%   106->109, 113->115
+barbershops/urls.py               7      0      0      0   100%
+barbershops/views.py            116      5     44      8    92%   99, 101, 103, 126, 139, 169->exit, 189->192, 192->207
+config/__init__.py                0      0      0      0   100%
+config/asgi.py                    4      4      0      0     0%   4-10
+config/mixins.py                 14      0     10      1    96%   7->32
+config/models.py                  6      0      0      0   100%
+config/pagination.py              3      0      0      0   100%
+config/permissions.py            21      4      6      3    74%   26, 28, 30, 41
+config/settings.py               55      2      4      2    93%   32, 43
+config/urls.py                    8      1      2      1    80%   41
+config/wsgi.py                    4      4      0      0     0%   4-10
+services/__init__.py              0      0      0      0   100%
+services/admin.py                 7      0      0      0   100%
+services/apps.py                  5      0      0      0   100%
+services/models.py               19      1      0      0    95%   45
+services/serializers.py          10      0      0      0   100%
+services/urls.py                  6      0      0      0   100%
+services/views.py                42      3     14      3    89%   58, 64, 74
+-------------------------------------------------------------------------
+TOTAL                          1533    115    422     61    91%

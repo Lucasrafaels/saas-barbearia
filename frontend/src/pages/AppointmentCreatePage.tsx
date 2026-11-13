@@ -1,19 +1,20 @@
 import axios from 'axios'
-import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { appointmentApi, listActiveBarbers, listActiveServices } from '../api/endpoints'
 import { Avatar, ButtonSpinner } from '../components/Controls'
 import { EmptyState, ErrorState, PageLoader } from '../components/Feedback'
 import { AlertCircleIcon, ArrowLeftIcon, CheckIcon, ClockIcon, InfoIcon } from '../components/Icons'
 import { PageHeader } from '../components/PageHeader'
 import { useAuth } from '../contexts/AuthContext'
-import { useToast } from '../contexts/ToastContext'
+import { useBarbershop } from '../contexts/BarbershopContext'
 import { useAsyncData } from '../hooks/useAsyncData'
 import type { Appointment, Barber, Service } from '../types'
 import {
-  addDays, dateKey, dayOfMonth, errorMessage, formatClock, formatCurrency, formatDayLong, formatDuration, monthShort,
+  addDays, dateChipLabel, dateKey, dayOfMonth, errorMessage, formatClock, formatCurrency, formatDayLong, formatDuration, monthShort,
   relativeDayLabel, todayISO, weekdayShort,
 } from '../utils/format'
+import { isOpenOn } from '../utils/shop'
 import { isOpenStatus, notifyAppointmentsChanged } from '../utils/status'
 import client from '../styles/client.module.css'
 import page from '../styles/page.module.css'
@@ -34,10 +35,19 @@ function groupSlots(slots: string[]) {
   return groups.filter((group) => group.items.length > 0)
 }
 
+/**
+ * Cada navegação para esta rota começa um fluxo novo, inclusive tocar em
+ * "Agendar" estando na tela de horário reservado (FE-13): a chave da
+ * localização muda a cada navegação e descarta o estado da reserva anterior.
+ */
 export function AppointmentCreatePage() {
+  const location = useLocation()
+  return <AppointmentCreateFlow key={location.key} />
+}
+
+function AppointmentCreateFlow() {
   const { user } = useAuth()
-  const { showToast } = useToast()
-  const navigate = useNavigate()
+  const { barbershop } = useBarbershop()
   const [params] = useSearchParams()
   const rescheduleId = params.get('reschedule')
   const presetService = params.get('servico')
@@ -65,6 +75,8 @@ export function AppointmentCreatePage() {
   const [slotsVersion, setSlotsVersion] = useState(0)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const submittingRef = useRef(false)
+  const [booked, setBooked] = useState<Booked | null>(null)
 
   // Reagendamento: pré-preenche com o agendamento original
   const [prefilledFrom, setPrefilledFrom] = useState<number | null>(null)
@@ -80,9 +92,13 @@ export function AppointmentCreatePage() {
 
   const isRescheduling = Boolean(rescheduleId && original.data)
 
+  // Dias em que a barbearia não abre ficam indisponíveis (BUS-06, mesma regra da API)
+  const isClosed = (key: string) => Boolean(barbershop && !isOpenOn(barbershop, key))
+  const dayClosed = isClosed(day)
+
   // Horários livres reais para serviço + barbeiro + dia
   useEffect(() => {
-    if (!serviceId || !barberId) {
+    if (!serviceId || !barberId || dayClosed) {
       setSlots([])
       return
     }
@@ -94,7 +110,7 @@ export function AppointmentCreatePage() {
       .catch((requestError) => { if (active) { setSlots([]); setSlotsError(requestError) } })
       .finally(() => { if (active) setSlotsLoading(false) })
     return () => { active = false }
-  }, [serviceId, barberId, day, isRescheduling, original.data, slotsVersion])
+  }, [serviceId, barberId, day, dayClosed, isRescheduling, original.data, slotsVersion])
 
   // Horário escolhido deixa de valer se não estiver mais na lista
   useEffect(() => {
@@ -102,6 +118,14 @@ export function AppointmentCreatePage() {
   }, [slots, slot, slotsLoading])
 
   const days = useMemo(() => Array.from({ length: DAYS_AHEAD }, (_, index) => addDays(todayISO(), index)), [])
+  const nextOpenDay = (from: string) => days.find((key) => key > from && !isClosed(key)) ?? null
+  // O dia inicial (hoje ou o do horário original) pode ser um dia fechado: avança para o próximo aberto
+  if (dayClosed) {
+    const next = nextOpenDay(day)
+    if (next) setDay(next)
+  }
+
+  if (booked) return <BookingDone booked={booked} shopName={barbershop?.nome} />
 
   if (catalog.isLoading || original.isLoading) return <PageLoader label="Preparando o agendamento…" />
 
@@ -184,19 +208,21 @@ export function AppointmentCreatePage() {
   const submit = async () => {
     if (!user || !service || !barber || !slot) return
     if (notes.length > NOTE_LIMIT) return
+    // Um único envio por vez: um segundo clique antes da resposta não cria outra reserva
+    if (submittingRef.current) return
+    submittingRef.current = true
     setSubmitting(true)
     setSubmitError(null)
     const payload = { barbeiro: barber.id, servico: service.id, data_hora: `${day}T${slot}:00`, observacoes: notes.trim() }
     try {
       if (isRescheduling && original.data) {
         await appointmentApi.update(original.data.id, payload)
-        showToast(`Horário remarcado para ${relativeDayLabel(day).toLowerCase()} às ${slot}.`, 'success')
       } else {
         await appointmentApi.create({ cliente: user.id, ...payload })
-        showToast(`Horário agendado para ${relativeDayLabel(day).toLowerCase()} às ${slot}.`, 'success')
       }
       notifyAppointmentsChanged()
-      navigate('/appointments')
+      setBooked({ day, slot, service, barber, rescheduled: isRescheduling })
+      window.scrollTo(0, 0)
     } catch (requestError) {
       const message = errorMessage(requestError, isRescheduling ? 'Não foi possível reagendar.' : 'Não foi possível concluir o agendamento.')
       const conflict = axios.isAxiosError(requestError) && requestError.response?.status === 400
@@ -209,6 +235,7 @@ export function AppointmentCreatePage() {
         setStep('datetime')
       }
     } finally {
+      submittingRef.current = false
       setSubmitting(false)
     }
   }
@@ -308,21 +335,25 @@ export function AppointmentCreatePage() {
                 </div>
               )}
               <div className={client.dateStrip} role="radiogroup" aria-label="Dia">
-                {days.map((key) => (
-                  <button
-                    key={key}
-                    type="button"
-                    role="radio"
-                    aria-checked={key === day}
-                    aria-label={relativeDayLabel(key) === formatDayLong(key) ? formatDayLong(key) : `${relativeDayLabel(key)}, ${formatDayLong(key)}`}
-                    className={`${client.dateChip} ${key === day ? client.dateChipSelected : ''} ${key === todayISO() ? client.dateChipToday : ''}`}
-                    onClick={() => { setDay(key); setSlot(''); setSubmitError(null) }}
-                  >
-                    <span>{key === todayISO() ? 'hoje' : weekdayShort(key)}</span>
-                    <strong>{dayOfMonth(key)}</strong>
-                    <span>{monthShort(key)}</span>
-                  </button>
-                ))}
+                {days.map((key) => {
+                  const closed = isClosed(key)
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      role="radio"
+                      aria-checked={key === day}
+                      aria-label={dateChipLabel(key, { closed })}
+                      disabled={closed}
+                      className={`${client.dateChip} ${key === day ? client.dateChipSelected : ''} ${key === todayISO() ? client.dateChipToday : ''} ${closed ? client.dateChipClosed : ''}`}
+                      onClick={() => { setDay(key); setSlot(''); setSubmitError(null) }}
+                    >
+                      <span>{key === todayISO() ? 'hoje' : weekdayShort(key)}</span>
+                      <strong>{dayOfMonth(key)}</strong>
+                      <span>{closed ? 'fechado' : monthShort(key)}</span>
+                    </button>
+                  )
+                })}
               </div>
 
               <div aria-live="polite">
@@ -333,9 +364,9 @@ export function AppointmentCreatePage() {
                 ) : slots.length === 0 ? (
                   <EmptyState
                     compact
-                    title={`Sem horários livres ${day === todayISO() ? 'hoje' : 'neste dia'}`}
-                    description="A agenda deste barbeiro está cheia ou o horário de funcionamento já terminou."
-                    action={{ label: 'Ver o próximo dia', onClick: () => { setDay(addDays(day, 1)); setSlot('') } }}
+                    title={dayClosed ? 'A barbearia não abre neste dia' : `Sem horários livres ${day === todayISO() ? 'hoje' : 'neste dia'}`}
+                    description={dayClosed ? 'Escolha um dos dias de funcionamento.' : 'A agenda deste barbeiro está cheia ou o horário de funcionamento já terminou.'}
+                    action={{ label: 'Ver o próximo dia', onClick: () => { setDay(nextOpenDay(day) ?? addDays(day, 1)); setSlot('') } }}
                   />
                 ) : (
                   <div className={client.slotGroups}>
@@ -402,6 +433,11 @@ export function AppointmentCreatePage() {
                   <InfoIcon size={18} /> O horário fica como agendado até a barbearia confirmar. Você pode reagendar ou cancelar em Meus agendamentos.
                 </p>
               )}
+              {isRescheduling && original.data?.status === 'confirmado' && (
+                <p className={`${ui.alert} ${ui.alertInfo}`} style={{ marginTop: 'var(--space-4)' }}>
+                  <InfoIcon size={18} /> A barbearia confirmou o horário atual. Ao remarcar, o novo horário volta a aguardar a confirmação dela.
+                </p>
+              )}
               <div className={client.stepActions}>
                 <button type="button" className={ui.secondaryButton} onClick={() => setStep('datetime')} disabled={submitting}>
                   <ArrowLeftIcon size={16} /> Voltar
@@ -432,6 +468,68 @@ export function AppointmentCreatePage() {
         </aside>
       </div>
     </div>
+  )
+}
+
+interface Booked {
+  day: string
+  slot: string
+  service: Service
+  barber: Barber
+  rescheduled: boolean
+}
+
+/** Reserva concluída: o carimbo marca o momento, e o texto diz só o que o sistema faz. */
+function BookingDone({ booked, shopName }: { booked: Booked; shopName?: string }) {
+  const { day, slot, service, barber, rescheduled } = booked
+  return (
+    <div className={`${page.page} ${page.medium}`}>
+      <PageHeader title={rescheduled ? 'Horário remarcado' : 'Horário reservado'} />
+      <section className={`${ui.panel} ${ui.panelBody}`} role="status" aria-live="polite">
+        <div className={client.done}>
+          <ReservationStamp label={rescheduled ? 'Horário remarcado' : 'Horário reservado'} time={slot} footer={shopName ?? 'BarberPro'} />
+          <h2>Está marcado.</h2>
+          <p>
+            {rescheduled
+              ? 'O novo horário já está na sua agenda e aguarda a confirmação da barbearia. Acompanhe o status em Meus agendamentos.'
+              : 'A barbearia ainda vai confirmar o horário. Você acompanha o status em Meus agendamentos.'}
+          </p>
+          <dl className={`${ui.summaryList} ${client.doneSummary}`}>
+            <div className={ui.summaryItem}><dt>Quando</dt><dd>{relativeDayLabel(day)}{day === todayISO() || day === addDays(todayISO(), 1) ? `, ${formatDayLong(day)}` : ''}, às {slot}</dd></div>
+            <div className={ui.summaryItem}><dt>Serviço</dt><dd>{service.nome}</dd></div>
+            <div className={ui.summaryItem}><dt>Barbeiro</dt><dd>{barber.nome}</dd></div>
+            <div className={ui.summaryItem}><dt>Valor</dt><dd>{formatCurrency(service.preco)}</dd></div>
+          </dl>
+          <div className={ui.buttonRow} style={{ justifyContent: 'center' }}>
+            <Link to="/" className={ui.secondaryButton}>Voltar ao início</Link>
+            <Link to="/appointments" className={ui.button}>Ver meus agendamentos</Link>
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+/** Carimbo circular desenhado em SVG (texto na League Gothic, cor do vermelho de poste). */
+function ReservationStamp({ label, time, footer }: { label: string; time: string; footer: string }) {
+  const id = useId().replace(/[^a-zA-Z0-9_-]/g, '')
+  return (
+    <svg className={client.stamp} viewBox="0 0 220 220" aria-hidden="true" focusable="false">
+      <defs>
+        <path id={`${id}-top`} d="M36 110 A74 74 0 0 1 184 110" />
+        <path id={`${id}-bottom`} d="M28 110 A82 82 0 0 0 192 110" />
+      </defs>
+      <circle cx="110" cy="110" r="104" fill="none" stroke="currentColor" strokeWidth="5" />
+      <circle cx="110" cy="110" r="95" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="110" cy="110" r="58" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <text fontFamily="League Gothic, sans-serif" fontSize="30" letterSpacing="3.5" fill="currentColor" textAnchor="middle">
+        <textPath href={`#${id}-top`} startOffset="50%">{label.toUpperCase()}</textPath>
+      </text>
+      <text fontFamily="Public Sans, sans-serif" fontWeight="700" fontSize="11.5" letterSpacing="2.6" fill="currentColor" textAnchor="middle" dy="9">
+        <textPath href={`#${id}-bottom`} startOffset="50%">{footer.toUpperCase().slice(0, 30)}</textPath>
+      </text>
+      <text x="110" y="128" fontFamily="League Gothic, sans-serif" fontSize="56" fill="currentColor" textAnchor="middle">{time}</text>
+    </svg>
   )
 }
 

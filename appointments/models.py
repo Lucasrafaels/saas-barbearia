@@ -11,6 +11,18 @@ from django.utils import timezone
 
 from config.models import TimeStampedModel
 
+BARBEARIA_DESATIVADA_MENSAGEM = (
+    'Esta barbearia está desativada: não é possível criar, remarcar, confirmar '
+    'ou concluir agendamentos. Consultas e cancelamentos continuam disponíveis.'
+)
+
+
+def barbearia_esta_ativa(barbershop_id):
+    """Lê o status atual no banco, sem depender de uma instância em cache."""
+    from barbershops.models import Barbershop
+
+    return Barbershop.objects.filter(pk=barbershop_id, ativo=True).exists()
+
 
 class Appointment(TimeStampedModel):
     class Status(models.TextChoices):
@@ -123,10 +135,103 @@ class Appointment(TimeStampedModel):
         if errors:
             raise ValidationError(errors)
 
+        self._validar_barbearia_ativa()
         self._validar_horario_funcionamento()
         self._validar_nao_permite_agendamento_no_passado()
         self._validar_conflito_horario()
         self._validar_transicao_status()
+        self._validar_conclusao_apos_termino()
+        self._validar_status_inicial()
+
+    def _validar_status_inicial(self):
+        """
+        Um agendamento novo nasce "agendado" (aguardando a barbearia) ou,
+        quando registrado pela própria barbearia, já "confirmado". Ninguém
+        cria um registro novo como cancelado ou realizado. O status
+        "realizado" já é recusado antes por `_validar_conclusao_apos_termino`,
+        com uma mensagem mais específica.
+
+        Quem pode escolher "confirmado" é decidido na API
+        (`AppointmentSerializer.validate`): o cliente não pode.
+        """
+        if self.pk:
+            return
+        if self.status not in (self.Status.AGENDADO, self.Status.CONFIRMADO):
+            raise ValidationError({
+                'status': 'Um agendamento novo começa como agendado (ou confirmado, '
+                          'quando registrado pela própria barbearia).'
+            })
+
+    def _validar_barbearia_ativa(self):
+        """
+        Barbearia desativada não opera: não aceita agendamento novo,
+        remarcação (horário, barbeiro ou serviço), confirmação nem conclusão.
+
+        Continuam permitidos o cancelamento, que encerra um compromisso que
+        não vai acontecer, e a edição de observações. Nenhum registro é
+        alterado pela desativação em si, e o histórico segue consultável.
+        """
+        if not self.barbershop_id or barbearia_esta_ativa(self.barbershop_id):
+            return
+
+        persistido = None
+        if self.pk:
+            persistido = (
+                type(self).objects
+                .filter(pk=self.pk)
+                .values('status', 'barbeiro_id', 'servico_id', 'data_hora')
+                .first()
+            )
+        if persistido is not None:
+            remarcando = (
+                persistido['barbeiro_id'] != self.barbeiro_id
+                or persistido['servico_id'] != self.servico_id
+                or persistido['data_hora'] != self.data_hora
+            )
+            avancando_status = self.status not in (persistido['status'], self.Status.CANCELADO)
+            if not remarcando and not avancando_status:
+                return
+
+        raise ValidationError({'barbershop': BARBEARIA_DESATIVADA_MENSAGEM})
+
+    def _validar_conclusao_apos_termino(self):
+        """
+        "Realizado" registra um atendimento que aconteceu e entra no
+        faturamento. Só é aceito a partir do término previsto do horário,
+        `data_hora + servico.duracao`: o mesmo intervalo que a agenda usa
+        para conflitos e horários livres.
+
+        A comparação é entre instantes absolutos (datetimes aware), então o
+        TIME_ZONE do projeto só afeta o horário exibido na mensagem. Vale
+        para a transição confirmado → realizado e também para um registro
+        criado diretamente com status realizado.
+        """
+        if self.status != self.Status.REALIZADO or not self.data_hora or not self.servico_id:
+            return
+
+        if self.pk:
+            persistido = (
+                type(self).objects
+                .filter(pk=self.pk)
+                .values('status', 'data_hora', 'servico_id')
+                .first()
+            )
+            if (
+                persistido is not None
+                and persistido['status'] == self.Status.REALIZADO
+                and persistido['data_hora'] == self.data_hora
+                and persistido['servico_id'] == self.servico_id
+            ):
+                return
+
+        termino = self.data_hora + timedelta(minutes=self.servico.duracao)
+        if timezone.now() < termino:
+            raise ValidationError({
+                'status': (
+                    'O atendimento só pode ser marcado como realizado após o término '
+                    f'previsto, em {timezone.localtime(termino):%d/%m/%Y às %H:%M}.'
+                )
+            })
 
     def _validar_horario_funcionamento(self):
         """
@@ -139,32 +244,53 @@ class Appointment(TimeStampedModel):
         horários "de parede" da barbearia, não horários em UTC.
 
         Só reavalia a regra quando `data_hora` está sendo definida pela
-        primeira vez (criação) ou alterada (remarcação): editar outros
-        campos — por exemplo, mudar o status para "realizado" ou incluir
-        uma observação — em um agendamento cujo horário já foi validado
-        continua permitido.
+        primeira vez (criação) ou alterada (remarcação), ou quando o serviço
+        muda: a troca por um serviço mais longo muda o horário de término
+        (BUS-04). Editar outros campos — por exemplo, mudar o status para
+        "realizado" ou incluir uma observação — em um agendamento cujo
+        horário já foi validado continua permitido.
+
+        O dia da semana precisa estar entre os dias de funcionamento da
+        barbearia (BUS-06). Essa parte só é verificada quando `data_hora`
+        muda, para que fechar um dia não trave a edição de horários já
+        marcados nele.
         """
         if not self.barbershop_id or not self.servico_id or not self.data_hora:
             return
 
-        # Se o agendamento já existe e o data_hora não mudou, pular validação
-        # de horário de funcionamento. Isso permite PATCH parcial (ex.: só
-        # observacoes ou status) sem revalidar horário comercial.
+        # Se o agendamento já existe e nem o data_hora nem o serviço mudaram,
+        # pular a validação. Isso permite PATCH parcial (ex.: só observacoes
+        # ou status) sem revalidar horário comercial.
+        data_hora_mudou = True
+        servico_mudou = True
         if self.pk:
-            data_hora_persistida = (
+            persistido = (
                 type(self).objects
                 .filter(pk=self.pk)
-                .values_list('data_hora', flat=True)
+                .values('data_hora', 'servico_id')
                 .first()
             )
-            # Comparar timestamps para evitar problemas de representação de timezone
-            # (ex.: UTC vs aware local) quando ambos representam o mesmo instante.
-            if data_hora_persistida is not None and data_hora_persistida.timestamp() == self.data_hora.timestamp():
-                return
+            if persistido is not None:
+                # Comparar timestamps para evitar problemas de representação de timezone
+                # (ex.: UTC vs aware local) quando ambos representam o mesmo instante.
+                data_hora_mudou = persistido['data_hora'].timestamp() != self.data_hora.timestamp()
+                servico_mudou = persistido['servico_id'] != self.servico_id
+        if not data_hora_mudou and not servico_mudou:
+            return
 
         inicio = timezone.localtime(self.data_hora)
         fim = inicio + timedelta(minutes=self.servico.duracao)
         barbershop = self.barbershop
+
+        if data_hora_mudou and not barbershop.abre_no_dia(inicio.date()):
+            from barbershops.models import DIAS_DA_SEMANA_NO_PLURAL
+
+            raise ValidationError({
+                'data_hora': (
+                    f'A barbearia não abre {DIAS_DA_SEMANA_NO_PLURAL[inicio.isoweekday()]}. '
+                    'Escolha outro dia.'
+                )
+            })
 
         if inicio.time() < barbershop.horario_abertura:
             raise ValidationError({
@@ -254,16 +380,25 @@ class Appointment(TimeStampedModel):
         - confirmado → realizado ou cancelado
         - realizado → estado final (sem transições)
         - cancelado → estado final (sem transições)
+        - confirmado → agendado só numa remarcação (horário, barbeiro ou
+          serviço alterados): o novo horário volta a aguardar a aprovação
+          da barbearia (BUS-03). Sem remarcação, a reabertura é recusada.
 
-        Não permite agendado → realizado diretamente.
+        Não permite agendado → realizado diretamente. O status de um
+        registro novo é tratado por `_validar_status_inicial`.
         """
         if not self.pk:
-            # Nova instância: status padrão 'agendado' é válido
             return
 
-        status_atual = type(self).objects.filter(pk=self.pk).values_list('status', flat=True).first()
-        if status_atual is None:
+        persistido = (
+            type(self).objects
+            .filter(pk=self.pk)
+            .values('status', 'data_hora', 'barbeiro_id', 'servico_id')
+            .first()
+        )
+        if persistido is None:
             return
+        status_atual = persistido['status']
 
         # Define transições permitidas conforme a política única
         transicoes_permitidas = {
@@ -275,7 +410,14 @@ class Appointment(TimeStampedModel):
 
         novo_status = self.status
         if novo_status != status_atual:
-            permitidos = transicoes_permitidas.get(status_atual, [])
+            permitidos = list(transicoes_permitidas.get(status_atual, []))
+            remarcando = self.data_hora is not None and (
+                persistido['data_hora'].timestamp() != self.data_hora.timestamp()
+                or persistido['barbeiro_id'] != self.barbeiro_id
+                or persistido['servico_id'] != self.servico_id
+            )
+            if status_atual == self.Status.CONFIRMADO and remarcando:
+                permitidos.append(self.Status.AGENDADO)
             if novo_status not in permitidos:
                 raise ValidationError({
                     'status': f'Transição inválida: {status_atual} → {novo_status}. '

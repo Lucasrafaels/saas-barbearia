@@ -1,0 +1,11 @@
+Banco: audit_db no container descartável barberpro_rodada1_pg16 (restaurado do seed da auditoria). Nunca o banco real.
+Antes: barbearias=2; coluna dias_funcionamento existe? 0
+$ migrate barbershops (aplica 0006)
+  Applying barbershops.0006_barbershop_dias_funcionamento... OK
+Depois: dias por barbearia = [1, 2, 3, 4, 5, 6, 7] | [1, 2, 3, 4, 5, 6, 7]
+$ migrate barbershops 0005 (desfaz 0006)
+  Unapplying barbershops.0006_barbershop_dias_funcionamento... OK
+Coluna após desfazer: 0; barbearias=2; agendamentos=419
+$ migrate (reaplica)
+  Applying barbershops.0006_barbershop_dias_funcionamento... OK
+Final: dias = [1, 2, 3, 4, 5, 6, 7] | [1, 2, 3, 4, 5, 6, 7]; agendamentos=419

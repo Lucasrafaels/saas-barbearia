@@ -19,6 +19,7 @@ from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from .admin_integrity import AdminIntegrityError, check_self_change, lock_active_admins
 from .models import User
 
 
@@ -30,6 +31,13 @@ def revoke_user_refresh_tokens(user):
 
     for token in OutstandingToken.objects.filter(user=user):
         BlacklistedToken.objects.get_or_create(token=token)
+
+
+def admin_integrity_error_as_drf(error, key=None):
+    """Converte AdminIntegrityError (regra do modelo) em erro 400 da API."""
+    if key is None and hasattr(error, 'error_dict'):
+        return serializers.ValidationError(error.message_dict)
+    return serializers.ValidationError({key or 'detail': error.messages})
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -76,6 +84,18 @@ class UserSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
+        # Ninguém altera o próprio papel nem desativa a própria conta por
+        # aqui: para um admin, as duas operações tiram o acesso
+        # administrativo de quem está executando a ação.
+        request = self.context.get('request')
+        if self.instance is not None:
+            try:
+                check_self_change(
+                    getattr(request, 'user', None), self.instance,
+                    tipo_perfil=attrs.get('tipo_perfil'), is_active=attrs.get('is_active'),
+                )
+            except AdminIntegrityError as error:
+                raise admin_integrity_error_as_drf(error) from error
         if (
             self.instance is not None
             and self.instance.tipo_perfil == User.TipoPerfil.ADMIN
@@ -87,6 +107,13 @@ class UserSerializer(serializers.ModelSerializer):
         return super().validate(attrs)
 
     def update(self, instance, validated_data):
+        # A regra do último admin ativo é imposta por User.save().
+        try:
+            return self._apply_update(instance, validated_data)
+        except AdminIntegrityError as error:
+            raise admin_integrity_error_as_drf(error, key='detail') from error
+
+    def _apply_update(self, instance, validated_data):
         """Atualiza campos permitidos. Alteração de papel (tipo_perfil) sincroniza
         automaticamente o perfil de Barber para manter consistência.
         """
@@ -102,7 +129,19 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
         new_role = validated_data.pop('tipo_perfil', None)
+        removes_admin_access = (
+            instance.tipo_perfil == User.TipoPerfil.ADMIN
+            and (
+                (new_role is not None and new_role != User.TipoPerfil.ADMIN)
+                or is_active_value is False
+            )
+        )
         with transaction.atomic():
+            # A trava dos admins vem antes da trava do próprio usuário, na
+            # mesma ordem que User.save() usa. Sem isso, dois admins
+            # rebaixando um ao outro ao mesmo tempo poderiam entrar em deadlock.
+            if removes_admin_access:
+                lock_active_admins({instance.barbershop_id})
             instance = type(instance).objects.select_for_update().get(pk=instance.pk)
             old_role = instance.tipo_perfil
 

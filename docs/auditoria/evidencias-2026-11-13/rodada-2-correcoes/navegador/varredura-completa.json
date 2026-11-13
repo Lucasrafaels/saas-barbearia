@@ -1,0 +1,3297 @@
+{
+ "paginas": [
+  {
+   "perfil": "publico",
+   "tela": "desktop",
+   "rota": "/login",
+   "urlFinal": "/login",
+   "ms": 1344,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 3,
+   "smallSample": [
+    "a \"Esqueci minha senha\" 138x22",
+    "a \"Criar conta\" 73x16",
+    "a \"Conheça o BarberPro\" 140x22"
+   ],
+   "h1": "Entrar",
+   "title": "Entrar — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "publico_desktop_login.png"
+  },
+  {
+   "perfil": "publico",
+   "tela": "desktop",
+   "rota": "/register",
+   "urlFinal": "/register",
+   "ms": 1539,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 2,
+   "smallSample": [
+    "a \"Entrar\" 41x16",
+    "a \"Conheça o BarberPro\" 140x22"
+   ],
+   "h1": "Criar conta",
+   "title": "Criar conta — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "publico_desktop_register.png"
+  },
+  {
+   "perfil": "publico",
+   "tela": "desktop",
+   "rota": "/password/reset",
+   "urlFinal": "/password/reset",
+   "ms": 1237,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 2,
+   "smallSample": [
+    "a \"Voltar para o login\" 120x16",
+    "a \"Conheça o BarberPro\" 140x22"
+   ],
+   "h1": "Recuperar senha",
+   "title": "Recuperar senha — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "publico_desktop_password_reset.png"
+  },
+  {
+   "perfil": "publico",
+   "tela": "desktop",
+   "rota": "/password/reset/confirm",
+   "urlFinal": "/password/reset/confirm",
+   "ms": 1248,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 2,
+   "smallSample": [
+    "a \"Voltar para o login\" 120x16",
+    "a \"Conheça o BarberPro\" 140x22"
+   ],
+   "h1": "Criar nova senha",
+   "title": "Criar nova senha — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "publico_desktop_password_reset_confirm.png"
+  },
+  {
+   "perfil": "publico",
+   "tela": "desktop",
+   "rota": "/conheca",
+   "urlFinal": "/conheca",
+   "ms": 1595,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1434,
+   "innerWidth": 1440,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "A agenda dabarbearia,em ordem.",
+   "title": "Conheça o BarberPro — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "publico_desktop_conheca.png"
+  },
+  {
+   "perfil": "publico",
+   "tela": "notebook",
+   "rota": "/login",
+   "urlFinal": "/login",
+   "ms": 1221,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1280,
+   "innerWidth": 1280,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 3,
+   "smallSample": [
+    "a \"Esqueci minha senha\" 138x22",
+    "a \"Criar conta\" 73x16",
+    "a \"Conheça o BarberPro\" 140x22"
+   ],
+   "h1": "Entrar",
+   "title": "Entrar — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "publico",
+   "tela": "notebook",
+   "rota": "/register",
+   "urlFinal": "/register",
+   "ms": 1212,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1274,
+   "innerWidth": 1280,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 2,
+   "smallSample": [
+    "a \"Entrar\" 41x16",
+    "a \"Conheça o BarberPro\" 140x22"
+   ],
+   "h1": "Criar conta",
+   "title": "Criar conta — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "publico",
+   "tela": "notebook",
+   "rota": "/password/reset",
+   "urlFinal": "/password/reset",
+   "ms": 1231,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1280,
+   "innerWidth": 1280,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 2,
+   "smallSample": [
+    "a \"Voltar para o login\" 120x16",
+    "a \"Conheça o BarberPro\" 140x22"
+   ],
+   "h1": "Recuperar senha",
+   "title": "Recuperar senha — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "publico",
+   "tela": "notebook",
+   "rota": "/password/reset/confirm",
+   "urlFinal": "/password/reset/confirm",
+   "ms": 1242,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1280,
+   "innerWidth": 1280,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 2,
+   "smallSample": [
+    "a \"Voltar para o login\" 120x16",
+    "a \"Conheça o BarberPro\" 140x22"
+   ],
+   "h1": "Criar nova senha",
+   "title": "Criar nova senha — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "publico",
+   "tela": "notebook",
+   "rota": "/conheca",
+   "urlFinal": "/conheca",
+   "ms": 1228,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1274,
+   "innerWidth": 1280,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "A agenda dabarbearia,em ordem.",
+   "title": "Conheça o BarberPro — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "publico",
+   "tela": "tablet",
+   "rota": "/login",
+   "urlFinal": "/login",
+   "ms": 1239,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 820,
+   "innerWidth": 820,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 3,
+   "smallSample": [
+    "a \"Esqueci minha senha\" 138x22",
+    "a \"Criar conta\" 73x16",
+    "a \"Conheça o BarberPro\" 140x22"
+   ],
+   "h1": "Entrar",
+   "title": "Entrar — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "publico_tablet_login.png"
+  },
+  {
+   "perfil": "publico",
+   "tela": "tablet",
+   "rota": "/register",
+   "urlFinal": "/register",
+   "ms": 1226,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 820,
+   "innerWidth": 820,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 2,
+   "smallSample": [
+    "a \"Entrar\" 41x16",
+    "a \"Conheça o BarberPro\" 140x22"
+   ],
+   "h1": "Criar conta",
+   "title": "Criar conta — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "publico_tablet_register.png"
+  },
+  {
+   "perfil": "publico",
+   "tela": "tablet",
+   "rota": "/password/reset",
+   "urlFinal": "/password/reset",
+   "ms": 1231,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 820,
+   "innerWidth": 820,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 2,
+   "smallSample": [
+    "a \"Voltar para o login\" 120x16",
+    "a \"Conheça o BarberPro\" 140x22"
+   ],
+   "h1": "Recuperar senha",
+   "title": "Recuperar senha — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "publico_tablet_password_reset.png"
+  },
+  {
+   "perfil": "publico",
+   "tela": "tablet",
+   "rota": "/password/reset/confirm",
+   "urlFinal": "/password/reset/confirm",
+   "ms": 1227,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 820,
+   "innerWidth": 820,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 2,
+   "smallSample": [
+    "a \"Voltar para o login\" 120x16",
+    "a \"Conheça o BarberPro\" 140x22"
+   ],
+   "h1": "Criar nova senha",
+   "title": "Criar nova senha — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "publico_tablet_password_reset_confirm.png"
+  },
+  {
+   "perfil": "publico",
+   "tela": "tablet",
+   "rota": "/conheca",
+   "urlFinal": "/conheca",
+   "ms": 1247,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 814,
+   "innerWidth": 820,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "A agenda dabarbearia,em ordem.",
+   "title": "Conheça o BarberPro — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "publico_tablet_conheca.png"
+  },
+  {
+   "perfil": "publico",
+   "tela": "celular",
+   "rota": "/login",
+   "urlFinal": "/login",
+   "ms": 1227,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 390,
+   "innerWidth": 390,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 3,
+   "smallSample": [
+    "a \"Esqueci minha senha\" 138x22",
+    "a \"Criar conta\" 73x16",
+    "a \"Conheça o BarberPro\" 140x22"
+   ],
+   "h1": "Entrar",
+   "title": "Entrar — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "publico_celular_login.png"
+  },
+  {
+   "perfil": "publico",
+   "tela": "celular",
+   "rota": "/register",
+   "urlFinal": "/register",
+   "ms": 1226,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 384,
+   "innerWidth": 390,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 2,
+   "smallSample": [
+    "a \"Entrar\" 41x16",
+    "a \"Conheça o BarberPro\" 140x22"
+   ],
+   "h1": "Criar conta",
+   "title": "Criar conta — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "publico_celular_register.png"
+  },
+  {
+   "perfil": "publico",
+   "tela": "celular",
+   "rota": "/password/reset",
+   "urlFinal": "/password/reset",
+   "ms": 1218,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 390,
+   "innerWidth": 390,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 2,
+   "smallSample": [
+    "a \"Voltar para o login\" 120x16",
+    "a \"Conheça o BarberPro\" 140x22"
+   ],
+   "h1": "Recuperar senha",
+   "title": "Recuperar senha — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "publico_celular_password_reset.png"
+  },
+  {
+   "perfil": "publico",
+   "tela": "celular",
+   "rota": "/password/reset/confirm",
+   "urlFinal": "/password/reset/confirm",
+   "ms": 1216,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 390,
+   "innerWidth": 390,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 2,
+   "smallSample": [
+    "a \"Voltar para o login\" 120x16",
+    "a \"Conheça o BarberPro\" 140x22"
+   ],
+   "h1": "Criar nova senha",
+   "title": "Criar nova senha — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "publico_celular_password_reset_confirm.png"
+  },
+  {
+   "perfil": "publico",
+   "tela": "celular",
+   "rota": "/conheca",
+   "urlFinal": "/conheca",
+   "ms": 1229,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 384,
+   "innerWidth": 390,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "A agenda dabarbearia,em ordem.",
+   "title": "Conheça o BarberPro — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "publico_celular_conheca.png"
+  },
+  {
+   "perfil": "publico",
+   "tela": "celular-pequeno",
+   "rota": "/login",
+   "urlFinal": "/login",
+   "ms": 1206,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 360,
+   "innerWidth": 360,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 3,
+   "smallSample": [
+    "a \"Esqueci minha senha\" 138x22",
+    "a \"Criar conta\" 73x16",
+    "a \"Conheça o BarberPro\" 140x22"
+   ],
+   "h1": "Entrar",
+   "title": "Entrar — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "publico",
+   "tela": "celular-pequeno",
+   "rota": "/register",
+   "urlFinal": "/register",
+   "ms": 1200,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 354,
+   "innerWidth": 360,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 2,
+   "smallSample": [
+    "a \"Entrar\" 41x16",
+    "a \"Conheça o BarberPro\" 140x22"
+   ],
+   "h1": "Criar conta",
+   "title": "Criar conta — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "publico",
+   "tela": "celular-pequeno",
+   "rota": "/password/reset",
+   "urlFinal": "/password/reset",
+   "ms": 1205,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 360,
+   "innerWidth": 360,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 2,
+   "smallSample": [
+    "a \"Voltar para o login\" 120x16",
+    "a \"Conheça o BarberPro\" 140x22"
+   ],
+   "h1": "Recuperar senha",
+   "title": "Recuperar senha — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "publico",
+   "tela": "celular-pequeno",
+   "rota": "/password/reset/confirm",
+   "urlFinal": "/password/reset/confirm",
+   "ms": 1224,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 354,
+   "innerWidth": 360,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 2,
+   "smallSample": [
+    "a \"Voltar para o login\" 120x16",
+    "a \"Conheça o BarberPro\" 140x22"
+   ],
+   "h1": "Criar nova senha",
+   "title": "Criar nova senha — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "publico",
+   "tela": "celular-pequeno",
+   "rota": "/conheca",
+   "urlFinal": "/conheca",
+   "ms": 1215,
+   "requisicoesApi": 0,
+   "chamadasApi": {},
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 354,
+   "innerWidth": 360,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "A agenda dabarbearia,em ordem.",
+   "title": "Conheça o BarberPro — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "admin",
+   "tela": "desktop",
+   "rota": "/admin",
+   "urlFinal": "/admin",
+   "ms": 3186,
+   "requisicoesApi": 26,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 22,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1434,
+   "innerWidth": 1440,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Painel",
+   "title": "Painel — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "admin_desktop_admin.png"
+  },
+  {
+   "perfil": "admin",
+   "tela": "desktop",
+   "rota": "/admin/appointments",
+   "urlFinal": "/admin/appointments",
+   "ms": 3309,
+   "requisicoesApi": 25,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 22,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1434,
+   "innerWidth": 1440,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Agendamentos",
+   "title": "Agendamentos — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "admin_desktop_admin_appointments.png"
+  },
+  {
+   "perfil": "admin",
+   "tela": "desktop",
+   "rota": "/admin/services",
+   "urlFinal": "/admin/services",
+   "ms": 1629,
+   "requisicoesApi": 5,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/services/ 200": 1,
+    "GET /api/v1/services/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 3,
+   "smallSample": [
+    "button \"Serviço\" 77x19",
+    "button \"Preço\" 63x19",
+    "button \"Duração\" 83x19"
+   ],
+   "h1": "Serviços",
+   "title": "Serviços — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "admin_desktop_admin_services.png"
+  },
+  {
+   "perfil": "admin",
+   "tela": "desktop",
+   "rota": "/admin/barbers",
+   "urlFinal": "/admin/barbers",
+   "ms": 1595,
+   "requisicoesApi": 8,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/barbers/ 200": 1,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Barbeiros",
+   "title": "Barbeiros — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "admin_desktop_admin_barbers.png"
+  },
+  {
+   "perfil": "admin",
+   "tela": "desktop",
+   "rota": "/admin/clients",
+   "urlFinal": "/admin/clients",
+   "ms": 3246,
+   "requisicoesApi": 47,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 22,
+    "OPTIONS /api/v1/users/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 21,
+    "GET /api/v1/users/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Clientes",
+   "title": "Clientes — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "admin_desktop_admin_clients.png"
+  },
+  {
+   "perfil": "admin",
+   "tela": "desktop",
+   "rota": "/admin/barbershop",
+   "urlFinal": "/admin/barbershop",
+   "ms": 1351,
+   "requisicoesApi": 6,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1434,
+   "innerWidth": 1440,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Dados da barbearia",
+   "title": "Dados da barbearia — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "admin_desktop_admin_barbershop.png"
+  },
+  {
+   "perfil": "admin",
+   "tela": "desktop",
+   "rota": "/account",
+   "urlFinal": "/account",
+   "ms": 1363,
+   "requisicoesApi": 3,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1434,
+   "innerWidth": 1440,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha conta",
+   "title": "Minha conta — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "admin_desktop_account.png"
+  },
+  {
+   "perfil": "admin",
+   "tela": "notebook",
+   "rota": "/admin",
+   "urlFinal": "/admin",
+   "ms": 3174,
+   "requisicoesApi": 50,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 22,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 22,
+    "OPTIONS /api/v1/barbers/ 200": 1,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1274,
+   "innerWidth": 1280,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Painel",
+   "title": "Painel — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "admin",
+   "tela": "notebook",
+   "rota": "/admin/appointments",
+   "urlFinal": "/admin/appointments",
+   "ms": 3219,
+   "requisicoesApi": 47,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 22,
+    "OPTIONS /api/v1/appointments/ 200": 21,
+    "OPTIONS /api/v1/barbers/ 200": 1,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1274,
+   "innerWidth": 1280,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Agendamentos",
+   "title": "Agendamentos — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "admin",
+   "tela": "notebook",
+   "rota": "/admin/services",
+   "urlFinal": "/admin/services",
+   "ms": 1571,
+   "requisicoesApi": 8,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/services/ 200": 1,
+    "GET /api/v1/services/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1274,
+   "innerWidth": 1280,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 3,
+   "smallSample": [
+    "button \"Serviço\" 77x19",
+    "button \"Preço\" 63x19",
+    "button \"Duração\" 83x19"
+   ],
+   "h1": "Serviços",
+   "title": "Serviços — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "admin",
+   "tela": "notebook",
+   "rota": "/admin/barbers",
+   "urlFinal": "/admin/barbers",
+   "ms": 1575,
+   "requisicoesApi": 8,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/barbers/ 200": 1,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1280,
+   "innerWidth": 1280,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Barbeiros",
+   "title": "Barbeiros — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "admin",
+   "tela": "notebook",
+   "rota": "/admin/clients",
+   "urlFinal": "/admin/clients",
+   "ms": 3232,
+   "requisicoesApi": 47,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 22,
+    "OPTIONS /api/v1/users/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 21,
+    "GET /api/v1/users/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1274,
+   "innerWidth": 1280,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Clientes",
+   "title": "Clientes — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "admin",
+   "tela": "notebook",
+   "rota": "/admin/barbershop",
+   "urlFinal": "/admin/barbershop",
+   "ms": 1333,
+   "requisicoesApi": 6,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1274,
+   "innerWidth": 1280,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Dados da barbearia",
+   "title": "Dados da barbearia — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "admin",
+   "tela": "notebook",
+   "rota": "/account",
+   "urlFinal": "/account",
+   "ms": 1322,
+   "requisicoesApi": 3,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1274,
+   "innerWidth": 1280,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha conta",
+   "title": "Minha conta — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "admin",
+   "tela": "tablet",
+   "rota": "/admin",
+   "urlFinal": "/admin",
+   "ms": 3261,
+   "requisicoesApi": 47,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 22,
+    "OPTIONS /api/v1/appointments/ 200": 21,
+    "OPTIONS /api/v1/barbers/ 200": 1,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 814,
+   "innerWidth": 820,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Painel",
+   "title": "Painel — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "admin_tablet_admin.png"
+  },
+  {
+   "perfil": "admin",
+   "tela": "tablet",
+   "rota": "/admin/appointments",
+   "urlFinal": "/admin/appointments",
+   "ms": 3258,
+   "requisicoesApi": 39,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 11,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 22,
+    "OPTIONS /api/v1/barbers/ 200": 1,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 814,
+   "innerWidth": 820,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Agendamentos",
+   "title": "Agendamentos — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "admin_tablet_admin_appointments.png"
+  },
+  {
+   "perfil": "admin",
+   "tela": "tablet",
+   "rota": "/admin/services",
+   "urlFinal": "/admin/services",
+   "ms": 1605,
+   "requisicoesApi": 8,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/services/ 200": 1,
+    "GET /api/v1/services/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 820,
+   "innerWidth": 820,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 3,
+   "smallSample": [
+    "button \"Serviço\" 77x19",
+    "button \"Preço\" 63x19",
+    "button \"Duração\" 83x19"
+   ],
+   "h1": "Serviços",
+   "title": "Serviços — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "admin_tablet_admin_services.png"
+  },
+  {
+   "perfil": "admin",
+   "tela": "tablet",
+   "rota": "/admin/barbers",
+   "urlFinal": "/admin/barbers",
+   "ms": 1604,
+   "requisicoesApi": 5,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/barbers/ 200": 1,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 820,
+   "innerWidth": 820,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Barbeiros",
+   "title": "Barbeiros — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "admin_tablet_admin_barbers.png"
+  },
+  {
+   "perfil": "admin",
+   "tela": "tablet",
+   "rota": "/admin/clients",
+   "urlFinal": "/admin/clients",
+   "ms": 3202,
+   "requisicoesApi": 50,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 22,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 22,
+    "OPTIONS /api/v1/users/ 200": 1,
+    "GET /api/v1/users/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 820,
+   "innerWidth": 820,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Clientes",
+   "title": "Clientes — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "admin_tablet_admin_clients.png"
+  },
+  {
+   "perfil": "admin",
+   "tela": "tablet",
+   "rota": "/admin/barbershop",
+   "urlFinal": "/admin/barbershop",
+   "ms": 1363,
+   "requisicoesApi": 3,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 814,
+   "innerWidth": 820,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Dados da barbearia",
+   "title": "Dados da barbearia — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "admin_tablet_admin_barbershop.png"
+  },
+  {
+   "perfil": "admin",
+   "tela": "tablet",
+   "rota": "/account",
+   "urlFinal": "/account",
+   "ms": 1357,
+   "requisicoesApi": 6,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 820,
+   "innerWidth": 820,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha conta",
+   "title": "Minha conta — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "admin_tablet_account.png"
+  },
+  {
+   "perfil": "admin",
+   "tela": "celular",
+   "rota": "/admin",
+   "urlFinal": "/admin",
+   "ms": 3150,
+   "requisicoesApi": 47,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 22,
+    "OPTIONS /api/v1/appointments/ 200": 21,
+    "OPTIONS /api/v1/barbers/ 200": 1,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 384,
+   "innerWidth": 390,
+   "overflowX": -6,
+   "overflowing": [
+    "table.sr-only [96..419]",
+    "caption. [96..419]",
+    "thead. [96..419]",
+    "tr. [96..419]",
+    "th. [313..419]",
+    "tbody. [96..419]"
+   ],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Painel",
+   "title": "Painel — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "admin_celular_admin.png"
+  },
+  {
+   "perfil": "admin",
+   "tela": "celular",
+   "rota": "/admin/appointments",
+   "urlFinal": "/admin/appointments",
+   "ms": 3155,
+   "requisicoesApi": 45,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 17,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 22,
+    "OPTIONS /api/v1/barbers/ 200": 1,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 384,
+   "innerWidth": 390,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Agendamentos",
+   "title": "Agendamentos — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "admin_celular_admin_appointments.png"
+  },
+  {
+   "perfil": "admin",
+   "tela": "celular",
+   "rota": "/admin/services",
+   "urlFinal": "/admin/services",
+   "ms": 1576,
+   "requisicoesApi": 8,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/services/ 200": 1,
+    "GET /api/v1/services/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 384,
+   "innerWidth": 390,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Serviços",
+   "title": "Serviços — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "admin_celular_admin_services.png"
+  },
+  {
+   "perfil": "admin",
+   "tela": "celular",
+   "rota": "/admin/barbers",
+   "urlFinal": "/admin/barbers",
+   "ms": 1574,
+   "requisicoesApi": 5,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/barbers/ 200": 1,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 384,
+   "innerWidth": 390,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Barbeiros",
+   "title": "Barbeiros — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "admin_celular_admin_barbers.png"
+  },
+  {
+   "perfil": "admin",
+   "tela": "celular",
+   "rota": "/admin/clients",
+   "urlFinal": "/admin/clients",
+   "ms": 3172,
+   "requisicoesApi": 47,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 22,
+    "OPTIONS /api/v1/users/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 21,
+    "GET /api/v1/users/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 384,
+   "innerWidth": 390,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Clientes",
+   "title": "Clientes — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "admin_celular_admin_clients.png"
+  },
+  {
+   "perfil": "admin",
+   "tela": "celular",
+   "rota": "/admin/barbershop",
+   "urlFinal": "/admin/barbershop",
+   "ms": 1341,
+   "requisicoesApi": 6,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 384,
+   "innerWidth": 390,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Dados da barbearia",
+   "title": "Dados da barbearia — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "admin_celular_admin_barbershop.png"
+  },
+  {
+   "perfil": "admin",
+   "tela": "celular",
+   "rota": "/account",
+   "urlFinal": "/account",
+   "ms": 1339,
+   "requisicoesApi": 3,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 384,
+   "innerWidth": 390,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha conta",
+   "title": "Minha conta — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "admin_celular_account.png"
+  },
+  {
+   "perfil": "admin",
+   "tela": "celular-pequeno",
+   "rota": "/admin",
+   "urlFinal": "/admin",
+   "ms": 3115,
+   "requisicoesApi": 50,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 22,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 22,
+    "OPTIONS /api/v1/barbers/ 200": 1,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 355,
+   "innerWidth": 360,
+   "overflowX": -5,
+   "overflowing": [
+    "table.sr-only [96..419]",
+    "caption. [96..419]",
+    "thead. [96..419]",
+    "tr. [96..419]",
+    "th. [313..419]",
+    "tbody. [96..419]"
+   ],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Painel",
+   "title": "Painel — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "admin",
+   "tela": "celular-pequeno",
+   "rota": "/admin/appointments",
+   "urlFinal": "/admin/appointments",
+   "ms": 3139,
+   "requisicoesApi": 50,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 22,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 22,
+    "OPTIONS /api/v1/barbers/ 200": 1,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 354,
+   "innerWidth": 360,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Agendamentos",
+   "title": "Agendamentos — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "admin",
+   "tela": "celular-pequeno",
+   "rota": "/admin/services",
+   "urlFinal": "/admin/services",
+   "ms": 1549,
+   "requisicoesApi": 5,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/services/ 200": 1,
+    "GET /api/v1/services/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 354,
+   "innerWidth": 360,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Serviços",
+   "title": "Serviços — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "admin",
+   "tela": "celular-pequeno",
+   "rota": "/admin/barbers",
+   "urlFinal": "/admin/barbers",
+   "ms": 1556,
+   "requisicoesApi": 8,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/barbers/ 200": 1,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 354,
+   "innerWidth": 360,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Barbeiros",
+   "title": "Barbeiros — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "admin",
+   "tela": "celular-pequeno",
+   "rota": "/admin/clients",
+   "urlFinal": "/admin/clients",
+   "ms": 3135,
+   "requisicoesApi": 47,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 22,
+    "OPTIONS /api/v1/users/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 21,
+    "GET /api/v1/users/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 354,
+   "innerWidth": 360,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Clientes",
+   "title": "Clientes — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "admin",
+   "tela": "celular-pequeno",
+   "rota": "/admin/barbershop",
+   "urlFinal": "/admin/barbershop",
+   "ms": 1361,
+   "requisicoesApi": 6,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 354,
+   "innerWidth": 360,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Dados da barbearia",
+   "title": "Dados da barbearia — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "admin",
+   "tela": "celular-pequeno",
+   "rota": "/account",
+   "urlFinal": "/account",
+   "ms": 1331,
+   "requisicoesApi": 3,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 354,
+   "innerWidth": 360,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha conta",
+   "title": "Minha conta — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "barbeiro",
+   "tela": "desktop",
+   "rota": "/barber/agenda",
+   "urlFinal": "/barber/agenda",
+   "ms": 2065,
+   "requisicoesApi": 11,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 8
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha agenda",
+   "title": "Minha agenda — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "barbeiro_desktop_barber_agenda.png"
+  },
+  {
+   "perfil": "barbeiro",
+   "tela": "desktop",
+   "rota": "/barber/agenda?status=agendado",
+   "urlFinal": "/barber/agenda?status=agendado",
+   "ms": 2085,
+   "requisicoesApi": 10,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 8
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1434,
+   "innerWidth": 1440,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha agenda",
+   "title": "Minha agenda — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "barbeiro_desktop_barber_agenda_status_agendado.png"
+  },
+  {
+   "perfil": "barbeiro",
+   "tela": "desktop",
+   "rota": "/account",
+   "urlFinal": "/account",
+   "ms": 1363,
+   "requisicoesApi": 3,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1434,
+   "innerWidth": 1440,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha conta",
+   "title": "Minha conta — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "barbeiro_desktop_account.png"
+  },
+  {
+   "perfil": "barbeiro",
+   "tela": "notebook",
+   "rota": "/barber/agenda",
+   "urlFinal": "/barber/agenda",
+   "ms": 2050,
+   "requisicoesApi": 10,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 8
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1274,
+   "innerWidth": 1280,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha agenda",
+   "title": "Minha agenda — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "barbeiro",
+   "tela": "notebook",
+   "rota": "/barber/agenda?status=agendado",
+   "urlFinal": "/barber/agenda?status=agendado",
+   "ms": 2062,
+   "requisicoesApi": 17,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 8,
+    "OPTIONS /api/v1/appointments/ 200": 7
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1274,
+   "innerWidth": 1280,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha agenda",
+   "title": "Minha agenda — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "barbeiro",
+   "tela": "notebook",
+   "rota": "/account",
+   "urlFinal": "/account",
+   "ms": 1333,
+   "requisicoesApi": 6,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1274,
+   "innerWidth": 1280,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha conta",
+   "title": "Minha conta — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "barbeiro",
+   "tela": "tablet",
+   "rota": "/barber/agenda",
+   "urlFinal": "/barber/agenda",
+   "ms": 2105,
+   "requisicoesApi": 10,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 8
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 820,
+   "innerWidth": 820,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha agenda",
+   "title": "Minha agenda — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "barbeiro_tablet_barber_agenda.png"
+  },
+  {
+   "perfil": "barbeiro",
+   "tela": "tablet",
+   "rota": "/barber/agenda?status=agendado",
+   "urlFinal": "/barber/agenda?status=agendado",
+   "ms": 2084,
+   "requisicoesApi": 20,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 8,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 8
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 814,
+   "innerWidth": 820,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha agenda",
+   "title": "Minha agenda — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "barbeiro_tablet_barber_agenda_status_agendado.png"
+  },
+  {
+   "perfil": "barbeiro",
+   "tela": "tablet",
+   "rota": "/account",
+   "urlFinal": "/account",
+   "ms": 1346,
+   "requisicoesApi": 3,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 820,
+   "innerWidth": 820,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha conta",
+   "title": "Minha conta — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "barbeiro_tablet_account.png"
+  },
+  {
+   "perfil": "barbeiro",
+   "tela": "celular",
+   "rota": "/barber/agenda",
+   "urlFinal": "/barber/agenda",
+   "ms": 2062,
+   "requisicoesApi": 20,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 8,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 8
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 384,
+   "innerWidth": 390,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha agenda",
+   "title": "Minha agenda — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "barbeiro_celular_barber_agenda.png"
+  },
+  {
+   "perfil": "barbeiro",
+   "tela": "celular",
+   "rota": "/barber/agenda?status=agendado",
+   "urlFinal": "/barber/agenda?status=agendado",
+   "ms": 2036,
+   "requisicoesApi": 10,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 8
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 384,
+   "innerWidth": 390,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha agenda",
+   "title": "Minha agenda — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "barbeiro_celular_barber_agenda_status_agendado.png"
+  },
+  {
+   "perfil": "barbeiro",
+   "tela": "celular",
+   "rota": "/account",
+   "urlFinal": "/account",
+   "ms": 1350,
+   "requisicoesApi": 5,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 384,
+   "innerWidth": 390,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha conta",
+   "title": "Minha conta — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "barbeiro_celular_account.png"
+  },
+  {
+   "perfil": "barbeiro",
+   "tela": "celular-pequeno",
+   "rota": "/barber/agenda",
+   "urlFinal": "/barber/agenda",
+   "ms": 2043,
+   "requisicoesApi": 18,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 8,
+    "OPTIONS /api/v1/appointments/ 200": 7
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 354,
+   "innerWidth": 360,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha agenda",
+   "title": "Minha agenda — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "barbeiro",
+   "tela": "celular-pequeno",
+   "rota": "/barber/agenda?status=agendado",
+   "urlFinal": "/barber/agenda?status=agendado",
+   "ms": 2019,
+   "requisicoesApi": 11,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 8,
+    "OPTIONS /api/v1/appointments/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 354,
+   "innerWidth": 360,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha agenda",
+   "title": "Minha agenda — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "barbeiro",
+   "tela": "celular-pequeno",
+   "rota": "/account",
+   "urlFinal": "/account",
+   "ms": 1330,
+   "requisicoesApi": 6,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 354,
+   "innerWidth": 360,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha conta",
+   "title": "Minha conta — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "cliente",
+   "tela": "desktop",
+   "rota": "/",
+   "urlFinal": "/",
+   "ms": 1834,
+   "requisicoesApi": 12,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 4,
+    "GET /api/v1/appointments/ 200": 4
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 2,
+   "smallSample": [
+    "a \"11900000000\" 278x22",
+    "a \"contato@navalha.exemplo.test\" 278x22"
+   ],
+   "h1": "Olá, Bruno",
+   "title": "Olá, Bruno — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "cliente_desktop_inicio.png"
+  },
+  {
+   "perfil": "cliente",
+   "tela": "desktop",
+   "rota": "/appointments/new",
+   "urlFinal": "/appointments/new",
+   "ms": 1665,
+   "requisicoesApi": 7,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "OPTIONS /api/v1/services/ 200": 1,
+    "GET /api/v1/services/ 200": 1,
+    "OPTIONS /api/v1/barbers/ 200": 1,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Agendar horário",
+   "title": "Agendar horário — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "cliente_desktop_appointments_new.png"
+  },
+  {
+   "perfil": "cliente",
+   "tela": "desktop",
+   "rota": "/appointments",
+   "urlFinal": "/appointments",
+   "ms": 1813,
+   "requisicoesApi": 6,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 4
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Meus agendamentos",
+   "title": "Meus agendamentos — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "cliente_desktop_appointments.png"
+  },
+  {
+   "perfil": "cliente",
+   "tela": "desktop",
+   "rota": "/services",
+   "urlFinal": "/services",
+   "ms": 1579,
+   "requisicoesApi": 3,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/services/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Serviços e preços",
+   "title": "Serviços e preços — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "cliente_desktop_services.png"
+  },
+  {
+   "perfil": "cliente",
+   "tela": "desktop",
+   "rota": "/barbers",
+   "urlFinal": "/barbers",
+   "ms": 1582,
+   "requisicoesApi": 6,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "OPTIONS /api/v1/barbers/ 200": 1,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1440,
+   "innerWidth": 1440,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Equipe",
+   "title": "Equipe — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "cliente_desktop_barbers.png"
+  },
+  {
+   "perfil": "cliente",
+   "tela": "desktop",
+   "rota": "/account",
+   "urlFinal": "/account",
+   "ms": 1328,
+   "requisicoesApi": 2,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1434,
+   "innerWidth": 1440,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha conta",
+   "title": "Minha conta — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "cliente_desktop_account.png"
+  },
+  {
+   "perfil": "cliente",
+   "tela": "notebook",
+   "rota": "/",
+   "urlFinal": "/",
+   "ms": 1812,
+   "requisicoesApi": 10,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 4,
+    "GET /api/v1/appointments/ 200": 4
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1274,
+   "innerWidth": 1280,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 2,
+   "smallSample": [
+    "a \"11900000000\" 278x22",
+    "a \"contato@navalha.exemplo.test\" 278x22"
+   ],
+   "h1": "Olá, Bruno",
+   "title": "Olá, Bruno — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "cliente",
+   "tela": "notebook",
+   "rota": "/appointments/new",
+   "urlFinal": "/appointments/new",
+   "ms": 1646,
+   "requisicoesApi": 8,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "OPTIONS /api/v1/services/ 200": 1,
+    "GET /api/v1/services/ 200": 1,
+    "OPTIONS /api/v1/barbers/ 200": 1,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1280,
+   "innerWidth": 1280,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Agendar horário",
+   "title": "Agendar horário — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "cliente",
+   "tela": "notebook",
+   "rota": "/appointments",
+   "urlFinal": "/appointments",
+   "ms": 1783,
+   "requisicoesApi": 6,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 4
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1280,
+   "innerWidth": 1280,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Meus agendamentos",
+   "title": "Meus agendamentos — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "cliente",
+   "tela": "notebook",
+   "rota": "/services",
+   "urlFinal": "/services",
+   "ms": 1560,
+   "requisicoesApi": 6,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "OPTIONS /api/v1/services/ 200": 1,
+    "GET /api/v1/services/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1274,
+   "innerWidth": 1280,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Serviços e preços",
+   "title": "Serviços e preços — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "cliente",
+   "tela": "notebook",
+   "rota": "/barbers",
+   "urlFinal": "/barbers",
+   "ms": 1552,
+   "requisicoesApi": 4,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "OPTIONS /api/v1/barbers/ 200": 1,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1280,
+   "innerWidth": 1280,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Equipe",
+   "title": "Equipe — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "cliente",
+   "tela": "notebook",
+   "rota": "/account",
+   "urlFinal": "/account",
+   "ms": 1306,
+   "requisicoesApi": 2,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 1274,
+   "innerWidth": 1280,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha conta",
+   "title": "Minha conta — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "cliente",
+   "tela": "tablet",
+   "rota": "/",
+   "urlFinal": "/",
+   "ms": 1840,
+   "requisicoesApi": 12,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 4,
+    "GET /api/v1/appointments/ 200": 4
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 820,
+   "innerWidth": 820,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 2,
+   "smallSample": [
+    "a \"11900000000\" 714x22",
+    "a \"contato@navalha.exemplo.test\" 714x22"
+   ],
+   "h1": "Olá, Bruno",
+   "title": "Olá, Bruno — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "cliente_tablet_inicio.png"
+  },
+  {
+   "perfil": "cliente",
+   "tela": "tablet",
+   "rota": "/appointments/new",
+   "urlFinal": "/appointments/new",
+   "ms": 1700,
+   "requisicoesApi": 6,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "OPTIONS /api/v1/services/ 200": 1,
+    "GET /api/v1/services/ 200": 1,
+    "OPTIONS /api/v1/barbers/ 200": 1,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 820,
+   "innerWidth": 820,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Agendar horário",
+   "title": "Agendar horário — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "cliente_tablet_appointments_new.png"
+  },
+  {
+   "perfil": "cliente",
+   "tela": "tablet",
+   "rota": "/appointments",
+   "urlFinal": "/appointments",
+   "ms": 1833,
+   "requisicoesApi": 12,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 4,
+    "GET /api/v1/appointments/ 200": 4
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 820,
+   "innerWidth": 820,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Meus agendamentos",
+   "title": "Meus agendamentos — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "cliente_tablet_appointments.png"
+  },
+  {
+   "perfil": "cliente",
+   "tela": "tablet",
+   "rota": "/services",
+   "urlFinal": "/services",
+   "ms": 1577,
+   "requisicoesApi": 4,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "OPTIONS /api/v1/services/ 200": 1,
+    "GET /api/v1/services/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 820,
+   "innerWidth": 820,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Serviços e preços",
+   "title": "Serviços e preços — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "cliente_tablet_services.png"
+  },
+  {
+   "perfil": "cliente",
+   "tela": "tablet",
+   "rota": "/barbers",
+   "urlFinal": "/barbers",
+   "ms": 1582,
+   "requisicoesApi": 4,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "OPTIONS /api/v1/barbers/ 200": 1,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 820,
+   "innerWidth": 820,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Equipe",
+   "title": "Equipe — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "cliente_tablet_barbers.png"
+  },
+  {
+   "perfil": "cliente",
+   "tela": "tablet",
+   "rota": "/account",
+   "urlFinal": "/account",
+   "ms": 1332,
+   "requisicoesApi": 4,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 820,
+   "innerWidth": 820,
+   "overflowX": 0,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha conta",
+   "title": "Minha conta — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "cliente_tablet_account.png"
+  },
+  {
+   "perfil": "cliente",
+   "tela": "celular",
+   "rota": "/",
+   "urlFinal": "/",
+   "ms": 1821,
+   "requisicoesApi": 10,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 4,
+    "GET /api/v1/appointments/ 200": 4
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 384,
+   "innerWidth": 390,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 2,
+   "smallSample": [
+    "a \"11900000000\" 278x22",
+    "a \"contato@navalha.exemplo.test\" 278x22"
+   ],
+   "h1": "Olá, Bruno",
+   "title": "Olá, Bruno — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "cliente_celular_inicio.png"
+  },
+  {
+   "perfil": "cliente",
+   "tela": "celular",
+   "rota": "/appointments/new",
+   "urlFinal": "/appointments/new",
+   "ms": 1658,
+   "requisicoesApi": 8,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "OPTIONS /api/v1/services/ 200": 1,
+    "GET /api/v1/services/ 200": 1,
+    "OPTIONS /api/v1/barbers/ 200": 1,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 384,
+   "innerWidth": 390,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Agendar horário",
+   "title": "Agendar horário — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "cliente_celular_appointments_new.png"
+  },
+  {
+   "perfil": "cliente",
+   "tela": "celular",
+   "rota": "/appointments",
+   "urlFinal": "/appointments",
+   "ms": 1808,
+   "requisicoesApi": 10,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 4,
+    "GET /api/v1/appointments/ 200": 4
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 384,
+   "innerWidth": 390,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Meus agendamentos",
+   "title": "Meus agendamentos — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "cliente_celular_appointments.png"
+  },
+  {
+   "perfil": "cliente",
+   "tela": "celular",
+   "rota": "/services",
+   "urlFinal": "/services",
+   "ms": 1568,
+   "requisicoesApi": 4,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "OPTIONS /api/v1/services/ 200": 1,
+    "GET /api/v1/services/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 384,
+   "innerWidth": 390,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Serviços e preços",
+   "title": "Serviços e preços — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "cliente_celular_services.png"
+  },
+  {
+   "perfil": "cliente",
+   "tela": "celular",
+   "rota": "/barbers",
+   "urlFinal": "/barbers",
+   "ms": 1575,
+   "requisicoesApi": 6,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "OPTIONS /api/v1/barbers/ 200": 1,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 384,
+   "innerWidth": 390,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Equipe",
+   "title": "Equipe — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "cliente_celular_barbers.png"
+  },
+  {
+   "perfil": "cliente",
+   "tela": "celular",
+   "rota": "/account",
+   "urlFinal": "/account",
+   "ms": 1313,
+   "requisicoesApi": 2,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 384,
+   "innerWidth": 390,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha conta",
+   "title": "Minha conta — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": "cliente_celular_account.png"
+  },
+  {
+   "perfil": "cliente",
+   "tela": "celular-pequeno",
+   "rota": "/",
+   "urlFinal": "/",
+   "ms": 1812,
+   "requisicoesApi": 10,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "OPTIONS /api/v1/appointments/ 200": 4,
+    "GET /api/v1/appointments/ 200": 4
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 354,
+   "innerWidth": 360,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 2,
+   "smallSample": [
+    "a \"11900000000\" 248x22",
+    "a \"contato@navalha.exemplo.test\" 248x22"
+   ],
+   "h1": "Olá, Bruno",
+   "title": "Olá, Bruno — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "cliente",
+   "tela": "celular-pequeno",
+   "rota": "/appointments/new",
+   "urlFinal": "/appointments/new",
+   "ms": 1634,
+   "requisicoesApi": 8,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "OPTIONS /api/v1/services/ 200": 1,
+    "GET /api/v1/services/ 200": 1,
+    "OPTIONS /api/v1/barbers/ 200": 1,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 354,
+   "innerWidth": 360,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Agendar horário",
+   "title": "Agendar horário — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "cliente",
+   "tela": "celular-pequeno",
+   "rota": "/appointments",
+   "urlFinal": "/appointments",
+   "ms": 1774,
+   "requisicoesApi": 6,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/appointments/ 200": 4
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 354,
+   "innerWidth": 360,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Meus agendamentos",
+   "title": "Meus agendamentos — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "cliente",
+   "tela": "celular-pequeno",
+   "rota": "/services",
+   "urlFinal": "/services",
+   "ms": 1549,
+   "requisicoesApi": 6,
+   "chamadasApi": {
+    "OPTIONS /api/v1/users/me/ 200": 1,
+    "GET /api/v1/users/me/ 200": 1,
+    "OPTIONS /api/v1/barbershops/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "OPTIONS /api/v1/services/ 200": 1,
+    "GET /api/v1/services/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 354,
+   "innerWidth": 360,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Serviços e preços",
+   "title": "Serviços e preços — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "cliente",
+   "tela": "celular-pequeno",
+   "rota": "/barbers",
+   "urlFinal": "/barbers",
+   "ms": 1549,
+   "requisicoesApi": 4,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1,
+    "OPTIONS /api/v1/barbers/ 200": 1,
+    "GET /api/v1/barbers/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 354,
+   "innerWidth": 360,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Equipe",
+   "title": "Equipe — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  },
+  {
+   "perfil": "cliente",
+   "tela": "celular-pequeno",
+   "rota": "/account",
+   "urlFinal": "/account",
+   "ms": 1293,
+   "requisicoesApi": 2,
+   "chamadasApi": {
+    "GET /api/v1/users/me/ 200": 1,
+    "GET /api/v1/barbershops/ 200": 1
+   },
+   "errosConsole": [],
+   "errosPagina": [],
+   "falhasApi": [],
+   "scrollWidth": 354,
+   "innerWidth": 360,
+   "overflowX": -6,
+   "overflowing": [],
+   "smallTargets": 0,
+   "smallSample": [],
+   "h1": "Minha conta",
+   "title": "Minha conta — BarberPro",
+   "fontsLoaded": [
+    "Public Sans",
+    "League Gothic"
+   ],
+   "captura": null
+  }
+ ],
+ "fluxos": [
+  {
+   "fluxo": "Cliente agenda (celular 390 px) e cancela",
+   "passos": [
+    "serviço escolhido",
+    "barbeiro escolhido",
+    "dia e horário escolhidos",
+    "confirmação exibida=false",
+    "cancelar: botão=true diálogo=true toast=true"
+   ],
+   "errosConsole": [],
+   "falhasApi": [],
+   "errosPagina": []
+  },
+  {
+   "fluxo": "Barbeiro confirma horário (tablet 820 px)",
+   "passos": [
+    "confirmar: clique=true toast=true",
+    "botões \"Concluir às HH:MM\" desabilitados (antes do término): 0"
+   ],
+   "errosConsole": [],
+   "falhasApi": [],
+   "errosPagina": []
+  },
+  {
+   "fluxo": "Admin: painel, confirmar, validação de horário, recarga",
+   "passos": [
+    "painel: 26 requisições à API, 22 delas para páginas de /appointments/",
+    "indicador do topo: \"40a confirmar no total\"",
+    "confirmar em \"A seguir\": clique=true toast=true",
+    "horário inválido no formulário: bloqueado no frontend=true; mensagem=true",
+    "recarga com API pausada: ver captura admin_desktop_recarga_com_api_pausada.png"
+   ],
+   "errosConsole": [],
+   "falhasApi": [],
+   "errosPagina": []
+  }
+ ],
+ "teclado": [
+  {
+   "pagina": "/login",
+   "sequenciaTab": [
+    "a \"Esqueci minha senha\" foco-visível=true",
+    "input#login-password \"\" foco-visível=true",
+    "button \"Mostrar senha\" foco-visível=true",
+    "button \"Entrar\" foco-visível=true",
+    "a \"Criar conta\" foco-visível=true",
+    "a \"Conheça o BarberPro\" foco-visível=true",
+    "body \"Ilustração: navalha aberta\nA\" foco-visível=false",
+    "input#login-password \"\" foco-visível=false"
+   ]
+  },
+  {
+   "pagina": "/admin",
+   "primeiroTab": "Pular para o conteúdo"
+  }
+ ],
+ "observacoes": [
+  {
+   "id": "BUS-06-ui",
+   "texto": "Seletor de dias do cliente oferece domingo com 16 horários livres."
+  },
+  {
+   "id": "FE-06",
+   "texto": "/pagina-que-nao-existe (deslogado) termina em /login"
+  }
+ ]
+}

@@ -4,18 +4,31 @@ Serializers do app barbershops.
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
-from .models import Barber, Barbershop
+from .models import HORARIO_INVALIDO_MENSAGEM, Barber, Barbershop, validar_dias_funcionamento
 
 
 class BarbershopSerializer(serializers.ModelSerializer):
+    # Dias da semana em que a barbearia atende (ISO: 1 = segunda ... 7 = domingo).
+    dias_funcionamento = serializers.ListField(
+        child=serializers.IntegerField(min_value=1, max_value=7),
+        allow_empty=False,
+        required=False,
+    )
+
     class Meta:
         model = Barbershop
         fields = [
             'id', 'nome', 'endereco', 'telefone', 'email',
-            'horario_abertura', 'horario_fechamento', 'logo', 'ativo',
+            'horario_abertura', 'horario_fechamento', 'dias_funcionamento', 'logo', 'ativo',
             'created_at',
         ]
         read_only_fields = ['id', 'created_at']
+
+    def validate_dias_funcionamento(self, value):
+        try:
+            return validar_dias_funcionamento(value)
+        except DjangoValidationError as error:
+            raise serializers.ValidationError(error.messages) from error
 
     def validate(self, attrs):
         # Criar uma barbearia é o fluxo de onboarding (ver
@@ -29,6 +42,12 @@ class BarbershopSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Você já pertence a uma barbearia e não pode criar outra.'
             )
+        # Fechamento depois da abertura, também em PATCH parcial: o campo que
+        # não veio na requisição é comparado com o valor gravado.
+        abertura = attrs.get('horario_abertura', getattr(self.instance, 'horario_abertura', None))
+        fechamento = attrs.get('horario_fechamento', getattr(self.instance, 'horario_fechamento', None))
+        if abertura is not None and fechamento is not None and fechamento <= abertura:
+            raise serializers.ValidationError({'horario_fechamento': HORARIO_INVALIDO_MENSAGEM})
         return attrs
 
 

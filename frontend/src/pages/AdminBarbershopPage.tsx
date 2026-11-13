@@ -5,11 +5,12 @@ import { z } from 'zod'
 import { barbershopApi } from '../api/endpoints'
 import { ButtonSpinner, Field, fieldA11y } from '../components/Controls'
 import { ErrorState, SkeletonBlock } from '../components/Feedback'
-import { ClockIcon } from '../components/Icons'
+import { AlertCircleIcon, ClockIcon } from '../components/Icons'
 import { PageHeader } from '../components/PageHeader'
 import { useBarbershop } from '../contexts/BarbershopContext'
 import { useToast } from '../contexts/ToastContext'
 import { errorMessage, fieldErrors, formatDayShort, formatDuration, dateKey, formatTime, timeToMinutes } from '../utils/format'
+import { formatOpenDays, openDays, WEEKDAYS } from '../utils/shop'
 import page from '../styles/page.module.css'
 import settings from '../styles/settings.module.css'
 import ui from '../styles/ui.module.css'
@@ -21,6 +22,8 @@ const schema = z.object({
   endereco: z.string().trim().min(5, 'Informe o endereço completo.').max(255, 'Use no máximo 255 caracteres.'),
   horario_abertura: z.string().regex(/^\d{2}:\d{2}$/, 'Informe o horário de abertura.'),
   horario_fechamento: z.string().regex(/^\d{2}:\d{2}$/, 'Informe o horário de fechamento.'),
+  // Caixas de seleção com o mesmo nome: o formulário entrega os valores marcados como texto
+  dias_funcionamento: z.array(z.string()).min(1, 'Marque ao menos um dia de funcionamento.'),
 }).refine((values) => timeToMinutes(values.horario_fechamento) > timeToMinutes(values.horario_abertura), {
   message: 'O fechamento precisa ser depois da abertura.',
   path: ['horario_fechamento'],
@@ -41,12 +44,14 @@ export function AdminBarbershopPage() {
       endereco: barbershop.endereco,
       horario_abertura: formatTime(barbershop.horario_abertura),
       horario_fechamento: formatTime(barbershop.horario_fechamento),
+      dias_funcionamento: openDays(barbershop).map(String),
     })
   }, [barbershop, reset])
 
   const opens = watch('horario_abertura')
   const closes = watch('horario_fechamento')
   const openMinutes = opens && closes ? timeToMinutes(closes) - timeToMinutes(opens) : 0
+  const selectedDays = (watch('dias_funcionamento') ?? []).map(Number)
 
   const onSubmit = async (values: Form) => {
     if (!barbershop) return
@@ -55,12 +60,13 @@ export function AdminBarbershopPage() {
         ...values,
         horario_abertura: `${values.horario_abertura}:00`,
         horario_fechamento: `${values.horario_fechamento}:00`,
+        dias_funcionamento: values.dias_funcionamento.map(Number).sort((a, b) => a - b),
       })
       setBarbershop(data)
       showToast('Dados da barbearia salvos.', 'success')
     } catch (requestError) {
       const fields = fieldErrors(requestError)
-      for (const key of ['nome', 'email', 'telefone', 'endereco', 'horario_abertura', 'horario_fechamento'] as const) {
+      for (const key of ['nome', 'email', 'telefone', 'endereco', 'horario_abertura', 'horario_fechamento', 'dias_funcionamento'] as const) {
         if (fields[key]) setError(key, { message: fields[key] })
       }
       showToast(errorMessage(requestError, 'Não foi possível salvar os dados.'), 'error')
@@ -106,9 +112,23 @@ export function AdminBarbershopPage() {
           <section className={settings.section}>
             <div className={settings.intro}>
               <h2>Horário de funcionamento</h2>
-              <p>Os horários livres oferecidos aos clientes começam na abertura e terminam quando o serviço ainda cabe antes do fechamento. Vale para todos os dias.</p>
+              <p>Os horários livres oferecidos aos clientes começam na abertura e terminam quando o serviço ainda cabe antes do fechamento. O mesmo horário vale para todos os dias marcados; nos outros, a barbearia não recebe agendamentos.</p>
             </div>
             <div className={`${ui.panel} ${ui.panelBody} ${ui.form}`}>
+              <fieldset className={settings.days} aria-describedby={errors.dias_funcionamento ? 'shop-dias-error' : undefined}>
+                <legend className={ui.label}>Dias de funcionamento</legend>
+                <div className={settings.dayToggles}>
+                  {WEEKDAYS.map((weekday) => (
+                    <label key={weekday.iso} className={settings.dayToggle}>
+                      <input type="checkbox" value={String(weekday.iso)} {...register('dias_funcionamento')} />
+                      <span><abbr title={weekday.name}>{weekday.short}</abbr></span>
+                    </label>
+                  ))}
+                </div>
+                {errors.dias_funcionamento && (
+                  <p className={ui.error} id="shop-dias-error"><AlertCircleIcon size={14} />{errors.dias_funcionamento.message}</p>
+                )}
+              </fieldset>
               <div className={ui.fieldRow}>
                 <Field label="Abre às" htmlFor="shop-abertura" error={errors.horario_abertura?.message}>
                   <input {...fieldA11y('shop-abertura', errors.horario_abertura?.message)} type="time" step={900} {...register('horario_abertura')} />
@@ -120,7 +140,7 @@ export function AdminBarbershopPage() {
               {openMinutes > 0 && (
                 <p className={settings.hoursPreview}>
                   <ClockIcon size={18} />
-                  <span>Aberta das <strong>{opens}</strong> às <strong>{closes}</strong>, {formatDuration(openMinutes)} de agenda por dia.</span>
+                  <span>{selectedDays.length > 0 ? `${formatOpenDays(selectedDays)}, das ` : 'Aberta das '}<strong>{opens}</strong> às <strong>{closes}</strong>, {formatDuration(openMinutes)} de agenda por dia.</span>
                 </p>
               )}
             </div>

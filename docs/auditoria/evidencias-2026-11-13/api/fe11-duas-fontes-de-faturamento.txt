@@ -1,0 +1,4 @@
+Faturamento "30 dias" no painel (navegador): R$ 14645.00 (293 atendimentos, de 2026-10-15 a 2026-11-13)
+revenue-report padrão da API: R$ 15215.00 (305 atendimentos, de 2026-10-14 a 2026-11-13)
+Diferença: R$ 570.00 — o relatório da API cobre 31 dias (hoje-30 até hoje) e o painel 30 dias (hoje-29 até hoje).
+Páginas lidas para reproduzir o painel: 21

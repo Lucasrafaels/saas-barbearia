@@ -1,0 +1,16 @@
+[
+ {
+  "tela": "desktop",
+  "rotulo": "Fechada, abre segunda às 09:00",
+  "fimDoTexto": 223,
+  "limiteInternoDoCartao": 232,
+  "cabe": true
+ },
+ {
+  "tela": "celular-gaveta",
+  "rotulo": "Fechada, abre segunda às 09:00",
+  "fimDoTexto": 223,
+  "limiteInternoDoCartao": 264,
+  "cabe": true
+ }
+]

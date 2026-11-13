@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { listAllServices, serviceApi } from '../api/endpoints'
 import { ActiveBadge, ButtonSpinner, Field, fieldA11y, Pagination, SearchField, SegmentedControl } from '../components/Controls'
 import { EmptyState, ErrorState, RefreshBar, SkeletonRows } from '../components/Feedback'
-import { ChevronDownIcon, ChevronUpIcon, EditIcon, PlusIcon, PowerIcon, RotateCcwIcon, ScissorsIcon, SortIcon } from '../components/Icons'
+import { ChevronDownIcon, ChevronUpIcon, EditIcon, PlusIcon, PowerIcon, RotateCcwIcon, SortIcon } from '../components/Icons'
 import { Modal } from '../components/Modal'
 import { PageHeader } from '../components/PageHeader'
 import { useConfirm } from '../contexts/ConfirmContext'
@@ -172,7 +172,7 @@ export function AdminServicesPage() {
           <ErrorState error={error} fallback="Não foi possível carregar os serviços." onRetry={() => void reload()} />
         ) : services.length === 0 ? (
           <EmptyState
-            icon={<ScissorsIcon size={22} />}
+            art="tesoura"
             title="Nenhum serviço cadastrado"
             description="Cadastre o primeiro serviço com preço e duração para liberar os agendamentos."
             action={{ label: 'Cadastrar serviço', onClick: openCreate }}

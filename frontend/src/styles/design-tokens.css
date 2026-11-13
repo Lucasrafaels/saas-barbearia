@@ -1,74 +1,114 @@
 /*
- * BarberPro — Design tokens
+ * BarberPro: tokens de design. Direção "Esmalte & Navalha" (paleta A, Placa esmaltada).
  *
- * Paleta: grafite como moldura, papel como fundo, branco como superfície.
- * Um único acento (cobre) em três tons, escolhido pela superfície:
- *   --copper       foco, seleção, marcações sobre fundo claro (não usar como texto)
- *   --copper-ink   texto/links de acento sobre fundo claro (contraste 5.8:1)
- *   --brass        acento sobre grafite (contraste 7.3:1)
- * Verde e vermelho são exclusivamente semânticos.
+ * Marinho: estrutura, ação principal, títulos e o status "confirmado".
+ * Vermelho de poste: só "agora, atenção, ação". Nunca encosta no marinho
+ * sem branco no meio (contraste 2,8:1).
+ * Marfim: o papel do fundo. Branco porcelana: superfícies de trabalho.
+ * Verde: só sucesso e "realizado".
+ * Contrastes conferidos: tinta/marfim 16,3:1 · tinta suave/branco 6,6:1 ·
+ * placeholder/branco 5,1:1 · borda de campo/branco 3,4:1.
  */
 
 :root {
-  /* === Base === */
-  --ink-900: #17191d;
-  --ink-800: #23262c;
-  --ink-700: #2e3138;
-  --ink-600: #3b3f47;
-  --ink-500: #4a4f58;
+  /* === Paleta da marca === */
+  --marinho-900: #102143;
+  --marinho-800: #192f57;
+  --marinho-700: #284273;
+  --marinho-600: #3a5488;
+  --marinho-300: #9fb0cf;
+  --marinho-200: #c9d4e8;
+  --marinho-100: #e7edf8;
+  --marinho-50: #f3f6fb;
 
-  --paper: #f6f3ed;
-  --paper-deep: #efebe3;
-  --white: #ffffff;
+  --vermelho-600: #c12d2e;
+  --vermelho-700: #a32224;
+  --vermelho-200: #edc1bc;
+  --vermelho-100: #fbe7e4;
 
-  --stone-600: #5e636d; /* texto secundário (5.9:1 sobre branco) */
-  --stone-500: #858b96; /* ícones, placeholders, bordas fortes */
-  --stone-300: #d8d2c7;
-  --stone-200: #e5e0d6;
-  --stone-100: #f0ece5;
+  --marfim: #f8f4eb;
+  --marfim-2: #ece6d8;
+  --marfim-claro: #fbf9f4;
+  --branco: #ffffff;
 
-  --copper: #b98255;
-  --copper-ink: #8a5a33;
-  --copper-soft: #f4ebe1;
-  --copper-line: #e3cdb6;
-  --brass: #c6a16b;
+  --tinta: #0e1727;
+  --tinta-2: #535d6e;
+  --tinta-3: #666e7e;
 
-  --success: #27845b;
-  --success-soft: #e4f1e9;
-  --danger: #c44747;
-  --danger-ink: #a83939;
-  --danger-soft: #f9e7e5;
+  --linha: #e4dfd4;
+  --linha-forte: #d2cbbe;
+  --linha-campo: #8f8878;
+
+  --verde: #29734e;
+  --verde-100: #e3efe8;
+
+  /* Listras do poste (a 45°, com branco entre vermelho e marinho) */
+  --listras-poste: repeating-linear-gradient(
+    -45deg,
+    var(--vermelho-600) 0 6px,
+    var(--branco) 6px 9px,
+    var(--marinho-900) 9px 15px,
+    var(--branco) 15px 18px
+  );
+
+  /* === Aliases de compatibilidade: nomes antigos apontam para a paleta nova === */
+  --ink-900: var(--marinho-900);
+  --ink-800: var(--marinho-800);
+  --ink-700: var(--marinho-700);
+  --ink-600: var(--marinho-600);
+  --ink-500: #4f6596;
+  --paper: var(--marfim);
+  --paper-deep: var(--marfim-2);
+  --white: var(--branco);
+  --stone-600: var(--tinta-2);
+  --stone-500: var(--tinta-3);
+  --stone-300: var(--linha-forte);
+  --stone-200: var(--linha);
+  --stone-100: #f1ede4;
+  --copper: var(--marinho-700);
+  --copper-ink: var(--marinho-700);
+  --copper-soft: var(--marinho-100);
+  --copper-line: var(--marinho-200);
+  --brass: var(--marfim);
+  --success: var(--verde);
+  --success-soft: var(--verde-100);
+  --danger: var(--vermelho-600);
+  --danger-ink: var(--vermelho-700);
+  --danger-soft: var(--vermelho-100);
 
   /* === Papéis semânticos === */
-  --color-bg: var(--paper);
-  --color-surface: var(--white);
-  --color-surface-muted: #faf8f4;
-  --color-text: var(--ink-900);
-  --color-text-muted: var(--stone-600);
-  --color-text-inverse: var(--paper);
-  --color-border: var(--stone-200);
-  --color-border-strong: var(--stone-300);
-  --color-accent: var(--copper);
-  --color-accent-text: var(--copper-ink);
-  --color-focus: var(--copper);
+  --color-bg: var(--marfim);
+  --color-surface: var(--branco);
+  --color-surface-muted: var(--marfim-claro);
+  --color-text: var(--tinta);
+  --color-text-muted: var(--tinta-2);
+  --color-text-inverse: var(--marfim);
+  --color-heading: var(--marinho-900);
+  --color-border: var(--linha);
+  --color-border-strong: var(--linha-forte);
+  --color-accent: var(--marinho-900);
+  --color-accent-text: var(--marinho-700);
+  --color-attention: var(--vermelho-600);
+  --color-focus: var(--marinho-700);
 
-  /* Status de agendamento (sempre acompanhados de rótulo + forma) */
-  --status-agendado: var(--stone-600);
-  --status-agendado-bg: var(--stone-100);
-  --status-confirmado: var(--copper-ink);
-  --status-confirmado-bg: var(--copper-soft);
-  --status-realizado: var(--success);
-  --status-realizado-bg: var(--success-soft);
-  --status-cancelado: var(--danger-ink);
-  --status-cancelado-bg: var(--danger-soft);
+  /* Status de agendamento: sempre com rótulo e forma, nunca só cor */
+  --status-agendado: var(--marinho-900);
+  --status-agendado-bg: var(--branco);
+  --status-confirmado: var(--marfim);
+  --status-confirmado-bg: var(--marinho-900);
+  --status-realizado: var(--verde);
+  --status-realizado-bg: var(--verde-100);
+  --status-cancelado: var(--vermelho-700);
+  --status-cancelado-bg: var(--vermelho-100);
 
   /* === Tipografia ===
-   * Uma família (Archivo, variável em peso e largura). A hierarquia vem
-   * da largura expandida nos títulos e horários, não de uma segunda fonte.
-   * Escala clássica: 12 · 14 · 16 · 18 · 21 · 24 · 36 · 48. */
-  --font-sans: 'Archivo', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --stretch-display: 118%;
-  --stretch-numeric: 110%;
+   * League Gothic (Alternate Gothic, 1903) nos títulos de página e nos momentos de marca.
+   * Public Sans (descendente da Franklin Gothic) em toda a interface, com algarismos
+   * tabulares em horários e valores. Escala da interface: 12 · 14 · 16 · 18 · 21 · 24 · 36 · 48. */
+  --font-sans: 'Public Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'League Gothic', 'Arial Narrow', 'Roboto Condensed', sans-serif;
+  --stretch-display: 100%;
+  --stretch-numeric: 100%;
 
   --fs-12: 0.75rem;
   --fs-14: 0.875rem;
@@ -100,17 +140,17 @@
   --space-12: 3rem;
   --space-16: 4rem;
 
-  /* === Raios: crescem com o tamanho do objeto === */
-  --radius-sm: 6px;   /* chips internos, slots */
-  --radius-md: 8px;   /* controles */
-  --radius-lg: 12px;  /* painéis */
-  --radius-xl: 16px;  /* modais */
+  /* === Raios: crescem com o tamanho do objeto, como cantos de placa esmaltada === */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 18px;
   --radius-pill: 999px;
 
-  /* === Sombras: só em camadas que flutuam === */
-  --shadow-raise: 0 1px 2px rgb(23 25 29 / 0.05), 0 6px 16px -8px rgb(23 25 29 / 0.14);
-  --shadow-overlay: 0 1px 2px rgb(23 25 29 / 0.06), 0 18px 40px -12px rgb(23 25 29 / 0.28);
-  --ring-focus: 0 0 0 3px rgb(185 130 85 / 0.28);
+  /* === Sombras: só em camadas que flutuam, tingidas de marinho === */
+  --shadow-raise: 0 1px 2px rgb(16 33 67 / 0.06), 0 8px 18px -10px rgb(16 33 67 / 0.22);
+  --shadow-overlay: 0 1px 2px rgb(16 33 67 / 0.08), 0 22px 44px -16px rgb(16 33 67 / 0.38);
+  --ring-focus: 0 0 0 3px rgb(40 66 115 / 0.24);
 
   /* === Movimento === */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -122,16 +162,18 @@
 
   /* === Camadas === */
   --z-sticky: 20;
+  --z-tabbar: 30;
   --z-drawer: 40;
   --z-dropdown: 50;
   --z-modal: 60;
   --z-toast: 70;
 
   /* === Layout === */
-  --sidebar-w: 15.5rem;
-  --sidebar-w-collapsed: 4.5rem;
-  --topbar-h: 3.75rem;
-  --content-max: 78rem;
+  --sidebar-w: 16rem;
+  --sidebar-w-collapsed: 4.75rem;
+  --topbar-h: 4rem;
+  --tabbar-h: 4.25rem;
+  --content-max: 80rem;
   --control-h: 2.75rem;
   --control-h-sm: 2.25rem;
 }

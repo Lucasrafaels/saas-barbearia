@@ -1,0 +1,831 @@
+[
+ {
+  "grupo": "Isolamento entre barbearias",
+  "id": "ISO-01",
+  "verificacao": "admin A lê barbearia B",
+  "esperado": 404,
+  "obtido": 404,
+  "ok": true,
+  "obs": "{\"detail\": \"No Barbershop matches the given query.\"}"
+ },
+ {
+  "grupo": "Isolamento entre barbearias",
+  "id": "ISO-02",
+  "verificacao": "admin A altera barbearia B",
+  "esperado": 404,
+  "obtido": 404,
+  "ok": true,
+  "obs": "{\"detail\": \"No Barbershop matches the given query.\"}"
+ },
+ {
+  "grupo": "Isolamento entre barbearias",
+  "id": "ISO-03",
+  "verificacao": "admin A lê admin B",
+  "esperado": 404,
+  "obtido": 404,
+  "ok": true,
+  "obs": "{\"detail\": \"No User matches the given query.\"}"
+ },
+ {
+  "grupo": "Isolamento entre barbearias",
+  "id": "ISO-04",
+  "verificacao": "admin A altera cliente B",
+  "esperado": 404,
+  "obtido": 404,
+  "ok": true,
+  "obs": "{\"detail\": \"No User matches the given query.\"}"
+ },
+ {
+  "grupo": "Isolamento entre barbearias",
+  "id": "ISO-05",
+  "verificacao": "admin A desativa cliente B",
+  "esperado": 404,
+  "obtido": 404,
+  "ok": true,
+  "obs": "{\"detail\": \"No User matches the given query.\"}"
+ },
+ {
+  "grupo": "Isolamento entre barbearias",
+  "id": "ISO-06",
+  "verificacao": "admin A lê serviço B",
+  "esperado": 404,
+  "obtido": 404,
+  "ok": true,
+  "obs": "{\"detail\": \"No Service matches the given query.\"}"
+ },
+ {
+  "grupo": "Isolamento entre barbearias",
+  "id": "ISO-07",
+  "verificacao": "admin A altera serviço B",
+  "esperado": 404,
+  "obtido": 404,
+  "ok": true,
+  "obs": "{\"detail\": \"No Service matches the given query.\"}"
+ },
+ {
+  "grupo": "Isolamento entre barbearias",
+  "id": "ISO-08",
+  "verificacao": "admin A lê barbeiro B",
+  "esperado": 404,
+  "obtido": 404,
+  "ok": true,
+  "obs": "{\"detail\": \"No Barber matches the given query.\"}"
+ },
+ {
+  "grupo": "Isolamento entre barbearias",
+  "id": "ISO-09",
+  "verificacao": "admin A lê agendamento B",
+  "esperado": 404,
+  "obtido": 404,
+  "ok": true,
+  "obs": "{\"detail\": \"No Appointment matches the given query.\"}"
+ },
+ {
+  "grupo": "Isolamento entre barbearias",
+  "id": "ISO-10",
+  "verificacao": "admin A altera agendamento B",
+  "esperado": 404,
+  "obtido": 404,
+  "ok": true,
+  "obs": "{\"detail\": \"No Appointment matches the given query.\"}"
+ },
+ {
+  "grupo": "Isolamento entre barbearias",
+  "id": "ISO-11",
+  "verificacao": "admin A cancela agendamento B",
+  "esperado": 404,
+  "obtido": 404,
+  "ok": true,
+  "obs": "{\"detail\": \"No Appointment matches the given query.\"}"
+ },
+ {
+  "grupo": "Isolamento entre barbearias",
+  "id": "ISO-12",
+  "verificacao": "admin A agenda com barbeiro B",
+  "esperado": 400,
+  "obtido": 400,
+  "ok": true,
+  "obs": "{\"barbeiro\": [\"Este barbeiro não pertence à sua barbearia.\"]}"
+ },
+ {
+  "grupo": "Isolamento entre barbearias",
+  "id": "ISO-13",
+  "verificacao": "admin A agenda serviço B",
+  "esperado": 400,
+  "obtido": 400,
+  "ok": true,
+  "obs": "{\"servico\": [\"Este serviço não pertence à sua barbearia.\"]}"
+ },
+ {
+  "grupo": "Isolamento entre barbearias",
+  "id": "ISO-14",
+  "verificacao": "admin A agenda cliente B",
+  "esperado": 400,
+  "obtido": 400,
+  "ok": true,
+  "obs": "{\"cliente\": [\"Este cliente não pertence à sua barbearia.\"]}"
+ },
+ {
+  "grupo": "Isolamento entre barbearias",
+  "id": "ISO-15",
+  "verificacao": "admin A promove cliente B a barbeiro",
+  "esperado": 400,
+  "obtido": 400,
+  "ok": true,
+  "obs": "{\"barbershop\": [\"A barbearia do barbeiro deve ser a mesma do usuário vinculado.\"]}"
+ },
+ {
+  "grupo": "Isolamento entre barbearias",
+  "id": "ISO-16",
+  "verificacao": "horários livres de barbeiro B",
+  "esperado": 404,
+  "obtido": 404,
+  "ok": true,
+  "obs": "{\"detail\": \"Barbeiro não encontrado.\"}"
+ },
+ {
+  "grupo": "Isolamento entre barbearias",
+  "id": "ISO-17",
+  "verificacao": "exclude_appointment_id de B",
+  "esperado": 404,
+  "obtido": 404,
+  "ok": true,
+  "obs": "{\"detail\": \"Agendamento a excluir não pertence à sua barbearia.\"}"
+ },
+ {
+  "grupo": "Isolamento entre barbearias",
+  "id": "ISO-18",
+  "verificacao": "cliente A lê agendamento de B",
+  "esperado": 404,
+  "obtido": 404,
+  "ok": true,
+  "obs": "{\"detail\": \"No Appointment matches the given query.\"}"
+ },
+ {
+  "grupo": "Isolamento entre barbearias",
+  "id": "ISO-19",
+  "verificacao": "revenue-report filtrando barbeiro de B",
+  "esperado": "200 com total 0",
+  "obtido": "200 total=0.00",
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Isolamento entre barbearias",
+  "id": "ISO-20",
+  "verificacao": "listas do admin A só têm registros de A",
+  "esperado": "nenhum registro de B",
+  "obtido": "0 registros de outra barbearia",
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Isolamento entre barbearias",
+  "id": "ISO-21",
+  "verificacao": "cliente lê agendamento de outro cliente da mesma barbearia",
+  "esperado": 404,
+  "obtido": 404,
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Isolamento entre barbearias",
+  "id": "ISO-22",
+  "verificacao": "mensagem para ID de outra barbearia x ID inexistente",
+  "esperado": "mensagens iguais",
+  "obtido": "outra={\"barbeiro\": [\"Este barbeiro não pertence à sua barbearia.\"]} | inexistente={\"barbeiro\": [\"Pk inválido \\\"999999\\\" - objeto não existe.\"]}",
+  "ok": false,
+  "obs": "Mensagens diferentes revelam que o ID existe em outra barbearia"
+ },
+ {
+  "grupo": "Isolamento entre barbearias",
+  "id": "ISO-23",
+  "verificacao": "exclude_appointment_id: outra barbearia x inexistente",
+  "esperado": "mensagens iguais",
+  "obtido": "outra=Agendamento a excluir não pertence à sua barbearia. | inexistente=Agendamento a excluir não encontrado.",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Perfis e permissões",
+  "id": "PER-01",
+  "verificacao": "cliente lista usuários",
+  "esperado": 403,
+  "obtido": 403,
+  "ok": true,
+  "obs": "{\"detail\": \"Você não tem permissão para executar essa ação.\"}"
+ },
+ {
+  "grupo": "Perfis e permissões",
+  "id": "PER-02",
+  "verificacao": "cliente cria usuário",
+  "esperado": 403,
+  "obtido": 403,
+  "ok": true,
+  "obs": "{\"detail\": \"Você não tem permissão para executar essa ação.\"}"
+ },
+ {
+  "grupo": "Perfis e permissões",
+  "id": "PER-03",
+  "verificacao": "cliente tenta se promover e se desativar",
+  "esperado": "perfil e status inalterados",
+  "obtido": "200 tipo=cliente ativo=True",
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Perfis e permissões",
+  "id": "PER-04",
+  "verificacao": "cliente cria serviço",
+  "esperado": 403,
+  "obtido": 403,
+  "ok": true,
+  "obs": "{\"detail\": \"Você não tem permissão para executar essa ação.\"}"
+ },
+ {
+  "grupo": "Perfis e permissões",
+  "id": "PER-05",
+  "verificacao": "cliente altera serviço",
+  "esperado": 403,
+  "obtido": 403,
+  "ok": true,
+  "obs": "{\"detail\": \"Você não tem permissão para executar essa ação.\"}"
+ },
+ {
+  "grupo": "Perfis e permissões",
+  "id": "PER-06",
+  "verificacao": "cliente cria barbeiro",
+  "esperado": 403,
+  "obtido": 403,
+  "ok": true,
+  "obs": "{\"detail\": \"Você não tem permissão para executar essa ação.\"}"
+ },
+ {
+  "grupo": "Perfis e permissões",
+  "id": "PER-07",
+  "verificacao": "cliente altera barbearia",
+  "esperado": 403,
+  "obtido": 403,
+  "ok": true,
+  "obs": "{\"detail\": \"Você não tem permissão para executar essa ação.\"}"
+ },
+ {
+  "grupo": "Perfis e permissões",
+  "id": "PER-08",
+  "verificacao": "cliente consulta faturamento (SEC-02)",
+  "esperado": 403,
+  "obtido": 403,
+  "ok": true,
+  "obs": "{\"detail\": \"Você não tem permissão para executar essa ação.\"}"
+ },
+ {
+  "grupo": "Perfis e permissões",
+  "id": "PER-09",
+  "verificacao": "barbeiro consulta faturamento (SEC-02)",
+  "esperado": 403,
+  "obtido": 403,
+  "ok": true,
+  "obs": "{\"detail\": \"Você não tem permissão para executar essa ação.\"}"
+ },
+ {
+  "grupo": "Perfis e permissões",
+  "id": "PER-10",
+  "verificacao": "barbeiro consulta faturamento filtrando o próprio id",
+  "esperado": 403,
+  "obtido": 403,
+  "ok": true,
+  "obs": "{\"detail\": \"Você não tem permissão para executar essa ação.\"}"
+ },
+ {
+  "grupo": "Perfis e permissões",
+  "id": "PER-11",
+  "verificacao": "admin consulta faturamento",
+  "esperado": 200,
+  "obtido": 200,
+  "ok": true,
+  "obs": "{\"period\": {\"start\": \"2026-10-14\", \"end\": \"2026-11-13\"}, \"total_revenue\": \"15215.00\", \"total_appointments\": 305, \"by_barber\": [{\"barbeiro\": \"João Navalha\", \"rev"
+ },
+ {
+  "grupo": "Perfis e permissões",
+  "id": "PER-12",
+  "verificacao": "cliente recebe e-mail de login dos barbeiros (SEC-03)",
+  "esperado": "sem campo email",
+  "obtido": "3 de 3 itens com e-mail",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Perfis e permissões",
+  "id": "PER-13",
+  "verificacao": "cliente consulta outro cliente por id",
+  "esperado": "404 (não revelar existência)",
+  "obtido": 403,
+  "ok": false,
+  "obs": "403 confirma que o id existe no tenant"
+ },
+ {
+  "grupo": "Perfis e permissões",
+  "id": "PER-14",
+  "verificacao": "barbeiro lista usuários",
+  "esperado": 403,
+  "obtido": 403,
+  "ok": true,
+  "obs": "{\"detail\": \"Você não tem permissão para executar essa ação.\"}"
+ },
+ {
+  "grupo": "Perfis e permissões",
+  "id": "PER-15",
+  "verificacao": "barbeiro cria serviço",
+  "esperado": 403,
+  "obtido": 403,
+  "ok": true,
+  "obs": "{\"detail\": \"Você não tem permissão para executar essa ação.\"}"
+ },
+ {
+  "grupo": "Perfis e permissões",
+  "id": "PER-16",
+  "verificacao": "barbeiro vê só a própria agenda",
+  "esperado": "só barbeiro próprio",
+  "obtido": "140 itens; todos próprios=True",
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Perfis e permissões",
+  "id": "PER-17",
+  "verificacao": "barbeiro altera agendamento de outro barbeiro",
+  "esperado": 404,
+  "obtido": 404,
+  "ok": true,
+  "obs": "{\"detail\": \"No Appointment matches the given query.\"}"
+ },
+ {
+  "grupo": "Perfis e permissões",
+  "id": "PER-18",
+  "verificacao": "superusuário cria serviço sem contexto de barbearia",
+  "esperado": 403,
+  "obtido": 403,
+  "ok": true,
+  "obs": "{\"detail\": \"Selecione um contexto de barbearia antes de criar um serviço.\"}"
+ },
+ {
+  "grupo": "Perfis e permissões",
+  "id": "PER-19",
+  "verificacao": "superusuário lê agendamentos de todas as barbearias",
+  "esperado": "todas",
+  "obtido": "419 agendamentos",
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "NEW-STATUS",
+  "verificacao": "cliente cria agendamento enviando status=confirmado",
+  "esperado": "400/403 ou status agendado",
+  "obtido": "201 status=confirmado",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "NEW-STATUS-2",
+  "verificacao": "barbeiro cria agendamento já cancelado",
+  "esperado": "status inicial agendado",
+  "obtido": "201 status=cancelado",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Perfis e permissões",
+  "id": "PER-20",
+  "verificacao": "cliente tenta agendar em nome de outro cliente",
+  "esperado": "gravado para o próprio cliente",
+  "obtido": "201 cliente=5",
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Perfis e permissões",
+  "id": "PER-21",
+  "verificacao": "cliente confirma o próprio agendamento",
+  "esperado": 403,
+  "obtido": 403,
+  "ok": true,
+  "obs": "{\"detail\": \"Clientes só podem cancelar o próprio agendamento.\"}"
+ },
+ {
+  "grupo": "Perfis e permissões",
+  "id": "PER-22",
+  "verificacao": "cliente altera agendamento de outro cliente",
+  "esperado": 404,
+  "obtido": 404,
+  "ok": true,
+  "obs": "{\"detail\": \"No Appointment matches the given query.\"}"
+ },
+ {
+  "grupo": "Perfis e permissões",
+  "id": "PER-23",
+  "verificacao": "barbeiro agenda informando outro barbeiro",
+  "esperado": "gravado no próprio barbeiro",
+  "obtido": "400 barbeiro=['Barbeiros só podem gerenciar a própria agenda.']",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "BUS-12",
+  "verificacao": "barbeiro: DELETE x PATCH cancelado x troca de cliente",
+  "esperado": "mesma regra nos dois caminhos",
+  "obtido": "DELETE=403; PATCH cliente=404; PATCH cancelado=404",
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "BUS-01",
+  "verificacao": "admin se rebaixa / se desativa",
+  "esperado": "400 nos dois",
+  "obtido": "PATCH=400 DELETE=400",
+  "ok": true,
+  "obs": "{\"tipo_perfil\": [\"Você não pode alterar o próprio perfil de acesso.\"]}"
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "BUS-01b",
+  "verificacao": "superusuário desativa o único admin da barbearia",
+  "esperado": 400,
+  "obtido": 400,
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "BUS-03",
+  "verificacao": "cliente reagenda horário confirmado",
+  "esperado": "status volta a agendado",
+  "obtido": "200 status=confirmado",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "BUS-04",
+  "verificacao": "troca 30→60 min às 18:30 (fecha 19:00)",
+  "esperado": 400,
+  "obtido": 200,
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "BUS-05",
+  "verificacao": "fechamento antes da abertura (completo e parcial)",
+  "esperado": "400 nos dois",
+  "obtido": "completo=200 parcial=200",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "BUS-06",
+  "verificacao": "horários num domingo (2026-11-15)",
+  "esperado": "lista vazia",
+  "obtido": "10 horários",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "BUS-11",
+  "verificacao": "passo dos horários de serviço de 60 min",
+  "esperado": "passo menor que a duração",
+  "obtido": "09:00, 10:00, 11:00, 12:00, 13:00, 14:00",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "BUS-10",
+  "verificacao": "horários para ontem",
+  "esperado": "lista vazia ou 400",
+  "obtido": "200 14 horários",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "BUS-07",
+  "verificacao": "marcar realizado um horário futuro",
+  "esperado": 400,
+  "obtido": 400,
+  "ok": true,
+  "obs": "{\"status\": [\"O atendimento só pode ser marcado como realizado após o término previsto, em 25/11/2026 às 15:30.\"]}"
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "AUTH-02",
+  "verificacao": "cadastro de e-mail existente com maiúsculas",
+  "esperado": 400,
+  "obtido": 201,
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "AUTH-02b",
+  "verificacao": "login com outra capitalização do e-mail",
+  "esperado": 200,
+  "obtido": 401,
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "PROD-01",
+  "verificacao": "cadastro público cria conta vinculada a barbearia",
+  "esperado": "vínculo com barbearia",
+  "obtido": "201 barbershop=None tipo=cliente",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "NEW-OVERLAP",
+  "verificacao": "mesmo cliente com dois horários simultâneos (barbeiros diferentes)",
+  "esperado": "segundo recusado",
+  "obtido": "201 / 201",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "NEW-PASTCANCEL",
+  "verificacao": "cliente cancela horário que já passou",
+  "esperado": "recusado",
+  "obtido": "204 (data 2026-11-13T14:00)",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "BUS-08",
+  "verificacao": "horários vencidos ainda \"agendado\" (sem desfecho)",
+  "esperado": "status próprio ou sinalização",
+  "obtido": "22 vencidos como agendado",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "BUS-13",
+  "verificacao": "desativar barbeiro com horários futuros",
+  "esperado": "decisão sobre os horários",
+  "obtido": "DELETE=204; 20 de 20 horários futuros continuam ativos",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "API-01",
+  "verificacao": "page_size=100",
+  "esperado": "100 itens",
+  "obtido": "20 itens",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "API-01b",
+  "verificacao": "busca e filtro de perfil em /users/",
+  "esperado": "resultado filtrado",
+  "obtido": "total=10 search=10 tipo_perfil=10",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "API-01c",
+  "verificacao": "ordering=data_hora",
+  "esperado": "ordem crescente",
+  "obtido": "primeiro=2026-11-25T18:30 padrão=2026-11-25T18:30",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Regras de negócio",
+  "id": "API-02",
+  "verificacao": "atendimento realizado ontem às 22:30 no faturamento diário (start=end=2026-11-12)",
+  "esperado": "dia 2026-11-12",
+  "obtido": "[{\"date\": \"2026-11-12\", \"revenue\": \"610.00\", \"count\": 12}, {\"date\": \"2026-11-13\", \"revenue\": \"45.00\", \"count\": 1}]",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Barbearia desativada",
+  "id": "BUS-02a",
+  "verificacao": "plataforma desativa a barbearia A (DELETE com confirmação)",
+  "esperado": 204,
+  "obtido": 204,
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Barbearia desativada",
+  "id": "BUS-02b",
+  "verificacao": "cliente da barbearia desativada faz login",
+  "esperado": "decisão do produto",
+  "obtido": 200,
+  "ok": true,
+  "obs": "informativo"
+ },
+ {
+  "grupo": "Barbearia desativada",
+  "id": "BUS-02c",
+  "verificacao": "cliente agenda em barbearia desativada",
+  "esperado": 400,
+  "obtido": 400,
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Barbearia desativada",
+  "id": "BUS-02d",
+  "verificacao": "admin cria serviço com a barbearia desativada",
+  "esperado": "bloqueado",
+  "obtido": 201,
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Barbearia desativada",
+  "id": "BUS-02e",
+  "verificacao": "admin cadastra cliente com a barbearia desativada",
+  "esperado": "bloqueado",
+  "obtido": 201,
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Barbearia desativada",
+  "id": "BUS-02f",
+  "verificacao": "admin do tenant reativa a barbearia que a plataforma desativou",
+  "esperado": 403,
+  "obtido": "200 ativo=True",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Sessão e segurança HTTP",
+  "id": "SES-01",
+  "verificacao": "login devolve só access no corpo",
+  "esperado": "['access']",
+  "obtido": "['access']",
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Sessão e segurança HTTP",
+  "id": "SES-02",
+  "verificacao": "flags do cookie de refresh (DEBUG=True)",
+  "esperado": "HttpOnly, SameSite=Lax, Path restrito",
+  "obtido": "{\"HttpOnly\": true, \"SameSite=Lax\": true, \"Path=/api/v1/auth/\": true, \"Secure\": false}",
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Sessão e segurança HTTP",
+  "id": "SES-03",
+  "verificacao": "claims do access token",
+  "esperado": "sem dado sensível",
+  "obtido": [
+   "barbershop_id",
+   "exp",
+   "hash_password",
+   "iat",
+   "jti",
+   "nome",
+   "tipo_perfil",
+   "token_type",
+   "user_id"
+  ],
+  "ok": true,
+  "obs": "exp-iat=900s; contém nome do usuário"
+ },
+ {
+  "grupo": "Sessão e segurança HTTP",
+  "id": "SES-04",
+  "verificacao": "refresh por cookie e reuso do refresh antigo",
+  "esperado": "200 e depois 401",
+  "obtido": "200 / 401",
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Sessão e segurança HTTP",
+  "id": "SES-05",
+  "verificacao": "logout e refresh posterior",
+  "esperado": "204 e 401",
+  "obtido": "204 / 401",
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Sessão e segurança HTTP",
+  "id": "SES-06",
+  "verificacao": "access de usuário desativado",
+  "esperado": "401 imediato",
+  "obtido": "desativação=204; me=401",
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Sessão e segurança HTTP",
+  "id": "SES-07",
+  "verificacao": "CORS de origem não autorizada",
+  "esperado": "sem Access-Control-Allow-Origin",
+  "obtido": null,
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Sessão e segurança HTTP",
+  "id": "SES-08",
+  "verificacao": "CORS aceita http://localhost:3000 (do .env)",
+  "esperado": "só a origem do frontend",
+  "obtido": "http://localhost:3000",
+  "ok": true,
+  "obs": "informativo: origem extra na lista local"
+ },
+ {
+  "grupo": "Sessão e segurança HTTP",
+  "id": "SES-09",
+  "verificacao": "cabeçalhos de segurança",
+  "esperado": "CSP presente",
+  "obtido": "{\"X-Frame-Options\": \"DENY\", \"X-Content-Type-Options\": \"nosniff\", \"Referrer-Policy\": \"same-origin\", \"Cross-Origin-Opener-Policy\": \"same-origin\", \"Content-Security-Policy\": null}",
+  "ok": false,
+  "obs": ""
+ },
+ {
+  "grupo": "Sessão e segurança HTTP",
+  "id": "SES-10",
+  "verificacao": "recuperação de senha: existente x inexistente",
+  "esperado": "mesma resposta",
+  "obtido": "204 (112 ms) / 204 (55 ms)",
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Sessão e segurança HTTP",
+  "id": "SES-11",
+  "verificacao": "confirmação com token inválido",
+  "esperado": 400,
+  "obtido": 400,
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Sessão e segurança HTTP",
+  "id": "SES-12",
+  "verificacao": "404 com DEBUG=True do .env",
+  "esperado": "sem página técnica",
+  "obtido": "404 página de debug com lista de rotas",
+  "ok": false,
+  "obs": "só relevante se o .env de desenvolvimento for para produção"
+ },
+ {
+  "grupo": "Sessão e segurança HTTP",
+  "id": "SES-13",
+  "verificacao": "entrada malformada em agendamento",
+  "esperado": 400,
+  "obtido": 400,
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Sessão e segurança HTTP",
+  "id": "SES-14",
+  "verificacao": "exclude_appointment_id não numérico",
+  "esperado": "400/404 sem 500",
+  "obtido": 404,
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Sessão e segurança HTTP",
+  "id": "SES-15",
+  "verificacao": "data inválida no relatório",
+  "esperado": 400,
+  "obtido": 400,
+  "ok": true,
+  "obs": ""
+ },
+ {
+  "grupo": "Concorrência (PostgreSQL 16)",
+  "id": "CON-01",
+  "verificacao": "20 pedidos simultâneos para o mesmo horário e barbeiro",
+  "esperado": "exatamente 1 criado",
+  "obtido": "{\"400\": 19, \"201\": 1}",
+  "ok": true,
+  "obs": ""
+ }
+]

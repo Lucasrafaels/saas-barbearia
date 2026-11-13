@@ -3,9 +3,36 @@ Manager customizado para o modelo User, que usa e-mail (em vez do
 username padrão do Django) como identificador principal de login.
 """
 from django.contrib.auth.base_user import BaseUserManager
+from django.db import models
+
+from .admin_integrity import GUARDED_FIELDS, preserving_active_admins
 
 
-class UserManager(BaseUserManager):
+class UserQuerySet(models.QuerySet):
+    """Operações em lote também respeitam a regra do último admin ativo (BUS-01).
+
+    `QuerySet.update()` e `QuerySet.delete()` não passam por `User.save()` nem
+    por `User.delete()`. São usadas, por exemplo, pela ação "remover
+    selecionados" do Django Admin e por `bulk_update()`.
+    """
+
+    def _active_admin_barbershops(self):
+        return set(
+            self.filter(tipo_perfil='admin', is_active=True).values_list('barbershop_id', flat=True)
+        )
+
+    def update(self, **kwargs):
+        if GUARDED_FIELDS.isdisjoint(kwargs):
+            return super().update(**kwargs)
+        with preserving_active_admins(self._active_admin_barbershops()):
+            return super().update(**kwargs)
+
+    def delete(self):
+        with preserving_active_admins(self._active_admin_barbershops()):
+            return super().delete()
+
+
+class UserManager(BaseUserManager.from_queryset(UserQuerySet)):
     """Gerencia a criação de usuários e superusuários usando e-mail."""
 
     use_in_migrations = True

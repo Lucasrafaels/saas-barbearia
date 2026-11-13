@@ -1,0 +1,10 @@
+admin    GET /api/v1/appointments/                         HTTP 200  itens= 20  consultas SQL=2
+admin    GET /api/v1/users/                                HTTP 200  itens= 10  consultas SQL=2
+admin    GET /api/v1/services/                             HTTP 200  itens=  9  consultas SQL=2
+admin    GET /api/v1/barbers/                              HTTP 200  itens=  3  consultas SQL=2
+admin    GET /api/v1/appointments/revenue-report/          HTTP 200  itens=  -  consultas SQL=4
+admin    GET /api/v1/barbershops/                          HTTP 200  itens=  1  consultas SQL=2
+cliente  GET /api/v1/appointments/                         HTTP 200  itens= 20  consultas SQL=2
+cliente  GET /api/v1/barbers/                              HTTP 200  itens=  2  consultas SQL=2
+cliente  GET /api/v1/services/                             HTTP 200  itens=  8  consultas SQL=2
+cliente  GET /api/v1/appointments/available-slots/         HTTP 200  itens=  -  consultas SQL=4

@@ -1,4 +1,5 @@
-/* Painel administrativo */
+/* Painel do dono: indicadores numa faixa única, quadro do dia como protagonista,
+   caixa com gráfico e resumo do período. */
 
 /* Faixa de indicadores: um painel dividido, não cartões repetidos */
 .ledger {
@@ -7,56 +8,91 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
+  overflow: hidden;
 }
 
 .metric {
   display: grid;
   align-content: start;
-  gap: var(--space-1);
-  padding: var(--space-5) var(--space-6);
+  gap: 2px;
+  padding: var(--space-4) var(--space-5);
   min-width: 0;
 }
 
 .metric + .metric { border-left: 1px solid var(--color-border); }
 
+/* O primeiro indicador é o dia de hoje: fica na placa marinho */
+.metric:first-child {
+  background: var(--marinho-900);
+  color: var(--marfim);
+}
+
+.metric:first-child .metricLabel,
+.metric:first-child .metricNote,
+.metric:first-child .metricValue small { color: var(--marinho-200); }
+
+.metric:first-child .metricValue { color: var(--marfim); }
+
 .metricLabel {
-  font-size: var(--fs-14);
-  font-weight: var(--fw-medium);
-  color: var(--color-text-muted);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tinta-2);
 }
 
 .metricValue {
-  font-size: var(--fs-36);
-  font-weight: var(--fw-semibold);
-  font-stretch: var(--stretch-display);
+  font-size: 1.875rem;
+  font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
-  line-height: 1.1;
+  line-height: 1.15;
+  color: var(--marinho-900);
   white-space: nowrap;
 }
 
 .metricValue small {
-  font-size: var(--fs-18);
-  font-weight: var(--fw-medium);
-  color: var(--color-text-muted);
-  margin-left: 2px;
+  font-size: var(--fs-16);
+  font-weight: var(--fw-semibold);
+  color: var(--tinta-2);
+  margin-left: 3px;
+  letter-spacing: 0;
 }
 
 .metricNote {
   font-size: var(--fs-14);
-  color: var(--color-text-muted);
+  color: var(--tinta-2);
+}
+
+/* Caixa de hoje: realizado sobre o previsto, numa régua fina dentro da placa */
+.progress {
+  display: block;
+  height: 4px;
+  margin: var(--space-2) 0 2px;
+  border-radius: var(--radius-pill);
+  background: rgb(248 244 235 / 0.18);
+  overflow: hidden;
+}
+
+.progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--marfim);
+  transform-origin: left;
+  animation: growRight var(--dur-3) var(--ease-out) both;
 }
 
 .delta {
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
 }
 
-.deltaUp { color: var(--success); }
-.deltaDown { color: var(--danger-ink); }
+.deltaUp { color: var(--verde); }
+.deltaDown { color: var(--vermelho-700); }
 
 @media (max-width: 1100px) {
   .ledger { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -65,11 +101,29 @@
 }
 
 @media (max-width: 520px) {
-  .ledger { grid-template-columns: 1fr; }
-  .metric + .metric { border-left: 0; border-top: 1px solid var(--color-border); }
-  .metric { padding: var(--space-4) var(--space-5); }
-  .metricValue { font-size: 1.875rem; }
+  .ledger { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .metric { padding: var(--space-3) var(--space-4); }
+  .metric:first-child { grid-column: 1 / -1; }
+  .metric:nth-child(2) { border-left: 0; border-top: 0; }
+  .metric:nth-child(3) { border-left: 1px solid var(--color-border); border-top: 1px solid var(--color-border); }
+  .metric:nth-child(4) { grid-column: 1 / -1; border-left: 0; }
+  .metricValue { font-size: 1.5rem; }
+  .metricNote { font-size: var(--fs-12); }
 }
+
+/* Quadro do dia + "A seguir" lado a lado */
+.mainGrid {
+  display: grid;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+@media (min-width: 1180px) {
+  .mainGrid { grid-template-columns: minmax(0, 1fr) 21rem; }
+  .nextPanel { position: sticky; top: calc(var(--topbar-h) + var(--space-6)); }
+}
+
+.boardPanel { overflow: hidden; }
 
 /* Navegação de dia do quadro */
 .dayNav {
@@ -82,7 +136,8 @@
   min-width: 11rem;
   text-align: center;
   font-size: var(--fs-14);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
+  color: var(--marinho-900);
 }
 
 .dayLabel::first-letter { text-transform: uppercase; }
@@ -97,7 +152,7 @@
   border-bottom: 1px solid var(--color-border);
 }
 
-.boardHeader h2 { font-size: var(--fs-16); }
+.boardHeader h2 { font-size: var(--fs-18); }
 
 .boardTitle { display: grid; gap: 2px; }
 .boardTitle p { font-size: var(--fs-14); color: var(--color-text-muted); }
@@ -105,6 +160,7 @@
 .boardFooter {
   padding: var(--space-3) var(--space-5);
   border-top: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
 }
 
 @media (max-width: 640px) {
@@ -112,30 +168,44 @@
   .dayNav { width: 100%; }
 }
 
-/* Lista compacta de próximos atendimentos */
+/* Lista compacta de próximos atendimentos: a linha abre o detalhe; status e ação logo abaixo */
 .upcoming { display: grid; }
 
 .upcomingItem {
-  display: grid;
-  grid-template-columns: 3.75rem minmax(0, 1fr) auto;
-  align-items: center;
-  gap: var(--space-3);
-  width: 100%;
-  padding: var(--space-3) var(--space-5);
   border-bottom: 1px solid var(--color-border);
-  text-align: left;
   transition: background-color var(--dur-1) ease;
 }
 
 .upcomingItem:last-child { border-bottom: 0; }
-.upcomingItem:hover { background: var(--color-surface-muted); }
+.upcomingItem:hover { background: var(--marinho-50); }
+
+.upcomingOpen {
+  display: grid;
+  grid-template-columns: 3.75rem minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-5) var(--space-2);
+  text-align: left;
+}
+
+.upcomingOpen:focus-visible { outline-offset: -2px; }
+
+.upcomingMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: 0 var(--space-5) var(--space-3) calc(var(--space-5) + 3.75rem + var(--space-3));
+}
 
 .upcomingWhen { display: grid; line-height: 1.15; }
 
 .upcomingWhen strong {
   font-size: var(--fs-18);
-  font-stretch: var(--stretch-numeric);
+  font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
+  color: var(--marinho-900);
 }
 
 .upcomingWhen span { font-size: var(--fs-12); color: var(--color-text-muted); }
@@ -144,44 +214,105 @@
 
 .upcomingMain strong,
 .upcomingMain span {
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 
-.upcomingMain strong { font-size: var(--fs-14); }
+.upcomingMain strong { font-size: var(--fs-14); color: var(--tinta); }
 .upcomingMain span { font-size: var(--fs-14); color: var(--color-text-muted); }
+
+/* Caixa: resumo do período + gráfico */
+.cashHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4) var(--space-8);
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cashHeader h2 {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.cashHeader p {
+  margin-top: var(--space-1);
+  max-width: 46ch;
+  font-size: var(--fs-14);
+  color: var(--color-text-muted);
+}
+
+.cashFacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-8);
+}
+
+.cashFacts dt {
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tinta-2);
+}
+
+.cashFacts dd {
+  font-size: var(--fs-21);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--marinho-900);
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .cashHeader { padding: var(--space-4); }
+  .cashFacts { gap: var(--space-3) var(--space-5); }
+  .cashFacts dd { font-size: var(--fs-18); }
+}
 
 /* Colunas de faturamento diário */
 .chart {
   position: relative;
-  padding: var(--space-5) var(--space-5) var(--space-4);
+  padding: var(--space-6) var(--space-5) var(--space-4) calc(var(--space-5) + 3.75rem);
 }
 
 .chartBars {
   position: relative;
   display: flex;
   align-items: flex-end;
-  gap: 2px;
-  height: 9.5rem;
-  border-bottom: 1px solid var(--color-border-strong);
+  gap: 3px;
+  height: 11rem;
+  border-bottom: 2px solid var(--marinho-900);
 }
 
 .chartGrid {
   position: absolute;
   left: 0;
   right: 0;
-  border-top: 1px dashed var(--color-border);
+  border-top: 1px dashed var(--linha-forte);
   pointer-events: none;
 }
 
+/* Rótulos do eixo numa calha à esquerda: nunca ficam atrás das barras */
 .chartGridLabel {
   position: absolute;
-  right: 0;
-  top: -1.4em;
+  left: -3.75rem;
+  width: 3.25rem;
+  top: -0.75em;
   font-size: var(--fs-12);
-  color: var(--color-text-muted);
+  font-weight: var(--fw-semibold);
+  color: var(--tinta-2);
   font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 .chartCol {
@@ -196,20 +327,21 @@
 .chartBar {
   width: 100%;
   min-height: 2px;
-  border-radius: 4px 4px 0 0;
-  background: var(--copper);
+  border-radius: 3px 3px 0 0;
+  background: var(--marinho-600);
   transform-origin: bottom;
   animation: growUp var(--dur-3) var(--ease-out) both;
   animation-delay: var(--delay, 0ms);
   transition: background-color var(--dur-1) ease;
 }
 
-.chartBarEmpty { background: var(--stone-200); }
+.chartBarEmpty { background: var(--linha); }
 
-.chartCol:hover .chartBar,
-.chartCol:focus-visible .chartBar { background: var(--copper-ink); }
+/* Hoje: o dia em curso em vermelho de poste, como o marcador do "agora" */
+.chartBarToday { background: var(--vermelho-600); }
 
-.chartCol:focus-visible { box-shadow: 0 0 0 2px var(--copper); border-radius: 4px; }
+.chartCol:hover .chartBar { background: var(--marinho-900); }
+.chartCol:hover .chartBarToday { background: var(--vermelho-700); }
 
 .tooltip {
   position: absolute;
@@ -219,8 +351,8 @@
   transform: translateX(-50%);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
-  background: var(--ink-900);
-  color: var(--paper);
+  background: var(--marinho-900);
+  color: var(--marfim);
   font-size: var(--fs-12);
   line-height: 1.35;
   white-space: nowrap;
@@ -231,8 +363,7 @@
 
 .tooltip strong { display: block; font-size: var(--fs-14); font-variant-numeric: tabular-nums; }
 
-.chartCol:hover .tooltip,
-.chartCol:focus-visible .tooltip { opacity: 1; }
+.chartCol:hover .tooltip { opacity: 1; }
 
 .chartCol:first-child .tooltip,
 .chartCol:nth-child(2) .tooltip { left: 0; transform: none; }
@@ -241,10 +372,12 @@
 
 .chartAxis {
   display: flex;
+  margin-left: 0;
   justify-content: space-between;
   margin-top: var(--space-2);
   font-size: var(--fs-12);
-  color: var(--color-text-muted);
+  font-weight: var(--fw-semibold);
+  color: var(--tinta-2);
 }
 
 /* Barras ranqueadas (equipe e serviços) */
@@ -256,7 +389,7 @@
 
 .rankRow {
   display: grid;
-  grid-template-columns: minmax(0, 9rem) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 9.5rem) minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-3);
   font-size: var(--fs-14);
@@ -266,20 +399,21 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-weight: var(--fw-medium);
+  font-weight: var(--fw-semibold);
+  color: var(--tinta);
 }
 
 .rankTrack {
-  height: 10px;
+  height: 8px;
   border-radius: var(--radius-pill);
-  background: var(--stone-100);
+  background: var(--marfim-2);
   overflow: hidden;
 }
 
 .rankFill {
   height: 100%;
   border-radius: var(--radius-pill);
-  background: var(--copper);
+  background: var(--marinho-900);
   transform-origin: left;
   animation: growRight var(--dur-3) var(--ease-out) both;
 }
@@ -291,13 +425,16 @@
   line-height: 1.2;
 }
 
-.rankValue strong { display: block; }
+.rankValue strong { display: block; color: var(--marinho-900); }
 .rankValue span { font-size: var(--fs-12); color: var(--color-text-muted); }
 
 @media (max-width: 520px) {
   .rankRow { grid-template-columns: minmax(0, 1fr) auto; }
   .rankTrack { grid-column: 1 / -1; grid-row: 2; }
 }
+
+/* Equipe e Serviços lado a lado: cada painel na altura do próprio conteúdo */
+.rankGrid { align-items: start; }
 
 @keyframes growUp { from { transform: scaleY(0); } to { transform: none; } }
 @keyframes growRight { from { transform: scaleX(0); } to { transform: none; } }

@@ -1,0 +1,433 @@
+/* Página institucional pública. Aqui o mundo "Esmalte & Navalha" aparece por inteiro:
+   campo marinho, títulos enormes de letreiro, listras do poste e ilustrações em gravura. */
+
+.page {
+  position: relative;
+  min-height: 100dvh;
+  background: var(--marfim);
+  color: var(--tinta);
+  overflow-x: clip;
+}
+
+/* O poste na lateral: gira com a rolagem */
+.pole {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 5;
+  width: 10px;
+  background: var(--listras-poste);
+  background-size: 22px 22px;
+  box-shadow: inset -1px 0 0 rgb(0 0 0 / 0.08);
+}
+
+/* ------------------------------------------------------------------ Topo */
+.hero {
+  position: relative;
+  background: var(--marinho-900);
+  color: var(--marfim);
+  padding: 0 clamp(1.25rem, 5vw, 4.5rem) clamp(2.5rem, 5vw, 4rem) calc(clamp(1.25rem, 5vw, 4.5rem) + 10px);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  min-height: 5rem;
+}
+
+.navBrand { display: inline-flex; border-radius: var(--radius-sm); }
+.navBrand:focus-visible { outline-color: var(--marfim); outline-offset: 4px; }
+
+.navLinks {
+  display: flex;
+  gap: var(--space-8);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+}
+
+.navLinks a {
+  color: var(--marinho-200);
+  text-decoration: none;
+  padding: var(--space-2) 0;
+  border-bottom: 2px solid transparent;
+  transition: color var(--dur-1) ease, border-color var(--dur-2) ease;
+}
+
+.navLinks a:hover { color: var(--marfim); border-bottom-color: var(--vermelho-600); }
+.navLinks a:focus-visible { outline-color: var(--marfim); }
+
+.navActions { display: flex; align-items: center; gap: var(--space-3); }
+
+.cta,
+.ghostLight {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.875rem;
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-bold);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color var(--dur-1) ease, transform var(--dur-1) var(--ease-out), box-shadow var(--dur-2) ease, border-color var(--dur-1) ease;
+}
+
+.cta {
+  background: var(--vermelho-600);
+  color: var(--branco);
+  box-shadow: 0 0 0 2px var(--branco) inset, 0 0 0 0 transparent;
+  border: 2px solid var(--vermelho-600);
+}
+
+.cta:hover { background: var(--vermelho-700); border-color: var(--vermelho-700); color: var(--branco); box-shadow: 0 0 0 2px var(--branco) inset, 0 10px 20px -12px rgb(0 0 0 / 0.6); }
+.cta:active { transform: scale(0.97); }
+
+.ghostLight {
+  color: var(--marfim);
+  border: 1.5px solid rgb(248 244 235 / 0.55);
+}
+
+.ghostLight:hover { border-color: var(--marfim); background: rgb(248 244 235 / 0.08); color: var(--marfim); }
+.cta:focus-visible, .ghostLight:focus-visible { outline-color: var(--marfim); }
+
+.heroBody {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+  align-items: end;
+  gap: var(--space-8);
+  padding: clamp(2.5rem, 6vw, 5rem) 0 clamp(2rem, 4vw, 3rem);
+}
+
+.headline {
+  font-family: var(--font-display);
+  font-size: clamp(4.25rem, 10.5vw, 10rem);
+  font-weight: 400;
+  line-height: 0.84;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  color: var(--marfim);
+}
+
+/* Entrada do título: cada linha sobe por trás de uma máscara, uma única vez */
+.headline span {
+  display: block;
+  clip-path: inset(0 0 0 0);
+  animation: lineUp 0.9s var(--ease-out) both;
+}
+
+.headline span:nth-child(2) { animation-delay: 0.08s; }
+.headline span:nth-child(3) { animation-delay: 0.16s; color: var(--marinho-200); }
+
+.heroAside { display: grid; gap: var(--space-5); padding-bottom: var(--space-3); }
+
+.heroArt {
+  width: min(24rem, 100%);
+  color: var(--marinho-300);
+  opacity: 0.9;
+}
+
+.heroArt svg { width: 100%; height: auto; color: var(--marinho-300); }
+
+.lead {
+  font-size: var(--fs-18);
+  line-height: 1.5;
+  color: var(--marinho-200);
+  max-width: 34ch;
+}
+
+.heroActions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+
+/* Demonstração do quadro do dia */
+.demo {
+  position: relative;
+  padding: var(--space-5) var(--space-6) var(--space-4);
+  background: var(--marfim);
+  color: var(--tinta);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 0 0 1px rgb(248 244 235 / 0.2), 0 24px 50px -28px rgb(0 0 0 / 0.65);
+}
+
+.demoHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.demoHead strong { font-family: var(--font-display); font-weight: 400; font-size: 1.75rem; line-height: 1; letter-spacing: 0.02em; text-transform: uppercase; color: var(--marinho-900); }
+.demoHead span { font-size: var(--fs-12); font-weight: var(--fw-semibold); color: var(--tinta-2); }
+
+.demoRows { position: relative; display: grid; gap: var(--space-2); }
+
+.demoRow {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.demoName { font-size: var(--fs-14); font-weight: var(--fw-bold); color: var(--marinho-900); }
+
+.track {
+  position: relative;
+  height: 2.25rem;
+  background: var(--branco);
+  border: 1px solid var(--linha);
+  border-radius: var(--radius-md);
+}
+
+.block {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: var(--at);
+  width: var(--w);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0 var(--space-2);
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
+}
+
+.blockConf { background: var(--marinho-900); color: var(--marfim); }
+.blockAgen { background: var(--branco); border: 1.5px dashed var(--marinho-600); color: var(--marinho-900); }
+.blockNovo {
+  background: var(--marinho-100);
+  border: 1.5px solid var(--marinho-900);
+  color: var(--marinho-900);
+  animation: booked 4.5s var(--ease-out) infinite;
+}
+
+/* O "agora": o poste deitado, atrás dos blocos */
+.now {
+  position: absolute;
+  top: -8px;
+  bottom: -8px;
+  left: calc(5.5rem + var(--space-3) + (100% - 5.5rem - var(--space-3)) * 0.44);
+  z-index: 0;
+  width: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--listras-poste);
+  background-size: 22px 22px;
+  box-shadow: 0 0 0 2px var(--marfim);
+  animation: poleTurn 2.6s linear infinite;
+}
+
+.demoNote {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+  color: var(--tinta-2);
+}
+
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--vermelho-600); flex-shrink: 0; }
+
+/* ------------------------------------------------------------------ Seções */
+.section {
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: clamp(3.5rem, 8vw, 6.5rem) clamp(1.25rem, 5vw, 3rem) 0 calc(clamp(1.25rem, 5vw, 3rem) + 10px);
+}
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 6.5vw, 5.25rem);
+  font-weight: 400;
+  line-height: 0.88;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--marinho-900);
+  margin-bottom: var(--space-8);
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  border-top: 2px solid var(--marinho-900);
+}
+
+.steps li {
+  position: relative;
+  padding: var(--space-6) var(--space-6) var(--space-6) 0;
+}
+
+.steps li + li { padding-left: var(--space-6); border-left: 1px solid var(--linha-forte); }
+
+.stepNo {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 4.5rem;
+  line-height: 0.85;
+  color: var(--vermelho-600);
+  margin-bottom: var(--space-3);
+}
+
+.steps h3 { font-size: var(--fs-21); margin-bottom: var(--space-2); }
+.steps p { color: var(--tinta-2); max-width: 32ch; }
+
+/* Perfis: a tabela pintada da barbearia (nome, pontilhado, descrição) */
+.board {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18rem;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.boardFrame {
+  padding: clamp(1.5rem, 4vw, 2.75rem);
+  background: var(--marinho-900);
+  color: var(--marfim);
+  border-radius: var(--radius-xl);
+  box-shadow: inset 0 0 0 8px var(--marinho-900), inset 0 0 0 9px rgb(248 244 235 / 0.35);
+}
+
+.boardFrame .sectionTitle { color: var(--marfim); margin-bottom: var(--space-6); }
+
+.priceBoard { display: grid; gap: var(--space-5); }
+
+.priceBoard > div {
+  display: grid;
+  grid-template-columns: auto minmax(2rem, 1fr);
+  grid-template-areas: 'nome pontos' 'desc desc';
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+}
+
+.priceBoard dt {
+  grid-area: nome;
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  line-height: 1;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--marfim);
+}
+
+.leader { grid-area: pontos; border-bottom: 3px dotted var(--marinho-300); transform: translateY(-8px); }
+
+.priceBoard dd { grid-area: desc; color: var(--marinho-200); max-width: 52ch; }
+
+.boardArt { color: var(--marinho-700); }
+.boardArt svg { width: 100%; height: auto; color: var(--marinho-700); transform: rotate(-24deg); }
+
+/* Garantias: lista 2×2 com filete simples, no mesmo idioma dos passos */
+.guarantees {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--space-10);
+  border-top: 2px solid var(--marinho-900);
+}
+
+.guarantees li { padding: var(--space-6) 0; }
+.guarantees li:nth-child(n + 3) { border-top: 1px solid var(--linha-forte); }
+
+.guarantees h3 {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-2);
+}
+
+.guarantees p { color: var(--tinta-2); max-width: 46ch; }
+
+/* Fecho */
+.closing {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-8);
+  max-width: 76rem;
+  margin: clamp(3.5rem, 8vw, 6.5rem) auto 0;
+  padding: clamp(2rem, 5vw, 3.5rem);
+  background: var(--marinho-900);
+  color: var(--marfim);
+  border-radius: var(--radius-xl);
+}
+
+.closing h2 {
+  font-family: var(--font-display);
+  font-size: clamp(2.75rem, 5.5vw, 4.5rem);
+  font-weight: 400;
+  line-height: 0.9;
+  text-transform: uppercase;
+  color: var(--marfim);
+  margin-bottom: var(--space-5);
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: var(--space-10) clamp(1.25rem, 5vw, 3rem) var(--space-12) calc(clamp(1.25rem, 5vw, 3rem) + 10px);
+  font-size: var(--fs-14);
+  color: var(--tinta-2);
+}
+
+/* ------------------------------------------------------------------ Responsivo */
+@media (max-width: 1080px) {
+  .heroBody { grid-template-columns: 1fr; }
+  .board { grid-template-columns: 1fr; }
+  .boardArt { display: none; }
+}
+
+@media (max-width: 860px) {
+  .navLinks { display: none; }
+  .steps { grid-template-columns: 1fr; }
+  .steps li, .steps li + li { padding: var(--space-5) 0; border-left: 0; border-bottom: 1px solid var(--linha-forte); }
+  .guarantees { grid-template-columns: 1fr; }
+  .guarantees li + li { border-top: 1px solid var(--linha-forte); }
+  .closing { grid-template-columns: 1fr; justify-items: start; margin-left: var(--space-4); margin-right: var(--space-4); }
+}
+
+@media (max-width: 600px) {
+  .pole { width: 6px; }
+  .hero { padding-left: calc(1.25rem + 6px); padding-right: 1.25rem; }
+  .nav .navActions .cta { display: none; }
+  .demo { padding: var(--space-4); }
+  .demoRow { grid-template-columns: 4rem minmax(0, 1fr); }
+  .now { left: calc(4rem + var(--space-3) + (100% - 4rem - var(--space-3)) * 0.44); }
+  /* No celular cada bloco mostra só o horário; o serviço não cabe */
+  .block { min-width: 2.2rem; padding: 0 2px; justify-content: center; font-size: 10.5px; }
+  .blockService { display: none; }
+  .heroActions > * { flex: 1 1 auto; }
+  .priceBoard dt { font-size: 2rem; }
+}
+
+@keyframes lineUp {
+  from { opacity: 0; transform: translateY(0.35em); clip-path: inset(0 0 100% 0); }
+  to { opacity: 1; transform: none; clip-path: inset(0 0 0 0); }
+}
+
+@keyframes poleTurn { to { background-position: 0 44px; } }
+
+@keyframes booked {
+  0%, 20% { opacity: 0; transform: scale(0.9); }
+  30%, 85% { opacity: 1; transform: none; }
+  100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .headline span, .now, .blockNovo { animation: none; }
+}

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { listActiveServices } from '../api/endpoints'
 import { SearchField } from '../components/Controls'
 import { EmptyState, ErrorState, SkeletonRows } from '../components/Feedback'
-import { ClockIcon, ScissorsIcon } from '../components/Icons'
+import { ClockIcon } from '../components/Icons'
 import { PageHeader } from '../components/PageHeader'
 import { useAsyncData } from '../hooks/useAsyncData'
 import { formatCurrency, formatDuration, matchesSearch } from '../utils/format'
@@ -40,7 +40,7 @@ export function ServicesPage() {
     <div className={`${page.page} ${page.medium}`}>
       <PageHeader title="Serviços e preços" description="Valores praticados pela barbearia. Escolha um serviço para ver os horários livres." />
 
-      <section className={ui.panel}>
+      <section className={`${ui.panel} ${client.priceBoard}`}>
         <div className={ui.toolbar}>
           <div className={ui.toolbarGrow}>
             <SearchField value={query} onChange={setQuery} placeholder="Buscar serviço" />
@@ -58,7 +58,7 @@ export function ServicesPage() {
         ) : error && !data ? (
           <ErrorState error={error} fallback="Não foi possível carregar os serviços." onRetry={() => void reload()} />
         ) : !data?.length ? (
-          <EmptyState icon={<ScissorsIcon size={22} />} title="Nenhum serviço disponível" description="A barbearia ainda não publicou serviços para agendamento." />
+          <EmptyState art="tesoura" title="Nenhum serviço disponível" description="A barbearia ainda não publicou serviços para agendamento." />
         ) : services.length === 0 ? (
           <EmptyState compact title="Nenhum serviço encontrado" description={`Nada corresponde a “${query}”.`} action={{ label: 'Limpar busca', onClick: () => setQuery('') }} />
         ) : (

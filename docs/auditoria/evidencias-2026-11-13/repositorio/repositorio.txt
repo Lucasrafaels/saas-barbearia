@@ -1,0 +1,57 @@
+$ git ls-files | wc -l
+5112
+$ git ls-files | grep -c ^venv312/
+4875
+$ arquivos sensíveis versionados (.env, sqlite, chaves)
+nenhum
+$ branches
+  * desenvolvimento                               3e0949e [origin/desenvolvimento] redesign do frontend e auditoria técnica
+    feature/painel-super-admin                    ed5e39f organização de pastas
+    master                                        3f46df2 Início do projeto SaaS Barbearia com Django
+    release/barberpro-academica-v1                67ef6e3 [origin/release/barberpro-academica-v1] release: congelar BarberPro versão acadêmica 1.0
+    remotes/origin/HEAD                           -> origin/desenvolvimento
+    remotes/origin/desenvolvimento                3e0949e redesign do frontend e auditoria técnica
+    remotes/origin/release/barberpro-academica-v1 67ef6e3 release: congelar BarberPro versão acadêmica 1.0
+desenvolvimento..master: 0 | master..desenvolvimento: 31
+desenvolvimento..feature/painel-super-admin: 0 | feature/painel-super-admin..desenvolvimento: 1
+desenvolvimento..release/barberpro-academica-v1: 1 | release/barberpro-academica-v1..desenvolvimento: 1
+$ SECRET_KEY no histórico (contagem, sem valor)
+32ed598 refactor: centraliza infraestrutura em config
+3f46df2 Início do projeto SaaS Barbearia com Django
+32ed598: 
+3f46df2: 3f46df2:core/settings.py:1
+$ arquivos na raiz
+accounts
+.agents
+appointments
+barbershops
+.claude
+.codex
+config
+db.sqlite3
+DESIGN.md
+docker-compose.yml
+docs
+.env
+.env.example
+frontend
+gerar_zip.py
+.gitignore
+.impeccable
+LICENSE
+manage.py
+outputs
+PRODUCT.md
+__pycache__
+.pytest_cache
+README.md
+references
+requirements.txt
+requisitos_barbearia.docx
+services
+test.db
+.vscode
+work
+$ git status resumido
+     16 ??
+     43  M

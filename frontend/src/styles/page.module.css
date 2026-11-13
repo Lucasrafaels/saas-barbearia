@@ -1,4 +1,5 @@
-/* BarberPro — estrutura de páginas e padrões compartilhados entre telas. */
+/* BarberPro: estrutura de páginas e padrões compartilhados entre telas.
+   Títulos de página com a voz do letreiro (League Gothic); o resto em Public Sans. */
 
 .page {
   display: grid;
@@ -36,16 +37,23 @@
 }
 
 .title {
-  font-size: var(--fs-24);
-  font-weight: var(--fw-bold);
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 400;
+  line-height: 0.92;
+  letter-spacing: 0.012em;
+  text-transform: uppercase;
+  color: var(--marinho-900);
+  padding-top: 0.08em;
 }
 
 @media (min-width: 900px) {
-  .title { font-size: 1.75rem; }
+  .title { font-size: 3.25rem; }
 }
 
 .description {
   max-width: 62ch;
+  margin-top: var(--space-1);
   font-size: var(--fs-16);
   color: var(--color-text-muted);
 }
@@ -74,7 +82,7 @@
   text-decoration: none;
 }
 
-.backLink:hover { color: var(--color-text); }
+.backLink:hover { color: var(--marinho-900); }
 
 /* ---------------------------------------------------------------- Grids */
 .split {
@@ -107,7 +115,7 @@
   margin-bottom: var(--space-3);
 }
 
-.sectionTitle h2 { font-size: var(--fs-18); }
+.sectionTitle h2 { font-size: var(--fs-18); color: var(--marinho-900); }
 
 .sectionTitle span {
   font-size: var(--fs-14);
@@ -115,7 +123,7 @@
 }
 
 /* --------------------------------------------------- Lista de agendamentos
-   Linha com horário em tipo expandido — o motivo recorrente da interface. */
+   Linha com o horário em destaque: o motivo recorrente da interface. */
 .dayGroup + .dayGroup { border-top: 1px solid var(--color-border); }
 
 .dayHeading {
@@ -133,8 +141,8 @@
 }
 
 .dayHeading strong {
-  font-weight: var(--fw-semibold);
-  font-stretch: var(--stretch-display);
+  font-weight: var(--fw-bold);
+  color: var(--marinho-900);
 }
 
 .dayHeading strong::first-letter { text-transform: uppercase; }
@@ -152,7 +160,7 @@
 }
 
 .apptRow:last-child { border-bottom: 0; }
-.apptRow:hover { background: var(--color-surface-muted); }
+.apptRow:hover { background: var(--marinho-50); }
 
 .apptTime {
   display: grid;
@@ -161,10 +169,10 @@
 
 .apptTime time {
   font-size: var(--fs-21);
-  font-weight: var(--fw-semibold);
-  font-stretch: var(--stretch-numeric);
+  font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
+  color: var(--marinho-900);
 }
 
 .apptTime span {
@@ -185,6 +193,7 @@
   align-items: center;
   gap: var(--space-2) var(--space-3);
   font-weight: var(--fw-semibold);
+  color: var(--tinta);
 }
 
 .apptMeta {
@@ -192,7 +201,7 @@
   color: var(--color-text-muted);
 }
 
-.apptMeta strong { color: var(--color-text); font-weight: var(--fw-medium); }
+.apptMeta strong { color: var(--marinho-900); font-weight: var(--fw-semibold); }
 
 .apptNote {
   margin-top: var(--space-1);
@@ -211,7 +220,8 @@
 
 .apptPrice {
   font-size: var(--fs-14);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
+  color: var(--marinho-900);
   font-variant-numeric: tabular-nums;
   min-width: 5.5rem;
   text-align: right;
@@ -223,7 +233,59 @@
 }
 
 .apptCancelled .apptTime time,
-.apptCancelled .apptTitle > span:first-child { text-decoration: line-through; text-decoration-color: var(--stone-500); color: var(--color-text-muted); }
+.apptCancelled .apptTitle > span:first-child { text-decoration: line-through; text-decoration-color: var(--vermelho-600); color: var(--color-text-muted); }
+
+/* Próximo atendimento (agenda do barbeiro): a linha inteira ganha fundo marinho claro
+   e uma etiqueta; nada de caixa dentro de caixa. */
+.apptNext,
+.apptNext:hover {
+  background: var(--marinho-100);
+}
+
+.apptNextTag {
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin-bottom: calc(-1 * var(--space-1));
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--marinho-900);
+  color: var(--marfim);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.02em;
+}
+
+/* Linha do "agora" na agenda em lista: o poste deitado */
+.nowRow {
+  position: relative;
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-2) var(--space-5);
+}
+
+.nowRow b {
+  justify-self: start;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  background: var(--vermelho-600);
+  color: var(--branco);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.nowRow span {
+  height: 5px;
+  border-radius: var(--radius-pill);
+  background: var(--listras-poste);
+  background-size: 18px 18px;
+  box-shadow: 0 0 0 1.5px var(--branco);
+  animation: poleSlide 2.4s linear infinite;
+}
+
+@keyframes poleSlide { to { background-position: 36px 0; } }
 
 @media (max-width: 760px) {
   .apptRow {
@@ -238,6 +300,7 @@
 
   .apptPrice { text-align: left; min-width: 0; }
   .dayHeading { padding: var(--space-3) var(--space-4); }
+  .nowRow { grid-template-columns: 3.75rem minmax(0, 1fr); padding: var(--space-2) var(--space-4); }
 }
 
 /* --------------------------------------------------------- Mostrar mais */
@@ -260,4 +323,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .routeEnter { animation: none; }
+  .nowRow span { animation: none; }
 }

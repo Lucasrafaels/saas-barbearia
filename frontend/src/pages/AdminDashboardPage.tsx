@@ -1,14 +1,16 @@
 import { useMemo, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { listAllAppointments, listAllBarbers } from '../api/endpoints'
+import { AppointmentActions } from '../components/AppointmentActions'
 import { AppointmentDetails } from '../components/AppointmentDetails'
 import { Avatar, StatusBadge } from '../components/Controls'
 import { BoardLegend, DayBoard } from '../components/DayBoard'
 import { EmptyState, ErrorState, RefreshBar, SkeletonBlock } from '../components/Feedback'
-import { ChevronLeftIcon, ChevronRightIcon, UsersIcon } from '../components/Icons'
+import { ChevronLeftIcon, ChevronRightIcon } from '../components/Icons'
 import { PageHeader } from '../components/PageHeader'
 import { useBarbershop } from '../contexts/BarbershopContext'
 import { useAsyncData } from '../hooks/useAsyncData'
+import { useMediaQuery } from '../hooks/useUi'
 import type { Appointment } from '../types'
 import {
   addDays, dateKey, formatClock, formatCurrency, formatDayShort, plural, relativeDayLabel, timeToMinutes, todayISO,
@@ -36,6 +38,8 @@ export function AdminDashboardPage() {
   const today = todayISO()
   const [day, setDay] = useState(today)
   const [selected, setSelected] = useState<Appointment | null>(null)
+  // No celular, "A seguir" (com Confirmar) vem antes do quadro: é a ação mais frequente do dono
+  const isPhone = useMediaQuery('(max-width: 640px)')
 
   const appointments = useMemo(() => data?.appointments ?? [], [data])
   const barbers = useMemo(() => data?.barbers ?? [], [data])
@@ -46,6 +50,8 @@ export function AdminDashboardPage() {
     let todayTotal = 0
     let todayDone = 0
     let todayPending = 0
+    let todayRevenue = 0
+    let todayExpected = 0
     let revenue = 0
     let done = 0
     let inPeriod = 0
@@ -60,7 +66,12 @@ export function AdminDashboardPage() {
       const key = dateKey(item.data_hora)
       if (key === today && item.status !== 'cancelado') {
         todayTotal++
-        if (item.status === 'realizado') todayDone++
+        // Previsto: o preço de cada horário não cancelado de hoje; realizado: só os já atendidos
+        todayExpected += priceOf(item)
+        if (item.status === 'realizado') {
+          todayDone++
+          todayRevenue += priceOf(item)
+        }
         if (item.status === 'agendado') todayPending++
       }
       if (key >= periodStart && key <= today) {
@@ -88,8 +99,12 @@ export function AdminDashboardPage() {
       return { key, ...(daily.get(key) ?? { revenue: 0, count: 0 }) }
     })
 
+    const bestDay = days.reduce<{ key: string; revenue: number; count: number } | null>(
+      (best, item) => (item.revenue > 0 && (!best || item.revenue > best.revenue) ? item : best), null,
+    )
+
     return {
-      todayTotal, todayDone, todayPending, revenue, done, inPeriod, cancelled, previousRevenue, previousDone, days,
+      todayTotal, todayDone, todayPending, todayRevenue, todayExpected, revenue, done, inPeriod, cancelled, previousRevenue, previousDone, days, bestDay,
       ticket: done ? revenue / done : 0,
       cancelRate: inPeriod ? cancelled / inPeriod : 0,
       byBarber: [...byBarber.entries()].map(([name, v]) => ({ name, ...v })).sort((a, b) => b.revenue - a.revenue),
@@ -115,7 +130,7 @@ export function AdminDashboardPage() {
   const header = (
     <PageHeader
       title="Painel"
-      description={`A operação de hoje e o desempenho dos últimos ${PERIOD_DAYS} dias.`}
+      description={`${barbershop ? `${barbershop.nome}: ` : ''}a operação de hoje e o caixa dos últimos ${PERIOD_DAYS} dias.`}
       actions={<Link to="/admin/appointments" className={ui.secondaryButton}>Ver todos os agendamentos</Link>}
     />
   )
@@ -148,16 +163,66 @@ export function AdminDashboardPage() {
   const closes = barbershop ? timeToMinutes(barbershop.horario_fechamento) : 20 * 60
   const activeBarbers = barbers.filter((barber) => barber.ativo)
 
+  const nextPanel = (
+    <section className={`${ui.panel} ${dash.nextPanel}`} aria-labelledby="upcoming-title">
+      <div className={ui.panelHeader}>
+        <div>
+          <h2 id="upcoming-title">A seguir</h2>
+          <p>Os próximos horários em aberto.</p>
+        </div>
+      </div>
+      {upcoming.length === 0 ? (
+        <EmptyState compact title="Nada pela frente" description="Novos agendamentos dos clientes aparecem aqui." />
+      ) : (
+        <ul className={dash.upcoming}>
+          {upcoming.map((item) => {
+            const key = dateKey(item.data_hora)
+            return (
+              <li key={item.id} className={dash.upcomingItem}>
+                <button type="button" className={dash.upcomingOpen} onClick={() => setSelected(item)}>
+                  <span className={dash.upcomingWhen}>
+                    <strong>{formatClock(item.data_hora)}</strong>
+                    <span>{key === today ? 'Hoje' : key === addDays(today, 1) ? 'Amanhã' : formatDayShort(key)}</span>
+                  </span>
+                  <span className={dash.upcomingMain}>
+                    <strong>{item.cliente_nome}</strong>
+                    <span>{item.servico_nome} · {item.barbeiro_nome.split(' ')[0]}</span>
+                  </span>
+                </button>
+                <div className={dash.upcomingMeta}>
+                  <StatusBadge status={item.status} />
+                  {item.status === 'agendado' && (
+                    <AppointmentActions appointment={item} onUpdated={replaceAppointment} only={['confirmado']} />
+                  )}
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </section>
+  )
+
   return (
     <div className={page.page}>
       {header}
 
       <section className={dash.ledger} aria-label="Indicadores">
         <div className={dash.metric}>
-          <span className={dash.metricLabel}>Hoje</span>
-          <span className={dash.metricValue}>{metrics.todayTotal}<small>{metrics.todayTotal === 1 ? ' horário' : ' horários'}</small></span>
+          <span className={dash.metricLabel}>Caixa de hoje</span>
+          <span className={dash.metricValue}>
+            {compactCurrency.format(metrics.todayRevenue)}
+            {metrics.todayExpected > 0 && <small> de {compactCurrency.format(metrics.todayExpected)}</small>}
+          </span>
+          {metrics.todayExpected > 0 && (
+            <span className={dash.progress} aria-hidden="true">
+              <span style={{ width: `${Math.min(100, (metrics.todayRevenue / metrics.todayExpected) * 100)}%` }} />
+            </span>
+          )}
           <span className={dash.metricNote}>
-            {metrics.todayTotal === 0 ? 'Nenhum horário marcado' : `${plural(metrics.todayDone, 'realizado')}, ${metrics.todayPending} a confirmar`}
+            {metrics.todayTotal === 0
+              ? 'Nenhum horário marcado hoje'
+              : `${plural(metrics.todayTotal, 'horário')} hoje: ${plural(metrics.todayDone, 'realizado')}, ${metrics.todayPending} a confirmar`}
           </span>
         </div>
         <div className={dash.metric}>
@@ -184,84 +249,63 @@ export function AdminDashboardPage() {
         </div>
       </section>
 
-      <section className={ui.panel} aria-labelledby="board-title">
-        <div className={dash.boardHeader}>
-          <div className={dash.boardTitle}>
-            <h2 id="board-title">Agenda do dia</h2>
-            <p>Clique em um horário para ver detalhes, confirmar ou cancelar.</p>
-          </div>
-          <div className={dash.dayNav}>
-            <button type="button" className={ui.iconButton} onClick={() => setDay(addDays(day, -1))} aria-label="Dia anterior"><ChevronLeftIcon /></button>
-            <span className={dash.dayLabel} aria-live="polite">{relativeDayLabel(day)}{day === today ? `, ${formatDayShort(day)}` : ''}</span>
-            <button type="button" className={ui.iconButton} onClick={() => setDay(addDays(day, 1))} aria-label="Próximo dia"><ChevronRightIcon /></button>
-            {day !== today && <button type="button" className={`${ui.secondaryButton} ${ui.sm}`} onClick={() => setDay(today)}>Hoje</button>}
-          </div>
-        </div>
-        <RefreshBar active={isRefreshing} />
-        {activeBarbers.length === 0 && !appointments.some((item) => dateKey(item.data_hora) === day) ? (
-          <EmptyState
-            compact
-            icon={<UsersIcon size={22} />}
-            title="Nenhum barbeiro ativo"
-            description="Cadastre a equipe para que os clientes possam agendar e a agenda do dia apareça aqui."
-            action={{ label: 'Cadastrar barbeiro', to: '/admin/barbers' }}
-          />
-        ) : (
-          <DayBoard day={day} appointments={appointments} barbers={barbers} opens={opens} closes={closes} onSelect={setSelected} />
-        )}
-        <div className={dash.boardFooter}><BoardLegend /></div>
-      </section>
-
-      <div className={page.split}>
-        <section className={ui.panel} aria-labelledby="revenue-title">
-          <div className={ui.panelHeader}>
-            <div>
-              <h2 id="revenue-title">Faturamento diário</h2>
-              <p>Atendimentos realizados, pelo preço praticado no agendamento.</p>
+      <div className={dash.mainGrid}>
+        {isPhone && nextPanel}
+        <section className={`${ui.panel} ${dash.boardPanel}`} aria-labelledby="board-title">
+          <div className={dash.boardHeader}>
+            <div className={dash.boardTitle}>
+              <h2 id="board-title">Quadro do dia</h2>
+              <p>Toque em um horário para ver detalhes, confirmar ou cancelar.</p>
+            </div>
+            <div className={dash.dayNav}>
+              <button type="button" className={ui.iconButton} onClick={() => setDay(addDays(day, -1))} aria-label="Dia anterior"><ChevronLeftIcon /></button>
+              <span className={dash.dayLabel} aria-live="polite">{relativeDayLabel(day)}{day === today ? `, ${formatDayShort(day)}` : ''}</span>
+              <button type="button" className={ui.iconButton} onClick={() => setDay(addDays(day, 1))} aria-label="Próximo dia"><ChevronRightIcon /></button>
+              {day !== today && <button type="button" className={`${ui.secondaryButton} ${ui.sm}`} onClick={() => setDay(today)}>Hoje</button>}
             </div>
           </div>
-          <DailyRevenueChart days={metrics.days} />
-        </section>
-
-        <section className={ui.panel} aria-labelledby="upcoming-title">
-          <div className={ui.panelHeader}>
-            <h2 id="upcoming-title">Próximos atendimentos</h2>
-          </div>
-          {upcoming.length === 0 ? (
-            <EmptyState compact title="Nada pela frente" description="Novos agendamentos dos clientes aparecem aqui." />
+          <RefreshBar active={isRefreshing} />
+          {activeBarbers.length === 0 && !appointments.some((item) => dateKey(item.data_hora) === day) ? (
+            <EmptyState
+              compact
+              art="tesoura"
+              title="Nenhum barbeiro ativo"
+              description="Cadastre a equipe para que os clientes possam agendar e a agenda do dia apareça aqui."
+              action={{ label: 'Cadastrar barbeiro', to: '/admin/barbers' }}
+            />
           ) : (
-            <div className={dash.upcoming}>
-              {upcoming.map((item) => {
-                const key = dateKey(item.data_hora)
-                return (
-                  <button type="button" key={item.id} className={dash.upcomingItem} onClick={() => setSelected(item)}>
-                    <span className={dash.upcomingWhen}>
-                      <strong>{formatClock(item.data_hora)}</strong>
-                      <span>{key === today ? 'Hoje' : key === addDays(today, 1) ? 'Amanhã' : formatDayShort(key)}</span>
-                    </span>
-                    <span className={dash.upcomingMain}>
-                      <strong>{item.cliente_nome}</strong>
-                      <span>{item.servico_nome} com {item.barbeiro_nome.split(' ')[0]}</span>
-                    </span>
-                    <StatusBadge status={item.status} />
-                  </button>
-                )
-              })}
-            </div>
+            <DayBoard day={day} appointments={appointments} barbers={barbers} opens={opens} closes={closes} onSelect={setSelected} />
           )}
+          <div className={dash.boardFooter}><BoardLegend /></div>
         </section>
+        {!isPhone && nextPanel}
       </div>
 
-      <div className={page.twoCols}>
+      <section className={ui.panel} aria-labelledby="revenue-title">
+        <div className={dash.cashHeader}>
+          <div>
+            <h2 id="revenue-title">Caixa</h2>
+            <p>Faturamento diário dos últimos {PERIOD_DAYS} dias, pelo preço praticado em cada atendimento realizado.</p>
+          </div>
+          <dl className={dash.cashFacts}>
+            <div><dt>Total no período</dt><dd>{formatCurrency(metrics.revenue)}</dd></div>
+            <div><dt>Média por dia</dt><dd>{formatCurrency(metrics.revenue / PERIOD_DAYS)}</dd></div>
+            <div><dt>Melhor dia</dt><dd>{metrics.bestDay ? `${formatDayShort(metrics.bestDay.key)} · ${compactCurrency.format(metrics.bestDay.revenue)}` : '—'}</dd></div>
+          </dl>
+        </div>
+        <DailyRevenueChart days={metrics.days} />
+      </section>
+
+      <div className={`${page.twoCols} ${dash.rankGrid}`}>
         <RankPanel
           title="Equipe"
-          subtitle={`Faturamento por barbeiro, últimos ${PERIOD_DAYS} dias.`}
+          subtitle={`Faturamento por barbeiro nos últimos ${PERIOD_DAYS} dias.`}
           rows={metrics.byBarber.map((row) => ({ name: row.name, value: row.revenue, primary: compactCurrency.format(row.revenue), secondary: plural(row.count, 'atendimento') }))}
           withAvatar
         />
         <RankPanel
           title="Serviços mais realizados"
-          subtitle={`Quantidade de atendimentos, últimos ${PERIOD_DAYS} dias.`}
+          subtitle={`Atendimentos realizados nos últimos ${PERIOD_DAYS} dias.`}
           rows={metrics.byService.map((row) => ({ name: row.name, value: row.count, primary: plural(row.count, 'vez', 'vezes'), secondary: compactCurrency.format(row.revenue) }))}
         />
       </div>
@@ -284,14 +328,9 @@ function DailyRevenueChart({ days }: { days: { key: string; revenue: number; cou
         <div className={dash.chartGrid} style={{ top: 0 }}><span className={dash.chartGridLabel}>{compactCurrency.format(top)}</span></div>
         <div className={dash.chartGrid} style={{ top: '50%' }}><span className={dash.chartGridLabel}>{compactCurrency.format(top / 2)}</span></div>
         {days.map((item, index) => (
-          <div
-            key={item.key}
-            className={dash.chartCol}
-            tabIndex={0}
-            aria-label={`${formatDayShort(item.key)}: ${formatCurrency(item.revenue)}, ${plural(item.count, 'atendimento')}`}
-          >
+          <div key={item.key} className={dash.chartCol} aria-hidden="true">
             <div
-              className={`${dash.chartBar} ${item.revenue === 0 ? dash.chartBarEmpty : ''}`}
+              className={`${dash.chartBar} ${item.revenue === 0 ? dash.chartBarEmpty : ''} ${index === days.length - 1 ? dash.chartBarToday : ''}`}
               style={{ height: `${(item.revenue / top) * 100}%`, '--delay': `${index * 12}ms` } as CSSProperties}
             />
             <span className={dash.tooltip} aria-hidden="true">

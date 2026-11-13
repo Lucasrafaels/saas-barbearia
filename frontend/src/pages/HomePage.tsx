@@ -12,7 +12,7 @@ import {
   dateKey, dayOfMonth, firstName, formatClock, formatCurrency, formatDayCompact, formatDuration, formatTime, monthShort,
   relativeDayLabel,
 } from '../utils/format'
-import { shopHoursStatus } from '../utils/shop'
+import { formatOpenDays, openDays, shopHoursStatus } from '../utils/shop'
 import { isOpenStatus } from '../utils/status'
 import client from '../styles/client.module.css'
 import page from '../styles/page.module.css'
@@ -53,7 +53,7 @@ export function HomePage() {
           ) : (
             <div className={ui.panel}>
               <EmptyState
-                icon={<CalendarPlusIcon size={22} />}
+                art="navalha"
                 title="Nenhum horário marcado"
                 description={visits > 0 ? 'Que tal já deixar o próximo corte reservado?' : 'Escolha o serviço, o barbeiro e um horário livre em poucos passos.'}
                 action={{ label: 'Agendar horário', to: '/appointments/new' }}
@@ -131,14 +131,14 @@ function ShopInfo() {
   return (
     <>
       <div>
-        <h2 id="shop-title" style={{ fontSize: 'var(--fs-18)', marginBottom: 'var(--space-2)' }}>{barbershop.nome}</h2>
+        <h2 id="shop-title" style={{ marginBottom: 'var(--space-2)' }}>{barbershop.nome}</h2>
         <span className={client.shopStatus}>
           <span className={status.open ? client.dotOpen : client.dotClosed} aria-hidden="true" />
           {status.label}
         </span>
       </div>
       <ul className={client.contactList}>
-        <li><ClockIcon size={16} /><span>Todos os dias, das {formatTime(barbershop.horario_abertura)} às {formatTime(barbershop.horario_fechamento)}</span></li>
+        <li><ClockIcon size={16} /><span>{formatOpenDays(openDays(barbershop))}, das {formatTime(barbershop.horario_abertura)} às {formatTime(barbershop.horario_fechamento)}</span></li>
         <li><LocationIcon size={16} /><span>{barbershop.endereco}</span></li>
         <li><PhoneIcon size={16} /><a href={`tel:${barbershop.telefone.replace(/[^\d+]/g, '')}`}>{barbershop.telefone}</a></li>
         <li><MailIcon size={16} /><a href={`mailto:${barbershop.email}`}>{barbershop.email}</a></li>

@@ -1,0 +1,13 @@
+Banco: audit_mig (cópia descartável do seed no container de auditoria). Nunca o banco real.
+Antes: agendamentos=419 com preço histórico=419
+$ migrate appointments 0007   (desfaz a 0008)
+  Rendering model states... DONE
+  Unapplying appointments.0008_populate_preco_historico... OK
+Depois do reverso: com preço histórico=0 (todos os valores gravados pela aplicação foram apagados)
+$ migrate appointments (reaplica a 0008)
+  Applying appointments.0008_populate_preco_historico... OK
+Depois de reaplicar: com preço histórico=419; divergentes do preço atual do serviço=0
+
+Segunda rodada: o preço do serviço 'Corte' sobe de 45,00 para 60,00 depois dos atendimentos.
+Faturamento realizado antes (soma de preco_historico): 15215.00
+Faturamento realizado depois de desfazer e reaplicar a 0008: 16565.00

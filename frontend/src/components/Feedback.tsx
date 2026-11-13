@@ -1,6 +1,7 @@
 import axios from 'axios'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { ilustracoes } from '../assets/brand'
 import { AlertCircleIcon, RefreshIcon, WifiOffIcon } from './Icons'
 import { errorMessage } from '../utils/format'
 import ui from '../styles/ui.module.css'
@@ -18,16 +19,20 @@ interface EmptyStateProps {
   title: string
   description?: ReactNode
   icon?: ReactNode
+  /** Ilustração da marca no lugar do ícone (navalha ou tesoura em traço de gravura). */
+  art?: keyof typeof ilustracoes
   action?: Action
   secondaryAction?: Action
   compact?: boolean
 }
 
 /** Estado vazio: explica o que falta e oferece o próximo passo. */
-export function EmptyState({ title, description, icon, action, secondaryAction, compact }: EmptyStateProps) {
+export function EmptyState({ title, description, icon, art, action, secondaryAction, compact }: EmptyStateProps) {
   return (
     <section className={`${ui.emptyState} ${compact ? ui.compact : ''}`}>
-      {icon && <div className={ui.emptyIcon} aria-hidden="true">{icon}</div>}
+      {art
+        ? <img className={ui.emptyArt} src={ilustracoes[art]} alt="" aria-hidden="true" draggable={false} />
+        : icon && <div className={ui.emptyIcon} aria-hidden="true">{icon}</div>}
       <h2>{title}</h2>
       {description && <p>{description}</p>}
       {(action || secondaryAction) && (

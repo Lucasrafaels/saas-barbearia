@@ -1,0 +1,626 @@
+{
+ "versao": "antes",
+ "verificacoes": [
+  {
+   "id": "FE22 admin celular /admin",
+   "verificacao": "aba ativa = Painel",
+   "ok": true,
+   "detalhe": "[\"Painel\"]"
+  },
+  {
+   "id": "FE22 admin celular /admin/appointments",
+   "verificacao": "aba ativa = Agenda",
+   "ok": true,
+   "detalhe": "[\"Agenda\"]"
+  },
+  {
+   "id": "FE22 admin celular /admin/appointments?status=agendado",
+   "verificacao": "aba ativa = Agenda",
+   "ok": true,
+   "detalhe": "[\"Agenda\"]"
+  },
+  {
+   "id": "FE22 admin celular /admin/services",
+   "verificacao": "aba ativa = Serviços",
+   "ok": true,
+   "detalhe": "[\"Serviços\"]"
+  },
+  {
+   "id": "FE22 admin celular /admin/barbers",
+   "verificacao": "aba ativa = Barbeiros",
+   "ok": true,
+   "detalhe": "[\"Barbeiros\"]"
+  },
+  {
+   "id": "FE22 admin celular /admin/clients",
+   "verificacao": "aba ativa = Clientes",
+   "ok": true,
+   "detalhe": "[\"Clientes\"]"
+  },
+  {
+   "id": "FE22 admin celular /admin/barbershop",
+   "verificacao": "aba ativa = nenhuma",
+   "ok": false,
+   "detalhe": "[\"Barbeiros\"]"
+  },
+  {
+   "id": "FE22 admin celular /account",
+   "verificacao": "aba ativa = nenhuma",
+   "ok": true,
+   "detalhe": "[]"
+  },
+  {
+   "id": "FE22 admin toque /admin",
+   "verificacao": "tocar em \"Painel\" marca só ela",
+   "ok": true,
+   "detalhe": "[\"Painel\"]"
+  },
+  {
+   "id": "FE22 admin toque /admin/appointments",
+   "verificacao": "tocar em \"Agenda\" marca só ela",
+   "ok": true,
+   "detalhe": "[\"Agenda\"]"
+  },
+  {
+   "id": "FE22 admin toque /admin/services",
+   "verificacao": "tocar em \"Serviços\" marca só ela",
+   "ok": true,
+   "detalhe": "[\"Serviços\"]"
+  },
+  {
+   "id": "FE22 admin toque /admin/barbers",
+   "verificacao": "tocar em \"Barbeiros\" marca só ela",
+   "ok": true,
+   "detalhe": "[\"Barbeiros\"]"
+  },
+  {
+   "id": "FE22 admin toque /admin/clients",
+   "verificacao": "tocar em \"Clientes\" marca só ela",
+   "ok": true,
+   "detalhe": "[\"Clientes\"]"
+  },
+  {
+   "id": "FE22 admin tablet /admin",
+   "verificacao": "aba ativa = Painel",
+   "ok": true,
+   "detalhe": "[\"Painel\"]"
+  },
+  {
+   "id": "FE22 admin tablet /admin/appointments",
+   "verificacao": "aba ativa = Agenda",
+   "ok": true,
+   "detalhe": "[\"Agenda\"]"
+  },
+  {
+   "id": "FE22 admin tablet /admin/appointments?status=agendado",
+   "verificacao": "aba ativa = Agenda",
+   "ok": true,
+   "detalhe": "[\"Agenda\"]"
+  },
+  {
+   "id": "FE22 admin tablet /admin/services",
+   "verificacao": "aba ativa = Serviços",
+   "ok": true,
+   "detalhe": "[\"Serviços\"]"
+  },
+  {
+   "id": "FE22 admin tablet /admin/barbers",
+   "verificacao": "aba ativa = Barbeiros",
+   "ok": true,
+   "detalhe": "[\"Barbeiros\"]"
+  },
+  {
+   "id": "FE22 admin tablet /admin/clients",
+   "verificacao": "aba ativa = Clientes",
+   "ok": true,
+   "detalhe": "[\"Clientes\"]"
+  },
+  {
+   "id": "FE22 admin tablet /admin/barbershop",
+   "verificacao": "aba ativa = nenhuma",
+   "ok": false,
+   "detalhe": "[\"Barbeiros\"]"
+  },
+  {
+   "id": "FE22 admin tablet /account",
+   "verificacao": "aba ativa = nenhuma",
+   "ok": true,
+   "detalhe": "[]"
+  },
+  {
+   "id": "FE22 barbeiro celular /barber/agenda",
+   "verificacao": "aba ativa = Agenda",
+   "ok": true,
+   "detalhe": "[\"Agenda\"]"
+  },
+  {
+   "id": "FE22 barbeiro celular /barber/agenda?status=agendado",
+   "verificacao": "aba ativa = A confirmar",
+   "ok": true,
+   "detalhe": "[\"A confirmar\"]"
+  },
+  {
+   "id": "FE22 barbeiro celular /account",
+   "verificacao": "aba ativa = Conta",
+   "ok": true,
+   "detalhe": "[\"Conta\"]"
+  },
+  {
+   "id": "FE22 barbeiro toque /barber/agenda",
+   "verificacao": "tocar em \"Agenda\" marca só ela",
+   "ok": true,
+   "detalhe": "[\"Agenda\"]"
+  },
+  {
+   "id": "FE22 barbeiro toque /barber/agenda?status=agendado",
+   "verificacao": "tocar em \"A confirmar\" marca só ela",
+   "ok": true,
+   "detalhe": "[\"A confirmar\"]"
+  },
+  {
+   "id": "FE22 barbeiro toque /account",
+   "verificacao": "tocar em \"Conta\" marca só ela",
+   "ok": true,
+   "detalhe": "[\"Conta\"]"
+  },
+  {
+   "id": "FE22 barbeiro tablet /barber/agenda",
+   "verificacao": "aba ativa = Agenda",
+   "ok": true,
+   "detalhe": "[\"Agenda\"]"
+  },
+  {
+   "id": "FE22 barbeiro tablet /barber/agenda?status=agendado",
+   "verificacao": "aba ativa = A confirmar",
+   "ok": true,
+   "detalhe": "[\"A confirmar\"]"
+  },
+  {
+   "id": "FE22 barbeiro tablet /account",
+   "verificacao": "aba ativa = Conta",
+   "ok": true,
+   "detalhe": "[\"Conta\"]"
+  },
+  {
+   "id": "FE22 cliente celular /",
+   "verificacao": "aba ativa = Início",
+   "ok": true,
+   "detalhe": "[\"Início\"]"
+  },
+  {
+   "id": "FE22 cliente celular /appointments/new",
+   "verificacao": "aba ativa = Agendar",
+   "ok": true,
+   "detalhe": "[\"Agendar\"]"
+  },
+  {
+   "id": "FE22 cliente celular /appointments",
+   "verificacao": "aba ativa = Horários",
+   "ok": true,
+   "detalhe": "[\"Horários\"]"
+  },
+  {
+   "id": "FE22 cliente celular /services",
+   "verificacao": "aba ativa = Serviços",
+   "ok": true,
+   "detalhe": "[\"Serviços\"]"
+  },
+  {
+   "id": "FE22 cliente celular /barbers",
+   "verificacao": "aba ativa = Equipe",
+   "ok": true,
+   "detalhe": "[\"Equipe\"]"
+  },
+  {
+   "id": "FE22 cliente celular /account",
+   "verificacao": "aba ativa = nenhuma",
+   "ok": true,
+   "detalhe": "[]"
+  },
+  {
+   "id": "FE22 cliente toque /",
+   "verificacao": "tocar em \"Início\" marca só ela",
+   "ok": true,
+   "detalhe": "[\"Início\"]"
+  },
+  {
+   "id": "FE22 cliente toque /appointments/new",
+   "verificacao": "tocar em \"Agendar\" marca só ela",
+   "ok": true,
+   "detalhe": "[\"Agendar\"]"
+  },
+  {
+   "id": "FE22 cliente toque /appointments",
+   "verificacao": "tocar em \"Horários\" marca só ela",
+   "ok": true,
+   "detalhe": "[\"Horários\"]"
+  },
+  {
+   "id": "FE22 cliente toque /services",
+   "verificacao": "tocar em \"Serviços\" marca só ela",
+   "ok": true,
+   "detalhe": "[\"Serviços\"]"
+  },
+  {
+   "id": "FE22 cliente toque /barbers",
+   "verificacao": "tocar em \"Equipe\" marca só ela",
+   "ok": true,
+   "detalhe": "[\"Equipe\"]"
+  },
+  {
+   "id": "FE22 cliente tablet /",
+   "verificacao": "aba ativa = Início",
+   "ok": true,
+   "detalhe": "[\"Início\"]"
+  },
+  {
+   "id": "FE22 cliente tablet /appointments/new",
+   "verificacao": "aba ativa = Agendar",
+   "ok": true,
+   "detalhe": "[\"Agendar\"]"
+  },
+  {
+   "id": "FE22 cliente tablet /appointments",
+   "verificacao": "aba ativa = Horários",
+   "ok": true,
+   "detalhe": "[\"Horários\"]"
+  },
+  {
+   "id": "FE22 cliente tablet /services",
+   "verificacao": "aba ativa = Serviços",
+   "ok": true,
+   "detalhe": "[\"Serviços\"]"
+  },
+  {
+   "id": "FE22 cliente tablet /barbers",
+   "verificacao": "aba ativa = Equipe",
+   "ok": true,
+   "detalhe": "[\"Equipe\"]"
+  },
+  {
+   "id": "FE22 cliente tablet /account",
+   "verificacao": "aba ativa = nenhuma",
+   "ok": true,
+   "detalhe": "[]"
+  },
+  {
+   "id": "FE22 desktop /admin/barbershop",
+   "verificacao": "menu lateral marca \"Dados da barbearia\" e não há barra inferior",
+   "ok": true,
+   "detalhe": "{\"ativos\":[\"Dados da barbearia\"],\"tabbar\":false}"
+  },
+  {
+   "id": "FE22 desktop /admin/barbers",
+   "verificacao": "menu lateral marca \"Barbeiros\" e não há barra inferior",
+   "ok": true,
+   "detalhe": "{\"ativos\":[\"Barbeiros\"],\"tabbar\":false}"
+  },
+  {
+   "id": "FE22 desktop /admin",
+   "verificacao": "menu lateral marca \"Painel\" e não há barra inferior",
+   "ok": true,
+   "detalhe": "{\"ativos\":[\"Painel\"],\"tabbar\":false}"
+  },
+  {
+   "id": "FE21 data uma vez",
+   "verificacao": "cada rótulo traz a data uma única vez",
+   "ok": false,
+   "detalhe": "[\"Domingo, 15 de novembro, domingo, 15 de novembro, barbearia fechada\",\"Segunda-feira, 16 de novembro, segunda-feira, 16 de novembro\"]"
+  },
+  {
+   "id": "FE21 únicos",
+   "verificacao": "os 21 rótulos são distintos",
+   "ok": true,
+   "detalhe": "21/21"
+  },
+  {
+   "id": "FE21 hoje/amanhã",
+   "verificacao": "primeiro \"Hoje, …\", segundo \"Amanhã, …\"",
+   "ok": true,
+   "detalhe": "Hoje, sexta-feira, 13 de novembro | Amanhã, sábado, 14 de novembro"
+  },
+  {
+   "id": "FE21 fechados",
+   "verificacao": "dias fechados: desabilitados e terminando em \", barbearia fechada\"",
+   "ok": true,
+   "detalhe": "3 fechados; ex.: Domingo, 15 de novembro, domingo, 15 de novembro, barbearia fechada"
+  },
+  {
+   "id": "FE21 selecionado",
+   "verificacao": "exatamente um dia marcado (aria-checked) e ele está aberto",
+   "ok": true,
+   "detalhe": ""
+  },
+  {
+   "id": "FE21 axe",
+   "verificacao": "axe sem violações no calendário",
+   "ok": true,
+   "detalhe": ""
+  },
+  {
+   "id": "FE21 calendário funciona",
+   "verificacao": "escolher um dia aberto mostra horários",
+   "ok": true,
+   "detalhe": "16 horários"
+  },
+  {
+   "id": "FE14 padrão",
+   "verificacao": "padrão (todos os dias): \"Aberta até 19:00\"",
+   "ok": true,
+   "detalhe": "Aberta até 19:00"
+  },
+  {
+   "id": "FE14 hoje fechado (admin, sem recarregar)",
+   "verificacao": "\"Fechada, abre amanhã às 09:00\"",
+   "ok": false,
+   "detalhe": "Fechada hoje"
+  },
+  {
+   "id": "FE14 outra sessão ao navegar (cliente)",
+   "verificacao": "\"Fechada, abre amanhã às 09:00\"",
+   "ok": false,
+   "detalhe": "Aberta até 19:00"
+  },
+  {
+   "id": "FE14 início do cliente",
+   "verificacao": "mesmo status da lateral",
+   "ok": false,
+   "detalhe": "Aberta até 19:00"
+  },
+  {
+   "id": "FE14 calendário concorda",
+   "verificacao": "o dia de hoje aparece fechado no calendário",
+   "ok": false,
+   "detalhe": "{\"desabilitado\":false,\"texto\":\"Hoje 13 Nov\"}"
+  },
+  {
+   "id": "FE14 outra sessão ao voltar à aba (cliente)",
+   "verificacao": "\"Fechada, abre segunda às 09:00\"",
+   "ok": false,
+   "detalhe": "Aberta até 19:00"
+  },
+  {
+   "id": "FE14 barbeiro",
+   "verificacao": "\"Fechada, abre segunda às 09:00\"",
+   "ok": false,
+   "detalhe": "Fechada hoje"
+  },
+  {
+   "id": "FE14 desativada (admin)",
+   "verificacao": "lateral \"Barbearia desativada\" e aviso no topo",
+   "ok": false,
+   "detalhe": "{\"st\":\"Aberta até 19:00\",\"aviso\":null}"
+  },
+  {
+   "id": "FE14 desativada (cliente)",
+   "verificacao": "início \"Barbearia desativada\" e aviso no topo",
+   "ok": false,
+   "detalhe": "{\"homeD\":\"Aberta até 19:00\",\"aviso\":null}"
+  },
+  {
+   "id": "FE14 reativada",
+   "verificacao": "aviso some e status volta a \"Aberta até 19:00\"",
+   "ok": true,
+   "detalhe": "Aberta até 19:00"
+  },
+  {
+   "id": "Plataforma",
+   "verificacao": "superusuário vai ao onboarding (sem painel próprio, comportamento anterior)",
+   "ok": true,
+   "detalhe": "/onboarding"
+  }
+ ],
+ "observado": {
+  "abas": {
+   "admin celular /admin": [
+    "Painel"
+   ],
+   "admin celular /admin/appointments": [
+    "Agenda"
+   ],
+   "admin celular /admin/appointments?status=agendado": [
+    "Agenda"
+   ],
+   "admin celular /admin/services": [
+    "Serviços"
+   ],
+   "admin celular /admin/barbers": [
+    "Barbeiros"
+   ],
+   "admin celular /admin/clients": [
+    "Clientes"
+   ],
+   "admin celular /admin/barbershop": [
+    "Barbeiros"
+   ],
+   "admin celular /account": [],
+   "admin tablet /admin": [
+    "Painel"
+   ],
+   "admin tablet /admin/appointments": [
+    "Agenda"
+   ],
+   "admin tablet /admin/appointments?status=agendado": [
+    "Agenda"
+   ],
+   "admin tablet /admin/services": [
+    "Serviços"
+   ],
+   "admin tablet /admin/barbers": [
+    "Barbeiros"
+   ],
+   "admin tablet /admin/clients": [
+    "Clientes"
+   ],
+   "admin tablet /admin/barbershop": [
+    "Barbeiros"
+   ],
+   "admin tablet /account": [],
+   "barbeiro celular /barber/agenda": [
+    "Agenda"
+   ],
+   "barbeiro celular /barber/agenda?status=agendado": [
+    "A confirmar"
+   ],
+   "barbeiro celular /account": [
+    "Conta"
+   ],
+   "barbeiro tablet /barber/agenda": [
+    "Agenda"
+   ],
+   "barbeiro tablet /barber/agenda?status=agendado": [
+    "A confirmar"
+   ],
+   "barbeiro tablet /account": [
+    "Conta"
+   ],
+   "cliente celular /": [
+    "Início"
+   ],
+   "cliente celular /appointments/new": [
+    "Agendar"
+   ],
+   "cliente celular /appointments": [
+    "Horários"
+   ],
+   "cliente celular /services": [
+    "Serviços"
+   ],
+   "cliente celular /barbers": [
+    "Equipe"
+   ],
+   "cliente celular /account": [],
+   "cliente tablet /": [
+    "Início"
+   ],
+   "cliente tablet /appointments/new": [
+    "Agendar"
+   ],
+   "cliente tablet /appointments": [
+    "Horários"
+   ],
+   "cliente tablet /services": [
+    "Serviços"
+   ],
+   "cliente tablet /barbers": [
+    "Equipe"
+   ],
+   "cliente tablet /account": []
+  },
+  "rotulos": [
+   "Hoje, sexta-feira, 13 de novembro",
+   "Amanhã, sábado, 14 de novembro",
+   "Domingo, 15 de novembro, domingo, 15 de novembro, barbearia fechada",
+   "Segunda-feira, 16 de novembro, segunda-feira, 16 de novembro",
+   "Terça-feira, 17 de novembro, terça-feira, 17 de novembro",
+   "Quarta-feira, 18 de novembro, quarta-feira, 18 de novembro",
+   "Quinta-feira, 19 de novembro, quinta-feira, 19 de novembro",
+   "Sexta-feira, 20 de novembro, sexta-feira, 20 de novembro",
+   "Sábado, 21 de novembro, sábado, 21 de novembro",
+   "Domingo, 22 de novembro, domingo, 22 de novembro, barbearia fechada",
+   "Segunda-feira, 23 de novembro, segunda-feira, 23 de novembro",
+   "Terça-feira, 24 de novembro, terça-feira, 24 de novembro",
+   "Quarta-feira, 25 de novembro, quarta-feira, 25 de novembro",
+   "Quinta-feira, 26 de novembro, quinta-feira, 26 de novembro",
+   "Sexta-feira, 27 de novembro, sexta-feira, 27 de novembro",
+   "Sábado, 28 de novembro, sábado, 28 de novembro",
+   "Domingo, 29 de novembro, domingo, 29 de novembro, barbearia fechada",
+   "Segunda-feira, 30 de novembro, segunda-feira, 30 de novembro",
+   "Terça-feira, 1 de dezembro, terça-feira, 1 de dezembro",
+   "Quarta-feira, 2 de dezembro, quarta-feira, 2 de dezembro",
+   "Quinta-feira, 3 de dezembro, quinta-feira, 3 de dezembro"
+  ],
+  "textosVisiveis": [
+   "Hoje 13 Nov",
+   "Sáb 14 Nov",
+   "Dom 15 Fechado",
+   "Seg 16 Nov",
+   "Ter 17 Nov",
+   "Qua 18 Nov",
+   "Qui 19 Nov",
+   "Sex 20 Nov",
+   "Sáb 21 Nov",
+   "Dom 22 Fechado",
+   "Seg 23 Nov",
+   "Ter 24 Nov",
+   "Qua 25 Nov",
+   "Qui 26 Nov",
+   "Sex 27 Nov",
+   "Sáb 28 Nov",
+   "Dom 29 Fechado",
+   "Seg 30 Nov",
+   "Ter 1 Dez",
+   "Qua 2 Dez",
+   "Qui 3 Dez"
+  ],
+  "hashFaixaDeDias": "8c60d7bb645fa78eff0e39862cbe314f9f8ae61dd9bf816ba9f4cd6f90513f98",
+  "axeCalendario": [],
+  "visibilidadeClienteEmSegundoPlano": "hidden",
+  "visibilidadeClienteNaFrente": "visible",
+  "desativacao": 204,
+  "reativacao": 200
+ },
+ "erros": [],
+ "console": {
+  "abas-admin-celular": {
+   "console": [],
+   "pageErrors": [],
+   "falhasApi": []
+  },
+  "abas-admin-tablet": {
+   "console": [],
+   "pageErrors": [],
+   "falhasApi": []
+  },
+  "abas-barbeiro-celular": {
+   "console": [],
+   "pageErrors": [],
+   "falhasApi": []
+  },
+  "abas-barbeiro-tablet": {
+   "console": [],
+   "pageErrors": [],
+   "falhasApi": []
+  },
+  "abas-cliente-celular": {
+   "console": [],
+   "pageErrors": [],
+   "falhasApi": []
+  },
+  "abas-cliente-tablet": {
+   "console": [],
+   "pageErrors": [],
+   "falhasApi": []
+  },
+  "desktop-admin": {
+   "console": [],
+   "pageErrors": [],
+   "falhasApi": []
+  },
+  "calendario-cliente": {
+   "console": [],
+   "pageErrors": [],
+   "falhasApi": []
+  },
+  "fe14-admin": {
+   "console": [],
+   "pageErrors": [],
+   "falhasApi": []
+  },
+  "fe14-cliente": {
+   "console": [],
+   "pageErrors": [],
+   "falhasApi": []
+  },
+  "fe14-barbeiro": {
+   "console": [],
+   "pageErrors": [],
+   "falhasApi": []
+  },
+  "plataforma": {
+   "console": [],
+   "pageErrors": [],
+   "falhasApi": []
+  }
+ }
+}

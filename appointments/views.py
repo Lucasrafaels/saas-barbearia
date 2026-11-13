@@ -16,7 +16,7 @@ from config.mixins import TenantScopedQuerysetMixin
 from config.permissions import IsAdminRole, IsBarberRole
 from services.models import Service
 
-from .models import Appointment
+from .models import BARBEARIA_DESATIVADA_MENSAGEM, Appointment, barbearia_esta_ativa
 from .serializers import AppointmentSerializer
 
 
@@ -48,6 +48,12 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
             # cancelar horários de clientes arbitrariamente.
             if self.request.user.is_cliente:
                 return [permissions.IsAuthenticated()]
+            return [permissions.IsAuthenticated(), IsAdminRole()]
+        if self.action == 'revenue_report':
+            # Faturamento é informação financeira da empresa: só o admin da
+            # barbearia (ou o superusuário da plataforma) pode consultá-lo.
+            # Declarar permission_classes no @action não teria efeito, pois
+            # este método não lê self.permission_classes.
             return [permissions.IsAuthenticated(), IsAdminRole()]
         return [permissions.IsAuthenticated()]
 
@@ -133,7 +139,8 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
         atendimento do serviço informado na data informada: slots gerados a
         partir da abertura da barbearia até caber mais um serviço antes do
         fechamento, com passo igual à duração do serviço, excluindo os que
-        conflitam com agendamentos existentes (status != cancelado).
+        conflitam com agendamentos existentes (status != cancelado). Num dia
+        da semana fora de `Barbershop.dias_funcionamento`, a lista é vazia.
 
         Parâmetro opcional `exclude_appointment_id`: durante um reagendamento,
         informe o ID do agendamento original para que ele não seja considerado
@@ -150,6 +157,10 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
         user = request.user
         if user.barbershop_id is None:
             raise PermissionDenied('Usuário sem barbearia vinculada.')
+        # Horários livres são o início do fluxo de agendamento, que está
+        # bloqueado em barbearia desativada (Appointment._validar_barbearia_ativa).
+        if not barbearia_esta_ativa(user.barbershop_id):
+            return Response({'detail': BARBEARIA_DESATIVADA_MENSAGEM}, status=status.HTTP_400_BAD_REQUEST)
 
         barbeiro_id = request.query_params.get('barbeiro')
         servico_id = request.query_params.get('servico')
@@ -222,6 +233,11 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
             # da lista de ocupados (já não estaria lá). Apenas ignoramos a exclusão.
             if exclude_appointment.barbeiro_id != int(barbeiro_id):
                 exclude_appointment = None
+
+        # BUS-06: dia em que a barbearia não abre não tem horários livres
+        # (a criação também é recusada em Appointment.clean()).
+        if not barbeiro.barbershop.abre_no_dia(data):
+            return Response({'data': data.isoformat(), 'slots': []})
 
         duracao = timedelta(minutes=servico.duracao)
 

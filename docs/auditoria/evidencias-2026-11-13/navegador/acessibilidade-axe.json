@@ -1,0 +1,218 @@
+[
+ {
+  "perfil": "publico",
+  "tela": "desktop",
+  "rota": "/login",
+  "violacoes": []
+ },
+ {
+  "perfil": "publico",
+  "tela": "desktop",
+  "rota": "/register",
+  "violacoes": []
+ },
+ {
+  "perfil": "publico",
+  "tela": "desktop",
+  "rota": "/password/reset",
+  "violacoes": []
+ },
+ {
+  "perfil": "publico",
+  "tela": "desktop",
+  "rota": "/conheca",
+  "violacoes": []
+ },
+ {
+  "perfil": "publico",
+  "tela": "celular",
+  "rota": "/login",
+  "violacoes": []
+ },
+ {
+  "perfil": "publico",
+  "tela": "celular",
+  "rota": "/register",
+  "violacoes": []
+ },
+ {
+  "perfil": "publico",
+  "tela": "celular",
+  "rota": "/password/reset",
+  "violacoes": []
+ },
+ {
+  "perfil": "publico",
+  "tela": "celular",
+  "rota": "/conheca",
+  "violacoes": []
+ },
+ {
+  "perfil": "admin.a",
+  "tela": "desktop",
+  "rota": "/admin",
+  "violacoes": []
+ },
+ {
+  "perfil": "admin.a",
+  "tela": "desktop",
+  "rota": "/admin/appointments",
+  "violacoes": []
+ },
+ {
+  "perfil": "admin.a",
+  "tela": "desktop",
+  "rota": "/admin/services",
+  "violacoes": []
+ },
+ {
+  "perfil": "admin.a",
+  "tela": "desktop",
+  "rota": "/admin/barbers",
+  "violacoes": []
+ },
+ {
+  "perfil": "admin.a",
+  "tela": "desktop",
+  "rota": "/admin/clients",
+  "violacoes": []
+ },
+ {
+  "perfil": "admin.a",
+  "tela": "desktop",
+  "rota": "/admin/barbershop",
+  "violacoes": []
+ },
+ {
+  "perfil": "admin.a",
+  "tela": "desktop",
+  "rota": "/account",
+  "violacoes": []
+ },
+ {
+  "perfil": "admin.a",
+  "tela": "celular",
+  "rota": "/admin",
+  "violacoes": []
+ },
+ {
+  "perfil": "admin.a",
+  "tela": "celular",
+  "rota": "/admin/appointments",
+  "violacoes": []
+ },
+ {
+  "perfil": "admin.a",
+  "tela": "celular",
+  "rota": "/admin/services",
+  "violacoes": []
+ },
+ {
+  "perfil": "admin.a",
+  "tela": "celular",
+  "rota": "/admin/barbers",
+  "violacoes": []
+ },
+ {
+  "perfil": "admin.a",
+  "tela": "celular",
+  "rota": "/admin/clients",
+  "violacoes": []
+ },
+ {
+  "perfil": "admin.a",
+  "tela": "celular",
+  "rota": "/admin/barbershop",
+  "violacoes": []
+ },
+ {
+  "perfil": "admin.a",
+  "tela": "celular",
+  "rota": "/account",
+  "violacoes": []
+ },
+ {
+  "perfil": "joao.barbeiro",
+  "tela": "desktop",
+  "rota": "/barber/agenda",
+  "violacoes": []
+ },
+ {
+  "perfil": "joao.barbeiro",
+  "tela": "desktop",
+  "rota": "/barber/agenda?status=agendado",
+  "violacoes": []
+ },
+ {
+  "perfil": "joao.barbeiro",
+  "tela": "celular",
+  "rota": "/barber/agenda",
+  "violacoes": []
+ },
+ {
+  "perfil": "joao.barbeiro",
+  "tela": "celular",
+  "rota": "/barber/agenda?status=agendado",
+  "violacoes": []
+ },
+ {
+  "perfil": "cliente1",
+  "tela": "desktop",
+  "rota": "/",
+  "violacoes": []
+ },
+ {
+  "perfil": "cliente1",
+  "tela": "desktop",
+  "rota": "/appointments/new",
+  "violacoes": []
+ },
+ {
+  "perfil": "cliente1",
+  "tela": "desktop",
+  "rota": "/appointments",
+  "violacoes": []
+ },
+ {
+  "perfil": "cliente1",
+  "tela": "desktop",
+  "rota": "/services",
+  "violacoes": []
+ },
+ {
+  "perfil": "cliente1",
+  "tela": "desktop",
+  "rota": "/barbers",
+  "violacoes": []
+ },
+ {
+  "perfil": "cliente1",
+  "tela": "celular",
+  "rota": "/",
+  "violacoes": []
+ },
+ {
+  "perfil": "cliente1",
+  "tela": "celular",
+  "rota": "/appointments/new",
+  "violacoes": []
+ },
+ {
+  "perfil": "cliente1",
+  "tela": "celular",
+  "rota": "/appointments",
+  "violacoes": []
+ },
+ {
+  "perfil": "cliente1",
+  "tela": "celular",
+  "rota": "/services",
+  "violacoes": []
+ },
+ {
+  "perfil": "cliente1",
+  "tela": "celular",
+  "rota": "/barbers",
+  "violacoes": []
+ }
+]

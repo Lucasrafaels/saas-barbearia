@@ -1,0 +1,14 @@
+Mesma sondagem da auditoria (91 verificações), repetida na API corrigida com o mesmo seed.
+Auditoria: 62 conforme | Rodada 1: 66 conforme
+
+Passaram de divergente para conforme:
+  NEW-STATUS: antes 201 status=confirmado | agora 403 status=None
+  BUS-03: antes 200 status=confirmado | agora 200 status=agendado
+  BUS-04: antes 200 | agora 400
+  BUS-05: antes completo=200 parcial=200 | agora completo=400 parcial=400
+
+Passaram de conforme para divergente (regressões): nenhuma
+
+Observações sobre itens ainda marcados como divergentes nesta rodada:
+  NEW-STATUS-2: agora 400 status=['Um agendamento novo começa como agendado (ou confirmado, quando registrado pela própria barbearia).'] -> a criação já cancelada é recusada; o script antigo só aceitava 'agendado' no corpo.
+  BUS-06: 10 horários -> esperado: a barbearia do seed está no padrão (todos os dias). Com o domingo fechado, ver rodada1-sondagem-http.json.

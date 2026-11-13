@@ -85,7 +85,7 @@ export function MyAppointmentsPage() {
         ) : list.length === 0 ? (
           tab === 'upcoming' ? (
             <EmptyState
-              icon={<CalendarPlusIcon size={22} />}
+              art="navalha"
               title="Nenhum horário marcado"
               description="Escolha o serviço, o barbeiro e um horário livre em poucos passos."
               action={{ label: 'Agendar horário', to: '/appointments/new' }}
@@ -122,7 +122,7 @@ export function MyAppointmentsPage() {
                         <Link to={`/appointments/new?reschedule=${item.id}`} className={`${ui.secondaryButton} ${ui.sm}`}>Reagendar</Link>
                         <button
                           type="button"
-                          className={`${ui.ghostButton} ${ui.sm}`}
+                          className={`${ui.ghostButton} ${ui.ghostDanger} ${ui.sm}`}
                           onClick={() => void cancel(item)}
                           disabled={cancellingId === item.id}
                         >

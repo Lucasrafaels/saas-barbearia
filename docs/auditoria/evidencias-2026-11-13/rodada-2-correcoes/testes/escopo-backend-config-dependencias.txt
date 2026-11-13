@@ -1,0 +1,5 @@
+Verificação de que nada fora do frontend mudou nesta rodada (comparação com o início da rodada).
+Backend: os 93 arquivos .py têm o mesmo SHA-256 do início da rodada.
+.env, requirements.txt e docker-compose.yml: mesmo SHA-256 do início da rodada.
+Migrações: 23 arquivos (mesmo número do fim da rodada 1).
+Dependências: frontend/package-lock.json idêntico ao HEAD; package.json só ganhou o script "test" (ver diff).

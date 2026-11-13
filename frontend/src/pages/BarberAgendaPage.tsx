@@ -58,21 +58,29 @@ export function BarberAgendaPage() {
 
   const replace = (updated: Appointment) => setData((current) => current?.map((item) => (item.id === updated.id ? updated : item)) ?? null)
 
-  // Intervalos livres entre atendimentos, dentro do horário de funcionamento
+  const nowMinutes = minutesOfDay(new Date().toISOString())
+  const isToday = day === today
+
+  // Linha do tempo na ordem do relógio: atendimentos, intervalos livres (calculados só com
+  // os horários ativos) e, hoje, a linha do "agora". Cancelados entram na posição do horário.
   const timeline = useMemo(() => {
+    type Row = ({ kind: 'item'; item: Appointment } | { kind: 'gap'; from: number; to: number } | { kind: 'now' }) & { at: number; rank: number }
+    const rows: Row[] = []
     const active = dayItems.filter((item) => item.status !== 'cancelado')
-    const rows: ({ kind: 'item'; item: Appointment } | { kind: 'gap'; from: number; to: number })[] = []
     let cursor = barbershop ? timeToMinutes(barbershop.horario_abertura) : null
     const closes = barbershop ? timeToMinutes(barbershop.horario_fechamento) : null
-    for (const item of dayItems) {
+    for (const item of active) {
       const begin = minutesOfDay(item.data_hora)
-      if (item.status !== 'cancelado' && cursor !== null && begin - cursor >= MIN_GAP) rows.push({ kind: 'gap', from: cursor, to: begin })
-      rows.push({ kind: 'item', item })
-      if (item.status !== 'cancelado') cursor = Math.max(cursor ?? 0, begin + item.servico_duracao)
+      if (cursor !== null && begin - cursor >= MIN_GAP) rows.push({ kind: 'gap', from: cursor, to: begin, at: cursor, rank: 0 })
+      cursor = Math.max(cursor ?? 0, begin + item.servico_duracao)
     }
-    if (active.length > 0 && cursor !== null && closes !== null && closes - cursor >= MIN_GAP) rows.push({ kind: 'gap', from: cursor, to: closes })
-    return rows
-  }, [dayItems, barbershop])
+    if (active.length > 0 && cursor !== null && closes !== null && closes - cursor >= MIN_GAP) {
+      rows.push({ kind: 'gap', from: cursor, to: closes, at: cursor, rank: 0 })
+    }
+    for (const item of dayItems) rows.push({ kind: 'item', item, at: minutesOfDay(item.data_hora), rank: 2 })
+    if (isToday && dayItems.length > 0) rows.push({ kind: 'now', at: nowMinutes, rank: 1 })
+    return rows.sort((a, b) => a.at - b.at || a.rank - b.rank)
+  }, [dayItems, barbershop, isToday, nowMinutes])
 
   const summary = useMemo(() => {
     const active = dayItems.filter((item) => item.status !== 'cancelado')
@@ -81,8 +89,6 @@ export function BarberAgendaPage() {
     const next = active.find((item) => item.status !== 'realizado' && new Date(item.data_hora).getTime() >= now)
     return { total: active.length, done, next }
   }, [dayItems])
-
-  const nowMinutes = minutesOfDay(new Date().toISOString())
 
   return (
     <div className={`${page.page} ${page.medium}`}>
@@ -139,24 +145,29 @@ export function BarberAgendaPage() {
           )
         ) : dayItems.length === 0 ? (
           <EmptyState
-            icon={<CalendarCheckIcon size={22} />}
+            art="navalha"
             title={day === today ? 'Nenhum atendimento hoje' : 'Nenhum atendimento neste dia'}
             description="Quando um cliente agendar com você, o horário aparece aqui."
             action={day !== today ? { label: 'Voltar para hoje', onClick: () => setDay(today) } : undefined}
           />
         ) : (
           timeline.map((row, index) => (
-            <Fragment key={row.kind === 'item' ? row.item.id : `gap-${index}`}>
+            <Fragment key={row.kind === 'item' ? row.item.id : `${row.kind}-${index}`}>
               {row.kind === 'gap' ? (
                 <div className={client.gapRow}>
                   <span>{minutesToClock(row.from)}</span>
                   <span>
                     Livre até {minutesToClock(row.to)} ({formatDuration(row.to - row.from)})
-                    {day === today && nowMinutes >= row.from && nowMinutes < row.to ? ', agora' : ''}
+                    {isToday && nowMinutes >= row.from && nowMinutes < row.to ? ', agora' : ''}
                   </span>
                 </div>
+              ) : row.kind === 'now' ? (
+                <div className={page.nowRow} role="separator" aria-label={`Agora, ${minutesToClock(nowMinutes)}`}>
+                  <b>{minutesToClock(nowMinutes)}</b>
+                  <span aria-hidden="true" />
+                </div>
               ) : (
-                <AgendaRow item={row.item} onUpdated={replace} />
+                <AgendaRow item={row.item} onUpdated={replace} next={isToday && summary.next?.id === row.item.id} />
               )}
             </Fragment>
           ))
@@ -166,9 +177,10 @@ export function BarberAgendaPage() {
   )
 }
 
-function AgendaRow({ item, showDay, onUpdated }: { item: Appointment; showDay?: boolean; onUpdated: (updated: Appointment) => void }) {
+function AgendaRow({ item, showDay, next, onUpdated }: { item: Appointment; showDay?: boolean; next?: boolean; onUpdated: (updated: Appointment) => void }) {
   return (
-    <article className={`${page.apptRow} ${item.status === 'cancelado' ? page.apptCancelled : ''}`}>
+    <article className={`${page.apptRow} ${item.status === 'cancelado' ? page.apptCancelled : ''} ${next ? page.apptNext : ''}`}>
+      {next && <span className={page.apptNextTag}>Próximo</span>}
       <div className={page.apptTime}>
         <time dateTime={item.data_hora}>{formatClock(item.data_hora)}</time>
         <span>{showDay ? formatDayCompact(dateKey(item.data_hora)) : formatDuration(item.servico_duracao)}</span>

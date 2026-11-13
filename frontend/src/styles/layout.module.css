@@ -1,4 +1,4 @@
-/* BarberPro — shell da aplicação: barra lateral grafite + área de conteúdo em papel. */
+/* BarberPro: shell da aplicação. Trilho marinho (a placa esmaltada) + conteúdo sobre papel marfim. */
 
 .shell {
   display: grid;
@@ -16,64 +16,72 @@
   z-index: calc(var(--z-toast) + 1);
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-md);
-  background: var(--ink-900);
-  color: var(--paper);
+  background: var(--marinho-900);
+  color: var(--marfim);
   font-weight: var(--fw-semibold);
   text-decoration: none;
 }
 
 .skipLink:focus { top: var(--space-3); }
 
-/* ================================================================ Sidebar */
+/* ================================================================ Barra lateral */
 .sidebar {
   position: sticky;
   top: 0;
   height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: var(--ink-900);
-  color: rgb(246 243 237 / 0.72);
+  background: var(--marinho-900);
+  color: rgb(248 244 235 / 0.8);
   overflow: hidden;
+}
+
+/* Filete de placa: linha fina por dentro da borda direita do trilho */
+.sidebar::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  right: 6px;
+  width: 1px;
+  background: rgb(248 244 235 / 0.1);
+  pointer-events: none;
 }
 
 .sidebarHeader {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  min-height: var(--topbar-h);
-  padding: 0 var(--space-4) 0 1.25rem;
+  min-height: calc(var(--topbar-h) + var(--space-2));
+  padding: var(--space-2) var(--space-4) 0 1.25rem;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
   min-width: 0;
-  color: var(--paper);
+  color: var(--marfim);
   text-decoration: none;
+  border-radius: var(--radius-sm);
 }
 
-.brand svg { flex-shrink: 0; }
+.brand:focus-visible { outline-color: var(--marfim); outline-offset: 4px; }
 
-.brandName {
-  font-size: var(--fs-18);
-  font-weight: var(--fw-bold);
-  font-stretch: var(--stretch-display);
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-}
+.brandFull { display: block; }
+.brandIcon { display: none; }
 
 .shop {
-  margin: var(--space-2) var(--space-3) var(--space-4);
-  padding: var(--space-3);
+  margin: var(--space-3) var(--space-3) var(--space-5);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
-  background: var(--ink-800);
+  background: var(--marinho-800);
+  box-shadow: inset 0 0 0 1px rgb(248 244 235 / 0.08);
   min-width: 0;
 }
 
 .shopName {
   display: block;
-  color: var(--paper);
+  color: var(--marfim);
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);
   white-space: nowrap;
@@ -84,22 +92,30 @@
 .shopMeta {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 2px;
+  gap: var(--space-2);
+  margin-top: 4px;
   font-size: var(--fs-12);
-  color: rgb(246 243 237 / 0.6);
+  color: var(--marinho-200);
   white-space: nowrap;
 }
 
-.openDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #6fcf9e;
+/* O poste: gira quando a barbearia está aberta, para quando fecha */
+.pole {
   flex-shrink: 0;
+  width: 7px;
+  height: 15px;
+  border-radius: var(--radius-pill);
+  background: var(--listras-poste);
+  background-size: 12px 12px;
+  box-shadow: 0 0 0 1.5px var(--branco);
+  animation: poleTurn 1.4s linear infinite;
 }
 
-.closedDot { background: rgb(246 243 237 / 0.35); }
+.poleStopped {
+  animation: none;
+  filter: grayscale(1);
+  opacity: 0.6;
+}
 
 .nav {
   flex: 1;
@@ -108,7 +124,7 @@
   gap: var(--space-5);
   padding: 0 var(--space-3) var(--space-4);
   overflow-y: auto;
-  scrollbar-color: var(--ink-600) transparent;
+  scrollbar-color: var(--marinho-700) transparent;
 }
 
 .navGroup { display: grid; gap: 2px; }
@@ -116,8 +132,10 @@
 .navGroupLabel {
   padding: 0 var(--space-3) var(--space-2);
   font-size: var(--fs-12);
-  font-weight: var(--fw-medium);
-  color: rgb(246 243 237 / 0.45);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--marinho-300);
   white-space: nowrap;
 }
 
@@ -126,10 +144,10 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  min-height: 2.5rem;
+  min-height: 2.625rem;
   padding: 0 var(--space-3);
   border-radius: var(--radius-md);
-  color: rgb(246 243 237 / 0.72);
+  color: rgb(248 244 235 / 0.82);
   font-size: var(--fs-14);
   font-weight: var(--fw-medium);
   text-decoration: none;
@@ -140,35 +158,25 @@
 .navLink svg { flex-shrink: 0; }
 
 .navLink:hover {
-  background: var(--ink-800);
-  color: var(--paper);
+  background: var(--marinho-800);
+  color: var(--marfim);
 }
 
-.navLinkActive {
-  background: var(--ink-800);
-  color: var(--paper);
+/* Item ativo: uma plaqueta marfim com letra marinho, como placa esmaltada */
+.navLinkActive,
+.navLinkActive:hover {
+  background: var(--marfim);
+  color: var(--marinho-900);
+  font-weight: var(--fw-bold);
+  box-shadow: 0 1px 0 rgb(0 0 0 / 0.2);
+  animation: plateIn var(--dur-2) var(--ease-out);
 }
 
-/* Marcador ativo: filete latão à esquerda */
-.navLinkActive::before {
-  content: '';
-  position: absolute;
-  left: calc(-1 * var(--space-3));
-  top: 8px;
-  bottom: 8px;
-  width: 3px;
-  border-radius: 0 3px 3px 0;
-  background: var(--brass);
-  animation: markerIn var(--dur-2) var(--ease-out);
-}
-
-.navLinkActive svg { color: var(--brass); }
-
-.navLink:focus-visible { outline-color: var(--brass); }
+.navLink:focus-visible { outline-color: var(--marfim); }
 
 .sidebarFooter {
   padding: var(--space-3);
-  border-top: 1px solid var(--ink-800);
+  border-top: 1px solid rgb(248 244 235 / 0.1);
 }
 
 .collapseButton {
@@ -179,28 +187,29 @@
   min-height: 2.5rem;
   padding: 0 var(--space-3);
   border-radius: var(--radius-md);
-  color: rgb(246 243 237 / 0.6);
+  color: var(--marinho-200);
   font-size: var(--fs-14);
   white-space: nowrap;
 }
 
-.collapseButton:hover { background: var(--ink-800); color: var(--paper); }
-.collapseButton:focus-visible { outline-color: var(--brass); }
+.collapseButton:hover { background: var(--marinho-800); color: var(--marfim); }
+.collapseButton:focus-visible { outline-color: var(--marfim); }
 
-/* Estado recolhido: só ícones */
-.shellCollapsed .brandName,
+/* Estado recolhido: só ícones e o símbolo */
+.shellCollapsed .brandFull,
 .shellCollapsed .navGroupLabel,
 .shellCollapsed .navText,
 .shellCollapsed .shop,
 .shellCollapsed .collapseText { display: none; }
 
-.shellCollapsed .sidebarHeader { padding: 0; justify-content: center; }
+.shellCollapsed .brandIcon { display: block; }
+.shellCollapsed .sidebarHeader { padding: var(--space-2) 0 0; justify-content: center; }
 .shellCollapsed .nav { padding-top: var(--space-4); }
 .shellCollapsed .navLink,
 .shellCollapsed .collapseButton { justify-content: center; padding: 0; }
-.shellCollapsed .navGroup + .navGroup { border-top: 1px solid var(--ink-800); padding-top: var(--space-4); }
+.shellCollapsed .navGroup + .navGroup { border-top: 1px solid rgb(248 244 235 / 0.1); padding-top: var(--space-4); }
 
-/* ================================================================ Main */
+/* ================================================================ Conteúdo */
 .main {
   display: flex;
   flex-direction: column;
@@ -216,14 +225,14 @@
   gap: var(--space-3);
   min-height: var(--topbar-h);
   padding: 0 var(--space-8);
-  background: rgb(246 243 237 / 0.88);
-  backdrop-filter: saturate(1.4) blur(10px);
+  background: var(--branco);
   border-bottom: 1px solid var(--color-border);
 }
 
 .topbarDate {
   font-size: var(--fs-14);
-  color: var(--color-text-muted);
+  font-weight: var(--fw-medium);
+  color: var(--tinta-2);
 }
 
 .topbarDate::first-letter { text-transform: uppercase; }
@@ -234,38 +243,49 @@
 
 .menuButton { display: none; }
 
+/* Pendências: atenção em vermelho, com contorno (não alarme) */
 .pendingLink {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   min-height: var(--control-h-sm);
-  padding: 0 var(--space-3);
+  padding: 0 var(--space-3) 0 var(--space-2);
   border-radius: var(--radius-pill);
-  background: var(--copper-soft);
-  border: 1px solid var(--copper-line);
-  color: var(--copper-ink);
+  background: var(--branco);
+  border: 1.5px solid var(--vermelho-600);
+  color: var(--vermelho-700);
   font-size: var(--fs-14);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
   text-decoration: none;
   white-space: nowrap;
-  transition: background-color var(--dur-1) ease, border-color var(--dur-1) ease;
+  transition: background-color var(--dur-1) ease;
   animation: pillIn var(--dur-3) var(--ease-out);
 }
 
-.pendingLink:hover { border-color: var(--copper); }
+.pendingLink:hover { background: var(--vermelho-100); color: var(--vermelho-700); }
+
+@media (max-width: 1023px) { .pendingScope { display: none; } }
 
 .pendingCount {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: var(--vermelho-600);
+  color: var(--branco);
+  font-size: var(--fs-12);
   font-variant-numeric: tabular-nums;
-  font-stretch: var(--stretch-numeric);
 }
 
 .content {
   flex: 1;
-  padding: var(--space-8);
+  padding: var(--space-8) var(--space-8) var(--space-12);
   min-width: 0;
 }
 
-/* ================================================================ User menu */
+/* ================================================================ Menu da conta */
 .userMenu { position: relative; }
 
 .userButton {
@@ -279,7 +299,7 @@
 }
 
 .userButton:hover,
-.userButton[aria-expanded='true'] { background: rgb(23 25 29 / 0.06); }
+.userButton[aria-expanded='true'] { background: var(--marinho-50); }
 
 .userButtonText {
   display: grid;
@@ -287,10 +307,10 @@
   line-height: 1.2;
 }
 
-.userButtonText strong { font-size: var(--fs-14); }
-.userButtonText span { font-size: var(--fs-12); color: var(--color-text-muted); }
+.userButtonText strong { font-size: var(--fs-14); color: var(--marinho-900); }
+.userButtonText span { font-size: var(--fs-12); color: var(--tinta-2); }
 
-.userButton > svg { color: var(--color-text-muted); transition: transform var(--dur-2) var(--ease-out); }
+.userButton > svg { color: var(--tinta-2); transition: transform var(--dur-2) var(--ease-out); }
 .userButton[aria-expanded='true'] > svg { transform: rotate(180deg); }
 
 .menu {
@@ -315,7 +335,7 @@
   min-width: 0;
 }
 
-.menuHeader strong { display: block; font-size: var(--fs-14); }
+.menuHeader strong { display: block; font-size: var(--fs-14); color: var(--marinho-900); }
 
 .menuHeader span {
   display: block;
@@ -331,9 +351,9 @@
   margin-top: var(--space-2);
   padding: 2px var(--space-2);
   border-radius: var(--radius-pill);
-  background: var(--stone-100);
-  color: var(--stone-600) !important;
-  font-weight: var(--fw-semibold);
+  background: var(--marinho-100);
+  color: var(--marinho-900) !important;
+  font-weight: var(--fw-bold);
 }
 
 .menuItem {
@@ -341,29 +361,34 @@
   align-items: center;
   gap: var(--space-3);
   width: 100%;
-  min-height: 2.5rem;
+  min-height: 2.75rem;
   padding: 0 var(--space-3);
   border-radius: var(--radius-md);
-  color: var(--color-text);
+  color: var(--marinho-900);
   font-size: var(--fs-14);
   font-weight: var(--fw-medium);
   text-decoration: none;
   text-align: left;
 }
 
-.menuItem svg { color: var(--color-text-muted); }
-.menuItem:hover,
-.menuItem:focus-visible { background: var(--stone-100); outline: none; }
+.menuItem svg { color: var(--tinta-2); }
 
-.menuItemDanger { color: var(--danger-ink); }
+/* Foco do menu bem visível (antes era um fundo de 1,18:1) */
+.menuItem:hover { background: var(--marinho-50); }
+.menuItem:focus-visible { background: var(--marinho-50); outline: 2px solid var(--marinho-700); outline-offset: -2px; }
+
+.menuItemDanger { color: var(--vermelho-700); }
 .menuItemDanger svg { color: currentColor; }
 
-/* ================================================================ Mobile */
+/* ================================================================ Barra inferior (celular e tablet) */
+.tabbar { display: none; }
+
+/* ================================================================ Celular e tablet */
 .overlay {
   position: fixed;
   inset: 0;
   z-index: calc(var(--z-drawer) - 1);
-  background: rgb(23 25 29 / 0.45);
+  background: rgb(16 33 67 / 0.5);
   animation: fadeIn var(--dur-2) ease-out;
 }
 
@@ -389,36 +414,85 @@
   }
 
   /* No celular a gaveta sempre mostra os rótulos */
-  .shellCollapsed .brandName,
+  .shellCollapsed .brandFull,
   .shellCollapsed .navGroupLabel,
   .shellCollapsed .navText { display: revert; }
+  .shellCollapsed .brandIcon { display: none; }
   .shellCollapsed .shop { display: block; }
   .shellCollapsed .navLink { justify-content: flex-start; padding: 0 var(--space-3); }
-  .shellCollapsed .sidebarHeader { padding: 0 var(--space-4) 0 1.25rem; justify-content: flex-start; }
+  .shellCollapsed .sidebarHeader { padding: var(--space-2) var(--space-4) 0 1.25rem; justify-content: flex-start; }
 
   .sidebarFooter { display: none; }
-  .closeDrawer { margin-left: auto; color: rgb(246 243 237 / 0.7); }
-  .closeDrawer:hover { background: var(--ink-800) !important; color: var(--paper) !important; }
+  .closeDrawer { margin-left: auto; color: var(--marinho-200); }
+  .closeDrawer:hover { background: var(--marinho-800) !important; color: var(--marfim) !important; }
 
-  .navLink { min-height: 2.75rem; }
+  .navLink { min-height: 2.875rem; }
 
   .menuButton { display: inline-grid; margin-left: calc(-1 * var(--space-2)); }
 
   .mobileBrand {
     display: flex;
     align-items: center;
-    gap: var(--space-2);
-    color: var(--color-text);
-    font-weight: var(--fw-bold);
-    font-stretch: var(--stretch-display);
     text-decoration: none;
+    border-radius: var(--radius-sm);
   }
 
-  .topbar { padding: 0 var(--space-4); padding-top: env(safe-area-inset-top); }
+  .topbar { min-height: 3.5rem; padding: 0 var(--space-4); padding-top: env(safe-area-inset-top); }
   .topbarDate { display: none; }
   .userButtonText,
   .userButton > svg { display: none; }
-  .content { padding: var(--space-6) var(--space-4) calc(var(--space-12) + env(safe-area-inset-bottom)); }
+  .content { padding: var(--space-5) var(--space-4) calc(var(--tabbar-h) + var(--space-8) + env(safe-area-inset-bottom)); }
+
+  .tabbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--z-tabbar);
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    min-height: var(--tabbar-h);
+    padding: 0 var(--space-2) env(safe-area-inset-bottom);
+    background: var(--branco);
+    border-top: 1px solid var(--color-border);
+    box-shadow: 0 -8px 20px -16px rgb(16 33 67 / 0.4);
+  }
+
+  .tab {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 3px;
+    min-height: var(--tabbar-h);
+    color: var(--tinta-2);
+    font-size: 0.6875rem;
+    font-weight: var(--fw-semibold);
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: color var(--dur-1) ease;
+  }
+
+  .tab svg { transition: transform var(--dur-2) var(--ease-out); }
+  .tab:active svg { transform: scale(0.9); }
+
+  .tabActive { color: var(--marinho-900); font-weight: var(--fw-bold); }
+
+  /* Marcador da aba ativa: um filete vermelho, o "agora" da navegação */
+  .tabActive::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 30%;
+    right: 30%;
+    height: 3px;
+    border-radius: 0 0 3px 3px;
+    background: var(--vermelho-600);
+    animation: plateIn var(--dur-2) var(--ease-out);
+  }
+
+  .tab:focus-visible { outline-offset: -4px; border-radius: var(--radius-md); }
 }
 
 @media (min-width: 1024px) {
@@ -428,9 +502,19 @@
 
 @media (max-width: 420px) {
   .pendingText { display: none; }
+  .pendingLink { padding: 0; border: 0; background: none; min-height: var(--control-h); }
+  .pendingCount { min-width: 1.75rem; height: 1.75rem; box-shadow: 0 0 0 2px var(--branco), 0 0 0 3.5px var(--vermelho-200); }
 }
 
-@keyframes markerIn { from { transform: scaleY(0.3); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes poleTurn { to { background-position: 0 24px; } }
+@keyframes plateIn { from { opacity: 0.4; transform: scale(0.97); } to { opacity: 1; transform: none; } }
 @keyframes menuIn { from { opacity: 0; transform: translateY(-4px) scale(0.98); } to { opacity: 1; transform: none; } }
 @keyframes pillIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .pole { animation: none; }
+}
+
+/* Aviso de barbearia desativada, acima do conteúdo de cada tela (FE-14) */
+.shopNotice { margin-bottom: var(--space-6); }

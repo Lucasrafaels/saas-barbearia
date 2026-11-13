@@ -1,13 +1,17 @@
-/* Área do cliente, agenda do barbeiro e fluxo de agendamento */
+/* Área do cliente, agenda do barbeiro e fluxo de agendamento.
+   Momentos de marca: a comanda do próximo horário e a tabela de preços pintada. */
 
-/* ------------------------------------------------ Bilhete do próximo horário */
+/* ------------------------------------------------ Comanda do próximo horário */
 .ticket {
+  position: relative;
   display: grid;
-  grid-template-columns: 11.5rem minmax(0, 1fr);
+  grid-template-columns: 12.5rem minmax(0, 1fr);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-raise);
   overflow: hidden;
+  animation: ticketIn var(--dur-3) var(--ease-out);
 }
 
 .ticketStub {
@@ -17,49 +21,61 @@
   justify-items: center;
   gap: var(--space-1);
   padding: var(--space-6) var(--space-4);
-  background: var(--ink-900);
-  color: var(--paper);
+  background: var(--marinho-900);
+  color: var(--marfim);
   text-align: center;
 }
 
-/* Picote entre o canhoto e o corpo */
+/* Filete interno da placa */
+.ticketStub::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgb(248 244 235 / 0.22);
+  border-radius: var(--radius-md);
+  pointer-events: none;
+}
+
+/* Picote entre o canhoto e o corpo, com os furos da comanda */
 .ticketStub::after {
   content: '';
   position: absolute;
-  top: 10px;
-  bottom: 10px;
-  right: -1px;
-  border-right: 2px dashed var(--paper);
-  opacity: 0.9;
+  top: 0;
+  bottom: 0;
+  right: -6px;
+  width: 12px;
+  background: radial-gradient(circle at 6px 6px, var(--color-surface) 4px, transparent 4.5px) 0 0 / 12px 14px repeat-y;
 }
 
 .ticketDay {
-  font-size: var(--fs-14);
-  color: rgb(246 243 237 / 0.7);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--marinho-200);
 }
 
-.ticketDay::first-letter { text-transform: uppercase; }
-
 .ticketTime {
-  font-size: 2.75rem;
-  font-weight: var(--fw-semibold);
-  font-stretch: 125%;
+  font-family: var(--font-display);
+  font-size: 4.5rem;
+  font-weight: 400;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.03em;
-  line-height: 1;
-  color: var(--brass);
+  letter-spacing: 0.01em;
+  line-height: 0.9;
+  color: var(--marfim);
 }
 
 .ticketDate {
   font-size: var(--fs-14);
   font-weight: var(--fw-semibold);
+  color: var(--marfim);
 }
 
 .ticketBody {
   display: grid;
   align-content: start;
   gap: var(--space-4);
-  padding: var(--space-6);
+  padding: var(--space-6) var(--space-6) var(--space-6) var(--space-8);
   min-width: 0;
 }
 
@@ -70,53 +86,90 @@
   gap: var(--space-2) var(--space-3);
 }
 
-.ticketTitle h2 { font-size: var(--fs-21); }
+.ticketTitle h2 { font-size: var(--fs-24); }
 
 .ticketFacts {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
   gap: var(--space-3) var(--space-6);
+  padding: var(--space-4) 0;
+  border-top: 1px dashed var(--linha-forte);
+  border-bottom: 1px dashed var(--linha-forte);
 }
 
 .ticketFacts dt {
   font-size: var(--fs-12);
-  color: var(--color-text-muted);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tinta-2);
 }
 
 .ticketFacts dd {
-  font-size: var(--fs-14);
+  font-size: var(--fs-16);
   font-weight: var(--fw-semibold);
+  color: var(--marinho-900);
+  font-variant-numeric: tabular-nums;
 }
 
 @media (max-width: 560px) {
   .ticket { grid-template-columns: 1fr; }
-  .ticketStub { grid-auto-flow: column; justify-content: space-between; align-items: center; padding: var(--space-4) var(--space-5); text-align: left; justify-items: start; }
-  .ticketStub::after { top: auto; bottom: -1px; left: 10px; right: 10px; border-right: 0; border-bottom: 2px dashed var(--paper); }
-  .ticketTime { font-size: var(--fs-36); }
-  .ticketBody { padding: var(--space-5); }
+  .ticketStub {
+    grid-auto-flow: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-5) var(--space-6);
+    text-align: left;
+    justify-items: start;
+  }
+  .ticketStub::after {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: -6px;
+    width: auto;
+    height: 12px;
+    background: radial-gradient(circle at 6px 6px, var(--color-surface) 4px, transparent 4.5px) 0 0 / 14px 12px repeat-x;
+  }
+  .ticketTime { font-size: 3.5rem; }
+  .ticketBody { padding: var(--space-6) var(--space-5) var(--space-5); }
 }
 
 /* ------------------------------------------------------- Cartão da loja */
 .shopCard { display: grid; gap: var(--space-4); }
+
+.shopCard h2 {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
 
 .shopStatus {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   font-size: var(--fs-14);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
+  color: var(--marinho-900);
 }
 
+/* O poste: gira quando a barbearia está aberta */
 .dotOpen,
 .dotClosed {
+  flex-shrink: 0;
   width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--success);
-  box-shadow: 0 0 0 3px var(--success-soft);
+  height: 17px;
+  border-radius: var(--radius-pill);
+  background: var(--listras-poste);
+  background-size: 12px 12px;
+  box-shadow: 0 0 0 1.5px var(--branco), 0 0 0 2.5px var(--linha-forte);
+  animation: poleTurn 1.4s linear infinite;
 }
 
-.dotClosed { background: var(--stone-500); box-shadow: 0 0 0 3px var(--stone-100); }
+.dotClosed { animation: none; filter: grayscale(1); opacity: 0.55; }
 
 .contactList {
   display: grid;
@@ -131,10 +184,13 @@
   align-items: start;
 }
 
-.contactList svg { color: var(--color-text-muted); margin-top: 2px; }
+.contactList svg { color: var(--marinho-700); margin-top: 2px; }
 .contactList a { overflow-wrap: anywhere; }
 
 /* ------------------------------------------------------ Tabela de preços */
+/* A tabela de preços leva o filete duplo da placa, reservado a ela, à comanda e aos selos */
+.priceBoard { outline: 1px solid var(--linha-forte); outline-offset: -6px; }
+
 .priceList { display: grid; }
 
 .priceRow {
@@ -144,9 +200,11 @@
   gap: var(--space-2) var(--space-6);
   padding: var(--space-5);
   border-bottom: 1px solid var(--color-border);
+  transition: background-color var(--dur-1) ease;
 }
 
 .priceRow:last-child { border-bottom: 0; }
+.priceRow:hover { background: var(--marfim-claro); }
 
 .priceHead {
   display: flex;
@@ -156,24 +214,25 @@
 }
 
 .priceName {
-  font-size: var(--fs-16);
-  font-weight: var(--fw-semibold);
+  font-size: var(--fs-18);
+  font-weight: var(--fw-bold);
+  color: var(--marinho-900);
   white-space: nowrap;
 }
 
-/* Pontilhado guia entre o nome e o preço, como nas tabelas de barbearia */
+/* Pontilhado guia entre o nome e o preço, como nas tabelas pintadas de barbearia */
 .priceLeader {
   flex: 1;
   min-width: 1.5rem;
-  border-bottom: 2px dotted var(--stone-300);
-  transform: translateY(-4px);
+  border-bottom: 2px dotted var(--marinho-300);
+  transform: translateY(-5px);
 }
 
 .priceValue {
-  font-size: var(--fs-18);
-  font-weight: var(--fw-semibold);
-  font-stretch: var(--stretch-numeric);
+  font-size: var(--fs-21);
+  font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
+  color: var(--marinho-900);
   white-space: nowrap;
 }
 
@@ -191,12 +250,13 @@
   margin-top: var(--space-2);
   font-size: var(--fs-12);
   font-weight: var(--fw-semibold);
-  color: var(--color-text-muted);
+  color: var(--tinta-2);
 }
 
 @media (max-width: 560px) {
   .priceRow { grid-template-columns: 1fr; padding: var(--space-4); }
-  .priceName { white-space: normal; }
+  .priceName { white-space: normal; font-size: var(--fs-16); }
+  .priceValue { font-size: var(--fs-18); }
   .priceRow > :last-child { justify-self: start; }
 }
 
@@ -208,6 +268,7 @@
 }
 
 .teamCard {
+  position: relative;
   display: grid;
   justify-items: start;
   gap: var(--space-3);
@@ -215,6 +276,13 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
+  transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) ease, border-color var(--dur-2) ease;
+}
+
+.teamCard:hover {
+  transform: translateY(-2px);
+  border-color: var(--marinho-200);
+  box-shadow: var(--shadow-raise);
 }
 
 .teamCard h2 { font-size: var(--fs-18); }
@@ -237,14 +305,14 @@
   display: grid;
   gap: var(--space-2);
   font-size: var(--fs-14);
-  color: var(--color-text-muted);
+  color: var(--tinta-2);
   min-width: 0;
 }
 
 .stepBar {
-  height: 4px;
+  height: 5px;
   border-radius: var(--radius-pill);
-  background: var(--stone-200);
+  background: var(--marfim-2);
   overflow: hidden;
 }
 
@@ -253,13 +321,13 @@
   display: block;
   height: 100%;
   width: 0;
-  background: var(--ink-900);
+  background: var(--marinho-900);
   transition: width var(--dur-3) var(--ease-out);
 }
 
 .stepDone .stepBar::after,
 .stepCurrent .stepBar::after { width: 100%; }
-.stepCurrent .stepBar::after { background: var(--copper); }
+.stepCurrent .stepBar::after { background: var(--vermelho-600); }
 
 .stepLabel {
   display: flex;
@@ -270,20 +338,36 @@
   text-overflow: ellipsis;
 }
 
-.stepCurrent .stepLabel { color: var(--color-text); font-weight: var(--fw-semibold); }
-.stepDone .stepLabel { color: var(--color-text); }
+.stepLabel::before {
+  counter-increment: step;
+  content: counter(step);
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+}
+
+.stepCurrent .stepLabel { color: var(--marinho-900); font-weight: var(--fw-bold); }
+.stepCurrent .stepLabel::before { background: var(--marinho-900); border-color: var(--marinho-900); color: var(--marfim); }
+.stepDone .stepLabel { color: var(--marinho-900); }
 
 .stepButton {
   font: inherit;
   color: inherit;
   text-decoration: underline;
-  text-decoration-color: var(--stone-300);
+  text-decoration-color: var(--marinho-200);
   text-underline-offset: 3px;
 }
 
 @media (max-width: 560px) {
   .stepLabel { font-size: var(--fs-12); }
   .step:not(.stepCurrent) .stepLabel { visibility: hidden; }
+  .stepCurrent .stepLabel { overflow: visible; position: relative; z-index: 1; }
 }
 
 .bookingLayout {
@@ -293,7 +377,7 @@
 }
 
 @media (min-width: 1024px) {
-  .bookingLayout { grid-template-columns: minmax(0, 1fr) 20rem; }
+  .bookingLayout { grid-template-columns: minmax(0, 1fr) 21rem; }
   .summary { position: sticky; top: calc(var(--topbar-h) + var(--space-6)); }
 }
 
@@ -301,7 +385,16 @@
   animation: stepIn var(--dur-3) var(--ease-out);
 }
 
-.stepPanel h2 { font-size: var(--fs-21); margin-bottom: var(--space-1); }
+.stepPanel h2 {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: 0.015em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-2);
+}
+
 .stepIntro { font-size: var(--fs-14); color: var(--color-text-muted); margin-bottom: var(--space-5); }
 
 /* Opções selecionáveis (serviço, barbeiro) */
@@ -318,17 +411,19 @@
   padding: var(--space-4) var(--space-5);
   text-align: left;
   background: var(--color-surface);
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--linha-forte);
   border-radius: var(--radius-lg);
-  transition: border-color var(--dur-1) ease, box-shadow var(--dur-1) ease, transform var(--dur-1) var(--ease-out);
+  transition: border-color var(--dur-1) ease, box-shadow var(--dur-2) ease, transform var(--dur-1) var(--ease-out), background-color var(--dur-1) ease;
 }
 
-.option:hover { border-color: var(--stone-500); }
-.option:active { transform: scale(0.99); }
+.option:hover { border-color: var(--marinho-600); box-shadow: var(--shadow-raise); }
+.option:active { transform: scale(0.985); }
 
-.optionSelected {
-  border-color: var(--ink-900);
-  box-shadow: 0 0 0 1px var(--ink-900);
+.optionSelected,
+.optionSelected:hover {
+  border-color: var(--marinho-900);
+  background: var(--marinho-50);
+  box-shadow: 0 0 0 1px var(--marinho-900);
 }
 
 .optionCheck {
@@ -340,14 +435,14 @@
   width: 1.375rem;
   height: 1.375rem;
   border-radius: 50%;
-  border: 1.5px solid var(--stone-300);
+  border: 1.5px solid var(--linha-forte);
   color: transparent;
-  transition: background-color var(--dur-1) ease, border-color var(--dur-1) ease, color var(--dur-1) ease;
+  transition: background-color var(--dur-1) ease, border-color var(--dur-1) ease, color var(--dur-1) ease, transform var(--dur-2) var(--ease-out);
 }
 
-.optionSelected .optionCheck { background: var(--ink-900); border-color: var(--ink-900); color: var(--paper); }
+.optionSelected .optionCheck { background: var(--marinho-900); border-color: var(--marinho-900); color: var(--marfim); transform: scale(1.08); }
 
-.optionTitle { font-weight: var(--fw-semibold); padding-right: var(--space-8); }
+.optionTitle { font-weight: var(--fw-bold); color: var(--marinho-900); padding-right: var(--space-8); }
 .optionDesc { font-size: var(--fs-14); color: var(--color-text-muted); }
 
 .optionMeta {
@@ -360,9 +455,8 @@
 }
 
 .optionMeta strong {
-  color: var(--color-text);
-  font-size: var(--fs-16);
-  font-stretch: var(--stretch-numeric);
+  color: var(--marinho-900);
+  font-size: var(--fs-18);
   font-variant-numeric: tabular-nums;
 }
 
@@ -372,7 +466,7 @@
 .dateStrip {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 4.25rem;
+  grid-auto-columns: 4.5rem;
   gap: var(--space-2);
   overflow-x: auto;
   padding: 2px 2px var(--space-3);
@@ -386,44 +480,66 @@
   gap: 2px;
   padding: var(--space-2) 0 var(--space-3);
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--linha-forte);
   background: var(--color-surface);
   scroll-snap-align: start;
-  transition: border-color var(--dur-1) ease, background-color var(--dur-1) ease, color var(--dur-1) ease;
+  transition: border-color var(--dur-1) ease, background-color var(--dur-1) ease, color var(--dur-1) ease, transform var(--dur-1) var(--ease-out);
 }
 
-.dateChip:hover { border-color: var(--stone-500); }
+.dateChip:hover { border-color: var(--marinho-600); }
+.dateChip:active { transform: scale(0.96); }
 
 .dateChip span {
   font-size: var(--fs-12);
-  color: var(--color-text-muted);
+  font-weight: var(--fw-semibold);
+  color: var(--tinta-2);
   text-transform: capitalize;
 }
 
 .dateChip strong {
-  font-size: var(--fs-21);
-  font-stretch: var(--stretch-numeric);
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 400;
   font-variant-numeric: tabular-nums;
-  line-height: 1.1;
+  line-height: 1.05;
+  color: var(--marinho-900);
 }
 
-.dateChipSelected {
-  background: var(--ink-900);
-  border-color: var(--ink-900);
-  color: var(--paper);
+.dateChipSelected,
+.dateChipSelected:hover {
+  background: var(--marinho-900);
+  border-color: var(--marinho-900);
+  color: var(--marfim);
 }
 
-.dateChipSelected span { color: rgb(246 243 237 / 0.7); }
+.dateChipSelected span,
+.dateChipSelected strong { color: var(--marfim); }
+.dateChipSelected span { opacity: 0.8; }
 
-.dateChipToday:not(.dateChipSelected) { border-color: var(--copper); }
+.dateChipToday:not(.dateChipSelected) { border: 1.5px solid var(--vermelho-600); }
+
+/* Dia em que a barbearia não abre: indisponível, como os campos desabilitados */
+.dateChipClosed,
+.dateChipClosed:hover {
+  background: var(--color-surface-muted);
+  border-color: var(--color-border);
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+.dateChipClosed:active { transform: none; }
+.dateChipClosed span,
+.dateChipClosed strong { color: var(--color-text-muted); }
 
 /* Horários */
 .slotGroups { display: grid; gap: var(--space-5); margin-top: var(--space-5); }
 
 .slotGroup h3 {
-  font-size: var(--fs-14);
-  font-weight: var(--fw-semibold);
-  color: var(--color-text-muted);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tinta-2);
   margin-bottom: var(--space-2);
 }
 
@@ -436,21 +552,22 @@
 .slot {
   min-height: var(--control-h);
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--linha-forte);
   background: var(--color-surface);
-  font-weight: var(--fw-semibold);
-  font-stretch: var(--stretch-numeric);
+  color: var(--marinho-900);
+  font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
   transition: border-color var(--dur-1) ease, background-color var(--dur-1) ease, color var(--dur-1) ease, transform var(--dur-1) var(--ease-out);
 }
 
-.slot:hover { border-color: var(--ink-900); }
-.slot:active { transform: scale(0.97); }
+.slot:hover { border-color: var(--marinho-900); background: var(--marinho-50); }
+.slot:active { transform: scale(0.96); }
 
-.slotSelected {
-  background: var(--ink-900);
-  border-color: var(--ink-900);
-  color: var(--paper);
+.slotSelected,
+.slotSelected:hover {
+  background: var(--marinho-900);
+  border-color: var(--marinho-900);
+  color: var(--marfim);
 }
 
 .stepActions {
@@ -462,12 +579,33 @@
   border-top: 1px solid var(--color-border);
 }
 
+/* No celular, as ações da etapa ficam presas acima da barra inferior, ao alcance do polegar */
+@media (max-width: 1023px) {
+  .stepActions {
+    position: sticky;
+    bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+    z-index: 2;
+    margin: var(--space-6) calc(-1 * var(--space-5)) calc(-1 * var(--space-5));
+    padding: var(--space-3) var(--space-5);
+    background: rgb(255 255 255 / 0.96);
+    border-top: 1px solid var(--color-border);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  }
+}
+
 @media (max-width: 560px) {
   .stepActions > * { flex: 1; }
 }
 
 /* Resumo lateral */
-.summaryTitle { font-size: var(--fs-16); }
+.summaryTitle {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 1;
+}
 
 .summaryTotal {
   display: flex;
@@ -475,17 +613,17 @@
   align-items: baseline;
   padding-top: var(--space-3);
   margin-top: var(--space-1);
-  border-top: 1px solid var(--color-border);
+  border-top: 2px solid var(--marinho-900);
   font-weight: var(--fw-semibold);
+  color: var(--marinho-900);
 }
 
 .summaryTotal strong {
-  font-size: var(--fs-21);
-  font-stretch: var(--stretch-numeric);
+  font-size: var(--fs-24);
   font-variant-numeric: tabular-nums;
 }
 
-.summaryEmpty { color: var(--color-text-muted); font-weight: var(--fw-regular) !important; }
+.summaryEmpty { color: var(--color-text-muted) !important; font-weight: var(--fw-regular) !important; }
 
 /* Lacunas livres na agenda do barbeiro */
 .gapRow {
@@ -495,17 +633,73 @@
   padding: var(--space-2) var(--space-5);
   border-bottom: 1px solid var(--color-border);
   font-size: var(--fs-14);
-  color: var(--color-text-muted);
-  background: repeating-linear-gradient(135deg, transparent 0 8px, rgb(23 25 29 / 0.025) 8px 9px);
+  color: var(--tinta-2);
 }
 
-.gapRow span:first-child { font-variant-numeric: tabular-nums; }
+.gapRow span:first-child { font-variant-numeric: tabular-nums; font-weight: var(--fw-semibold); }
+
+.gapRow span:last-child {
+  padding: 2px var(--space-3);
+  border: 1px dashed var(--linha-forte);
+  border-radius: var(--radius-sm);
+  background: var(--marfim-claro);
+  justify-self: start;
+}
 
 @media (max-width: 760px) {
   .gapRow { grid-template-columns: 3.75rem minmax(0, 1fr); padding: var(--space-2) var(--space-4); }
 }
 
+/* -------------------------------------------- Reserva concluída: o carimbo */
+.done {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4) var(--space-4);
+  text-align: center;
+}
+
+.stamp {
+  width: 11.5rem;
+  height: 11.5rem;
+  margin-bottom: var(--space-2);
+  color: var(--vermelho-600);
+  transform: rotate(-8deg);
+  animation: stamp 0.55s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.done h2 {
+  font-family: var(--font-display);
+  font-size: 2.75rem;
+  font-weight: 400;
+  line-height: 0.9;
+  letter-spacing: 0.015em;
+  text-transform: uppercase;
+}
+
+.done p { max-width: 42ch; color: var(--color-text-muted); }
+
+.doneSummary { width: min(26rem, 100%); text-align: left; }
+
+@keyframes stamp {
+  0% { opacity: 0; transform: rotate(-2deg) scale(1.35); }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: rotate(-8deg) scale(1); }
+}
+
 @keyframes stepIn {
   from { opacity: 0; transform: translateX(8px); }
   to { opacity: 1; transform: none; }
+}
+
+@keyframes ticketIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes poleTurn { to { background-position: 0 24px; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .dotOpen { animation: none; }
+  .stamp { animation: none; }
 }

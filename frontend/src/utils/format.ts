@@ -59,6 +59,12 @@ function keyToUTCNoon(key: string): Date {
   return new Date(Date.UTC(y, m - 1, d, 12))
 }
 
+/** Dia da semana ISO (1 = segunda … 7 = domingo) de uma chave YYYY-MM-DD, sem depender do fuso do navegador. */
+export function isoWeekday(key: string): number {
+  const day = keyToUTCNoon(key).getUTCDay()
+  return day === 0 ? 7 : day
+}
+
 /** "quarta-feira, 11 de novembro" a partir de uma chave YYYY-MM-DD. */
 export function formatDayLong(key: string, withYear = false): string {
   return new Intl.DateTimeFormat('pt-BR', {
@@ -95,6 +101,20 @@ export function relativeDayLabel(key: string): string {
   if (key === addDays(today, 1)) return 'Amanhã'
   if (key === addDays(today, -1)) return 'Ontem'
   return capitalize(formatDayLong(key))
+}
+
+/**
+ * Rótulo acessível de um dia do calendário de agendamento (FE-21). A data
+ * aparece uma única vez: "Hoje, sexta-feira, 13 de novembro", "Amanhã,
+ * sábado, 14 de novembro" ou "Domingo, 15 de novembro". Dia em que a
+ * barbearia não abre termina com ", barbearia fechada".
+ */
+export function dateChipLabel(key: string, options: { closed?: boolean; today?: string } = {}): string {
+  const { closed = false, today = todayISO() } = options
+  const date = formatDayLong(key)
+  const relative = key === today ? 'Hoje' : key === addDays(today, 1) ? 'Amanhã' : null
+  const label = relative ? `${relative}, ${date}` : capitalize(date)
+  return closed ? `${label}, barbearia fechada` : label
 }
 
 export function capitalize(text: string): string {

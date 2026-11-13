@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { listActiveBarbers } from '../api/endpoints'
 import { Avatar } from '../components/Controls'
 import { EmptyState, ErrorState, SkeletonBlock } from '../components/Feedback'
-import { UsersIcon } from '../components/Icons'
+
 import { PageHeader } from '../components/PageHeader'
 import { useAsyncData } from '../hooks/useAsyncData'
 import { firstName } from '../utils/format'
@@ -24,7 +24,7 @@ export function BarbersPage() {
       ) : error && !data ? (
         <div className={ui.panel}><ErrorState error={error} fallback="Não foi possível carregar a equipe." onRetry={() => void reload()} /></div>
       ) : barbers.length === 0 ? (
-        <div className={ui.panel}><EmptyState icon={<UsersIcon size={22} />} title="Nenhum barbeiro disponível" description="A barbearia ainda não tem profissionais recebendo agendamentos." /></div>
+        <div className={ui.panel}><EmptyState art="navalha" title="Nenhum barbeiro disponível" description="A barbearia ainda não tem profissionais recebendo agendamentos." /></div>
       ) : (
         <ul className={client.teamGrid}>
           {barbers.map((barber) => (

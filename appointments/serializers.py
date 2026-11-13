@@ -96,6 +96,20 @@ class AppointmentSerializer(serializers.ModelSerializer):
                 {'cliente': 'Este cliente não pertence à sua barbearia.'}
             )
 
+        # BUS-15: o status inicial é definido pelo backend. O cliente só cria
+        # horários "agendado", que aguardam a confirmação da barbearia; mandar
+        # outro status na requisição não contorna essa aprovação.
+        if (
+            self.instance is None
+            and request
+            and request.user.is_cliente
+            and attrs.get('status', Appointment.Status.AGENDADO) != Appointment.Status.AGENDADO
+        ):
+            raise PermissionDenied(
+                'O status inicial é definido pela barbearia: o agendamento começa como '
+                'agendado e aguarda confirmação.'
+            )
+
         if (
             self.instance
             and request
@@ -169,12 +183,35 @@ class AppointmentSerializer(serializers.ModelSerializer):
                         {'data_hora': 'Não é possível reagendar para uma data/hora que já passou.'}
                     )
 
+                # BUS-03: a barbearia confirmou o horário antigo, não o novo.
+                # Quando o cliente muda horário, barbeiro ou serviço de um
+                # horário confirmado, ele volta a "agendado" e precisa de nova
+                # confirmação. Alterações do admin e do barbeiro (o lado da
+                # barbearia) mantêm o status.
+                if (
+                    self.instance.status == Appointment.Status.CONFIRMADO
+                    and self._altera_agenda(self.instance, attrs)
+                ):
+                    attrs['status'] = Appointment.Status.AGENDADO
+                    appointment.status = Appointment.Status.AGENDADO
+
         try:
             appointment.full_clean()
         except DjangoValidationError as error:
             detail = getattr(error, 'message_dict', None) or {'non_field_errors': error.messages}
             raise serializers.ValidationError(detail) from error
         return attrs
+
+    @staticmethod
+    def _altera_agenda(instance, attrs):
+        """Verdadeiro se o PATCH muda de fato o horário, o barbeiro ou o serviço."""
+        if 'data_hora' in attrs and attrs['data_hora'].timestamp() != instance.data_hora.timestamp():
+            return True
+        if 'barbeiro' in attrs and attrs['barbeiro'].pk != instance.barbeiro_id:
+            return True
+        if 'servico' in attrs and attrs['servico'].pk != instance.servico_id:
+            return True
+        return False
 
     @staticmethod
     def _raise_django_validation_error(error):

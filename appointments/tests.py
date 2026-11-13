@@ -1394,12 +1394,13 @@ class AppointmentStateMachineTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_confirmado_to_realizado_allowed(self):
+        # Atendimento já encerrado: "realizado" exige o término previsto (BUS-07).
         agendamento = Appointment.objects.create(
             barbershop=self.barbershop,
             cliente=self.client_user,
             barbeiro=self.barber,
             servico=self.service,
-            data_hora=self.local_datetime(2, 10, 0),
+            data_hora=self.local_datetime(-1, 10, 0),
             status=Appointment.Status.CONFIRMADO,
         )
         response = self.client.patch(
@@ -1725,13 +1726,16 @@ class AppointmentHistoricalPriceTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['status'], Appointment.Status.CONFIRMADO)
 
-        # Agora marca como realizado (transição válida: confirmado -> realizado)
+        # Agora marca como realizado (transição válida: confirmado -> realizado),
+        # a partir do término previsto do atendimento (BUS-07).
         self.client.force_authenticate(self.admin)
-        response = self.client.patch(
-            self._detail_url(appointment_id),
-            {'status': Appointment.Status.REALIZADO},
-            format='json',
-        )
+        termino = self.start + timedelta(minutes=self.service1.duracao)
+        with mock.patch('django.utils.timezone.now', return_value=termino):
+            response = self.client.patch(
+                self._detail_url(appointment_id),
+                {'status': Appointment.Status.REALIZADO},
+                format='json',
+            )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['status'], Appointment.Status.REALIZADO)
         self.assertEqual(str(response.data['preco_historico']), '50.00')

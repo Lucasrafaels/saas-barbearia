@@ -1,0 +1,150 @@
+$ npm audit
+# npm audit report
+
+axios  1.0.0 - 1.19.0
+Severity: high
+Axios: Prototype pollution gadget in fetch adapter can alter outbound requests - https://github.com/advisories/GHSA-vh66-26gq-q6x8
+Axios: Prototype-Pollution Gadget in the Default Instance Allows Inherited Object.prototype.method to Override HTTP Method - https://github.com/advisories/GHSA-9fr6-4gfg-395g
+Axios: ReDoS in fromDataURI data: URL parser freezes the Node event loop (DoS) - https://github.com/advisories/GHSA-c29m-xwm3-cm6r
+Axios: ReDoS (O(N²)) in shouldBypassProxy host normalization, reachable via untrusted redirect Location - https://github.com/advisories/GHSA-mghh-pgcx-3jjj
+Axios: Prototype Pollution Gadget in axios toFormData Options - https://github.com/advisories/GHSA-x97p-jq2g-jp4f
+Axios: HTTP/2 adapter bypasses configured DNS lookup and proxy controls - https://github.com/advisories/GHSA-3pq3-5fj3-cg6v
+Axios: Denial of Service via Unhandled 'error' Event in HTTP/2 ClientHttp2Session Initialization - https://github.com/advisories/GHSA-542g-h47m-68v8
+Axios: Header Injection via Inherited headers After Minimal Interceptor - https://github.com/advisories/GHSA-j8rh-479h-cp32
+Axios: Fetch Adapter Header Injection via Inherited FormData getHeaders - https://github.com/advisories/GHSA-4hqw-qxg8-jxx2
+Axios: Node HTTP adapter prototype-pollution gadget allows request socket hijack via inherited createConnection - https://github.com/advisories/GHSA-m8m8-qj5v-23w3
+Axios: CIDR-form NO_PROXY entries are ignored, causing proxy exclusion bypass for internal IP ranges - https://github.com/advisories/GHSA-44g4-m2mj-wpvx
+Axios: maxRedirects: 0 is not enforced by the fetch adapter, allowing redirect-based SSRF - https://github.com/advisories/GHSA-r4gj-5m52-g5wh
+fix available via `npm audit fix`
+node_modules/axios
+
+brace-expansion  <=1.1.20 || 4.0.0 - 5.0.11
+Severity: high
+brace-expansion: Quadratic-time expansion of the `{a},b}` rewrite causes CPU denial of service - https://github.com/advisories/GHSA-q2hr-2g5m-vwhr
+brace-expansion: Quadratic-time expansion of the `{a},b}` rewrite causes CPU denial of service - https://github.com/advisories/GHSA-q2hr-2g5m-vwhr
+brace-expansion: DoS via uncontrolled recursion on nested brace groups causing stack exhaustion - https://github.com/advisories/GHSA-qhr7-859c-m2p7
+brace-expansion: DoS via uncontrolled recursion on nested brace groups causing stack exhaustion - https://github.com/advisories/GHSA-qhr7-859c-m2p7
+brace-expansion: DoS via uncontrolled recursion in parseCommaParts causing stack exhaustion - https://github.com/advisories/GHSA-6j4f-fj2g-mc7p
+brace-expansion: DoS via uncontrolled recursion in parseCommaParts causing stack exhaustion - https://github.com/advisories/GHSA-6j4f-fj2g-mc7p
+fix available via `npm audit fix`
+node_modules/@typescript-eslint/typescript-estree/node_modules/brace-expansion
+node_modules/brace-expansion
+
+follow-redirects  1.16.0 - 1.16.1
+Severity: high
+follow-redirects array-form headers bypass cross-origin credential stripping - https://github.com/advisories/GHSA-q3jh-wrc6-jgq8
+follow-redirects sensitiveHeaders regex escaping can expose credential headers - https://github.com/advisories/GHSA-8r9p-f939-6h3c
+follow-redirects: Cross-realm sensitiveHeaders arrays are discarded and custom credentials can follow redirects - https://github.com/advisories/GHSA-mrwp-f3q8-3g9p
+fix available via `npm audit fix`
+node_modules/follow-redirects
+
+js-yaml  4.0.0 - 4.3.1
+Severity: high
+js-yaml: maxTotalMergeKeys does not limit CPU use for empty merge sources - https://github.com/advisories/GHSA-2883-xcg3-v3hh
+fix available via `npm audit fix`
+node_modules/js-yaml
+
+minimatch  7.0.0 - 11.0.0
+Severity: moderate
+minimatch has potential denial of service via globparts amplification - https://github.com/advisories/GHSA-g3hv-75wg-m249
+fix available via `npm audit fix`
+node_modules/@typescript-eslint/typescript-estree/node_modules/minimatch
+  @typescript-eslint/typescript-estree  6.16.0 - 8.72.2
+  Depends on vulnerable versions of minimatch
+  node_modules/@typescript-eslint/typescript-estree
+    @typescript-eslint/parser  6.16.0 - 8.72.2
+    Depends on vulnerable versions of @typescript-eslint/typescript-estree
+    node_modules/@typescript-eslint/parser
+      typescript-eslint  <=8.72.2
+      Depends on vulnerable versions of @typescript-eslint/eslint-plugin
+      Depends on vulnerable versions of @typescript-eslint/parser
+      Depends on vulnerable versions of @typescript-eslint/typescript-estree
+      Depends on vulnerable versions of @typescript-eslint/utils
+      node_modules/typescript-eslint
+    @typescript-eslint/type-utils  6.16.0 - 8.72.2
+    Depends on vulnerable versions of @typescript-eslint/typescript-estree
+    Depends on vulnerable versions of @typescript-eslint/utils
+    node_modules/@typescript-eslint/type-utils
+      @typescript-eslint/eslint-plugin  6.16.0 - 8.72.2
+      Depends on vulnerable versions of @typescript-eslint/type-utils
+      Depends on vulnerable versions of @typescript-eslint/utils
+      node_modules/@typescript-eslint/eslint-plugin
+    @typescript-eslint/utils  6.16.0 - 8.72.2
+    Depends on vulnerable versions of @typescript-eslint/typescript-estree
+    node_modules/@typescript-eslint/utils
+
+source-map-js  1.0.0 - 1.2.1
+Severity: high
+source-map-js allows event-loop denial of service through indexed source-map section offsets - https://github.com/advisories/GHSA-68fv-2mgg-jv7q
+fix available via `npm audit fix`
+node_modules/source-map-js
+
+vite  <=6.4.3
+Severity: high
+launch-editor: escapeCmdArgs() omits % escaping on Windows - https://github.com/advisories/GHSA-698v-4r3x-3vcv
+launch-editor: Editor CLI flag misinterpretation causing arbitrary command execution for some editors - https://github.com/advisories/GHSA-r825-w8mm-5pxw
+launch-editor: `fs.existsSync()` existence check can be bypassed on Windows - https://github.com/advisories/GHSA-587h-7wmj-h5pm
+Vite: Cross origin script execution through Vite custom middleware - https://github.com/advisories/GHSA-9jrq-w75r-8gcw
+Vite: Files outside `server.fs.allow` could be served when project paths match system paths on non-Windows machine - https://github.com/advisories/GHSA-rq7h-c2jc-7f22
+fix available via `npm audit fix`
+node_modules/vite
+
+zod  <4.6.6
+Severity: high
+Zod can exhaust memory while validating oversized constrained collections - https://github.com/advisories/GHSA-mrhx-c7xc-m3w5
+fix available via `npm audit fix --force`
+Will install zod@4.6.7, which is a breaking change
+node_modules/zod
+
+14 vulnerabilities (7 moderate, 7 high)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+exit=1
+
+$ npm outdated
+Package                      Current   Wanted   Latest  Location                                  Depended by
+@eslint/js                    9.39.5   9.39.5   10.0.1  node_modules/@eslint/js                   frontend
+@hookform/resolvers            5.9.1    5.9.2    7.0.6  node_modules/@hookform/resolvers          frontend
+@types/react                 19.2.18   19.3.0   19.3.0  node_modules/@types/react                 frontend
+@types/react-dom              19.2.5   19.3.0   19.3.0  node_modules/@types/react-dom             frontend
+@vitejs/plugin-react           4.7.0    4.7.0    6.3.0  node_modules/@vitejs/plugin-react         frontend
+axios                         1.19.0   1.21.1   1.21.1  node_modules/axios                        frontend
+eslint                        9.39.5   9.39.5  10.14.0  node_modules/eslint                       frontend
+eslint-plugin-react-hooks      5.2.0    5.2.0    7.1.1  node_modules/eslint-plugin-react-hooks    frontend
+eslint-plugin-react-refresh   0.4.26   0.4.26    0.5.7  node_modules/eslint-plugin-react-refresh  frontend
+globals                       16.5.0   16.5.0  17.14.0  node_modules/globals                      frontend
+react                         19.2.8   19.3.1   19.3.1  node_modules/react                        frontend
+react-dom                     19.2.8   19.3.1   19.3.1  node_modules/react-dom                    frontend
+react-hook-form               7.86.0   7.92.0   7.92.0  node_modules/react-hook-form              frontend
+react-router-dom              7.18.2   7.18.5   7.18.5  node_modules/react-router-dom             frontend
+typescript                     5.8.3    5.8.3    7.0.2  node_modules/typescript                   frontend
+typescript-eslint             8.67.0   8.72.2   8.72.2  node_modules/typescript-eslint            frontend
+vite                           6.4.3    6.4.6    8.3.8  node_modules/vite                         frontend
+zod                          3.25.76  3.25.76    4.6.7  node_modules/zod                          frontend
+exit=1
+
+$ npm ls --depth=0
+barbearia-saas-frontend@1.0.0 ~/arquivos_faculdade/saas_barbearia/frontend
+├── @eslint/js@9.39.5
+├── @hookform/resolvers@5.9.1
+├── @types/react-dom@19.2.5
+├── @types/react@19.2.18
+├── @vitejs/plugin-react@4.7.0
+├── axios@1.19.0
+├── eslint-plugin-react-hooks@5.2.0
+├── eslint-plugin-react-refresh@0.4.26
+├── eslint@9.39.5
+├── globals@16.5.0
+├── react-dom@19.2.8
+├── react-hook-form@7.86.0
+├── react-router-dom@7.18.2
+├── react@19.2.8
+├── typescript-eslint@8.67.0
+├── typescript@5.8.3
+├── vite@6.4.3
+└── zod@3.25.76
+

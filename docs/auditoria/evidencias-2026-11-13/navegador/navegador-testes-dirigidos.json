@@ -1,0 +1,82 @@
+{
+ "requisicoesProducao": [
+  {
+   "usuario": "admin.a",
+   "rota": "/admin",
+   "requisicoes": 25,
+   "paginasDeAgendamentos": 22,
+   "ms": 3154
+  },
+  {
+   "usuario": "admin.a",
+   "rota": "/admin/appointments",
+   "requisicoes": 25,
+   "paginasDeAgendamentos": 22,
+   "ms": 3313
+  },
+  {
+   "usuario": "admin.a",
+   "rota": "/admin/clients",
+   "requisicoes": 25,
+   "paginasDeAgendamentos": 22,
+   "ms": 3164
+  },
+  {
+   "usuario": "admin.a",
+   "rota": "/admin/services",
+   "requisicoes": 4,
+   "paginasDeAgendamentos": 1,
+   "ms": 1562
+  },
+  {
+   "usuario": "admin.a",
+   "rota": "/admin/barbers",
+   "requisicoes": 4,
+   "paginasDeAgendamentos": 1,
+   "ms": 1593
+  },
+  {
+   "usuario": "joao.barbeiro",
+   "rota": "/barber/agenda",
+   "requisicoes": 10,
+   "paginasDeAgendamentos": 8,
+   "ms": 2063
+  },
+  {
+   "usuario": "cliente1",
+   "rota": "/",
+   "requisicoes": 6,
+   "paginasDeAgendamentos": 4,
+   "ms": 1819
+  },
+  {
+   "usuario": "cliente1",
+   "rota": "/appointments",
+   "requisicoes": 6,
+   "paginasDeAgendamentos": 4,
+   "ms": 1796
+  },
+  {
+   "usuario": "cliente1",
+   "rota": "/appointments/new",
+   "requisicoes": 4,
+   "paginasDeAgendamentos": 0,
+   "ms": 1639
+  }
+ ],
+ "fe03": {
+  "textoNovoAposFalha": [],
+  "mensagemDeErroVisivel": false
+ },
+ "apiForaDoAr": {
+  "texto": "Sem conexão com o servidor\n\nNão foi possível validar sua sessão. Verifique sua internet ou se a API está em execução. Sua sessão continua salva.\n\nTentar novamente"
+ },
+ "barbeariaDesativada": {
+  "desativacao": 204,
+  "adminVeAviso": false,
+  "resumoLateral": "Aberta até 19:00",
+  "adminConfirmar": "Esta barbearia está desativada: não é possível criar, remarcar, confirmar ou concluir agendamentos. Consultas e cancelam",
+  "clienteAoAgendar": "Esta barbearia está desativada: não é possível criar, remarcar, confirmar ou concluir agendamentos. Consultas e cancelamentos continuam disponíveis."
+ },
+ "tempoSemTimeout": {}
+}

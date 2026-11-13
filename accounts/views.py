@@ -27,8 +27,10 @@ from .serializers import (
     PublicRegistrationSerializer,
     UserCreateSerializer,
     UserSerializer,
+    admin_integrity_error_as_drf,
     revoke_user_refresh_tokens,
 )
+from .admin_integrity import AdminIntegrityError, check_self_change
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -217,26 +219,36 @@ class UserViewSet(viewsets.ModelViewSet):
         # demais registros históricos vinculados ao usuário.
         # Se o usuário for barbeiro, também desativa o perfil Barber.
         from django.db import transaction
+
+        try:
+            # O DELETE da API é uma desativação; a regra do último admin
+            # ativo é imposta por User.save().
+            check_self_change(self.request.user, instance, is_active=False)
+            with transaction.atomic():
+                self._deactivate(instance)
+        except AdminIntegrityError as error:
+            raise admin_integrity_error_as_drf(error, key='detail') from error
+
+    def _deactivate(self, instance):
         from django.utils import timezone
         from barbershops.models import Barber
 
-        with transaction.atomic():
-            instance.is_active = False
-            instance.save(update_fields=['is_active'])
-            # Tokens de refresh emitidos antes da desativação não podem renovar
-            # a sessão. O access token existente expira no prazo curto definido.
-            revoke_user_refresh_tokens(instance)
+        instance.is_active = False
+        instance.save(update_fields=['is_active'])
+        # Tokens de refresh emitidos antes da desativação não podem renovar
+        # a sessão. O access token existente expira no prazo curto definido.
+        revoke_user_refresh_tokens(instance)
 
-            # Desativar perfil de barbeiro se existir
-            try:
-                barber = instance.perfil_barbeiro
-                if barber.ativo:
-                    barber.ativo = False
-                    barber.deleted_at = timezone.now()
-                    barber.deleted_by = self.request.user
-                    barber.save(update_fields=['ativo', 'deleted_at', 'deleted_by'])
-            except Barber.DoesNotExist:
-                pass
+        # Desativar perfil de barbeiro se existir
+        try:
+            barber = instance.perfil_barbeiro
+            if barber.ativo:
+                barber.ativo = False
+                barber.deleted_at = timezone.now()
+                barber.deleted_by = self.request.user
+                barber.save(update_fields=['ativo', 'deleted_at', 'deleted_by'])
+        except Barber.DoesNotExist:
+            pass
 
     @action(detail=False, methods=['get'])
     def me(self, request):

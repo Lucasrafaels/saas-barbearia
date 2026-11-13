@@ -1,0 +1,72 @@
+Teste | código anterior | código corrigido
+test_dias_funcionamento.test_admin_configura_os_dias_e_a_api_normaliza | falha | passa
+test_dias_funcionamento.test_barbearia_que_fecha_na_segunda_e_abre_no_domingo | falha | passa
+test_dias_funcionamento.test_cliente_e_barbeiro_nao_alteram_os_dias | falha | passa
+test_dias_funcionamento.test_configuracao_de_uma_barbearia_nao_afeta_outra | falha | passa
+test_dias_funcionamento.test_dia_da_semana_e_o_local_e_nao_o_utc | falha | passa
+test_dias_funcionamento.test_dia_fechado_nao_tem_horarios_livres | falha | passa
+test_dias_funcionamento.test_dias_invalidos_sao_recusados | falha | passa
+test_dias_funcionamento.test_domingo_aberto_continua_aceitando_agendamentos | passa | passa
+test_dias_funcionamento.test_horario_ja_marcado_num_dia_que_depois_fechou_continua_gerenciavel | falha | passa
+test_dias_funcionamento.test_modelo_normaliza_dias_validos | falha | passa
+test_dias_funcionamento.test_modelo_recusa_dias_invalidos_fora_da_api | falha | passa
+test_dias_funcionamento.test_nenhum_perfil_agenda_em_dia_fechado | falha | passa
+test_dias_funcionamento.test_onboarding_sem_dias_usa_o_padrao | falha | passa
+test_dias_funcionamento.test_padrao_sao_todos_os_dias | falha | passa
+test_dias_funcionamento.test_regra_vale_fora_da_api | falha | passa
+test_dias_funcionamento.test_remarcacao_para_dia_fechado_e_recusada | falha | passa
+test_horario_funcionamento.test_edicao_valida_continua_funcionando | passa | passa
+test_horario_funcionamento.test_editar_outros_campos_nao_exige_reenviar_o_horario | passa | passa
+test_horario_funcionamento.test_fechamento_antes_da_abertura_e_recusado | falha | passa
+test_horario_funcionamento.test_fechamento_igual_a_abertura_e_recusado | falha | passa
+test_horario_funcionamento.test_horario_que_atravessa_a_meia_noite_e_recusado | falha | passa
+test_horario_funcionamento.test_modelo_recusa_fechamento_antes_da_abertura | falha | passa
+test_horario_funcionamento.test_onboarding_com_horario_invalido_nao_cria_barbearia | falha | passa
+test_horario_funcionamento.test_patch_parcial_so_da_abertura_e_comparado_com_o_fechamento_gravado | falha | passa
+test_horario_funcionamento.test_patch_parcial_so_do_fechamento_e_comparado_com_a_abertura_gravada | falha | passa
+test_horario_funcionamento.test_um_minuto_depois_da_abertura_e_aceito | passa | passa
+test_remarcacao_status.test_admin_remarcando_mantem_confirmado | passa | passa
+test_remarcacao_status.test_barbearia_confirma_de_novo_depois_da_remarcacao | passa | passa
+test_remarcacao_status.test_barbeiro_remarcando_a_propria_agenda_mantem_confirmado | passa | passa
+test_remarcacao_status.test_cliente_editando_so_observacoes_mantem_confirmado | passa | passa
+test_remarcacao_status.test_cliente_muda_o_barbeiro_e_volta_a_agendado | falha | passa
+test_remarcacao_status.test_cliente_muda_o_horario_e_volta_a_agendado | falha | passa
+test_remarcacao_status.test_cliente_muda_o_servico_e_volta_a_agendado | falha | passa
+test_remarcacao_status.test_cliente_nao_mantem_confirmado_mandando_o_status_junto | falha | passa
+test_remarcacao_status.test_cliente_nao_muda_o_status_junto_com_a_remarcacao | passa | passa
+test_remarcacao_status.test_modelo_so_aceita_confirmado_para_agendado_numa_remarcacao | falha | passa
+test_remarcacao_status.test_reabrir_sem_remarcar_continua_proibido | passa | passa
+test_remarcacao_status.test_reenviar_os_mesmos_dados_mantem_confirmado | passa | passa
+test_remarcacao_status.test_remarcacao_preserva_o_preco_historico | passa | passa
+test_remarcacao_status.test_remarcar_um_horario_ainda_agendado_continua_agendado | passa | passa
+test_status_inicial.test_admin_registra_horario_ja_confirmado | passa | passa
+test_status_inicial.test_admin_sem_status_cria_agendado | passa | passa
+test_status_inicial.test_barbeiro_registra_horario_ja_confirmado_na_propria_agenda | passa | passa
+test_status_inicial.test_cliente_enviando_agendado_explicitamente_e_aceito | passa | passa
+test_status_inicial.test_cliente_nao_contorna_combinando_status_e_outro_cliente | falha | passa
+test_status_inicial.test_cliente_nao_cria_agendamento_com_status_final | falha | passa
+test_status_inicial.test_cliente_nao_cria_agendamento_ja_confirmado | falha | passa
+test_status_inicial.test_cliente_sem_status_cria_agendado | passa | passa
+test_status_inicial.test_horario_do_cliente_entra_na_fila_a_confirmar_da_barbearia | passa | passa
+test_status_inicial.test_modelo_aceita_registro_novo_agendado_ou_confirmado | passa | passa
+test_status_inicial.test_modelo_recusa_registro_novo_cancelado | falha | passa
+test_status_inicial.test_ninguem_cria_agendamento_ja_cancelado | falha | passa
+test_status_inicial.test_status_enviado_como_formulario_tambem_e_recusado | falha | passa
+test_status_inicial.test_status_invalido_nao_vira_erro_500 | passa | passa
+test_troca_servico_fechamento.test_admin_troca_por_servico_que_passa_do_fechamento | falha | passa
+test_troca_servico_fechamento.test_barbeiro_troca_por_servico_que_passa_do_fechamento | falha | passa
+test_troca_servico_fechamento.test_cliente_troca_por_servico_que_passa_do_fechamento | falha | passa
+test_troca_servico_fechamento.test_horario_fora_da_grade_tambem_e_revalidado | falha | passa
+test_troca_servico_fechamento.test_limite_considera_o_fuso_local_com_horario_em_utc | passa | passa
+test_troca_servico_fechamento.test_modelo_recusa_a_troca_fora_da_api | falha | passa
+test_troca_servico_fechamento.test_mudar_so_o_status_nao_revalida_o_horario | passa | passa
+test_troca_servico_fechamento.test_terminar_exatamente_no_fechamento_e_permitido | passa | passa
+test_troca_servico_fechamento.test_troca_por_servico_de_mesma_duracao_no_fim_do_dia_e_permitida | passa | passa
+test_troca_servico_fechamento.test_trocar_servico_e_antecipar_o_horario_juntos_e_permitido | passa | passa
+
+test_dias_funcionamento: 16 testes; falham no código anterior: 15; passam no anterior (protegem fluxos legítimos): 1; passam no corrigido: 16
+test_horario_funcionamento: 10 testes; falham no código anterior: 7; passam no anterior (protegem fluxos legítimos): 3; passam no corrigido: 10
+test_remarcacao_status: 14 testes; falham no código anterior: 5; passam no anterior (protegem fluxos legítimos): 9; passam no corrigido: 14
+test_status_inicial: 14 testes; falham no código anterior: 6; passam no anterior (protegem fluxos legítimos): 8; passam no corrigido: 14
+test_troca_servico_fechamento: 10 testes; falham no código anterior: 5; passam no anterior (protegem fluxos legítimos): 5; passam no corrigido: 10
+TOTAL 64 | falham antes 38 | passam antes 26 | passam depois 64

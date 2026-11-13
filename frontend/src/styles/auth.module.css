@@ -1,8 +1,8 @@
-/* Telas públicas: painel grafite com a marca + coluna do formulário. */
+/* Telas de entrada: placa marinho com a marca + coluna do formulário sobre o marfim. */
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
   min-height: 100dvh;
 }
 
@@ -11,61 +11,74 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: var(--space-10);
-  padding: var(--space-10) clamp(2rem, 5vw, 4.5rem);
-  background: var(--ink-900);
-  color: var(--paper);
+  gap: var(--space-8);
+  padding: var(--space-10) clamp(2rem, 5vw, 4.5rem) var(--space-12);
+  background: var(--marinho-900);
+  color: var(--marfim);
   overflow: hidden;
+}
+
+/* Filete interno, como nas placas esmaltadas */
+.aside::before {
+  content: '';
+  position: absolute;
+  inset: 14px;
+  border: 1px solid rgb(248 244 235 / 0.14);
+  border-radius: var(--radius-lg);
+  pointer-events: none;
 }
 
 .brand {
   position: relative;
   z-index: 1;
   display: inline-flex;
-  align-items: center;
-  gap: var(--space-3);
-  color: var(--paper);
-  font-size: var(--fs-18);
-  font-weight: var(--fw-bold);
-  font-stretch: var(--stretch-display);
-  text-decoration: none;
 }
+
+/* Navalha em traço de gravura, na cor do marinho claro */
+.art {
+  position: relative;
+  z-index: 1;
+  width: min(30rem, 92%);
+  color: var(--marinho-300);
+  opacity: 0.85;
+  animation: artIn 0.8s var(--ease-out) both;
+}
+
+.art svg { width: 100%; height: auto; color: var(--marinho-300); }
 
 .statement {
   position: relative;
   z-index: 1;
-  max-width: 26rem;
+  max-width: 30rem;
 }
 
 .statement h2 {
-  color: var(--paper);
-  font-size: clamp(2rem, 3.4vw, 3rem);
-  font-weight: var(--fw-semibold);
-  font-stretch: 125%;
-  line-height: 1.05;
-  letter-spacing: -0.025em;
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 5.2vw, 4.75rem);
+  font-weight: 400;
+  line-height: 0.88;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--marfim);
 }
 
 .statement p {
   margin-top: var(--space-5);
   font-size: var(--fs-16);
-  color: rgb(246 243 237 / 0.68);
-  max-width: 34ch;
+  color: var(--marinho-200);
+  max-width: 36ch;
 }
 
-/* Poste de barbearia abstraído: uma cápsula com faixas latão, cortada pela borda */
+/* Faixa do poste na base da placa */
 .pole {
   position: absolute;
-  right: -3.5rem;
-  bottom: -4rem;
-  width: 11rem;
-  height: 30rem;
-  border-radius: 999px;
-  background:
-    repeating-linear-gradient(-32deg, var(--brass) 0 18px, transparent 18px 52px),
-    var(--ink-700);
-  opacity: 0.22;
-  transform: rotate(14deg);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 10px;
+  background: var(--listras-poste);
+  background-size: 22px 22px;
+  border-top: 2px solid var(--branco);
 }
 
 .main {
@@ -75,7 +88,7 @@
 }
 
 .panel {
-  width: min(25rem, 100%);
+  width: min(25.5rem, 100%);
   display: grid;
   gap: var(--space-6);
   animation: rise var(--dur-3) var(--ease-out);
@@ -86,8 +99,13 @@
 .header { display: grid; gap: var(--space-2); }
 
 .header h1 {
-  font-size: var(--fs-24);
-  font-weight: var(--fw-bold);
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 400;
+  line-height: 0.9;
+  letter-spacing: 0.012em;
+  text-transform: uppercase;
+  color: var(--marinho-900);
 }
 
 .header p {
@@ -102,7 +120,7 @@
   gap: var(--space-3);
 }
 
-.labelRow a { font-size: var(--fs-14); }
+.labelRow a { font-size: var(--fs-14); font-weight: var(--fw-semibold); }
 
 .switch {
   font-size: var(--fs-14);
@@ -110,30 +128,55 @@
   text-align: center;
 }
 
+.switch a { font-weight: var(--fw-semibold); }
+
 .divider {
   height: 1px;
   background: var(--color-border);
 }
 
+.about {
+  justify-self: center;
+  font-size: var(--fs-14);
+  font-weight: var(--fw-semibold);
+  color: var(--tinta-2);
+  text-decoration-color: var(--linha-forte);
+}
+
+.about:hover { color: var(--marinho-900); }
+
 .mobileBrand { display: none; }
+.mobilePole { display: none; }
 
 @media (max-width: 900px) {
   .layout { grid-template-columns: 1fr; }
   .aside { display: none; }
-  .main { place-items: start center; padding: var(--space-6) var(--space-5) var(--space-10); }
+  .main { place-items: start center; padding: 0 var(--space-5) var(--space-10); }
+  .panel { padding-top: var(--space-6); }
   .mobileBrand {
     display: inline-flex;
     align-items: center;
-    gap: var(--space-2);
-    margin-bottom: var(--space-2);
-    color: var(--color-text);
-    font-weight: var(--fw-bold);
-    font-stretch: var(--stretch-display);
-    text-decoration: none;
+    justify-self: start;
   }
+  /* Um pequeno poste deitado sob a marca */
+  .mobilePole {
+    display: block;
+    width: 6.5rem;
+    height: 6px;
+    margin-top: calc(-1 * var(--space-3));
+    border-radius: var(--radius-pill);
+    background: var(--listras-poste);
+    background-size: 14px 14px;
+  }
+  .header h1 { font-size: 2.5rem; }
 }
 
 @keyframes rise {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: none; }
+}
+
+@keyframes artIn {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 0.85; transform: none; }
 }
