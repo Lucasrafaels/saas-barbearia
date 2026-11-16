@@ -1,0 +1,6 @@
+$ DEBUG=False SECURE_SSL_REDIRECT=False SECRET_KEY=<aleatória> manage.py test --settings=ptbr_test_settings --parallel 1  (DEBUG=False também na importação)
+DEBUG na importação = False
+Ran 521 tests in 38.772s
+
+OK
+Destroying test database for alias 'default'...

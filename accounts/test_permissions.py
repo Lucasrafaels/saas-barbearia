@@ -134,10 +134,11 @@ class UserViewSetPermissionTests(APITestCase):
         url = reverse('user-detail', kwargs={'pk': self.barbeiro_user.pk})
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Tentar acessar outro usuário
+        # Tentar acessar outro usuário: PER-13 (SEC-10), o mesmo 404 de um ID
+        # inexistente (antes, 403 revelava que o ID existia).
         url = reverse('user-detail', kwargs={'pk': self.cliente_user.pk})
         response = self.client.get(url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_cliente_can_only_access_own_user(self):
         """Cliente deve conseguir acessar apenas próprios dados."""
@@ -145,10 +146,11 @@ class UserViewSetPermissionTests(APITestCase):
         url = reverse('user-detail', kwargs={'pk': self.cliente_user.pk})
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Tentar acessar outro usuário
+        # Tentar acessar outro usuário: PER-13 (SEC-10), o mesmo 404 de um ID
+        # inexistente (antes, 403 revelava que o ID existia).
         url = reverse('user-detail', kwargs={'pk': self.admin_user.pk})
         response = self.client.get(url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_unauthenticated_cannot_access_users(self):
         """Usuário não autenticado não deve conseguir acessar endpoints de usuários."""

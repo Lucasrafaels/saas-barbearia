@@ -1,0 +1,23 @@
+== B1 pg_dump -Fc (início 2026-11-15 22:55:52)
+banco da aplicação: barbershop_db em localhost:5432
+pg_dump exit=0 (fim 2026-11-15 22:55:53)
+== B2 validação
+diretório: permissão=700 /home/lucasrafael/backups/barberpro/accounts0006_p8_20261115_225552
+arquivo: permissão=600 tamanho=63004 bytes /home/lucasrafael/backups/barberpro/accounts0006_p8_20261115_225552/barbershop_db_20261115_225552_p8_antes_accounts0006.dump
+5a4c028b39b4f2c4274e24042b47e863ca9fd7318a17c376453ab9ceed513279  barbershop_db_20261115_225552_p8_antes_accounts0006.dump
+pg_restore --list exit=0; itens: 139; TABLE DATA: 16
+; Archive created at 2026-11-15 22:55:52 -03
+;     dbname: barbershop_db
+;     TOC Entries: 143
+;     Format: CUSTOM
+;     Dumped from database version: 18.3
+;     Dumped by pg_dump version: 18.3
+as 8 tabelas principais estão no backup
+restrição accounts_user_email_key presente no backup; accounts_user_email_normalizado presente: 0
+lista de objetos idêntica à do backup do ensaio (P3)
+permissão=600 /home/lucasrafael/backups/barberpro/accounts0006_p8_20261115_225552/barbershop_db_20261115_225552_p8_antes_accounts0006.dump.sha256
+permissão=600 /home/lucasrafael/backups/barberpro/accounts0006_p8_20261115_225552/barbershop_db_20261115_225552_p8_antes_accounts0006.dump.lista.txt
+== B3 contagens no banco real logo depois do backup (somente leitura)
+contagens antes e depois do backup: IDÊNTICAS
+backups anteriores intactos: 13/11 2aae35cc1662ba3d, ensaio 5eb831d6b973bd82
+RESULTADO B: BACKUP CRIADO E VALIDADO

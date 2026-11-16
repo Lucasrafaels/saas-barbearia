@@ -1,0 +1,287 @@
+{
+ "frontend": "http://127.0.0.1:4181",
+ "api": "http://127.0.0.1:8767/api/v1",
+ "perfis": [
+  {
+   "papel": "cliente",
+   "login": {
+    "saiu_do_login": true,
+    "destino": "/"
+   },
+   "paginas": [
+    {
+     "pagina": "/",
+     "final": "/",
+     "pedidos_api": 12,
+     "status": {
+      "200": 12
+     },
+     "nao_json": [],
+     "erros_api": [],
+     "status_406": 0,
+     "texto_esperado": null,
+     "texto_encontrado": null,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/services",
+     "final": "/services",
+     "pedidos_api": 4,
+     "status": {
+      "200": 4
+     },
+     "nao_json": [],
+     "erros_api": [],
+     "status_406": 0,
+     "texto_esperado": "Corte",
+     "texto_encontrado": true,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/barbers",
+     "final": "/barbers",
+     "pedidos_api": 6,
+     "status": {
+      "200": 6
+     },
+     "nao_json": [],
+     "erros_api": [],
+     "status_406": 0,
+     "texto_esperado": "João Navalha",
+     "texto_encontrado": true,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/appointments",
+     "final": "/appointments",
+     "pedidos_api": 10,
+     "status": {
+      "200": 10
+     },
+     "nao_json": [],
+     "erros_api": [],
+     "status_406": 0,
+     "texto_esperado": null,
+     "texto_encontrado": null,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/appointments/new",
+     "final": "/appointments/new",
+     "pedidos_api": 5,
+     "status": {
+      "200": 5
+     },
+     "nao_json": [],
+     "erros_api": [],
+     "status_406": 0,
+     "texto_esperado": "Corte",
+     "texto_encontrado": true,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/account",
+     "final": "/account",
+     "pedidos_api": 2,
+     "status": {
+      "200": 2
+     },
+     "nao_json": [],
+     "erros_api": [],
+     "status_406": 0,
+     "texto_esperado": "cliente1@exemplo.test",
+     "texto_encontrado": true,
+     "nomes_de_B": [],
+     "erros_console": []
+    }
+   ],
+   "total_pedidos_api": 53
+  },
+  {
+   "papel": "barbeiro",
+   "login": {
+    "saiu_do_login": true,
+    "destino": "/barber/agenda"
+   },
+   "paginas": [
+    {
+     "pagina": "/",
+     "final": "/barber/agenda",
+     "pedidos_api": 14,
+     "status": {
+      "200": 14
+     },
+     "nao_json": [],
+     "erros_api": [],
+     "status_406": 0,
+     "texto_esperado": null,
+     "texto_encontrado": null,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/barber/agenda",
+     "final": "/barber/agenda",
+     "pedidos_api": 11,
+     "status": {
+      "200": 11
+     },
+     "nao_json": [],
+     "erros_api": [],
+     "status_406": 0,
+     "texto_esperado": null,
+     "texto_encontrado": null,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/account",
+     "final": "/account",
+     "pedidos_api": 3,
+     "status": {
+      "200": 3
+     },
+     "nao_json": [],
+     "erros_api": [],
+     "status_406": 0,
+     "texto_esperado": "joao.barbeiro@exemplo.test",
+     "texto_encontrado": true,
+     "nomes_de_B": [],
+     "erros_console": []
+    }
+   ],
+   "total_pedidos_api": 56
+  },
+  {
+   "papel": "admin",
+   "login": {
+    "saiu_do_login": true,
+    "destino": "/admin"
+   },
+   "paginas": [
+    {
+     "pagina": "/admin",
+     "final": "/admin",
+     "pedidos_api": 27,
+     "status": {
+      "200": 27
+     },
+     "nao_json": [],
+     "erros_api": [],
+     "status_406": 0,
+     "texto_esperado": null,
+     "texto_encontrado": null,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/admin/appointments",
+     "final": "/admin/appointments",
+     "pedidos_api": 52,
+     "status": {
+      "200": 52
+     },
+     "nao_json": [],
+     "erros_api": [],
+     "status_406": 0,
+     "texto_esperado": null,
+     "texto_encontrado": null,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/admin/services",
+     "final": "/admin/services",
+     "pedidos_api": 5,
+     "status": {
+      "200": 5
+     },
+     "nao_json": [],
+     "erros_api": [],
+     "status_406": 0,
+     "texto_esperado": "Pigmentação",
+     "texto_encontrado": true,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/admin/barbers",
+     "final": "/admin/barbers",
+     "pedidos_api": 4,
+     "status": {
+      "200": 4
+     },
+     "nao_json": [],
+     "erros_api": [],
+     "status_406": 0,
+     "texto_esperado": "Pedro Tesoura",
+     "texto_encontrado": true,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/admin/clients",
+     "final": "/admin/clients",
+     "pedidos_api": 27,
+     "status": {
+      "200": 27
+     },
+     "nao_json": [],
+     "erros_api": [],
+     "status_406": 0,
+     "texto_esperado": "Carla Cliente",
+     "texto_encontrado": true,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/admin/barbershop",
+     "final": "/admin/barbershop",
+     "pedidos_api": 3,
+     "status": {
+      "200": 3
+     },
+     "nao_json": [],
+     "erros_api": [],
+     "status_406": 0,
+     "texto_esperado": "Barbearia Navalha Fictícia",
+     "texto_encontrado": true,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/account",
+     "final": "/account",
+     "pedidos_api": 6,
+     "status": {
+      "200": 6
+     },
+     "nao_json": [],
+     "erros_api": [],
+     "status_406": 0,
+     "texto_esperado": "admin.a@exemplo.test",
+     "texto_encontrado": true,
+     "nomes_de_B": [],
+     "erros_console": []
+    }
+   ],
+   "total_pedidos_api": 182
+  }
+ ],
+ "resumo": {
+  "logins_ok": 3,
+  "paginas": 16,
+  "pedidos_api": 291,
+  "respostas_nao_json": 0,
+  "respostas_406": 0,
+  "erros_api": 0,
+  "paginas_com_texto_esperado": "10/10",
+  "paginas_com_nomes_de_B": 0,
+  "erros_console": 0
+ }
+}

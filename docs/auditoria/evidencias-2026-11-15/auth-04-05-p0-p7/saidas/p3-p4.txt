@@ -1,0 +1,32 @@
+== P3 pg_dump -Fc (início 2026-11-15 22:44:25)
+banco da aplicação: barbershop_db em localhost:5432
+pg_dump exit=0 (fim 2026-11-15 22:44:25)
+== P4 integridade
+permissão=600 tamanho=63004 bytes arquivo=/home/lucasrafael/backups/barberpro/accounts0006_20261115_224006/barbershop_db_20261115_224006_antes_accounts0006.dump
+5eb831d6b973bd82337d3936efd1b8ef707329cb7e2f2f9f2707b31bbc21af95  barbershop_db_20261115_224006_antes_accounts0006.dump
+pg_restore --list exit=0; itens no índice: 139; TABLE DATA: 16
+  presente: accounts_user
+  presente: appointments_appointment
+  presente: barbershops_barber
+  presente: barbershops_barbershop
+  presente: django_migrations
+  presente: services_service
+  presente: token_blacklist_blacklistedtoken
+  presente: token_blacklist_outstandingtoken
+;
+; Archive created at 2026-11-15 22:44:25 -03
+;     dbname: barbershop_db
+;     TOC Entries: 143
+;     Compression: gzip
+;     Dump Version: 1.16-0
+;     Format: CUSTOM
+;     Integer: 4 bytes
+;     Offset: 8 bytes
+;     Dumped from database version: 18.3
+;     Dumped by pg_dump version: 18.3
+;
+permissão=600 /home/lucasrafael/backups/barberpro/accounts0006_20261115_224006/barbershop_db_20261115_224006_antes_accounts0006.dump.sha256
+permissão=600 /home/lucasrafael/backups/barberpro/accounts0006_20261115_224006/barbershop_db_20261115_224006_antes_accounts0006.dump.lista.txt
+== contagens no banco real logo DEPOIS do backup (somente leitura), para comparar com P2.4
+contagens antes e depois do backup: IDÊNTICAS
+backup de 13/11 intacto: 2aae35cc1662ba3d

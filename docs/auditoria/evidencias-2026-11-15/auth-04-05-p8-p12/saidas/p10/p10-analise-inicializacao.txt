@@ -1,0 +1,13 @@
+== apps.py: nenhum ready() nem sinais
+(nenhum)
+== @receiver/post_save/pre_save/post_migrate/connect() fora de testes e migrações
+(nenhum)
+== consultas em nível de módulo em urls/settings/admin
+(nenhuma)
+== settings efetivas relevantes
+CACHES = django.core.cache.backends.locmem.LocMemCache
+SESSION_ENGINE = django.contrib.sessions.backends.db (grava só se a sessão for modificada; nenhum GET sem login a modifica)
+CSRF_USE_SESSIONS = False
+UPDATE_LAST_LOGIN = False
+CONN_MAX_AGE = 0
+== procedimento do README usado: 'python manage.py runserver' e 'cd frontend && npm run dev'; NÃO executados: 'migrate' e 'npm install' (node_modules já presente)

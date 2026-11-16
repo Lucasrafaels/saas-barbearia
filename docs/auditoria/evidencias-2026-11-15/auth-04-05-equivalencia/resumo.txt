@@ -1,0 +1,60 @@
+AUTH-04/05 — equivalência entre a normalização em Python e as funções do PostgreSQL, ANTES de implementar (15/11/2026)
+Banco DESCARTÁVEL: PostgreSQL 18.3 | datcollate/datctype pt_BR.UTF-8 | provedor libc | collversion 2.44
+Python 3.12.16 | tabelas Unicode do Python 15.0.0 | pontos de código testados: 1112063 (1..U+10FFFF sem substitutos)
+
+1. lower(): caracteres em que Python e PostgreSQL divergem: 56 | em ASCII: 0
+   divergentes aceitos pelo EmailValidator do Django no domínio: 56
+   entradas aceitas cujo valor normalizado em Python violaria CHECK (email = lower(email)): 55
+      U+0130 LATIN CAPITAL LETTER I WITH DOT ABOVE | Python ['U+0069', 'U+0307'] | PostgreSQL ['U+0069']
+      U+1C89 ? | Python ['U+1C89'] | PostgreSQL ['U+1C8A']
+      U+A7CB ? | Python ['U+A7CB'] | PostgreSQL ['U+0264']
+      U+A7CC ? | Python ['U+A7CC'] | PostgreSQL ['U+A7CD']
+      U+A7CE ? | Python ['U+A7CE'] | PostgreSQL ['U+A7CF']
+      U+A7D2 ? | Python ['U+A7D2'] | PostgreSQL ['U+A7D3']
+
+2. Espaços externos: Python str.strip() / DRF trim_whitespace remove 29 pontos; DRF igual ao Python: True
+   PostgreSQL btrim() padrão remove: U+0020
+   PostgreSQL \s (pt_BR): 21 pontos; Python remove e \s não reconhece: U+001C U+001D U+001E U+001F U+0085 U+00A0 U+2007 U+202F
+   JavaScript String.prototype.trim() (frontend) remove 25 pontos: U+0009 U+000A U+000B U+000C U+000D U+0020 U+00A0 U+1680 U+2000 U+2001 U+2002 U+2003 U+2004 U+2005 U+2006 U+2007 U+2008 U+2009 U+200A U+2028 U+2029 U+202F U+205F U+3000 U+FEFF
+
+3. Invisíveis aceitos pelo EmailValidator (caminho IDNA) e não removidos por strip(): 20 de 30 posições testadas
+      U+00AD SOFT HYPHEN - no meio do domínio
+      U+00AD SOFT HYPHEN - no fim
+      U+034F COMBINING GRAPHEME JOINER - no meio do domínio
+      U+034F COMBINING GRAPHEME JOINER - no fim
+      U+180B MONGOLIAN FREE VARIATION SELECTOR ONE - no meio do domínio
+      U+180B MONGOLIAN FREE VARIATION SELECTOR ONE - no fim
+      U+200B ZERO WIDTH SPACE - no meio do domínio
+      U+200B ZERO WIDTH SPACE - no fim
+      U+200C ZERO WIDTH NON-JOINER - no meio do domínio
+      U+200C ZERO WIDTH NON-JOINER - no fim
+      U+200D ZERO WIDTH JOINER - no meio do domínio
+      U+200D ZERO WIDTH JOINER - no fim
+      U+2060 WORD JOINER - no meio do domínio
+      U+2060 WORD JOINER - no fim
+      U+FE00 VARIATION SELECTOR-1 - no meio do domínio
+      U+FE00 VARIATION SELECTOR-1 - no fim
+      U+FE0F VARIATION SELECTOR-16 - no meio do domínio
+      U+FE0F VARIATION SELECTOR-16 - no fim
+      U+FEFF ZERO WIDTH NO-BREAK SPACE - no meio do domínio
+      U+FEFF ZERO WIDTH NO-BREAK SPACE - no fim
+
+4. Frontend (zod 3.25.76, z.string().trim().email()):
+      minúsculas -> aceito
+      maiúsculas -> aceito
+      espaços nas pontas -> aceito
+      NBSP nas pontas -> aceito
+      BOM no fim -> aceito
+      domínio com acento -> recusado
+      İ no domínio -> recusado
+      parte local com acento -> recusado
+      ZWSP no domínio -> recusado
+      soft hyphen no domínio -> recusado
+      letra do Unicode 16 (U+A7CB) -> recusado
+      punycode -> aceito
+      caracteres especiais ASCII -> recusado
+
+5. Alternativa ASCII imprimível (U+0021..U+007E):
+   lower() Python == PostgreSQL em todo o ASCII: True
+   PostgreSQL chr(c) ~ '^[!-~]$'  <>  (33 <= c <= 126), em todos os pontos de código: divergências = 0
+   octet_length = 1  <>  c < 128, em todos os pontos de código: divergências = 0

@@ -253,9 +253,18 @@ class MultiTenantIsolationTests(APITestCase):
 
     def test_filtros_com_ids_de_outro_tenant_nao_contornam_a_queryset(self):
         """Filtros são aplicados depois do escopo do tenant, nunca antes."""
+        # TEN-01/SEC-10: as opções dos filtros de agendamento vêm da barbearia
+        # do usuário. O ID de outra barbearia recebe a mesma recusa (400) de um
+        # ID inexistente; antes recebia 200 com lista vazia, o que revelava que
+        # ele existia.
+        for params in ({'barbeiro': self.barber_b.pk}, {'servico': self.service_b.pk}):
+            with self.subTest(url=reverse('appointment-list'), params=params):
+                response = self.client.get(reverse('appointment-list'), params)
+                inexistente = self.client.get(reverse('appointment-list'), {campo: 999999 for campo in params})
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertEqual(response.data, inexistente.data)
+                self.assertNotIn('results', response.data)
         endpoints = (
-            (reverse('appointment-list'), {'barbeiro': self.barber_b.pk}),
-            (reverse('appointment-list'), {'servico': self.service_b.pk}),
             (reverse('barber-list'), {'ativo': 'true'}),
             (reverse('service-list'), {'ativo': 'true'}),
         )

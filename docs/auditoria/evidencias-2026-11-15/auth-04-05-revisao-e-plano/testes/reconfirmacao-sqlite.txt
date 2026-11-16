@@ -1,0 +1,10 @@
+$ manage.py test --settings=config.test_settings --parallel 1  (SQLite em memória; revisão de 15/11)
+
+OK (skipped=14)
+Destroying test database for alias 'default'...
+
+$ manage.py makemigrations --check --dry-run --settings=config.test_settings
+No changes detected
+
+$ manage.py check --settings=config.test_settings
+System check identified no issues (0 silenced).

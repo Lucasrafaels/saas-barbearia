@@ -1,0 +1,4 @@
+217 verificações; 214 conforme; 3 divergentes
+ X  MT-US-16 P3 | admin | POST /users/ | criar usuário com o e-mail de um cliente de B | 400 {"email": ["usuário com este e-mail já existe."]} | e-mail livre (senha inválida): 400 {"password": ["Certifique-se de que este campo tenha mais de 8 caracteres."]}
+ X  MT-US-27 P3 | admin | PATCH /users/{id}/ | dar a um cliente de A o e-mail de um cliente de B | 400 {"email": ["usuário com este e-mail já existe."]}
+ X  MT-UP-01 P3 | anônimo | GET /media/barbershops/logos/… | baixar o logo de B sem autenticação | 200 (/media/barbershops/logos/logo-b.png)

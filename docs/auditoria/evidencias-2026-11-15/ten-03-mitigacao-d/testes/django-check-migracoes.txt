@@ -1,0 +1,24 @@
+$ manage.py check  (settings de teste no PG 18.3 descartável)
+System check identified no issues (0 silenced).
+exit=0
+
+$ manage.py makemigrations --check --dry-run
+No changes detected
+exit=0
+
+$ manage.py migrate --plan  (banco descartável d_suite, vazio)
+token_blacklist.0011_linearizes_history
+token_blacklist.0012_alter_outstandingtoken_user
+    Alter field user on outstandingtoken
+
+$ DEBUG=False SECRET_KEY=<aleatória> manage.py check --deploy  (código corrigido, banco descartável)
+System check identified some issues:
+
+WARNINGS:
+?: (security.W021) You have not set the SECURE_HSTS_PRELOAD setting to True. Without this, your site cannot be submitted to the browser preload list.
+
+System check identified 1 issue (0 silenced).
+exit=0
+
+$ git ls-files -o --exclude-standard | grep migrations  (migrações novas não versionadas)
+0

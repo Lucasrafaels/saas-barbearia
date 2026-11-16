@@ -1,0 +1,41 @@
+### código anterior (antes do PER-13)
+
+== cliente A (id 2)
+   o próprio    | GET 200 | HEAD 200 | PATCH 200 | PUT 400 | DELETE 403 | GET corpo: {"id":2,"email":"cliente@alfa.test","nome":"cliente alfa","tipo_perfil | SQL: ['("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 2) LIMIT 21']
+   cliente2 A   | GET 403 | HEAD 403 | PATCH 403 | PUT 403 | DELETE 403 | GET corpo: {"detail":"Você não tem permissão para executar essa ação."} | SQL: ['("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 3) LIMIT 21']
+   barbeiro2 A  | GET 403 | HEAD 403 | PATCH 403 | PUT 403 | DELETE 403 | GET corpo: {"detail":"Você não tem permissão para executar essa ação."} | SQL: ['("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 5) LIMIT 21']
+   admin A      | GET 403 | HEAD 403 | PATCH 403 | PUT 403 | DELETE 403 | GET corpo: {"detail":"Você não tem permissão para executar essa ação."} | SQL: ['("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 1) LIMIT 21']
+   cliente B    | GET 404 | HEAD 404 | PATCH 404 | PUT 404 | DELETE 403 | GET corpo: {"detail":"No User matches the given query."} | SQL: ['("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 7) LIMIT 21']
+   inexistente  | GET 404 | HEAD 404 | PATCH 404 | PUT 404 | DELETE 403 | GET corpo: {"detail":"No User matches the given query."} | SQL: ['("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 999999) LIMIT 21']
+
+== barbeiro A (id 4)
+   o próprio    | GET 200 | HEAD 200 | PATCH 200 | PUT 400 | DELETE 403 | GET corpo: {"id":4,"email":"barbeiro@alfa.test","nome":"barbeiro alfa","tipo_perf | SQL: ['("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 4) LIMIT 21']
+   cliente2 A   | GET 403 | HEAD 403 | PATCH 403 | PUT 403 | DELETE 403 | GET corpo: {"detail":"Você não tem permissão para executar essa ação."} | SQL: ['("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 3) LIMIT 21']
+   barbeiro2 A  | GET 403 | HEAD 403 | PATCH 403 | PUT 403 | DELETE 403 | GET corpo: {"detail":"Você não tem permissão para executar essa ação."} | SQL: ['("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 5) LIMIT 21']
+   admin A      | GET 403 | HEAD 403 | PATCH 403 | PUT 403 | DELETE 403 | GET corpo: {"detail":"Você não tem permissão para executar essa ação."} | SQL: ['("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 1) LIMIT 21']
+   cliente B    | GET 404 | HEAD 404 | PATCH 404 | PUT 404 | DELETE 403 | GET corpo: {"detail":"No User matches the given query."} | SQL: ['("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 7) LIMIT 21']
+   inexistente  | GET 404 | HEAD 404 | PATCH 404 | PUT 404 | DELETE 403 | GET corpo: {"detail":"No User matches the given query."} | SQL: ['("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 999999) LIMIT 21']
+
+== admin A (id 1)
+   o próprio    | GET 200 | HEAD 200 | PATCH 200 | PUT 400 | DELETE 400 | GET corpo: {"id":1,"email":"admin@alfa.test","nome":"admin@alfa.test","tipo_perfi | SQL: ['("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 1) LIMIT 21']
+   cliente2 A   | GET 200 | HEAD 200 | PATCH 200 | PUT 400 | DELETE 204 | GET corpo: {"id":3,"email":"cliente2@alfa.test","nome":"cliente2@alfa.test","tipo | SQL: ['("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 3) LIMIT 21']
+   barbeiro2 A  | GET 200 | HEAD 200 | PATCH 200 | PUT 400 | DELETE 204 | GET corpo: {"id":5,"email":"barbeiro2@alfa.test","nome":"barbeiro2@alfa.test","ti | SQL: ['("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 5) LIMIT 21']
+   admin A      | GET 200 | HEAD 200 | PATCH 200 | PUT 400 | DELETE 400 | GET corpo: {"id":1,"email":"admin@alfa.test","nome":"admin@alfa.test","tipo_perfi | SQL: ['("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 1) LIMIT 21']
+   cliente B    | GET 404 | HEAD 404 | PATCH 404 | PUT 404 | DELETE 404 | GET corpo: {"detail":"No User matches the given query."} | SQL: ['("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 7) LIMIT 21']
+   inexistente  | GET 404 | HEAD 404 | PATCH 404 | PUT 404 | DELETE 404 | GET corpo: {"detail":"No User matches the given query."} | SQL: ['("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 999999) LIMIT 21']
+
+== sem barbearia (id 11)
+   o próprio    | GET 404 | HEAD 404 | PATCH 404 | PUT 404 | DELETE 403 | GET corpo: {"detail":"No User matches the given query."} | SQL: []
+   cliente2 A   | GET 404 | HEAD 404 | PATCH 404 | PUT 404 | DELETE 403 | GET corpo: {"detail":"No User matches the given query."} | SQL: []
+   barbeiro2 A  | GET 404 | HEAD 404 | PATCH 404 | PUT 404 | DELETE 403 | GET corpo: {"detail":"No User matches the given query."} | SQL: []
+   admin A      | GET 404 | HEAD 404 | PATCH 404 | PUT 404 | DELETE 403 | GET corpo: {"detail":"No User matches the given query."} | SQL: []
+   cliente B    | GET 404 | HEAD 404 | PATCH 404 | PUT 404 | DELETE 403 | GET corpo: {"detail":"No User matches the given query."} | SQL: []
+   inexistente  | GET 404 | HEAD 404 | PATCH 404 | PUT 404 | DELETE 403 | GET corpo: {"detail":"No User matches the given query."} | SQL: []
+
+== superusuário (id 12)
+   o próprio    | GET 200 | HEAD 200 | PATCH 200 | PUT 400 | DELETE 400 | GET corpo: {"id":12,"email":"op@plataforma.test","nome":"Operador","tipo_perfil": | SQL: ['"accounts_user"."id" = 12 LIMIT 21']
+   cliente2 A   | GET 200 | HEAD 200 | PATCH 200 | PUT 400 | DELETE 204 | GET corpo: {"id":3,"email":"cliente2@alfa.test","nome":"cliente2@alfa.test","tipo | SQL: ['"accounts_user"."id" = 3 LIMIT 21']
+   barbeiro2 A  | GET 200 | HEAD 200 | PATCH 200 | PUT 400 | DELETE 204 | GET corpo: {"id":5,"email":"barbeiro2@alfa.test","nome":"barbeiro2@alfa.test","ti | SQL: ['"accounts_user"."id" = 5 LIMIT 21']
+   admin A      | GET 200 | HEAD 200 | PATCH 200 | PUT 400 | DELETE 400 | GET corpo: {"id":1,"email":"admin@alfa.test","nome":"admin@alfa.test","tipo_perfi | SQL: ['"accounts_user"."id" = 1 LIMIT 21']
+   cliente B    | GET 200 | HEAD 200 | PATCH 200 | PUT 400 | DELETE 204 | GET corpo: {"id":7,"email":"cliente@beta.test","nome":"cliente@beta.test","tipo_p | SQL: ['"accounts_user"."id" = 7 LIMIT 21']
+   inexistente  | GET 404 | HEAD 404 | PATCH 404 | PUT 404 | DELETE 404 | GET corpo: {"detail":"No User matches the given query."} | SQL: ['"accounts_user"."id" = 999999 LIMIT 21']

@@ -1,0 +1,329 @@
+$ manage.py test accounts.test_ten03_limites config.test_isolamento_tenant accounts.test_multitenant_isolation appointments.test_multitenant_isolation accounts.tests_multitenant_comprehensive_final config.test_renderers accounts.test_per13 appointments.test_sec10 appointments.test_ten02 accounts.test_permissions --settings=d_pg_test_settings --debug-mode --parallel 1 -v 2  (PG 18.3 descartável, DEBUG=True no executor)
+Creating test database for alias 'default' ('test_d_suite')...
+Found 132 test(s).
+Operations to perform:
+  Synchronize unmigrated apps: corsheaders, django_filters, messages, rest_framework, rest_framework_simplejwt, staticfiles
+  Apply all migrations: accounts, admin, appointments, auth, barbershops, contenttypes, services, sessions, token_blacklist
+Synchronizing apps without migrations:
+  Creating tables...
+    Running deferred SQL...
+Running migrations:
+  Applying accounts.0001_initial... OK
+  Applying barbershops.0001_initial... OK
+  Applying barbershops.0002_rename_timestamps... OK
+  Applying barbershops.0003_alter_barber_created_at_alter_barber_updated_at_and_more... OK
+  Applying contenttypes.0001_initial... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0001_initial... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying accounts.0002_initial... OK
+  Applying accounts.0003_rename_timestamps... OK
+  Applying accounts.0004_alter_user_created_at_alter_user_updated_at... OK
+  Applying accounts.0005_protect_barbershop... OK
+  Applying admin.0001_initial... OK
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying admin.0003_logentry_add_action_flag_choices... OK
+  Applying services.0001_initial... OK
+  Applying services.0002_rename_timestamps... OK
+  Applying services.0003_alter_service_created_at_alter_service_updated_at... OK
+  Applying barbershops.0004_protect_barber_history... OK
+  Applying services.0004_protect_service_history... OK
+  Applying appointments.0001_initial... OK
+  Applying appointments.0002_rename_timestamps... OK
+  Applying appointments.0003_alter_appointment_created_at_and_more... OK
+  Applying appointments.0004_protect_appointment_history... OK
+  Applying appointments.0005_appointment_appointment_barbeir_26b217_idx_and_more... OK
+  Applying appointments.0007_appointment_preco_historico... OK
+  Applying appointments.0008_populate_preco_historico... OK
+  Applying barbershops.0005_barber_deleted_at_barber_deleted_by_and_more... OK
+  Applying barbershops.0006_barbershop_dias_funcionamento... OK
+  Applying services.0005_service_deleted_at_service_deleted_by_and_more... OK
+  Applying sessions.0001_initial... OK
+  Applying token_blacklist.0001_initial... OK
+  Applying token_blacklist.0002_outstandingtoken_jti_hex... OK
+  Applying token_blacklist.0003_auto_20171017_2007... OK
+  Applying token_blacklist.0004_auto_20171017_2013... OK
+  Applying token_blacklist.0005_remove_outstandingtoken_jti... OK
+  Applying token_blacklist.0006_auto_20171017_2113... OK
+  Applying token_blacklist.0007_auto_20171017_2214... OK
+  Applying token_blacklist.0008_migrate_to_bigautofield... OK
+  Applying token_blacklist.0010_fix_migrate_to_bigautofield... OK
+  Applying token_blacklist.0011_linearizes_history... OK
+  Applying token_blacklist.0012_alter_outstandingtoken_user... OK
+System check identified no issues (0 silenced).
+test_a_janela_expira (accounts.test_ten03_limites.CadastroPublicoTests.test_a_janela_expira) ... Bad Request: /api/v1/auth/register/
+ok
+test_antes_do_limite_valida_e_depois_responde_429_sem_validar (accounts.test_ten03_limites.CadastroPublicoTests.test_antes_do_limite_valida_e_depois_responde_429_sem_validar) ... Bad Request: /api/v1/auth/register/
+ok
+test_limite_diario (accounts.test_ten03_limites.CadastroPublicoTests.test_limite_diario) ... Bad Request: /api/v1/auth/register/
+ok
+test_origens_independentes_e_cadastro_legitimo (accounts.test_ten03_limites.CadastroPublicoTests.test_origens_independentes_e_cadastro_legitimo) ... Bad Request: /api/v1/auth/register/
+ok
+test_cadastro_tem_o_limite_por_hora_e_o_diario (accounts.test_ten03_limites.ConfiguracaoDosLimitesTests.test_cadastro_tem_o_limite_por_hora_e_o_diario) ... ok
+test_chave_e_quem_pede_nunca_o_email (accounts.test_ten03_limites.ConfiguracaoDosLimitesTests.test_chave_e_quem_pede_nunca_o_email) ... ok
+test_limites_da_criacao_so_na_acao_create (accounts.test_ten03_limites.ConfiguracaoDosLimitesTests.test_limites_da_criacao_so_na_acao_create) ... ok
+test_login_recuperacao_e_sessao_mantem_os_limites (accounts.test_ten03_limites.ConfiguracaoDosLimitesTests.test_login_recuperacao_e_sessao_mantem_os_limites) ... ok
+test_o_que_conta_como_troca_de_email (accounts.test_ten03_limites.ConfiguracaoDosLimitesTests.test_o_que_conta_como_troca_de_email) ... ok
+test_taxas_novas_em_producao_e_nos_testes (accounts.test_ten03_limites.ConfiguracaoDosLimitesTests.test_taxas_novas_em_producao_e_nos_testes) ... ok
+test_taxas_que_ja_existiam_nao_mudaram (accounts.test_ten03_limites.ConfiguracaoDosLimitesTests.test_taxas_que_ja_existiam_nao_mudaram) ... ok
+test_a_janela_expira (accounts.test_ten03_limites.CriacaoDeUsuarioTests.test_a_janela_expira) ... Bad Request: /api/v1/users/
+ok
+test_antes_do_limite_valida_e_depois_responde_429_sem_validar (accounts.test_ten03_limites.CriacaoDeUsuarioTests.test_antes_do_limite_valida_e_depois_responde_429_sem_validar) ... Bad Request: /api/v1/users/
+ok
+test_cliente_e_conta_sem_barbearia_continuam_com_403_e_nao_gastam_cota (accounts.test_ten03_limites.CriacaoDeUsuarioTests.test_cliente_e_conta_sem_barbearia_continuam_com_403_e_nao_gastam_cota) ... Forbidden: /api/v1/users/
+ok
+test_cota_por_administrador_e_criacao_legitima (accounts.test_ten03_limites.CriacaoDeUsuarioTests.test_cota_por_administrador_e_criacao_legitima) ... Bad Request: /api/v1/users/
+ok
+test_limite_diario (accounts.test_ten03_limites.CriacaoDeUsuarioTests.test_limite_diario) ... Bad Request: /api/v1/users/
+ok
+test_login_e_recuperacao_depois_de_esgotar_os_limites_novos (accounts.test_ten03_limites.LoginERecuperacaoPreservadosTests.test_login_e_recuperacao_depois_de_esgotar_os_limites_novos) ... Bad Request: /api/v1/auth/register/
+ok
+test_o_limite_do_login_continua_o_mesmo (accounts.test_ten03_limites.LoginERecuperacaoPreservadosTests.test_o_limite_do_login_continua_o_mesmo) ... Unauthorized: /api/v1/auth/login/
+ok
+test_troca_de_senha_nao_e_afetada (accounts.test_ten03_limites.LoginERecuperacaoPreservadosTests.test_troca_de_senha_nao_e_afetada) ... Bad Request: /api/v1/auth/register/
+ok
+test_429_identico_e_sem_dados_com_debug_true_e_false (accounts.test_ten03_limites.RespostaDoLimiteTests.test_429_identico_e_sem_dados_com_debug_true_e_false) ... Bad Request: /api/v1/auth/register/
+ok
+test_a_janela_expira (accounts.test_ten03_limites.TrocaDeEmailTests.test_a_janela_expira) ... Too Many Requests: /api/v1/users/129/
+ok
+test_admin_gasta_a_propria_cota_e_nao_a_do_cliente_editado (accounts.test_ten03_limites.TrocaDeEmailTests.test_admin_gasta_a_propria_cota_e_nao_a_do_cliente_editado) ... Too Many Requests: /api/v1/users/135/
+ok
+test_antes_do_limite_valida_e_depois_responde_429_sem_validar (accounts.test_ten03_limites.TrocaDeEmailTests.test_antes_do_limite_valida_e_depois_responde_429_sem_validar) ... Bad Request: /api/v1/users/141/
+ok
+test_edicoes_sem_troca_de_email_nao_contam_nem_sao_bloqueadas (accounts.test_ten03_limites.TrocaDeEmailTests.test_edicoes_sem_troca_de_email_nao_contam_nem_sao_bloqueadas) ... Too Many Requests: /api/v1/users/147/
+ok
+test_fora_do_alcance_mantem_a_resposta_e_nao_gasta_cota (accounts.test_ten03_limites.TrocaDeEmailTests.test_fora_do_alcance_mantem_a_resposta_e_nao_gasta_cota) ... Not Found: /api/v1/users/156/
+ok
+test_limite_diario (accounts.test_ten03_limites.TrocaDeEmailTests.test_limite_diario) ... Bad Request: /api/v1/users/160/
+ok
+test_put_e_patch_dividem_a_mesma_cota (accounts.test_ten03_limites.TrocaDeEmailTests.test_put_e_patch_dividem_a_mesma_cota) ... Too Many Requests: /api/v1/users/166/
+ok
+test_terceiro_nao_bloqueia_a_vitima (accounts.test_ten03_limites.TrocaDeEmailTests.test_terceiro_nao_bloqueia_a_vitima) ... Bad Request: /api/v1/users/172/
+ok
+test_conta_do_cadastro_publico_nao_referencia_nenhuma_barbearia (config.test_isolamento_tenant.CadastroPublicoEOnboardingTests.test_conta_do_cadastro_publico_nao_referencia_nenhuma_barbearia) ... Forbidden: /api/v1/appointments/
+ok
+test_onboarding_cria_barbearia_isolada_e_funcional (config.test_isolamento_tenant.CadastroPublicoEOnboardingTests.test_onboarding_cria_barbearia_isolada_e_funcional) ... Bad Request: /api/v1/appointments/
+ok
+test_opcoes_do_formulario_de_filtros_so_listam_o_proprio_tenant (config.test_isolamento_tenant.EscopoEstruturalTests.test_opcoes_do_formulario_de_filtros_so_listam_o_proprio_tenant) ... ok
+test_opcoes_dos_campos_so_listam_o_proprio_tenant (config.test_isolamento_tenant.EscopoEstruturalTests.test_opcoes_dos_campos_so_listam_o_proprio_tenant)
+O que um formulário (como o da API navegável) listaria para cada papel. ... ok
+test_todo_campo_relacional_gravavel_usa_escopo_de_tenant (config.test_isolamento_tenant.EscopoEstruturalTests.test_todo_campo_relacional_gravavel_usa_escopo_de_tenant) ... ok
+test_todo_filtro_relacional_de_listagem_usa_escopo_de_tenant (config.test_isolamento_tenant.EscopoEstruturalTests.test_todo_filtro_relacional_de_listagem_usa_escopo_de_tenant) ... ok
+test_filtros_sem_oraculo_e_sem_dados_alheios (config.test_isolamento_tenant.FiltrosDeAgendamentoTests.test_filtros_sem_oraculo_e_sem_dados_alheios) ... Bad Request: /api/v1/appointments/
+ok
+test_horarios_livres_e_faturamento_sem_oraculo (config.test_isolamento_tenant.FiltrosDeAgendamentoTests.test_horarios_livres_e_faturamento_sem_oraculo)
+Consultas por ID que já filtravam pela barbearia continuam sem oráculo. ... Not Found: /api/v1/appointments/available-slots/
+ok
+test_listagem_so_traz_o_proprio_tenant (config.test_isolamento_tenant.FiltrosDeAgendamentoTests.test_listagem_so_traz_o_proprio_tenant) ... ok
+test_admin_promove_cliente_da_propria_barbearia (config.test_isolamento_tenant.FluxosLegitimosTests.test_admin_promove_cliente_da_propria_barbearia) ... ok
+test_barbeiro_e_admin_registram_e_confirmam (config.test_isolamento_tenant.FluxosLegitimosTests.test_barbeiro_e_admin_registram_e_confirmam) ... ok
+test_barbeiro_so_gerencia_a_propria_agenda (config.test_isolamento_tenant.FluxosLegitimosTests.test_barbeiro_so_gerencia_a_propria_agenda) ... Bad Request: /api/v1/appointments/
+ok
+test_cliente_agenda_e_remarca (config.test_isolamento_tenant.FluxosLegitimosTests.test_cliente_agenda_e_remarca) ... ok
+test_mensagens_de_validacao_dentro_do_tenant_continuam_iguais (config.test_isolamento_tenant.FluxosLegitimosTests.test_mensagens_de_validacao_dentro_do_tenant_continuam_iguais) ... Bad Request: /api/v1/appointments/
+ok
+test_barbearia_no_corpo_e_ignorada (config.test_isolamento_tenant.ReferenciasCruzadasTests.test_barbearia_no_corpo_e_ignorada) ... ok
+test_cadastrar_barbeiro_com_usuario_de_outro_tenant_ou_sem_barbearia (config.test_isolamento_tenant.ReferenciasCruzadasTests.test_cadastrar_barbeiro_com_usuario_de_outro_tenant_ou_sem_barbearia) ... Bad Request: /api/v1/barbers/
+ok
+test_criar_agendamento_com_id_de_outro_tenant (config.test_isolamento_tenant.ReferenciasCruzadasTests.test_criar_agendamento_com_id_de_outro_tenant) ... Bad Request: /api/v1/appointments/
+ok
+test_editar_agendamento_com_id_de_outro_tenant (config.test_isolamento_tenant.ReferenciasCruzadasTests.test_editar_agendamento_com_id_de_outro_tenant) ... Bad Request: /api/v1/appointments/16/
+ok
+test_registro_de_outro_tenant_nao_e_lido_do_banco (config.test_isolamento_tenant.ReferenciasCruzadasTests.test_registro_de_outro_tenant_nao_e_lido_do_banco)
+A condição de barbearia faz parte da consulta: o registro alheio nunca é carregado. ... Bad Request: /api/v1/appointments/
+ok
+test_superusuario_edita_dentro_da_barbearia_do_registro (config.test_isolamento_tenant.SuperusuarioTests.test_superusuario_edita_dentro_da_barbearia_do_registro) ... Bad Request: /api/v1/appointments/20/
+ok
+test_superusuario_le_e_filtra_qualquer_barbearia (config.test_isolamento_tenant.SuperusuarioTests.test_superusuario_le_e_filtra_qualquer_barbearia) ... ok
+test_superusuario_sem_barbearia_continua_sem_criar_recursos_de_tenant (config.test_isolamento_tenant.SuperusuarioTests.test_superusuario_sem_barbearia_continua_sem_criar_recursos_de_tenant) ... Forbidden: /api/v1/barbers/
+ok
+test_admin_can_manage_users_in_same_tenant (accounts.test_multitenant_isolation.AccountMultiTenantIsolationTests.test_admin_can_manage_users_in_same_tenant)
+Admin can list, create, retrieve, update, delete users in same tenant. ... ok
+test_admin_cannot_manage_users_in_other_tenant (accounts.test_multitenant_isolation.AccountMultiTenantIsolationTests.test_admin_cannot_manage_users_in_other_tenant)
+Admin cannot perform any operation on users from another tenant. ... Not Found: /api/v1/users/275/
+ok
+test_admin_without_tenant_sees_no_users (accounts.test_multitenant_isolation.AccountMultiTenantIsolationTests.test_admin_without_tenant_sees_no_users)
+Admin without a barbershop sees empty user list. ... ok
+test_anonymous_user_cannot_access_user_endpoints (accounts.test_multitenant_isolation.AccountMultiTenantIsolationTests.test_anonymous_user_cannot_access_user_endpoints)
+Anonymous users get 401 on user endpoints. ... Unauthorized: /api/v1/users/
+ok
+test_barber_cannot_manage_users (accounts.test_multitenant_isolation.AccountMultiTenantIsolationTests.test_barber_cannot_manage_users)
+Barber role cannot access user endpoints (except own retrieve/update). ... Forbidden: /api/v1/users/
+ok
+test_client_cannot_manage_users (accounts.test_multitenant_isolation.AccountMultiTenantIsolationTests.test_client_cannot_manage_users)
+Client role cannot access user endpoints. ... Forbidden: /api/v1/users/
+ok
+test_superuser_can_access_all_users (accounts.test_multitenant_isolation.AccountMultiTenantIsolationTests.test_superuser_can_access_all_users)
+Superuser can access users from any tenant. ... Bad Request: /api/v1/users/311/
+ok
+test_user_cannot_set_barbershop_via_create_payload (accounts.test_multitenant_isolation.AccountMultiTenantIsolationTests.test_user_cannot_set_barbershop_via_create_payload)
+Attempt to set barbershop during creation is ignored. ... ok
+test_user_create_is_forced_to_requesters_tenant (accounts.test_multitenant_isolation.AccountMultiTenantIsolationTests.test_user_create_is_forced_to_requesters_tenant)
+Creating a user ignores barbershop in payload and uses requester's tenant. ... ok
+test_user_list_does_not_expose_other_tenant_users (accounts.test_multitenant_isolation.AccountMultiTenantIsolationTests.test_user_list_does_not_expose_other_tenant_users)
+Users from tenant B should not appear in tenant A's user list. ... ok
+test_user_retrieve_other_tenant_returns_404 (accounts.test_multitenant_isolation.AccountMultiTenantIsolationTests.test_user_retrieve_other_tenant_returns_404)
+Retrieving a user from another tenant returns 404. ... Not Found: /api/v1/users/341/
+ok
+test_user_update_cannot_change_barbershop (accounts.test_multitenant_isolation.AccountMultiTenantIsolationTests.test_user_update_cannot_change_barbershop)
+Updating a user cannot change barbershop (read-only). ... ok
+test_user_update_cannot_change_tipo_perfil_to_admin_via_serializer (accounts.test_multitenant_isolation.AccountMultiTenantIsolationTests.test_user_update_cannot_change_tipo_perfil_to_admin_via_serializer)
+Ninguém consegue conceder papel de admin via PATCH /users/{id}/. ... Bad Request: /api/v1/users/354/
+ok
+test_admin_cliente_e_barbeiro_nao_alteram_objeto_de_outro_tenant_por_get_put_patch_delete (appointments.test_multitenant_isolation.MultiTenantIsolationTests.test_admin_cliente_e_barbeiro_nao_alteram_objeto_de_outro_tenant_por_get_put_patch_delete)
+Cobertura de todos os verbos em objetos de tenant B por atores de A. ... Not Found: /api/v1/users/362/
+ok
+test_admin_sem_tenant_nao_lista_usuarios_orfaos (appointments.test_multitenant_isolation.MultiTenantIsolationTests.test_admin_sem_tenant_nao_lista_usuarios_orfaos) ... ok
+test_atualizacao_nao_pode_reapontar_relacionamentos_ou_tenant (appointments.test_multitenant_isolation.MultiTenantIsolationTests.test_atualizacao_nao_pode_reapontar_relacionamentos_ou_tenant) ... Bad Request: /api/v1/appointments/26/
+ok
+test_available_slots_nao_revela_barbeiro_ou_servico_de_outro_tenant (appointments.test_multitenant_isolation.MultiTenantIsolationTests.test_available_slots_nao_revela_barbeiro_ou_servico_de_outro_tenant) ... Not Found: /api/v1/appointments/available-slots/
+ok
+test_campos_de_tenant_e_ids_forjados_nao_substituem_o_tenant_servidor (appointments.test_multitenant_isolation.MultiTenantIsolationTests.test_campos_de_tenant_e_ids_forjados_nao_substituem_o_tenant_servidor) ... ok
+test_criacao_de_usuarios_barbeiros_e_servicos_ignora_tenant_informado (appointments.test_multitenant_isolation.MultiTenantIsolationTests.test_criacao_de_usuarios_barbeiros_e_servicos_ignora_tenant_informado) ... ok
+test_filtros_com_ids_de_outro_tenant_nao_contornam_a_queryset (appointments.test_multitenant_isolation.MultiTenantIsolationTests.test_filtros_com_ids_de_outro_tenant_nao_contornam_a_queryset)
+Filtros são aplicados depois do escopo do tenant, nunca antes. ... Bad Request: /api/v1/appointments/
+ok
+test_ids_de_outro_tenant_retornao_404_em_leitura_edicao_e_exclusao (appointments.test_multitenant_isolation.MultiTenantIsolationTests.test_ids_de_outro_tenant_retornao_404_em_leitura_edicao_e_exclusao) ... Not Found: /api/v1/users/407/
+ok
+test_listagens_nao_expoem_registros_de_outro_tenant (appointments.test_multitenant_isolation.MultiTenantIsolationTests.test_listagens_nao_expoem_registros_de_outro_tenant) ... ok
+test_relacionamentos_de_outro_tenant_sao_rejeitados_no_agendamento (appointments.test_multitenant_isolation.MultiTenantIsolationTests.test_relacionamentos_de_outro_tenant_sao_rejeitados_no_agendamento) ... Bad Request: /api/v1/appointments/
+ok
+test_superuser_eh_excecao_global_explicita_e_nao_um_papel_de_tenant (appointments.test_multitenant_isolation.MultiTenantIsolationTests.test_superuser_eh_excecao_global_explicita_e_nao_um_papel_de_tenant)
+Superuser é operador da plataforma; admin comum continua isolado. ... ok
+test_anonymous_access_denied (accounts.tests_multitenant_comprehensive_final.ComprehensiveMultiTenantIsolationTests.test_anonymous_access_denied)
+Test that anonymous users cannot access endpoints. ... Unauthorized: /api/v1/users/
+ok
+test_appointment_isolation_comprehensive (accounts.tests_multitenant_comprehensive_final.ComprehensiveMultiTenantIsolationTests.test_appointment_isolation_comprehensive)
+Test appointment CRUD isolation. ... Not Found: /api/v1/appointments/48/
+ok
+test_barber_isolation_comprehensive (accounts.tests_multitenant_comprehensive_final.ComprehensiveMultiTenantIsolationTests.test_barber_isolation_comprehensive)
+Test barber CRUD isolation. ... Not Found: /api/v1/barbers/70/
+ok
+test_filter_search_isolation (accounts.tests_multitenant_comprehensive_final.ComprehensiveMultiTenantIsolationTests.test_filter_search_isolation)
+Test that filters cannot access other tenant data. ... Bad Request: /api/v1/appointments/
+ok
+test_manual_tenant_injection_attacks (accounts.tests_multitenant_comprehensive_final.ComprehensiveMultiTenantIsolationTests.test_manual_tenant_injection_attacks)
+Test various manual tenant ID injection attempts. ... ok
+test_role_based_access_within_tenant (accounts.tests_multitenant_comprehensive_final.ComprehensiveMultiTenantIsolationTests.test_role_based_access_within_tenant)
+Test that roles work correctly within same tenant. ... Forbidden: /api/v1/services/
+ok
+test_service_isolation_comprehensive (accounts.tests_multitenant_comprehensive_final.ComprehensiveMultiTenantIsolationTests.test_service_isolation_comprehensive)
+Test service CRUD isolation. ... Not Found: /api/v1/services/65/
+ok
+test_superuser_can_access_all_tenants (accounts.tests_multitenant_comprehensive_final.ComprehensiveMultiTenantIsolationTests.test_superuser_can_access_all_tenants)
+Test that superuser can access all tenant data. ... Bad Request: /api/v1/users/484/
+ok
+test_user_isolation_comprehensive (accounts.tests_multitenant_comprehensive_final.ComprehensiveMultiTenantIsolationTests.test_user_isolation_comprehensive)
+Test user CRUD isolation using patterns from working test suite. ... Not Found: /api/v1/users/491/
+ok
+test_user_without_barbershop_sees_no_data (accounts.tests_multitenant_comprehensive_final.ComprehensiveMultiTenantIsolationTests.test_user_without_barbershop_sees_no_data)
+Test that users without barbershop see empty lists. ... ok
+test_escritas_do_admin_e_do_barbeiro_continuam_em_json (config.test_renderers.ApiJsonPreservadaTests.test_escritas_do_admin_e_do_barbeiro_continuam_em_json) ... ok
+test_fluxo_do_frontend_com_axios_continua_funcionando (config.test_renderers.ApiJsonPreservadaTests.test_fluxo_do_frontend_com_axios_continua_funcionando)
+Pedidos como os de frontend/src/api/client.ts: JSON, Bearer e cookie de refresh. ... Bad Request: /api/v1/appointments/
+ok
+test_json_mantem_status_e_isolamento_de_cada_papel (config.test_renderers.ApiJsonPreservadaTests.test_json_mantem_status_e_isolamento_de_cada_papel) ... Unauthorized: /api/v1/
+ok
+test_listas_json_trazem_os_dados_do_proprio_tenant (config.test_renderers.ApiJsonPreservadaTests.test_listas_json_trazem_os_dados_do_proprio_tenant)
+Garante que a conferência acima não passa por respostas vazias. ... ok
+test_token_invalido_continua_recusado (config.test_renderers.ApiJsonPreservadaTests.test_token_invalido_continua_recusado) ... Unauthorized: /api/v1/users/me/
+ok
+test_casos_reproduzidos_na_auditoria (config.test_renderers.ApiNavegavelDesativadaTests.test_casos_reproduzidos_na_auditoria)
+MT-HT-01 a 05, 07, 08 e 12, um a um, como descritos na matriz. ... Not Acceptable: /api/v1/appointments/
+Not Acceptable: /api/v1/appointments/
+Not Acceptable: /api/v1/appointments/
+Not Acceptable: /api/v1/appointments/70/
+Not Acceptable: /api/v1/barbers/
+Not Acceptable: /api/v1/appointments/
+Not Acceptable: /api/v1/barbers/
+ok
+test_nenhuma_view_registrada_reativa_renderizador_html (config.test_renderers.ApiNavegavelDesativadaTests.test_nenhuma_view_registrada_reativa_renderizador_html) ... ok
+test_options_continua_em_json_e_so_anuncia_json (config.test_renderers.ApiNavegavelDesativadaTests.test_options_continua_em_json_e_so_anuncia_json) ... ok
+test_pedidos_de_html_nao_recebem_html_nem_dados (config.test_renderers.ApiNavegavelDesativadaTests.test_pedidos_de_html_nao_recebem_html_nem_dados) ... ok
+test_pedidos_de_html_nao_recebem_html_nem_dados_com_debug (config.test_renderers.ApiNavegavelDesativadaTests.test_pedidos_de_html_nao_recebem_html_nem_dados_com_debug) ... ok
+test_escritas_mantem_as_permissoes_anteriores (accounts.test_per13.DemaisOperacoesTests.test_escritas_mantem_as_permissoes_anteriores) ... Forbidden: /api/v1/users/527/
+ok
+test_listagem_users_sem_regressao (accounts.test_per13.DemaisOperacoesTests.test_listagem_users_sem_regressao) ... Forbidden: /api/v1/users/
+ok
+test_users_me_continua (accounts.test_per13.DemaisOperacoesTests.test_users_me_continua) ... ok
+test_admin_consulta_usuarios_da_propria_barbearia (accounts.test_per13.LeituraDeDetalheTests.test_admin_consulta_usuarios_da_propria_barbearia) ... ok
+test_cada_um_consulta_a_propria_conta (accounts.test_per13.LeituraDeDetalheTests.test_cada_um_consulta_a_propria_conta) ... ok
+test_nao_autorizado_igual_a_inexistente (accounts.test_per13.LeituraDeDetalheTests.test_nao_autorizado_igual_a_inexistente) ... ok
+test_nao_autorizado_igual_a_inexistente_debug (accounts.test_per13.LeituraDeDetalheTests.test_nao_autorizado_igual_a_inexistente_debug) ... ok
+test_superusuario_mantem_o_comportamento (accounts.test_per13.LeituraDeDetalheTests.test_superusuario_mantem_o_comportamento) ... Not Found: /api/v1/users/999999/
+ok
+test_usuario_sem_barbearia_continua_sem_acesso (accounts.test_per13.LeituraDeDetalheTests.test_usuario_sem_barbearia_continua_sem_acesso) ... Not Found: /api/v1/users/551/
+ok
+test_consulta_do_excluido_ja_tem_condicao_de_barbearia (appointments.test_sec10.EquivalenciaTests.test_consulta_do_excluido_ja_tem_condicao_de_barbearia) ... Not Found: /api/v1/appointments/available-slots/
+ok
+test_id_de_outra_barbearia_igual_a_inexistente (appointments.test_sec10.EquivalenciaTests.test_id_de_outra_barbearia_igual_a_inexistente) ... ok
+test_id_de_outra_barbearia_igual_a_inexistente_debug (appointments.test_sec10.EquivalenciaTests.test_id_de_outra_barbearia_igual_a_inexistente_debug) ... ok
+test_regras_atuais_dentro_da_propria_barbearia (appointments.test_sec10.PapeisEContextoTests.test_regras_atuais_dentro_da_propria_barbearia)
+Inalteradas: o cliente só exclui o próprio horário; o barbeiro, a própria agenda; o status precisa permitir. ... Forbidden: /api/v1/appointments/available-slots/
+ok
+test_superusuario_mantem_as_regras_atuais (appointments.test_sec10.PapeisEContextoTests.test_superusuario_mantem_as_regras_atuais) ... Forbidden: /api/v1/appointments/available-slots/
+ok
+test_usuario_sem_barbearia_continua_recusado_antes_de_tudo (appointments.test_sec10.PapeisEContextoTests.test_usuario_sem_barbearia_continua_recusado_antes_de_tudo) ... Forbidden: /api/v1/appointments/available-slots/
+ok
+test_parametro_omitido_ou_vazio_mantem_a_ocupacao (appointments.test_sec10.ParametroTests.test_parametro_omitido_ou_vazio_mantem_a_ocupacao) ... ok
+test_proprio_agendamento_e_excluido_da_ocupacao (appointments.test_sec10.ParametroTests.test_proprio_agendamento_e_excluido_da_ocupacao) ... ok
+test_valor_malformado_responde_como_inexistente (appointments.test_sec10.ParametroTests.test_valor_malformado_responde_como_inexistente) ... Not Found: /api/v1/appointments/available-slots/
+ok
+test_conflitos_da_mesma_barbearia_continuam_valendo (appointments.test_sec10.RemarcacaoTests.test_conflitos_da_mesma_barbearia_continuam_valendo) ... Bad Request: /api/v1/appointments/85/
+ok
+test_remarcacao_legitima_com_horario_que_so_aparece_ao_excluir_o_proprio (appointments.test_sec10.RemarcacaoTests.test_remarcacao_legitima_com_horario_que_so_aparece_ao_excluir_o_proprio) ... ok
+test_cadastro_publico_e_onboarding (appointments.test_ten02.FluxosLegitimosTen02Tests.test_cadastro_publico_e_onboarding) ... Forbidden: /api/v1/appointments/
+ok
+test_superusuario (appointments.test_ten02.FluxosLegitimosTen02Tests.test_superusuario) ... Forbidden: /api/v1/appointments/
+ok
+test_usuario_legitimo_agenda_na_propria_barbearia (appointments.test_ten02.FluxosLegitimosTen02Tests.test_usuario_legitimo_agenda_na_propria_barbearia) ... Bad Request: /api/v1/appointments/
+ok
+test_usuario_de_a_nao_sonda_a_agenda_de_b (appointments.test_ten02.OutraBarbeariaTests.test_usuario_de_a_nao_sonda_a_agenda_de_b) ... Bad Request: /api/v1/appointments/
+ok
+test_criacao_recusada_antes_da_validacao_com_resposta_unica (appointments.test_ten02.SemBarbeariaTests.test_criacao_recusada_antes_da_validacao_com_resposta_unica) ... ok
+test_criacao_recusada_antes_da_validacao_com_resposta_unica_debug (appointments.test_ten02.SemBarbeariaTests.test_criacao_recusada_antes_da_validacao_com_resposta_unica_debug) ... ok
+test_demais_operacoes_sem_barbearia_nao_revelam_nada (appointments.test_ten02.SemBarbeariaTests.test_demais_operacoes_sem_barbearia_nao_revelam_nada) ... Not Found: /api/v1/appointments/99/
+ok
+test_recusa_nao_depende_do_escopo_dos_campos (appointments.test_ten02.SemBarbeariaTests.test_recusa_nao_depende_do_escopo_dos_campos)
+Mesmo se os campos relacionais forem liberados no futuro, a agenda de B não é consultada. ... Forbidden: /api/v1/appointments/
+ok
+test_validate_recusa_sem_barbearia_antes_das_regras_de_negocio (appointments.test_ten02.SemBarbeariaTests.test_validate_recusa_sem_barbearia_antes_das_regras_de_negocio)
+Segunda camada: o serializer também falha fechado, sem depender da view nem do escopo dos campos. ... ok
+test_admin_can_list_users_in_own_barbershop (accounts.test_permissions.UserViewSetPermissionTests.test_admin_can_list_users_in_own_barbershop)
+Admin deve conseguir listar usuários da própria barbearia. ... ok
+test_admin_can_retrieve_own_user (accounts.test_permissions.UserViewSetPermissionTests.test_admin_can_retrieve_own_user)
+Admin deve conseguir recuperar próprios dados. ... ok
+test_admin_can_update_other_user_in_same_barbershop (accounts.test_permissions.UserViewSetPermissionTests.test_admin_can_update_other_user_in_same_barbershop)
+Admin deve conseguir atualizar outros usuários da mesma barbearia. ... ok
+test_admin_can_update_own_user (accounts.test_permissions.UserViewSetPermissionTests.test_admin_can_update_own_user)
+Admin deve conseguir atualizar próprios dados. ... ok
+test_admin_cannot_list_users_in_other_barbershop (accounts.test_permissions.UserViewSetPermissionTests.test_admin_cannot_list_users_in_other_barbershop)
+Admin não deve conseguir listar usuários de outra barbearia. ... ok
+test_admin_cannot_update_user_in_other_barbershop (accounts.test_permissions.UserViewSetPermissionTests.test_admin_cannot_update_user_in_other_barbershop)
+Admin não deve conseguir atualizar usuários de outra barbearia. ... Not Found: /api/v1/users/652/
+ok
+test_beireiro_can_only_access_own_user (accounts.test_permissions.UserViewSetPermissionTests.test_beireiro_can_only_access_own_user)
+Barbeiro deve conseguir acessar apenas próprios dados. ... Not Found: /api/v1/users/655/
+ok
+test_cliente_can_only_access_own_user (accounts.test_permissions.UserViewSetPermissionTests.test_cliente_can_only_access_own_user)
+Cliente deve conseguir acessar apenas próprios dados. ... Not Found: /api/v1/users/657/
+ok
+test_unauthenticated_cannot_access_users (accounts.test_permissions.UserViewSetPermissionTests.test_unauthenticated_cannot_access_users)
+Usuário não autenticado não deve conseguir acessar endpoints de usuários. ... Unauthorized: /api/v1/users/
+ok
+
+----------------------------------------------------------------------
+Ran 132 tests in 20.837s
+
+OK
+Destroying test database for alias 'default' ('test_d_suite')...

@@ -1,0 +1,5 @@
+Planned operations:
+accounts.0006_email_normalizado
+    Raw Python operation
+    Create constraint accounts_user_email_normalizado on model user
+    Create constraint accounts_user_email_lower_unico on model user

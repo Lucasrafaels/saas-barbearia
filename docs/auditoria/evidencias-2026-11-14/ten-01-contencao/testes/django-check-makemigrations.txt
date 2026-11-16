@@ -1,0 +1,14 @@
+$ manage.py check (config.test_settings)
+System check identified no issues (0 silenced).
+exit=0
+$ manage.py makemigrations --check --dry-run (config.test_settings)
+No changes detected
+exit=0
+$ manage.py check --deploy, DEBUG=False na importação (PG descartável; demais variáveis com os padrões de produção)
+System check identified some issues:
+
+WARNINGS:
+?: (security.W021) You have not set the SECURE_HSTS_PRELOAD setting to True. Without this, your site cannot be submitted to the browser preload list.
+
+System check identified 1 issue (0 silenced).
+exit=0

@@ -1,0 +1,23 @@
+Backup novo do banco real (P3/P4), registrado em 2026-11-15 22:50:07
+diretório: /home/lucasrafael/backups/barberpro/accounts0006_20261115_224006 (permissão 700)
+  600 63004 bytes /home/lucasrafael/backups/barberpro/accounts0006_20261115_224006/barbershop_db_20261115_224006_antes_accounts0006.dump
+  600 120 bytes /home/lucasrafael/backups/barberpro/accounts0006_20261115_224006/barbershop_db_20261115_224006_antes_accounts0006.dump.sha256
+  600 12845 bytes /home/lucasrafael/backups/barberpro/accounts0006_20261115_224006/barbershop_db_20261115_224006_antes_accounts0006.dump.lista.txt
+  600 349115 bytes /home/lucasrafael/backups/barberpro/accounts0006_20261115_224006/codigo_20261115_224006.tar.gz
+  600 96 bytes /home/lucasrafael/backups/barberpro/accounts0006_20261115_224006/codigo_20261115_224006.tar.gz.sha256
+SHA-256 do backup:
+  5eb831d6b973bd82337d3936efd1b8ef707329cb7e2f2f9f2707b31bbc21af95  barbershop_db_20261115_224006_antes_accounts0006.dump
+SHA-256 do retrato do código:
+  82793c83bfa053de873c8c2510a2a3ded01e8c75f013c1f73ad5131e4a7762b1  codigo_20261115_224006.tar.gz
+pg_restore --list: código 0; 139 itens; 16 TABLE DATA
+  ; Archive created at 2026-11-15 22:44:25 -03
+  ;     dbname: barbershop_db
+  ;     TOC Entries: 143
+  ;     Compression: gzip
+  ;     Format: CUSTOM
+  ;     Dumped from database version: 18.3
+  ;     Dumped by pg_dump version: 18.3
+
+Comparação com o backup de 13/11 (só os índices dos arquivos):
+  13/11: 119639 bytes, sha256 2aae35cc1662ba3d…, 139 itens, 16 TABLE DATA (intacto)
+  lista de objetos idêntica nos dois: sim

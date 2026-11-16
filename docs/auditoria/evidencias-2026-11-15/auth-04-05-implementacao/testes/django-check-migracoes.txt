@@ -1,0 +1,15 @@
+$ manage.py check  (PG 18.3 pt_BR descartável)
+System check identified no issues (0 silenced).
+$ manage.py makemigrations --check --dry-run
+No changes detected
+$ manage.py migrate --plan  (banco vazio)
+accounts.0006_email_normalizado
+    Raw Python operation
+    Create constraint accounts_user_email_normalizado on model user
+    Create constraint accounts_user_email_lower_unico on model user
+$ DEBUG=False manage.py check --deploy
+?: (security.W021) You have not set the SECURE_HSTS_PRELOAD setting to True. Without this, your site cannot be submitted to the browser preload list.
+
+System check identified 1 issue (0 silenced).
+$ migrações novas (não versionadas)
+accounts/migrations/0006_email_normalizado.py

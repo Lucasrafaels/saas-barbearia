@@ -482,7 +482,10 @@ class BarberAPITestCase(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('barbershop', response.data)
+        # TEN-01: `user` só aceita usuários da própria barbearia. O de outra
+        # recebe a mesma recusa de um ID inexistente; antes, a mensagem sobre
+        # `barbershop` revelava que o usuário existia em outra barbearia.
+        self.assertEqual(response.data['user'][0].code, 'does_not_exist')
         self.assertFalse(Barber.objects.filter(user=self.barbeiro_user_b_sem_perfil).exists())
 
     # ------------------------------------------------------------------

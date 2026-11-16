@@ -1,0 +1,88 @@
+== P6.0 a aplicação do ensaio aponta para a cópia descartável
+banco ensaio_restaurado em 127.0.0.1:55432 | e-mail locmem | DEBUG False
+== P6.1 regra exata pela própria função da migração (forma_canonica), sobre os e-mails da cópia, sem imprimi-los
+contas=8 fora_da_regra=0 [] a_normalizar=0 [] grupos_de_colisao=0
+== P6.2 migrate --plan na cópia (esperado: só accounts.0006)
+Planned operations:
+accounts.0006_email_normalizado
+    Raw Python operation
+    Create constraint accounts_user_email_normalizado on model user
+    Create constraint accounts_user_email_lower_unico on model user
+== P6.3 migrate accounts 0006 na cópia
+Operations to perform:
+  Target specific migration: 0006_email_normalizado, from accounts
+Running migrations:
+  Applying accounts.0006_email_normalizado... OK
+== P6.4 pós-verificação na cópia
+BEGIN
+SET
+== 1. accounts.0006 registrada como aplicada
+   app    |          name           |            applied            
+----------+-------------------------+-------------------------------
+ accounts | 0006_email_normalizado  | 2026-11-15 22:46:08.217304-03
+ accounts | 0005_protect_barbershop | 2026-11-08 23:23:30.580747-03
+(2 rows)
+
+== 2. Restrições (esperado: accounts_user_email_key UNIQUE e accounts_user_email_normalizado CHECK, convalidated = t)
+             conname             | contype | convalidated |                                        definicao                                        
+---------------------------------+---------+--------------+-----------------------------------------------------------------------------------------
+ accounts_user_email_key         | u       | t            | UNIQUE (email)
+ accounts_user_email_normalizado | c       | t            | CHECK ((((email)::text = lower((email)::text)) AND ((email)::text ~ '^[!-~]+$'::text)))
+(2 rows)
+
+== 3. Índices (esperado: accounts_user_email_lower_unico único, válido e pronto, sobre lower(email))
+                indice                | unico | valido | pronto |                                                   definicao                                                    
+--------------------------------------+-------+--------+--------+----------------------------------------------------------------------------------------------------------------
+ accounts_user_barbershop_id_f73426d9 | f     | t      | t      | CREATE INDEX accounts_user_barbershop_id_f73426d9 ON public.accounts_user USING btree (barbershop_id)
+ accounts_user_email_b2644a56_like    | f     | t      | t      | CREATE INDEX accounts_user_email_b2644a56_like ON public.accounts_user USING btree (email varchar_pattern_ops)
+ accounts_user_email_key              | t     | t      | t      | CREATE UNIQUE INDEX accounts_user_email_key ON public.accounts_user USING btree (email)
+ accounts_user_email_lower_unico      | t     | t      | t      | CREATE UNIQUE INDEX accounts_user_email_lower_unico ON public.accounts_user USING btree (lower((email)::text))
+ accounts_user_pkey                   | t     | t      | t      | CREATE UNIQUE INDEX accounts_user_pkey ON public.accounts_user USING btree (id)
+(5 rows)
+
+== 4. Nenhuma conta fora da regra (esperado: fora_da_regra = 0; contas igual à pré-verificação)
+ contas | fora_da_regra 
+--------+---------------
+      8 |             0
+(1 row)
+
+ROLLBACK
+e-mails inalterados pela migração (nada a normalizar): sim
+== P6.5 coerência: migrate --check (sem pendências) e makemigrations --check (modelos = migrações)
+migrate --check exit=0
+No changes detected
+makemigrations --check exit=0
+== P6.6 reversão na cópia (migrate accounts 0005)
+Operations to perform:
+  Target specific migration: 0005_protect_barbershop, from accounts
+Running migrations:
+  Rendering model states... DONE
+  Unapplying accounts.0006_email_normalizado... OK
+check_presente|indice_presente|unique_original
+0|0|1
+(1 row)
+última accounts: 0005_protect_barbershop
+e-mails inalterados pela reversão: sim
+== P6.7 reaplicação para os testes de fumaça
+Operations to perform:
+  Target specific migration: 0006_email_normalizado, from accounts
+Running migrations:
+  Applying accounts.0006_email_normalizado... OK
+== 2. Restrições (esperado: accounts_user_email_key UNIQUE e accounts_user_email_normalizado CHECK, convalidated = t)
+             conname             | contype | convalidated |                                        definicao                                        
+---------------------------------+---------+--------------+-----------------------------------------------------------------------------------------
+ accounts_user_email_key         | u       | t            | UNIQUE (email)
+ accounts_user_email_normalizado | c       | t            | CHECK ((((email)::text = lower((email)::text)) AND ((email)::text ~ '^[!-~]+$'::text)))
+(2 rows)
+
+== 3. Índices (esperado: accounts_user_email_lower_unico único, válido e pronto, sobre lower(email))
+                indice                | unico | valido | pronto |                                                   definicao                                                    
+--------------------------------------+-------+--------+--------+----------------------------------------------------------------------------------------------------------------
+ accounts_user_barbershop_id_f73426d9 | f     | t      | t      | CREATE INDEX accounts_user_barbershop_id_f73426d9 ON public.accounts_user USING btree (barbershop_id)
+ accounts_user_email_b2644a56_like    | f     | t      | t      | CREATE INDEX accounts_user_email_b2644a56_like ON public.accounts_user USING btree (email varchar_pattern_ops)
+ accounts_user_email_key              | t     | t      | t      | CREATE UNIQUE INDEX accounts_user_email_key ON public.accounts_user USING btree (email)
+ accounts_user_email_lower_unico      | t     | t      | t      | CREATE UNIQUE INDEX accounts_user_email_lower_unico ON public.accounts_user USING btree (lower((email)::text))
+ accounts_user_pkey                   | t     | t      | t      | CREATE UNIQUE INDEX accounts_user_pkey ON public.accounts_user USING btree (id)
+(5 rows)
+
+== 4. Nenhuma conta fora da regra (esperado: fora_da_regra = 0; contas igual à pré-verificação)

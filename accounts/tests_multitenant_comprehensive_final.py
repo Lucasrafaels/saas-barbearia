@@ -398,17 +398,15 @@ class ComprehensiveMultiTenantIsolationTests(APITestCase):
         """Test that filters cannot access other tenant data."""
         self.client.force_authenticate(self.admin_a)
 
-        # Test filtering by other tenant's barber returns empty/not found
-        response = self.client.get(reverse('appointment-list'), {'barbeiro': self.barber_b.id})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        ids = [appt['id'] for appt in response.data['results']]
-        self.assertNotIn(self.appointment_b.id, ids)
-
-        # Test filtering by other tenant's service returns empty/not found
-        response = self.client.get(reverse('appointment-list'), {'servico': self.service_b.id})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        ids = [appt['id'] for appt in response.data['results']]
-        self.assertNotIn(self.appointment_b.id, ids)
+        # TEN-01/SEC-10: filtrar pelo barbeiro ou pelo serviço de outra
+        # barbearia recebe a mesma recusa (400) de um ID inexistente, sem
+        # dados e sem revelar que o registro existe.
+        for campo, alheio in (('barbeiro', self.barber_b.id), ('servico', self.service_b.id)):
+            response = self.client.get(reverse('appointment-list'), {campo: alheio})
+            inexistente = self.client.get(reverse('appointment-list'), {campo: 999999})
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(response.data, inexistente.data)
+            self.assertNotIn('results', response.data)
 
     # Test manual tenant injection attacks
     def test_manual_tenant_injection_attacks(self):

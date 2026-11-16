@@ -1,0 +1,48 @@
+== P7.1 fumaca.py completo (roteiro do plano)
+ok   cadastro público com maiúsculas: 201 (esperado 201)
+ok   login logo após o cadastro, com o mesmo texto: 200 (esperado 200)
+ok   variação de caixa recusada: 400 (esperado 400)
+ok   e-mail não ASCII recusado: 400 (esperado 400)
+ok   onboarding da barbearia fictícia: 201 (esperado 201)
+ok   serviço: 201 (esperado 201)
+ok   barbeiro criado pelo admin: 201 (esperado 201)
+ok   cliente criado pelo admin: 201 (esperado 201)
+ok   agendamento pelo dono: 201 (esperado 201)
+ok   login do cliente com outra caixa: 200 (esperado 200)
+ok   agendamento pelo próprio cliente: 201 (esperado 201)
+ok   recuperação de senha com outra caixa: 204 (esperado 204)
+RESULTADO: OK
+exit=0
+
+(espera de 61 s: janela do limite de login, 5/min, que segue o real)
+== P7.2 complemento: edição de e-mail, recuperação até a troca, isolamento
+ok   cadastro público do dono A
+ok   login do dono A: 200
+ok   criação da barbearia A: 201
+ok   cadastro público do dono B
+ok   login do dono B: 200
+ok   criação da barbearia B: 201
+ok   cadastro administrativo de cliente (A, com maiúsculas e espaços)
+ok   cadastro administrativo de cliente (B)
+ok   admin A só lista contas da barbearia A: count=2
+ok   admin A não lê o cliente de B (404)
+ok   admin A não edita o cliente de B (404)
+ok   admin A só vê a própria barbearia
+ok   admin A não cria conta com o e-mail do cliente de B, em outra caixa (400)
+ok   agendamentos de A não incluem os de outras barbearias
+ok   login do cliente A com outra caixa: 200
+ok   edição do próprio e-mail grava a forma canônica: 200
+ok   edição para o e-mail de outra conta, em outra caixa: 400 de duplicidade: 400
+ok   edição para e-mail não ASCII: 400: 400
+ok   cadastro com e-mail inválido recusado ('a b@exemplo.test')
+ok   cadastro com e-mail inválido recusado ('x@exem\u200bplo.test')
+ok   cadastro com e-mail inválido recusado ('x@İ.test')
+ok   cadastro com e-mail inválido recusado (123)
+ok   pedido de recuperação com outra caixa e espaços: 204: 204
+ok   e-mail de recuperação capturado localmente, para o endereço canônico da própria conta: mensagens=1 conta_confere=True
+ok   confirmação com o token recebido: 204: 204
+ok   login com a senha nova (outra caixa): 200
+ok   login com a senha antiga: 401
+ok   recuperação de e-mail inexistente: 204
+RESULTADO: OK
+exit=0

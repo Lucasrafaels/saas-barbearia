@@ -1,0 +1,9 @@
+tabela|linhas
+accounts_user|8
+appointments_appointment|2
+barbershops_barber|2
+barbershops_barbershop|2
+django_migrations|53
+services_service|2
+token_blacklist_blacklistedtoken|1
+token_blacklist_outstandingtoken|13

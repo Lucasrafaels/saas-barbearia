@@ -1,0 +1,11 @@
+antes-debug-true: HTML=0; páginas com <select>=0; respostas com dados de outro tenant=0; 500=0
+antes-debug-false: HTML=0; páginas com <select>=0; respostas com dados de outro tenant=0; 500=0
+depois-debug-true: HTML=0; páginas com <select>=0; respostas com dados de outro tenant=0; 500=0
+depois-debug-false: HTML=0; páginas com <select>=0; respostas com dados de outro tenant=0; 500=0
+laboratorio-html-antes: HTML=1071; páginas com <select>=653; respostas com dados de outro tenant=114; 500=26
+laboratorio-html-depois: HTML=1071; páginas com <select>=653; respostas com dados de outro tenant=0; 500=26
+[debug-true] contenção x estrutural: 1926 pedidos, status e content-type diferentes em 0
+[debug-false] contenção x estrutural: 1926 pedidos, status e content-type diferentes em 0
+laboratório: combinações rota×papel que vazavam com HTML ativo: antes 19, depois 0
+laboratório: maior nº de <option> de outro tenant numa página: antes 47, depois 0
+laboratório: mesmo status e mesmo nº de <select> nas duas versões: 1926/1926 (os formulários continuam desenhados, só com o próprio tenant)

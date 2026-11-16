@@ -1,0 +1,57 @@
+# Saída da verificacao-colisoes-somente-leitura.sql no banco DESCARTÁVEL a45_lab (PG 18.3), com contas FICTÍCIAS.
+# O bloco 3 (com e-mails) aparece aqui porque os dados são fictícios; no banco real, ele não vai para as evidências.
+BEGIN
+SET
+== 0. Ambiente: o lower() do PostgreSQL depende do LC_CTYPE deste banco
+  banco  | datcollate | datctype | datlocprovider |     versao      
+---------+------------+----------+----------------+-----------------
+ a45_lab | C.UTF-8    | C.UTF-8  | c              | PostgreSQL 18.3
+(1 row)
+
+== 1. Resumo (sem dados pessoais)
+ total_de_contas | mudariam_com_a_normalizacao | com_espacos_nas_pontas | com_caracteres_nao_ascii | grupos_que_colidiriam | contas_nesses_grupos 
+-----------------+-----------------------------+------------------------+--------------------------+-----------------------+----------------------
+              14 |                           7 |                      1 |                        1 |                     4 |                    8
+(1 row)
+
+== 2. Grupos que colidiriam (sem e-mail nem nome): o grupo é identificado pelo menor id
+ grupo | contas |   ids   | barbearias |       papeis       | ativas | superusuarios | ultimo_login |        criada_em        | agendamentos_como_cliente | tem_perfil_de_barbeiro | ja_esta_normalizado 
+-------+--------+---------+------------+--------------------+--------+---------------+--------------+-------------------------+---------------------------+------------------------+---------------------
+     2 |      2 | {2,5}   | {2,1}      | {admin,cliente}    | {t,f}  | {f,f}         | {-,-}        | {2026-11-15,2026-11-15} | {0,0}                     | {f,f}                  | {t,f}
+     3 |      2 | {3,4}   | {2,-}      | {cliente,cliente}  | {t,t}  | {f,f}         | {-,-}        | {2026-11-15,2026-11-15} | {2,0}                     | {f,f}                  | {t,f}
+     6 |      2 | {6,7}   | {1,2}      | {barbeiro,cliente} | {t,t}  | {f,f}         | {-,-}        | {2026-11-15,2026-11-15} | {0,0}                     | {t,f}                  | {t,f}
+    10 |      2 | {10,11} | {-,-}      | {cliente,cliente}  | {t,t}  | {f,f}         | {-,-}        | {2026-11-15,2026-11-15} | {0,0}                     | {f,f}                  | {f,t}
+(4 rows)
+
+== 3. DETALHE PARA O DONO, COM E-MAILS E NOMES (não copiar para evidências)
+    email_normalizado    | id |      email_gravado      |      nome       | barbershop_id | tipo_perfil | is_active | last_login |          date_joined          
+-------------------------+----+-------------------------+-----------------+---------------+-------------+-----------+------------+-------------------------------
+ admin.b@beta.test       |  2 | admin.b@beta.test       | Beatriz Admin B |             2 | admin       | t         |            | 2026-11-15 17:21:53.638065-03
+ admin.b@beta.test       |  5 | ADMIN.B@beta.test       | Abel Variante   |             1 | cliente     | f         |            | 2026-11-15 17:21:53.640368-03
+ cliente.b@beta.test     |  3 | cliente.b@beta.test     | Clara Cliente B |             2 | cliente     | t         |            | 2026-11-15 17:21:53.639-03
+ cliente.b@beta.test     |  4 | Cliente.B@beta.test     | Aaron Variante  |               | cliente     | t         |            | 2026-11-15 17:21:53.639714-03
+ espaco@exemplo.test     | 10 | espaco@exemplo.test     | Espaço Final    |               | cliente     | t         |            | 2026-11-15 17:21:53.645572-03
+ espaco@exemplo.test     | 11 | espaco@exemplo.test     | Espaço Normal   |               | cliente     | t         |            | 2026-11-15 17:21:53.646208-03
+ joao.barbeiro@alfa.test |  6 | joao.barbeiro@alfa.test | João Barbeiro   |             1 | barbeiro    | t         |            | 2026-11-15 17:21:53.641046-03
+ joao.barbeiro@alfa.test |  7 | JOAO.BARBEIRO@ALFA.TEST | João Duplicado  |             2 | cliente     | t         |            | 2026-11-15 17:21:53.643483-03
+(8 rows)
+
+== 4. Contas que a normalização mudaria (sem e-mail): só ids e o tipo de mudança
+ id | espacos_nas_pontas | maiusculas_na_parte_local | maiusculas_no_dominio | em_grupo_de_colisao 
+----+--------------------+---------------------------+-----------------------+---------------------
+  4 | f                  | t                         | f                     | t
+  5 | f                  | t                         | f                     | t
+  7 | f                  | t                         | t                     | t
+  8 | f                  | t                         | f                     | f
+  9 | f                  | f                         | t                     | f
+ 10 | t                  | f                         | f                     | t
+ 12 | f                  | f                         | t                     | f
+(7 rows)
+
+== 5. Contas com caracteres não ASCII (onde o lower() do PostgreSQL e o do Python podem divergir)
+ id | ja_minusculo 
+----+--------------
+ 12 | f
+(1 row)
+
+ROLLBACK

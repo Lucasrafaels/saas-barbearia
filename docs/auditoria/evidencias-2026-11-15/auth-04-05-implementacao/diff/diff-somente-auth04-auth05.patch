@@ -1,0 +1,1281 @@
+--- /dev/null
++++ b/accounts/emails.py
+@@ -0,0 +1,82 @@
++"""
++Regra única do e-mail de login (AUTH-04 e AUTH-05; seções 28 a 31 do relatório de auditoria).
++
++O e-mail identifica a conta em toda a plataforma. A forma canônica é:
++
++1. tirar os espaços externos com a semântica de `str.strip()`, a mesma que o DRF,
++   os formulários do Django e o `normalize_email` já usavam;
++2. exigir que o restante tenha **só ASCII imprimível**, de U+0021 a U+007E, sem
++   espaços nem controles. A checagem vem **antes** da conversão: caracteres
++   Unicode que viram ASCII ao converter (por exemplo, o sinal de Kelvin U+212A
++   vira "k") são recusados, e não aceitos por acaso;
++3. converter o endereço inteiro para minúsculas.
++
++Por que só ASCII (seção 30): com `pt_BR.UTF-8`, o `lower()` do PostgreSQL e o
++do Python divergem em 56 caracteres Unicode, e o `EmailValidator` aceita
++caracteres invisíveis no domínio. Na faixa ASCII, as duas normalizações são
++idênticas, o que foi medido em todos os pontos de código. Isso permite que o
++banco garanta a mesma regra com
++`CHECK (email = lower(email) AND email ~ '^[!-~]+$')` e `UNIQUE (LOWER(email))`
++(migração `accounts.0006`). O frontend já só aceitava ASCII. Domínios
++internacionais continuam aceitos na forma punycode (`xn--…`).
++
++Não há conversão de tipo: um valor que não é `str` não tem forma canônica.
++"""
++import re
++
++from django.core.exceptions import ValidationError
++from django.core.validators import EmailValidator
++
++# U+0021..U+007E. A mesma faixa vai para a restrição CHECK do banco (accounts.0006).
++FAIXA_PERMITIDA = re.compile(r'[!-~]+')
++EXPRESSAO_SQL_DA_FAIXA = r'^[!-~]+$'
++
++# Os nomes das restrições que garantem a unicidade do e-mail no banco. O primeiro
++# é o que o PostgreSQL deu ao `unique=True` do campo (accounts.0001); o segundo é
++# a unicidade funcional criada em accounts.0006.
++RESTRICAO_UNIQUE_DO_CAMPO = 'accounts_user_email_key'
++RESTRICAO_UNIQUE_LOWER = 'accounts_user_email_lower_unico'
++RESTRICAO_CHECK = 'accounts_user_email_normalizado'
++
++
++def forma_canonica(valor):
++    """
++    Devolve a forma canônica do e-mail, ou `None` quando o valor não cabe na regra.
++
++    Não converte tipos e não valida a sintaxe do e-mail, que continua a cargo do
++    `EmailValidator` do projeto. Só decide a forma.
++    """
++    if not isinstance(valor, str):
++        return None
++    sem_espacos_externos = valor.strip()
++    if not FAIXA_PERMITIDA.fullmatch(sem_espacos_externos):
++        return None
++    return sem_espacos_externos.lower()
++
++
++def normalizar_email(valor):
++    """Forma canônica para gravar. Se o valor não couber na regra, levanta `ValidationError` ('invalid')."""
++    canonico = forma_canonica(valor)
++    if canonico is None:
++        raise ValidationError(EmailValidator.message, code='invalid')
++    return canonico
++
++
++def e_violacao_da_unicidade_do_email(erro):
++    """
++    Diz se um `IntegrityError` veio de uma das restrições de unicidade do e-mail.
++
++    Qualquer outro erro de integridade, inclusive o CHECK de forma canônica, que
++    só falha num caminho que não normalizou, não é "e-mail duplicado" e não pode
++    virar essa mensagem. No PostgreSQL, o nome vem do diagnóstico do driver. No
++    SQLite dos testes, vem do texto padrão do erro.
++    """
++    causa = getattr(erro, '__cause__', None)
++    nome = getattr(getattr(causa, 'diag', None), 'constraint_name', None)
++    if nome is not None:
++        return nome in (RESTRICAO_UNIQUE_DO_CAMPO, RESTRICAO_UNIQUE_LOWER)
++    texto = str(erro)
++    return texto in (
++        'UNIQUE constraint failed: accounts_user.email',
++        f"UNIQUE constraint failed: index '{RESTRICAO_UNIQUE_LOWER}'",
++    )
+--- a/accounts/models.py
++++ b/accounts/models.py
+@@ -7,10 +7,19 @@
+ `barbershop_id` (ver core.mixins.TenantScopedQuerysetMixin).
+ """
+ from django.contrib.auth.models import AbstractUser
++from django.core.exceptions import ValidationError
+ from django.db import models
++from django.db.models import Q
++from django.db.models.functions import Lower
+ 
+ from config.models import TimeStampedModel
+ from .admin_integrity import GUARDED_FIELDS, active_admin_barbershop, preserving_active_admins
++from .emails import (
++    EXPRESSAO_SQL_DA_FAIXA,
++    RESTRICAO_CHECK,
++    RESTRICAO_UNIQUE_LOWER,
++    normalizar_email,
++)
+ from .managers import UserManager
+ 
+ 
+@@ -55,10 +64,49 @@
+         verbose_name = 'usuário'
+         verbose_name_plural = 'usuários'
+         ordering = ['nome']
++        # AUTH-04/AUTH-05 (accounts.emails, migração 0006): o banco garante a
++        # regra única do e-mail mesmo nos caminhos que não passam por save(),
++        # como QuerySet.update(), bulk_create(), SQL e pedidos simultâneos. O
++        # unique=True do campo continua: o check auth.E003 exige unicidade no
++        # próprio USERNAME_FIELD, e uma restrição funcional não conta.
++        constraints = [
++            models.CheckConstraint(
++                check=Q(email=Lower('email')) & Q(email__regex=EXPRESSAO_SQL_DA_FAIXA),
++                name=RESTRICAO_CHECK,
++            ),
++            models.UniqueConstraint(Lower('email'), name=RESTRICAO_UNIQUE_LOWER),
++        ]
+ 
+     def __str__(self):
+         return f'{self.nome} ({self.get_tipo_perfil_display()})'
+ 
++    def clean(self):
++        """
++        Aplica a regra única do e-mail (accounts.emails) na validação de modelo (Django Admin).
++
++        Substitui os `clean()` herdados. O `AbstractBaseUser.clean()` aplica
++        NFKC ao USERNAME_FIELD, o que transformaria caracteres Unicode (letras
++        de largura total, por exemplo) em ASCII **antes** da checagem da faixa.
++        O `AbstractUser.clean()` só punha o domínio em minúsculas.
++        """
++        try:
++            self.email = normalizar_email(self.email)
++        except ValidationError as erro:
++            raise ValidationError({'email': erro.error_list}) from erro
++
++    def validate_constraints(self, exclude=None):
++        """
++        Não repete, na validação de modelo, as duas restrições do e-mail (CHECK e UNIQUE (LOWER(email))).
++
++        Elas já estão garantidas antes daqui. O `clean()` grava a forma
++        canônica, e o `unique=True` do campo recusa a duplicata com a mensagem
++        de sempre, porque, na forma canônica, igualdade exata equivale a
++        UNIQUE (LOWER(email)). Validá-las de novo só acrescentava, no Django
++        Admin, um segundo erro com o nome interno da restrição. O banco
++        continua sendo a garantia final.
++        """
++        super().validate_constraints(exclude={*(exclude or ()), 'email'})
++
+     # AbstractUser.get_full_name/get_short_name usam first_name/last_name
+     # por padrão; como removemos esses campos, sobrescrevemos aqui para
+     # que qualquer código do Django (ex.: admin) continue funcionando.
+@@ -72,6 +120,12 @@
+     # que seja o caminho (API, Django Admin, shell). Ver accounts.admin_integrity.
+     def save(self, *args, **kwargs):
+         update_fields = kwargs.get('update_fields')
++        # AUTH-05: o e-mail gravado está sempre na forma canônica. Se o valor
++        # não couber na regra, a gravação é recusada com ValidationError. Só
++        # quando o e-mail é gravado: um save(update_fields=['last_login']), por
++        # exemplo, não depende dele.
++        if update_fields is None or 'email' in update_fields:
++            self.email = normalizar_email(self.email)
+         if (
+             self._state.adding
+             or self.pk is None
+--- a/accounts/managers.py
++++ b/accounts/managers.py
+@@ -6,6 +6,7 @@
+ from django.db import models
+ 
+ from .admin_integrity import GUARDED_FIELDS, preserving_active_admins
++from .emails import forma_canonica, normalizar_email
+ 
+ 
+ class UserQuerySet(models.QuerySet):
+@@ -37,6 +38,30 @@
+ 
+     use_in_migrations = True
+ 
++    @classmethod
++    def normalize_email(cls, email):
++        """
++        Regra única do e-mail (accounts.emails), no lugar da do Django, que só
++        punha o domínio em minúsculas (AUTH-05). Vale para `create_user` e
++        `create_superuser`. Valor fora da regra: `ValidationError`.
++        """
++        return normalizar_email(email)
++
++    def get_by_natural_key(self, username):
++        """
++        Busca pela forma canônica e com igualdade exata.
++
++        É o que o `ModelBackend` usa no login da API, no login do Django Admin
++        e no `createsuperuser`. Por isso o login não diferencia caixa e não
++        precisa mudar nas views (AUTH-05). Um valor fora da regra se comporta
++        como conta inexistente: o `ModelBackend` mantém a mesma proteção de
++        tempo e a mesma resposta.
++        """
++        email = forma_canonica(username)
++        if email is None:
++            raise self.model.DoesNotExist('Nenhuma conta com esse e-mail.')
++        return self.get(**{self.model.USERNAME_FIELD: email})
++
+     def create_user(self, email, nome, password=None, **extra_fields):
+         if not email:
+             raise ValueError('O e-mail é obrigatório.')
+--- a/accounts/serializers.py
++++ b/accounts/serializers.py
+@@ -4,7 +4,7 @@
+ from django.conf import settings
+ from django.contrib.auth.password_validation import validate_password
+ from django.core.exceptions import ValidationError as DjangoValidationError
+-from django.db import transaction
++from django.db import IntegrityError, models, transaction
+ from django.utils import timezone
+ from django.utils.encoding import force_str
+ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+@@ -18,11 +18,59 @@
+ from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+ from rest_framework_simplejwt.settings import api_settings
+ from rest_framework_simplejwt.tokens import RefreshToken
++from rest_framework.utils.field_mapping import get_unique_error_message
+ 
+ from .admin_integrity import AdminIntegrityError, check_self_change, lock_active_admins
++from .emails import e_violacao_da_unicidade_do_email, forma_canonica
+ from .models import User
+ 
+ 
++class EmailNormalizadoField(serializers.EmailField):
++    """
++    `EmailField` que entrega o valor já na forma canônica (accounts.emails).
++
++    A normalização precisa estar aqui, e não num `validate_email`. O DRF roda os
++    validadores do campo, inclusive o `UniqueValidator`, dentro de
++    `run_validation`, logo depois deste `to_internal_value` e **antes** do
++    `validate_<campo>` do serializer. Assim, a checagem de duplicidade já
++    compara a forma canônica.
++
++    A resposta para entrada inválida é a mesma de antes. Um valor que não é
++    texto recebe 'invalid' sem conversão de tipo; `null` e vazio continuam a
++    cargo do DRF ('null' e 'blank'). Um texto fora da regra também recebe
++    'invalid'.
++    """
++
++    def to_internal_value(self, data):
++        if not isinstance(data, str):
++            self.fail('invalid')
++        canonico = forma_canonica(super().to_internal_value(data))
++        if canonico is None:
++            self.fail('invalid')
++        return canonico
++
++
++class EmailCanonicoMixin:
++    """Faz os ModelSerializers de usuário gerarem o campo `email` como `EmailNormalizadoField`."""
++
++    serializer_field_mapping = {
++        **serializers.ModelSerializer.serializer_field_mapping,
++        models.EmailField: EmailNormalizadoField,
++    }
++
++
++def recusar_email_duplicado(erro):
++    """
++    Pedido simultâneo: os dois passaram pelo `UniqueValidator`, mas o banco
++    recusou o segundo. Responde o mesmo 400 que o validador daria. Qualquer
++    outro `IntegrityError` é levantado de novo, sem ser mascarado.
++    """
++    if e_violacao_da_unicidade_do_email(erro):
++        mensagem = get_unique_error_message(User._meta.get_field('email'))
++        raise serializers.ValidationError({'email': [serializers.ErrorDetail(mensagem, code='unique')]}) from erro
++    raise erro
++
++
+ def revoke_user_refresh_tokens(user):
+     """Invalida refresh tokens já emitidos para encerrar sessões do usuário."""
+     from rest_framework_simplejwt.token_blacklist.models import (
+@@ -40,7 +88,7 @@
+     return serializers.ValidationError({key or 'detail': error.messages})
+ 
+ 
+-class UserSerializer(serializers.ModelSerializer):
++class UserSerializer(EmailCanonicoMixin, serializers.ModelSerializer):
+     """Serializer de leitura/edição de usuários já existentes."""
+ 
+     class Meta:
+@@ -112,6 +160,10 @@
+             return self._apply_update(instance, validated_data)
+         except AdminIntegrityError as error:
+             raise admin_integrity_error_as_drf(error, key='detail') from error
++        except IntegrityError as erro:
++            # AUTH-05: _apply_update roda em transaction.atomic(). O erro chega
++            # aqui com a transação desfeita até esse ponto e íntegra.
++            recusar_email_duplicado(erro)
+ 
+     def _apply_update(self, instance, validated_data):
+         """Atualiza campos permitidos. Alteração de papel (tipo_perfil) sincroniza
+@@ -219,7 +271,7 @@
+         return attrs
+ 
+ 
+-class UserCreateSerializer(PasswordValidationMixin, serializers.ModelSerializer):
++class UserCreateSerializer(EmailCanonicoMixin, PasswordValidationMixin, serializers.ModelSerializer):
+     """Serializer usado para cadastro de novos usuários (recebe senha)."""
+ 
+     password = serializers.CharField(write_only=True, min_length=8)
+@@ -276,37 +328,42 @@
+         if is_barber and not barber_active:
+             validated_data['tipo_perfil'] = User.TipoPerfil.CLIENTE
+ 
+-        with transaction.atomic():
+-            user = User.objects.create_user(
+-                password=password,
+-                barbershop=request.user.barbershop,
+-                **validated_data,
+-            )
+-
+-            if is_barber:
+-                from barbershops.models import Barber
+-                barber = Barber(
+-                    user=user,
++        try:
++            with transaction.atomic():
++                user = User.objects.create_user(
++                    password=password,
+                     barbershop=request.user.barbershop,
+-                    especialidade=especialidade or '',
+-                    ativo=barber_active,
++                    **validated_data,
+                 )
+-                # create()/save() não chama clean() automaticamente no
+-                # Django. Validamos explicitamente para preservar as regras
+-                # de tenant e de perfil também neste fluxo composto.
+-                try:
+-                    barber.full_clean()
+-                except DjangoValidationError as error:
+-                    raise serializers.ValidationError(error.message_dict) from error
+-                if not barber_active:
+-                    barber.deleted_at = timezone.now()
+-                    barber.deleted_by = request.user
+-                barber.save()
++
++                if is_barber:
++                    from barbershops.models import Barber
++                    barber = Barber(
++                        user=user,
++                        barbershop=request.user.barbershop,
++                        especialidade=especialidade or '',
++                        ativo=barber_active,
++                    )
++                    # create()/save() não chama clean() automaticamente no
++                    # Django. Validamos explicitamente para preservar as regras
++                    # de tenant e de perfil também neste fluxo composto.
++                    try:
++                        barber.full_clean()
++                    except DjangoValidationError as error:
++                        raise serializers.ValidationError(error.message_dict) from error
++                    if not barber_active:
++                        barber.deleted_at = timezone.now()
++                        barber.deleted_by = request.user
++                    barber.save()
++        except IntegrityError as erro:
++            # AUTH-05: pedido simultâneo com o mesmo e-mail. O atomic() acima já
++            # desfez esta criação, e a transação externa continua íntegra.
++            recusar_email_duplicado(erro)
+ 
+         return user
+ 
+ 
+-class PublicRegistrationSerializer(PasswordValidationMixin, serializers.ModelSerializer):
++class PublicRegistrationSerializer(EmailCanonicoMixin, PasswordValidationMixin, serializers.ModelSerializer):
+     """Cadastro público inicial, sempre criado como cliente sem tenant."""
+ 
+     password = serializers.CharField(write_only=True, min_length=8)
+@@ -318,7 +375,13 @@
+ 
+     def create(self, validated_data):
+         password = validated_data.pop('password')
+-        return User.objects.create_user(password=password, **validated_data)
++        try:
++            with transaction.atomic():
++                return User.objects.create_user(password=password, **validated_data)
++        except IntegrityError as erro:
++            # AUTH-05: cadastro simultâneo com o mesmo e-mail (o banco recusa o
++            # segundo). Mesmo 400 do UniqueValidator, sem 500.
++            recusar_email_duplicado(erro)
+ 
+ 
+ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+@@ -379,7 +442,8 @@
+ 
+ 
+ class PasswordResetRequestSerializer(serializers.Serializer):
+-    email = serializers.EmailField()
++    # AUTH-04: o e-mail chega na forma canônica (accounts.emails).
++    email = EmailNormalizadoField()
+ 
+     def save(self, **kwargs):
+         # A resposta é idêntica para e-mails existentes e inexistentes, para
+@@ -388,7 +452,14 @@
+         # timing attack: a latência deve ser constante independentemente da
+         # existência da conta. Em produção, usar Celery para envio assíncrono.
+         email = self.validated_data['email']
+-        user = User.objects.filter(email__iexact=email, is_active=True).first()
++        # AUTH-04: igualdade exata com a forma canônica, que o banco mantém
++        # única (accounts.0006). Antes era `email__iexact` + `.first()` pela
++        # ordem do nome, e uma conta com outra caixa podia ser escolhida no
++        # lugar da certa.
++        try:
++            user = User.objects.get(email=email, is_active=True)
++        except User.DoesNotExist:
++            user = None
+ 
+         # Sempre preparar dados do e-mail (mesmo se user for None)
+         if user is not None:
+--- a/accounts/throttles.py
++++ b/accounts/throttles.py
+@@ -21,6 +21,8 @@
+ """
+ from rest_framework.throttling import SimpleRateThrottle
+ 
++from .emails import forma_canonica
++
+ 
+ class LimitePorSolicitante(SimpleRateThrottle):
+     """
+@@ -81,10 +83,16 @@
+ 
+     `conta` já foi obtida por `get_object()`, com o escopo e a permissão do
+     solicitante. Por isso, a comparação usa apenas um e-mail que ele já pode ver.
++
++    AUTH-05: a comparação usa a forma canônica (accounts.emails), a mesma que o
++    serializer grava. Reenviar o próprio e-mail em outra caixa não troca nada e
++    não conta. Um texto fora da regra, que o serializer recusa, continua
++    contando como antes.
+     """
+     if not hasattr(dados, 'get') or 'email' not in dados:
+         return False
+     valor = dados.get('email')
+     if isinstance(valor, str):
+-        valor = valor.strip()
++        canonico = forma_canonica(valor)
++        valor = canonico if canonico is not None else valor.strip()
+     return valor != conta.email
+--- /dev/null
++++ b/accounts/migrations/0006_email_normalizado.py
+@@ -0,0 +1,79 @@
++# Generated by Django 5.0.14 on 2026-11-15 20:59
++# Editada à mão (AUTH-04/AUTH-05, seção 31 do relatório): a verificação e a
++# conversão dos dados (RunPython) vêm antes das restrições geradas pelo
++# makemigrations, que ficaram como foram geradas.
++"""
++E-mail de login na forma canônica (accounts.emails), garantido pelo banco.
++
++1. Verifica todas as contas com a mesma regra da aplicação (`forma_canonica`).
++   Se alguma tiver e-mail fora da regra, como caractere fora de U+0021..U+007E
++   ou espaço interno, ou se duas contas ficarem com o mesmo e-mail depois da
++   normalização, a migração é **interrompida**. A mensagem mostra só os ids,
++   nunca e-mails nem nomes, e nada é alterado, porque a migração é atômica.
++   Nenhuma conta é escolhida automaticamente.
++2. Grava a forma canônica nas contas em que ela difere do valor atual.
++3. CHECK (email = lower(email) AND email ~ '^[!-~]+$').
++4. UNIQUE (LOWER(email)). O `unique=True` do campo continua.
++
++Reversão: retira as duas restrições. **Não recupera a grafia original** dos
++e-mails convertidos, porque a conversão para minúsculas não é reversível. Só um
++backup do banco feito antes da migração recupera os valores anteriores.
++"""
++from collections import defaultdict
++
++import django.db.models.functions.text
++from django.db import migrations, models
++
++from accounts.emails import forma_canonica
++
++
++class MigracaoDeEmailInterrompida(RuntimeError):
++    """Dados que a regra única do e-mail não consegue normalizar sem uma decisão humana."""
++
++
++def verificar_e_normalizar_emails(apps, schema_editor):
++    User = apps.get_model('accounts', 'User')
++    banco = schema_editor.connection.alias
++    contas = list(User.objects.using(banco).order_by('id').values_list('id', 'email'))
++
++    fora_da_regra = [pk for pk, email in contas if forma_canonica(email) is None]
++    por_forma = defaultdict(list)
++    for pk, email in contas:
++        canonico = forma_canonica(email)
++        if canonico is not None:
++            por_forma[canonico].append(pk)
++    colisoes = [ids for ids in por_forma.values() if len(ids) > 1]
++
++    if fora_da_regra or colisoes:
++        raise MigracaoDeEmailInterrompida(
++            'accounts.0006 interrompida; nada foi alterado. '
++            f'Contas com e-mail fora da regra (ids): {fora_da_regra or "nenhuma"}. '
++            f'Grupos que ficariam com o mesmo e-mail após a normalização (ids): {colisoes or "nenhum"}. '
++            'Decida cada caso no banco e rode a migração de novo.'
++        )
++
++    for pk, email in contas:
++        canonico = forma_canonica(email)
++        if canonico != email:
++            User.objects.using(banco).filter(pk=pk).update(email=canonico)
++
++
++class Migration(migrations.Migration):
++
++    dependencies = [
++        ('accounts', '0005_protect_barbershop'),
++        ('auth', '0012_alter_user_first_name_max_length'),
++        ('barbershops', '0006_barbershop_dias_funcionamento'),
++    ]
++
++    operations = [
++        migrations.RunPython(verificar_e_normalizar_emails, reverse_code=migrations.RunPython.noop),
++        migrations.AddConstraint(
++            model_name='user',
++            constraint=models.CheckConstraint(check=models.Q(('email', django.db.models.functions.text.Lower('email')), ('email__regex', '^[!-~]+$')), name='accounts_user_email_normalizado'),
++        ),
++        migrations.AddConstraint(
++            model_name='user',
++            constraint=models.UniqueConstraint(django.db.models.functions.text.Lower('email'), name='accounts_user_email_lower_unico'),
++        ),
++    ]
+--- /dev/null
++++ b/accounts/test_auth04_auth05.py
+@@ -0,0 +1,710 @@
++"""
++AUTH-04 e AUTH-05: regra única do e-mail de login (accounts.emails) e garantia pelo banco (accounts.0006).
++
++Regra: str.strip() → só ASCII imprimível U+0021..U+007E (checado antes de converter) → minúsculas. A sintaxe continua
++com o validador do projeto (o EmailField do DRF na API; o EmailField do model no Django Admin).
++
++Os testes de concorrência real e de equivalência Python × PostgreSQL rodam só no PostgreSQL (no SQLite, são pulados);
++a equivalência exige a ordenação pt_BR do banco real. Dados fictícios (domínios .test).
++"""
++import base64
++import importlib
++import re
++import threading
++from datetime import timedelta
++from io import StringIO
++from unittest import mock, skipUnless
++
++from django.contrib.auth import authenticate
++from django.core import mail
++from django.core.cache import cache
++from django.core.exceptions import ValidationError
++from django.core.management import CommandError, call_command
++from django.db import IntegrityError, connection, transaction
++from django.db.migrations.executor import MigrationExecutor
++from django.db.migrations.recorder import MigrationRecorder
++from django.test import TestCase, TransactionTestCase, override_settings
++from django.utils import timezone
++from rest_framework import serializers
++from rest_framework.test import APIClient
++from rest_framework.throttling import SimpleRateThrottle
++from rest_framework.validators import UniqueValidator
++
++from accounts.emails import (
++    RESTRICAO_CHECK,
++    RESTRICAO_UNIQUE_DO_CAMPO,
++    RESTRICAO_UNIQUE_LOWER,
++    e_violacao_da_unicidade_do_email,
++    forma_canonica,
++    normalizar_email,
++)
++from accounts.forms import CustomUserChangeForm, CustomUserCreationForm
++from accounts.models import User
++from accounts.serializers import EmailNormalizadoField
++from accounts.throttles import tenta_trocar_email
++from barbershops.models import Barber, Barbershop
++from services.models import Service
++
++SENHA = 'Navalha-Fict-2026!'
++UNICIDADE = 'usuário com este e-mail já existe.'
++INVALIDO = 'Insira um endereço de email válido.'
++NAO_STRINGS = [123, 1.5, True, [], {}, ['a@b.test'], {'email': 'a@b.test'}]
++ESPACOS_PYTHON = [chr(c) for c in range(0x110000) if chr(c).isspace()]
++# Os 56 caracteres em que str.lower() (Python 3.12) e lower() (PostgreSQL, pt_BR.UTF-8) divergem (seção 30), mais o
++# sinal de Kelvin e o de Angstrom, que viram letras ASCII ou latinas ao converter.
++DIVERGENTES = ['İ', 'Ᲊ', 'Ɤ', 'Ꟍ', '꟎', '꟒', '꟔', 'Ꟛ', 'Ƛ', '\U00010d50']
++CONVERTEM_PARA_ASCII = ['K', 'Å']
++INVISIVEIS = ['​', '﻿', '­', '‌', '‍', '⁠', '͏', '᠋', '︀', '️']
++MIGRACAO = importlib.import_module('accounts.migrations.0006_email_normalizado')
++
++
++def em_postgresql():
++    return connection.vendor == 'postgresql'
++
++
++class SemLimites:
++    """Os limites reais de login, cadastro e recuperação (5/min, 10/h…) não são o assunto aqui (exceto em LimitesTests)."""
++
++    def setUp(self):
++        super().setUp()
++        cache.clear()
++        self.addCleanup(cache.clear)
++        p = mock.patch.dict(SimpleRateThrottle.THROTTLE_RATES, {k: '100000/minute' for k in SimpleRateThrottle.THROTTLE_RATES})
++        p.start()
++        self.addCleanup(p.stop)
++
++
++class Cenario(SemLimites, TestCase):
++    @classmethod
++    def setUpTestData(cls):
++        cls.a = Barbershop.objects.create(nome='Alfa', endereco='Rua 1', telefone='11900000001', email='contato@alfa.test',
++                                          horario_abertura='08:00', horario_fechamento='18:00')
++        cls.b = Barbershop.objects.create(nome='Beta', endereco='Rua 2', telefone='11900000002', email='contato@beta.test',
++                                          horario_abertura='08:00', horario_fechamento='18:00')
++        cls.admin_a = User.objects.create_user(email='admin.a@alfa.test', nome='Ana', password=SENHA, tipo_perfil='admin', barbershop=cls.a)
++        cls.admin_b = User.objects.create_user(email='admin.b@beta.test', nome='Beatriz', password=SENHA, tipo_perfil='admin', barbershop=cls.b)
++        cls.cliente_a = User.objects.create_user(email='cliente.a@alfa.test', nome='Carlos', password=SENHA, barbershop=cls.a)
++        cls.cliente_a2 = User.objects.create_user(email='cliente.a2@alfa.test', nome='Celia', password=SENHA, barbershop=cls.a)
++        cls.cliente_b = User.objects.create_user(email='cliente.b@beta.test', nome='Clara', password=SENHA, barbershop=cls.b)
++        cls.inicio = (timezone.localtime() + timedelta(days=2)).replace(hour=10, minute=0, second=0, microsecond=0)
++
++    def como(self, usuario):
++        c = APIClient()
++        c.force_authenticate(usuario)
++        return c
++
++    def cadastrar(self, email, senha=SENHA):
++        return APIClient().post('/api/v1/auth/register/', {'nome': 'Pessoa Fictícia', 'email': email, 'password': senha}, format='json')
++
++    def entrar(self, email, senha=SENHA):
++        return APIClient().post('/api/v1/auth/login/', {'email': email, 'password': senha}, format='json')
++
++    def cliente_com_token(self, email, senha=SENHA):
++        login = self.entrar(email, senha)
++        self.assertEqual(login.status_code, 200, login.content)
++        c = APIClient()
++        c.credentials(HTTP_AUTHORIZATION=f'Bearer {login.json()["access"]}')
++        return c
++
++    def mensagem_de_recuperacao(self):
++        m = mail.outbox[-1]
++        uid = re.search(r'^uid: (\S+)$', m.body, re.M).group(1)
++        return m.to, int(base64.urlsafe_b64decode(uid + '=' * (-len(uid) % 4)).decode())
++
++
++# ------------------------------------------------------------------------------------------------------------- regra
++class RegraUnicaTests(TestCase):
++    def test_ascii_valido_minusculas_e_espacos_externos(self):
++        self.assertEqual(forma_canonica('cliente.b@beta.test'), 'cliente.b@beta.test')
++        self.assertEqual(forma_canonica('Cliente.B@BETA.TEST'), 'cliente.b@beta.test')
++        self.assertEqual(forma_canonica("a!#$%&'*+/=?^_`{|}~-b@exemplo.test"), "a!#$%&'*+/=?^_`{|}~-b@exemplo.test")
++        self.assertEqual(len(ESPACOS_PYTHON), 29)
++        for espaco in ESPACOS_PYTHON:
++            with self.subTest(espaco=f'U+{ord(espaco):04X}'):
++                self.assertEqual(forma_canonica(f'{espaco}Cliente.B@Beta.Test{espaco}{espaco}'), 'cliente.b@beta.test')
++
++    def test_espacos_internos_sao_recusados(self):
++        for espaco in ESPACOS_PYTHON:
++            with self.subTest(espaco=f'U+{ord(espaco):04X}'):
++                self.assertIsNone(forma_canonica(f'cliente{espaco}b@beta.test'))
++                self.assertIsNone(forma_canonica(f'cliente.b@beta{espaco}.test'))
++
++    def test_acentos_unicode_e_punycode(self):
++        for valor in ['joão@exemplo.test', 'cliente@álfa.test', 'cliente@ÁLFA.test', 'x@straße.test']:
++            with self.subTest(valor=valor):
++                self.assertIsNone(forma_canonica(valor))
++        self.assertEqual(forma_canonica('Cliente@XN--LFA-1LA.test'), 'cliente@xn--lfa-1la.test')
++
++    def test_divergentes_e_os_que_viram_ascii_sao_recusados_antes_de_converter(self):
++        for c in DIVERGENTES + CONVERTEM_PARA_ASCII + INVISIVEIS:
++            with self.subTest(cp=f'U+{ord(c):04X}'):
++                for valor in (f'x@a{c}b.test', f'x@exemplo.test{c}', f'{c}x@exemplo.test', f'x{c}y@exemplo.test'):
++                    self.assertIsNone(forma_canonica(valor))
++        self.assertEqual('K'.lower(), 'k')  # o motivo de checar a faixa antes: o Kelvin viraria "k"
++        self.assertIsNone(forma_canonica('Kelvin@exemplo.test'))
++
++    def test_nenhum_ponto_de_codigo_fora_do_ascii_passa(self):
++        aceitos = [c for c in range(0x80, 0x110000) if not 0xD800 <= c <= 0xDFFF and forma_canonica(f'a{chr(c)}b@x.test') is not None]
++        self.assertEqual(aceitos, [])
++        controles = [c for c in list(range(0x01, 0x21)) + [0x7F] if forma_canonica(f'a{chr(c)}b@x.test') is not None]
++        self.assertEqual(controles, [])
++
++    def test_entradas_que_nao_sao_texto(self):
++        for valor in NAO_STRINGS + [None, b'a@b.test']:
++            with self.subTest(valor=repr(valor)):
++                self.assertIsNone(forma_canonica(valor))
++                with self.assertRaises(ValidationError):
++                    normalizar_email(valor)
++        with self.assertRaises(ValidationError):
++            normalizar_email('')
++
++    def test_campo_da_api_responde_como_antes_para_entradas_invalidas(self):
++        """Mesmo código e mensagem do EmailField do DRF que já era usado (null, blank, invalid)."""
++        novo, antigo = EmailNormalizadoField(max_length=254), serializers.EmailField(max_length=254)
++        for campo in (novo, antigo):
++            campo.bind('email', serializers.Serializer())
++        for valor in NAO_STRINGS + [None, '', '   ', b'a@b.test', 'nao-e-email']:
++            with self.subTest(valor=repr(valor)):
++                erros = []
++                for campo in (novo, antigo):
++                    with self.assertRaises(serializers.ValidationError) as ctx:
++                        campo.run_validation(valor)
++                    erros.append([(str(d), d.code) for d in ctx.exception.detail])
++                self.assertEqual(erros[0], erros[1])
++        for valor in ['x@álfa.test', 'x@exem​plo.test', 'a b@x.test']:
++            with self.subTest(valor=valor), self.assertRaises(serializers.ValidationError) as ctx:
++                novo.run_validation(valor)
++            self.assertEqual([(str(d), d.code) for d in ctx.exception.detail], [(INVALIDO, 'invalid')])
++        self.assertEqual(novo.run_validation('  Cliente.B@BETA.test '), 'cliente.b@beta.test')
++
++    def test_reconhece_so_a_violacao_da_unicidade_do_email(self):
++        class ErroDoDriver(Exception):
++            pass
++
++        def erro_pg(nome):
++            causa = ErroDoDriver('x')
++            causa.diag = mock.Mock(constraint_name=nome)
++            erro = IntegrityError('x')
++            erro.__cause__ = causa
++            return erro
++        self.assertTrue(e_violacao_da_unicidade_do_email(erro_pg(RESTRICAO_UNIQUE_DO_CAMPO)))
++        self.assertTrue(e_violacao_da_unicidade_do_email(erro_pg(RESTRICAO_UNIQUE_LOWER)))
++        self.assertFalse(e_violacao_da_unicidade_do_email(erro_pg(RESTRICAO_CHECK)))
++        self.assertFalse(e_violacao_da_unicidade_do_email(erro_pg('barbershops_barber_user_id_key')))
++        self.assertTrue(e_violacao_da_unicidade_do_email(IntegrityError('UNIQUE constraint failed: accounts_user.email')))
++        self.assertTrue(e_violacao_da_unicidade_do_email(IntegrityError(f"UNIQUE constraint failed: index '{RESTRICAO_UNIQUE_LOWER}'")))
++        self.assertFalse(e_violacao_da_unicidade_do_email(IntegrityError('CHECK constraint failed: accounts_user_email_normalizado')))
++        self.assertFalse(e_violacao_da_unicidade_do_email(IntegrityError('NOT NULL constraint failed: accounts_user.nome')))
++
++
++# --------------------------------------------------------------------------------------------- cadastro público
++class CadastroPublicoTests(Cenario):
++    def test_formas_aceitas_e_gravadas_na_forma_canonica(self):
++        for digitado, gravado in [('nova.um@exemplo.test', 'nova.um@exemplo.test'), ('Nova.Dois@EXEMPLO.TEST', 'nova.dois@exemplo.test'),
++                                  ('  nova.tres@exemplo.test 　', 'nova.tres@exemplo.test'),
++                                  ('nova.quatro@XN--LFA-1LA.test', 'nova.quatro@xn--lfa-1la.test')]:
++            with self.subTest(digitado=digitado):
++                r = self.cadastrar(digitado)
++                self.assertEqual(r.status_code, 201, r.content)
++                self.assertEqual(r.json()['email'], gravado)
++                self.assertEqual(User.objects.get(pk=r.json()['id']).email, gravado)
++
++    def test_formas_recusadas_com_a_resposta_de_email_invalido(self):
++        referencia = self.cadastrar('nao-e-email')
++        self.assertEqual(referencia.status_code, 400)
++        total = User.objects.count()
++        for valor in ['joão@exemplo.test', 'nova@álfa.test', 'nova@ÁLFA.TEST', 'no va@exemplo.test', 'nova@exem​plo.test',
++                      'nova@exemplo.test﻿', 'nova@exem­plo.test', 'nova@İ.test', 'nova@aꟋb.test', 'Knova@x.test']:
++            with self.subTest(valor=valor):
++                r = self.cadastrar(valor)
++                self.assertEqual(r.status_code, 400)
++                self.assertEqual(r.json(), {'email': [INVALIDO]})
++                self.assertEqual(r.json(), referencia.json())
++        for valor in NAO_STRINGS:
++            with self.subTest(valor=repr(valor)):
++                r = self.cadastrar(valor)
++                self.assertEqual((r.status_code, r.json()), (400, {'email': [INVALIDO]}))
++        self.assertEqual(User.objects.count(), total)
++
++    def test_variacao_de_caixa_de_conta_existente_e_recusada(self):
++        total = User.objects.count()
++        for valor in ['Cliente.B@beta.test', 'cliente.b@BETA.TEST', 'CLIENTE.B@BETA.TEST', '  cliente.b@beta.test  ', 'ADMIN.A@alfa.test']:
++            with self.subTest(valor=valor):
++                r = self.cadastrar(valor)
++                self.assertEqual((r.status_code, r.json()), (400, {'email': [UNICIDADE]}))
++        self.assertEqual(User.objects.count(), total)
++
++    def test_dono_cadastra_entra_cria_a_barbearia_e_agenda(self):
++        """Fluxo atual do cadastro público (dono): conta sem barbearia → login → onboarding → agenda pela própria barbearia."""
++        r = self.cadastrar('Dono.Gama@GAMA.test')
++        self.assertEqual(r.status_code, 201, r.content)
++        self.assertIsNone(r.json()['barbershop'])
++        dono = self.cliente_com_token('Dono.Gama@GAMA.test')  # a tela entra logo depois com o mesmo texto digitado
++        self.assertEqual(dono.get('/api/v1/users/me/').json()['email'], 'dono.gama@gama.test')
++        loja = dono.post('/api/v1/barbershops/', {'nome': 'Gama', 'endereco': 'Rua 3', 'telefone': '11977777777', 'email': 'contato@gama.test',
++                                                  'horario_abertura': '08:00', 'horario_fechamento': '18:00'}, format='json')
++        self.assertEqual(loja.status_code, 201, loja.content)
++        self.assertEqual(User.objects.get(email='dono.gama@gama.test').tipo_perfil, 'admin')
++        servico = dono.post('/api/v1/services/', {'nome': 'Corte', 'preco': '30.00', 'duracao': 30}, format='json')
++        barbeiro = dono.post('/api/v1/users/', {'email': 'Barbeiro@Gama.Test', 'nome': 'Bruno', 'password': SENHA, 'tipo_perfil': 'barbeiro',
++                                                'especialidade': 'Corte'}, format='json')
++        cliente = dono.post('/api/v1/users/', {'email': ' Cliente@GAMA.test ', 'nome': 'Caio', 'password': SENHA, 'tipo_perfil': 'cliente'}, format='json')
++        for resposta in (servico, barbeiro, cliente):
++            self.assertEqual(resposta.status_code, 201, resposta.content)
++        self.assertEqual((barbeiro.json()['email'], cliente.json()['email']), ('barbeiro@gama.test', 'cliente@gama.test'))
++        perfil = Barber.objects.get(user__email='barbeiro@gama.test')
++        ag = dono.post('/api/v1/appointments/', {'cliente': cliente.json()['id'], 'barbeiro': perfil.pk, 'servico': servico.json()['id'],
++                                                 'data_hora': (self.inicio + timedelta(hours=1)).isoformat()}, format='json')
++        self.assertEqual(ag.status_code, 201, ag.content)
++
++    def test_cliente_cadastrado_pelo_admin_entra_com_outra_caixa_e_agenda(self):
++        servico = Service.objects.create(barbershop=self.a, nome='Corte', preco='40.00', duracao=30)
++        barbeiro = Barber.objects.create(user=User.objects.create_user(email='barbeiro.a@alfa.test', nome='Beto', password=SENHA,
++                                                                       tipo_perfil='barbeiro', barbershop=self.a), barbershop=self.a)
++        cliente = self.cliente_com_token(' CLIENTE.A@Alfa.Test ')
++        # O mesmo corpo da tela de agendamento (AppointmentCreatePage): `cliente` é o próprio id.
++        ag = cliente.post('/api/v1/appointments/', {'cliente': self.cliente_a.pk, 'barbeiro': barbeiro.pk, 'servico': servico.pk,
++                                                    'data_hora': (self.inicio + timedelta(hours=2)).isoformat()}, format='json')
++        self.assertEqual(ag.status_code, 201, ag.content)
++        self.assertEqual(ag.json()['cliente'], self.cliente_a.pk)
++
++    def test_conta_sem_barbearia_continua_recusada_no_agendamento(self):
++        self.assertEqual(self.cadastrar('sem.barbearia@exemplo.test').status_code, 201)
++        conta = self.cliente_com_token('SEM.BARBEARIA@exemplo.test')
++        r = conta.post('/api/v1/appointments/', {'barbeiro': 1, 'servico': 1, 'data_hora': self.inicio.isoformat()}, format='json')
++        self.assertEqual((r.status_code, r.json()), (403, {'detail': 'Usuário sem barbearia vinculada.'}))
++
++
++# ------------------------------------------------------------------------------------------ criação e edição
++class CriacaoEEdicaoTests(Cenario):
++    def criar(self, admin, email, **extra):
++        return self.como(admin).post('/api/v1/users/', {'email': email, 'nome': 'Novo', 'password': SENHA, 'tipo_perfil': 'cliente', **extra},
++                                     format='json')
++
++    def test_criacao_pelo_admin(self):
++        r = self.criar(self.admin_a, '  Novo.Cliente@ALFA.test ')
++        self.assertEqual((r.status_code, r.json()['email']), (201, 'novo.cliente@alfa.test'))
++        r = self.criar(self.admin_a, 'Novo.Barbeiro@Alfa.Test', tipo_perfil='barbeiro', especialidade='Barba')
++        self.assertEqual((r.status_code, r.json()['email']), (201, 'novo.barbeiro@alfa.test'))
++        self.assertEqual(self.criar(self.admin_a, 'novo@álfa.test').json(), {'email': [INVALIDO]})
++
++    def test_duplicidade_na_mesma_barbearia_e_em_outra(self):
++        antes_b = User.objects.filter(barbershop=self.b).values_list('id', 'email', 'nome').order_by('id')
++        antes_b = list(antes_b)
++        total = User.objects.count()
++        for email in ['CLIENTE.A2@alfa.test', 'cliente.a2@ALFA.TEST', 'Cliente.B@Beta.Test', ' CLIENTE.B@BETA.TEST ', 'Admin.B@beta.test']:
++            with self.subTest(email=email):
++                r = self.criar(self.admin_a, email)
++                self.assertEqual((r.status_code, r.json()), (400, {'email': [UNICIDADE]}))
++        self.assertEqual(User.objects.count(), total)
++        self.assertEqual(list(User.objects.filter(barbershop=self.b).values_list('id', 'email', 'nome').order_by('id')), antes_b)
++
++    def test_edicao_do_proprio_email(self):
++        c = self.como(self.cliente_a)
++        url = f'/api/v1/users/{self.cliente_a.pk}/'
++        r = c.patch(url, {'email': ' Carlos.Novo@ALFA.TEST '}, format='json')
++        self.assertEqual((r.status_code, r.json()['email']), (200, 'carlos.novo@alfa.test'))
++        r = c.patch(url, {'nome': 'Carlos', 'email': 'CARLOS.NOVO@alfa.test'}, format='json')  # o próprio, em outra caixa
++        self.assertEqual((r.status_code, r.json()['email']), (200, 'carlos.novo@alfa.test'))
++        for email in ['Cliente.A2@alfa.test', 'CLIENTE.B@BETA.TEST']:
++            with self.subTest(email=email):
++                self.assertEqual(c.patch(url, {'email': email}, format='json').json(), {'email': [UNICIDADE]})
++        self.assertEqual(c.patch(url, {'email': 'carlos@álfa.test'}, format='json').json(), {'email': [INVALIDO]})
++        r = c.put(url, {'email': 'Carlos.Put@Alfa.Test', 'nome': 'Carlos'}, format='json')
++        self.assertEqual((r.status_code, r.json()['email']), (200, 'carlos.put@alfa.test'))
++        self.cliente_a.refresh_from_db()
++        self.assertEqual(self.cliente_a.email, 'carlos.put@alfa.test')
++
++    def test_admin_edita_o_email_de_um_cliente(self):
++        url = f'/api/v1/users/{self.cliente_a2.pk}/'
++        r = self.como(self.admin_a).patch(url, {'email': 'CELIA@ALFA.TEST'}, format='json')
++        self.assertEqual((r.status_code, r.json()['email']), (200, 'celia@alfa.test'))
++        r = self.como(self.admin_a).patch(url, {'email': 'cliente.b@BETA.test'}, format='json')
++        self.assertEqual((r.status_code, r.json()), (400, {'email': [UNICIDADE]}))
++
++
++# -------------------------------------------------------------------------------------- login e recuperação
++class LoginERecuperacaoTests(Cenario):
++    def test_login_sem_diferenciar_caixa_e_com_espacos(self):
++        for digitado in ['cliente.b@beta.test', 'Cliente.B@beta.test', 'cliente.b@BETA.TEST', 'CLIENTE.B@BETA.TEST', '  cliente.b@beta.test  ']:
++            with self.subTest(digitado=digitado):
++                me = self.cliente_com_token(digitado).get('/api/v1/users/me/').json()
++                self.assertEqual((me['id'], me['barbershop']), (self.cliente_b.pk, self.b.pk))
++
++    def test_login_errado_tem_a_mesma_resposta_para_existente_inexistente_e_fora_da_regra(self):
++        respostas = [self.entrar(e, 'Senha-Errada-123!') for e in ['CLIENTE.B@BETA.TEST', 'ninguem@exemplo.test', 'cliente.b@bétá.test', '']]
++        self.assertEqual({r.status_code for r in respostas[:3]}, {401})
++        self.assertEqual(len({r.content for r in respostas[:3]}), 1)
++        self.assertEqual(respostas[3].status_code, 400)  # vazio: validação do campo, como antes
++        self.assertIsNone(authenticate(email=['nao', 'texto'], password=SENHA))
++
++    def test_login_do_django_admin_e_createsuperuser_usam_a_mesma_regra(self):
++        staff = User.objects.create_superuser(email='Operador@Plataforma.Test', nome='Op', password=SENHA)
++        self.assertEqual(staff.email, 'operador@plataforma.test')
++        self.assertTrue(self.client.login(email='OPERADOR@plataforma.test', password=SENHA))
++        with self.assertRaises(CommandError):
++            call_command('createsuperuser', interactive=False, email='OPERADOR@PLATAFORMA.TEST', nome='Outro', stdout=StringIO(), stderr=StringIO())
++
++    def test_recuperacao_vai_para_a_conta_canonica(self):
++        for digitado in ['cliente.b@beta.test', 'CLIENTE.B@BETA.TEST', '  Cliente.B@Beta.Test  ']:
++            with self.subTest(digitado=digitado):
++                mail.outbox = []
++                r = APIClient().post('/api/v1/auth/password/reset/', {'email': digitado}, format='json')
++                self.assertEqual((r.status_code, r.content), (204, b''))
++                para, conta = self.mensagem_de_recuperacao()
++                self.assertEqual((para, conta), (['cliente.b@beta.test'], self.cliente_b.pk))
++                self.assertEqual(User.objects.get(pk=conta).email, para[0])
++
++    def test_recuperacao_inexistente_e_inativa_respondem_igual(self):
++        inativa = User.objects.create_user(email='inativa@beta.test', nome='Ivo', password=SENHA, barbershop=self.b, is_active=False)
++        respostas = []
++        for email in ['ninguem@exemplo.test', inativa.email.upper(), 'cliente.b@beta.test']:
++            mail.outbox = []
++            r = APIClient().post('/api/v1/auth/password/reset/', {'email': email}, format='json')
++            respostas.append((r.status_code, r.content))
++            para, conta = self.mensagem_de_recuperacao()
++            if email != 'cliente.b@beta.test':
++                self.assertEqual(conta, 0)  # o envio fictício de sempre, nunca para uma conta
++        self.assertEqual(len(set(respostas)), 1)
++        r = APIClient().post('/api/v1/auth/password/reset/', {'email': 'cliente.b@bétá.test'}, format='json')
++        self.assertEqual((r.status_code, r.json()), (400, {'email': [INVALIDO]}))
++
++    def test_auth04_variacao_de_caixa_nao_pode_existir_nem_desviar_a_recuperacao(self):
++        self.assertEqual(self.cadastrar('Cliente.B@beta.test').json(), {'email': [UNICIDADE]})  # pela API
++        with self.assertRaises(IntegrityError), transaction.atomic():  # pelo manager: normaliza e o banco recusa
++            User.objects.create_user(email='CLIENTE.B@BETA.TEST', nome='Aaron Variante', password=SENHA)
++        outra = User.objects.create_user(email='aaron@exemplo.test', nome='Aaron Variante', password=SENHA)
++        with self.assertRaises(IntegrityError), transaction.atomic():  # contornando o save(): o banco recusa
++            User.objects.filter(pk=outra.pk).update(email='Cliente.B@beta.test')
++        mail.outbox = []
++        APIClient().post('/api/v1/auth/password/reset/', {'email': 'cliente.b@beta.test'}, format='json')
++        self.assertEqual(self.mensagem_de_recuperacao(), (['cliente.b@beta.test'], self.cliente_b.pk))
++        self.assertEqual(User.objects.filter(email__iexact='cliente.b@beta.test').count(), 1)
++
++
++# -------------------------------------------------------------------------- Django Admin, model e caminhos diretos
++class AdminModelECaminhosDiretosTests(Cenario):
++    def formulario(self, email):
++        return CustomUserCreationForm(data={'email': email, 'nome': 'Admin Form', 'tipo_perfil': 'cliente', 'barbershop': self.a.pk,
++                                            'password1': SENHA, 'password2': SENHA})
++
++    def test_formularios_do_django_admin(self):
++        f = self.formulario('  Formulario@ALFA.Test ')
++        self.assertTrue(f.is_valid(), f.errors)
++        self.assertEqual(f.save().email, 'formulario@alfa.test')
++        for email, mensagem in [('CLIENTE.B@beta.test', 'Usuário com este E-mail já existe.'),
++                                ('cliente.b@BETA.TEST', 'Usuário com este E-mail já existe.'),
++                                ('x@álfa.test', INVALIDO), ('x@ｂｅｔａ.test', INVALIDO), ('x@exem​plo.test', INVALIDO)]:
++            with self.subTest(email=email):
++                f = self.formulario(email)
++                self.assertFalse(f.is_valid())
++                # Um erro só, no campo, sem o nome interno de restrição nenhuma.
++                self.assertEqual(dict(f.errors), {'email': [mensagem]})
++        dados = {**CustomUserChangeForm(instance=self.cliente_a2).initial, 'email': 'CLIENTE.B@BETA.TEST', 'password': self.cliente_a2.password}
++        dados = {k: ('' if v is None else v) for k, v in dados.items()}
++        f = CustomUserChangeForm(data=dados, instance=self.cliente_a2)
++        self.assertFalse(f.is_valid())
++        self.assertIn('email', f.errors)
++
++    def test_manager_e_save_gravam_a_forma_canonica(self):
++        u = User.objects.create_user(email=' Manager@ALFA.Test ', nome='M', password=SENHA)
++        self.assertEqual(u.email, 'manager@alfa.test')
++        u.email = 'SAVE@Alfa.Test'
++        u.save()
++        u.refresh_from_db()
++        self.assertEqual(u.email, 'save@alfa.test')
++        for valor in ['save@álfa.test', 'sa ve@alfa.test', '', None, 123]:
++            with self.subTest(valor=repr(valor)):
++                u.email = valor
++                with self.assertRaises(ValidationError):
++                    u.save()
++        u.refresh_from_db()
++        u.nome = 'Outro'
++        u.save(update_fields=['nome'])  # sem gravar o e-mail, ele não é tocado
++        self.assertEqual(User.objects.get(pk=u.pk).email, 'save@alfa.test')
++        for valor in [None, 123, ['a@b.test'], 'x@álfa.test']:
++            with self.subTest(natural=repr(valor)), self.assertRaises(User.DoesNotExist):
++                User.objects.get_by_natural_key(valor)
++        self.assertEqual(User.objects.get_by_natural_key(' SAVE@ALFA.TEST ').pk, u.pk)
++
++    def test_update_e_bulk_create_contornam_o_save_e_o_banco_recusa(self):
++        casos = [
++            ('update maiúsculas', lambda: User.objects.filter(pk=self.cliente_a.pk).update(email='Cliente.A@alfa.test')),
++            ('update com espaço', lambda: User.objects.filter(pk=self.cliente_a.pk).update(email='cliente.a@alfa.test ')),
++            ('update não ASCII', lambda: User.objects.filter(pk=self.cliente_a.pk).update(email='cliente.a@álfa.test')),
++            ('update para outra conta', lambda: User.objects.filter(pk=self.cliente_a.pk).update(email='cliente.b@beta.test')),
++            ('bulk_create maiúsculas', lambda: User.objects.bulk_create([User(email='BULK@alfa.test', nome='B', password='!')])),
++            ('bulk_create variação', lambda: User.objects.bulk_create([User(email='CLIENTE.B@BETA.TEST', nome='B', password='!')])),
++        ]
++        for nome, operacao in casos:
++            with self.subTest(caso=nome), self.assertRaises(IntegrityError), transaction.atomic():
++                operacao()
++        self.cliente_a.refresh_from_db()
++        self.assertEqual(self.cliente_a.email, 'cliente.a@alfa.test')
++        self.assertEqual(User.objects.count(), 5)
++
++
++# ---------------------------------------------------------------------------------------- IntegrityError → 400
++class IntegrityErrorTests(Cenario):
++    def sem_validador_de_unicidade(self):
++        return mock.patch.object(UniqueValidator, '__call__', lambda self, value, serializer_field: None)
++
++    def test_pedido_simultaneo_simulado_responde_400_e_a_transacao_continua_integra(self):
++        total = User.objects.count()
++        with self.sem_validador_de_unicidade():
++            respostas = [
++                self.cadastrar('CLIENTE.B@BETA.TEST'),
++                self.como(self.admin_a).post('/api/v1/users/', {'email': 'Cliente.B@beta.test', 'nome': 'X', 'password': SENHA,
++                                                                'tipo_perfil': 'cliente'}, format='json'),
++                self.como(self.cliente_a).patch(f'/api/v1/users/{self.cliente_a.pk}/', {'email': 'cliente.b@BETA.test'}, format='json'),
++            ]
++        for r in respostas:
++            self.assertEqual((r.status_code, r.json()), (400, {'email': [UNICIDADE]}))
++        self.assertEqual(User.objects.count(), total)  # a transação externa segue utilizável
++        self.cliente_a.refresh_from_db()
++        self.assertEqual(self.cliente_a.email, 'cliente.a@alfa.test')
++
++    def test_outro_integrity_error_nao_vira_email_duplicado(self):
++        api = APIClient()
++        api.raise_request_exception = False
++        with mock.patch.object(User.objects, 'create_user', side_effect=IntegrityError('NOT NULL constraint failed: accounts_user.nome')):
++            r = api.post('/api/v1/auth/register/', {'nome': 'X', 'email': 'outro.erro@exemplo.test', 'password': SENHA}, format='json')
++        self.assertEqual(r.status_code, 500)
++        self.assertNotIn(UNICIDADE.encode(), r.content)
++
++    def test_respostas_iguais_com_debug_true_e_false(self):
++        for debug in (True, False):
++            with self.subTest(debug=debug), override_settings(DEBUG=debug):
++                invalido = self.cadastrar('nova@álfa.test')
++                duplicado = self.cadastrar('CLIENTE.B@BETA.TEST')
++                with self.sem_validador_de_unicidade():
++                    corrida = self.cadastrar('Cliente.B@beta.test')
++                self.assertEqual((invalido.status_code, invalido.json()), (400, {'email': [INVALIDO]}))
++                for r in (duplicado, corrida):
++                    self.assertEqual((r.status_code, r.json()), (400, {'email': [UNICIDADE]}))
++                    self.assertEqual(r['Content-Type'], 'application/json')
++
++
++# ---------------------------------------------------------------------------- isolamento e limites existentes
++class IsolamentoTests(Cenario):
++    def test_email_de_outra_barbearia_em_qualquer_caixa_nao_entra_em_a(self):
++        for email in ['CLIENTE.B@BETA.TEST', 'Admin.B@Beta.Test']:
++            with self.subTest(email=email):
++                r = self.como(self.admin_a).post('/api/v1/users/', {'email': email, 'nome': 'X', 'password': SENHA, 'tipo_perfil': 'cliente'},
++                                                 format='json')
++                self.assertEqual(r.status_code, 400)
++        self.assertFalse(User.objects.filter(barbershop=self.a, email__in=['cliente.b@beta.test', 'admin.b@beta.test']).exists())
++        lista = self.como(self.admin_a).get('/api/v1/users/').json()['results']
++        self.assertTrue(all(u['barbershop'] == self.a.pk for u in lista))
++        self.assertEqual(self.cliente_com_token('ADMIN.B@BETA.TEST').get('/api/v1/users/me/').json()['barbershop'], self.b.pk)
++
++
++class LimitesExistentesTests(TestCase):
++    """Com as taxas reais: reenviar o próprio e-mail em outra caixa não gasta a cota da troca de e-mail (mitigação D)."""
++
++    def setUp(self):
++        cache.clear()
++        self.addCleanup(cache.clear)
++        loja = Barbershop.objects.create(nome='Alfa', endereco='Rua 1', telefone='1', email='c@alfa.test',
++                                         horario_abertura='08:00', horario_fechamento='18:00')
++        self.cliente = User.objects.create_user(email='cliente@alfa.test', nome='C', password=SENHA, barbershop=loja)
++
++    def test_proprio_email_em_outra_caixa_nao_consome_cota(self):
++        self.assertFalse(tenta_trocar_email({'email': ' CLIENTE@ALFA.TEST '}, self.cliente))
++        self.assertTrue(tenta_trocar_email({'email': 'cliente@álfa.test'}, self.cliente))
++        c = APIClient()
++        c.force_authenticate(self.cliente)
++        url = f'/api/v1/users/{self.cliente.pk}/'
++        codigos = [c.patch(url, {'nome': f'C {i}', 'email': 'CLIENTE@ALFA.TEST'}, format='json').status_code for i in range(15)]
++        self.assertEqual(codigos, [200] * 15)  # acima do limite de 10/hora: nenhuma conta
++        codigos = [c.patch(url, {'nome': '', 'email': f'novo{i}@alfa.test'}, format='json').status_code for i in range(11)]
++        self.assertEqual(codigos, [400] * 10 + [429])  # a troca real continua limitada
++
++
++# ---------------------------------------------------------------------------------- PostgreSQL: concorrência
++@skipUnless(em_postgresql(), 'concorrência real: só no PostgreSQL')
++class ConcorrenciaRealTests(SemLimites, TransactionTestCase):
++    """Dois pedidos passam juntos pelo UniqueValidator (barreira) e gravam ao mesmo tempo: o banco decide."""
++
++    def setUp(self):
++        super().setUp()
++        self.a = Barbershop.objects.create(nome='Alfa', endereco='Rua 1', telefone='1', email='c@alfa.test',
++                                           horario_abertura='08:00', horario_fechamento='18:00')
++        self.b = Barbershop.objects.create(nome='Beta', endereco='Rua 2', telefone='2', email='c@beta.test',
++                                           horario_abertura='08:00', horario_fechamento='18:00')
++        self.admin_a = User.objects.create_user(email='admin.a@alfa.test', nome='A', password=SENHA, tipo_perfil='admin', barbershop=self.a)
++        self.admin_b = User.objects.create_user(email='admin.b@beta.test', nome='B', password=SENHA, tipo_perfil='admin', barbershop=self.b)
++        self.cliente_a = User.objects.create_user(email='cliente.a@alfa.test', nome='CA', password=SENHA, barbershop=self.a)
++        self.cliente_b = User.objects.create_user(email='cliente.b@beta.test', nome='CB', password=SENHA, barbershop=self.b)
++
++    def em_paralelo(self, pedidos):
++        barreira = threading.Barrier(len(pedidos), timeout=15)
++        original = UniqueValidator.__call__
++
++        def validar_e_esperar(validador, valor, campo):
++            original(validador, valor, campo)
++            if campo.field_name == 'email':
++                try:
++                    barreira.wait()
++                except threading.BrokenBarrierError:
++                    pass
++
++        resultados = [None] * len(pedidos)
++
++        def rodar(i, pedido):
++            try:
++                resultados[i] = pedido()
++            finally:
++                connection.close()
++
++        with mock.patch.object(UniqueValidator, '__call__', validar_e_esperar):
++            threads = [threading.Thread(target=rodar, args=(i, p)) for i, p in enumerate(pedidos)]
++            [t.start() for t in threads]
++            [t.join(30) for t in threads]
++        return resultados
++
++    def cliente(self, usuario=None):
++        c = APIClient()
++        c.raise_request_exception = False
++        if usuario:
++            c.force_authenticate(usuario)
++        return c
++
++    def conferir(self, resultados, sucesso, email):
++        codigos = sorted(r.status_code for r in resultados)
++        self.assertEqual(codigos, sorted([sucesso, 400]), [r.content for r in resultados])
++        recusado = next(r for r in resultados if r.status_code == 400)
++        self.assertEqual(recusado.json(), {'email': [UNICIDADE]})
++        self.assertEqual(User.objects.filter(email=email).count(), 1)
++
++    def test_dois_cadastros_publicos_equivalentes(self):
++        for i in range(3):
++            with self.subTest(rodada=i):
++                corpo = lambda e: {'nome': 'X', 'email': e, 'password': SENHA}  # noqa: E731
++                r = self.em_paralelo([lambda: self.cliente().post('/api/v1/auth/register/', corpo(f'corrida{i}@exemplo.test'), format='json'),
++                                      lambda: self.cliente().post('/api/v1/auth/register/', corpo(f'CORRIDA{i}@EXEMPLO.TEST'), format='json')])
++                self.conferir(r, 201, f'corrida{i}@exemplo.test')
++
++    def test_dois_admins_de_barbearias_diferentes(self):
++        corpo = {'nome': 'X', 'email': 'Disputado@Exemplo.Test', 'password': SENHA, 'tipo_perfil': 'cliente'}
++        r = self.em_paralelo([lambda: self.cliente(self.admin_a).post('/api/v1/users/', corpo, format='json'),
++                              lambda: self.cliente(self.admin_b).post('/api/v1/users/', corpo, format='json')])
++        self.conferir(r, 201, 'disputado@exemplo.test')
++
++    def test_duas_trocas_de_email_para_o_mesmo(self):
++        r = self.em_paralelo([
++            lambda: self.cliente(self.cliente_a).patch(f'/api/v1/users/{self.cliente_a.pk}/', {'email': 'Alvo@Exemplo.Test'}, format='json'),
++            lambda: self.cliente(self.cliente_b).patch(f'/api/v1/users/{self.cliente_b.pk}/', {'email': 'ALVO@exemplo.test'}, format='json'),
++        ])
++        self.conferir(r, 200, 'alvo@exemplo.test')
++
++
++# ------------------------------------------------------------------------- PostgreSQL: equivalência (pt_BR)
++@skipUnless(em_postgresql(), 'equivalência Python × PostgreSQL: só no PostgreSQL')
++class EquivalenciaPostgreSQLTests(TestCase):
++    def setUp(self):
++        with connection.cursor() as cur:
++            cur.execute('select datctype from pg_database where datname = current_database()')
++            self.ctype = cur.fetchone()[0]
++        if not self.ctype.startswith('pt_BR'):
++            self.skipTest(f'o banco de teste usa {self.ctype}, não pt_BR: a equivalência do banco real não foi reproduzida')
++
++    def test_lower_e_faixa_iguais_em_todo_o_ascii_e_regex_exata_em_todos_os_pontos(self):
++        with connection.cursor() as cur:
++            cur.execute('select c, lower(chr(c)) from generate_series(1, 127) c')
++            self.assertEqual({c: chr(c).lower() for c in range(1, 128)}, dict(cur.fetchall()))
++            cur.execute("select count(*) from generate_series(1, 1114111) c where c not between 55296 and 57343 "
++                        "and (chr(c) ~ '^[!-~]+$') <> (c between 33 and 126)")
++            self.assertEqual(cur.fetchone()[0], 0)
++
++    def test_toda_forma_canonica_satisfaz_o_check_no_banco(self):
++        amostras = [forma_canonica(e) for e in ['A@B.TEST', "X!#$%&'*+/=?^_`{|}~-Y@Z.TEST", ' Q@XN--LFA-1LA.TEST ', '9@9.9']]
++        amostras += [forma_canonica(f'{chr(c)}x@y.test') for c in range(0x21, 0x7F)]
++        with connection.cursor() as cur:
++            cur.execute("select count(*) from unnest(%s::text[]) e where not (e = lower(e) and e ~ '^[!-~]+$')", [amostras])
++            self.assertEqual(cur.fetchone()[0], 0)
++
++
++# ---------------------------------------------------------------------------------------------- migração 0006
++class MigracaoEmailNormalizadoTests(TransactionTestCase):
++    anterior = [('accounts', '0005_protect_barbershop')]
++    alvo = [('accounts', '0006_email_normalizado')]
++
++    def setUp(self):
++        executor = MigrationExecutor(connection)
++        executor.migrate(self.anterior)
++        self.User = executor.loader.project_state(self.anterior).apps.get_model('accounts', 'User')
++
++    def tearDown(self):
++        self.User.objects.all().delete()
++        executor = MigrationExecutor(connection)
++        executor.loader.build_graph()
++        executor.migrate(executor.loader.graph.leaf_nodes())
++
++    def legado(self, email, nome='Conta Antiga'):
++        return self.User.objects.create(email=email, nome=nome, password='!', tipo_perfil='cliente').pk
++
++    def migrar(self):
++        executor = MigrationExecutor(connection)
++        executor.loader.build_graph()
++        executor.migrate(self.alvo)
++
++    def restricoes(self):
++        with connection.cursor() as cur:
++            return set(connection.introspection.get_constraints(cur, 'accounts_user'))
++
++    def aplicada(self):
++        return ('accounts', '0006_email_normalizado') in MigrationRecorder(connection).applied_migrations()
++
++    def test_dados_antigos_validos_sao_convertidos(self):
++        ids = {self.legado(e): esperado for e, esperado in [('Pessoa.Dois@exemplo.test', 'pessoa.dois@exemplo.test'),
++                                                            ('novo.3@EXEMPLO.TEST', 'novo.3@exemplo.test'),
++                                                            ('espaco@exemplo.test ', 'espaco@exemplo.test'),
++                                                            ('ja.normal@exemplo.test', 'ja.normal@exemplo.test')]}
++        self.migrar()
++        self.assertTrue(self.aplicada())
++        self.assertEqual({pk: e for pk, e in User.objects.values_list('id', 'email')}, ids)
++        self.assertTrue({RESTRICAO_CHECK, RESTRICAO_UNIQUE_LOWER} <= self.restricoes())
++
++    def test_colisoes_interrompem_sem_alterar_nada_e_mostram_so_ids(self):
++        a = self.legado('cliente.b@beta.test', 'Clara Cliente B')
++        b = self.legado('Cliente.B@beta.test', 'Aaron Variante')
++        c = self.legado('espaco@exemplo.test')
++        d = self.legado('espaco@exemplo.test ')
++        e = self.legado('Outra.Conta@exemplo.test')
++        antes = list(self.User.objects.order_by('id').values_list('id', 'email'))
++        with self.assertRaises(MIGRACAO.MigracaoDeEmailInterrompida) as ctx:
++            self.migrar()
++        mensagem = str(ctx.exception)
++        self.assertIn(f'[[{a}, {b}], [{c}, {d}]]', mensagem)
++        self.assertNotIn('@', mensagem)
++        self.assertNotIn('Clara', mensagem)
++        self.assertNotIn('Aaron', mensagem)
++        self.assertNotIn(str(e), mensagem.split('(ids):')[2])
++        self.assertFalse(self.aplicada())
++        self.assertEqual(list(self.User.objects.order_by('id').values_list('id', 'email')), antes)
++        self.assertFalse({RESTRICAO_CHECK, RESTRICAO_UNIQUE_LOWER} & self.restricoes())
++
++    def test_emails_fora_da_faixa_interrompem(self):
++        bons = [self.legado('bom@exemplo.test')]
++        ruins = [self.legado('joão@exemplo.test'), self.legado('x@álfa.test'), self.legado('x@exem​plo.test'),
++                 self.legado('com espaco@exemplo.test'), self.legado('')]
++        antes = list(self.User.objects.order_by('id').values_list('id', 'email'))
++        with self.assertRaises(MIGRACAO.MigracaoDeEmailInterrompida) as ctx:
++            self.migrar()
++        self.assertIn(f'(ids): {ruins}', str(ctx.exception))
++        self.assertNotIn(str(bons[0]) + ',', str(ctx.exception).split('(ids):')[1].split('.')[0])
++        self.assertNotIn('@', str(ctx.exception))
++        self.assertFalse(self.aplicada())
++        self.assertEqual(list(self.User.objects.order_by('id').values_list('id', 'email')), antes)
++
++    def test_reversao_retira_as_restricoes_e_nao_recupera_a_grafia_original(self):
++        pk = self.legado('Grafia.Original@Exemplo.TEST')
++        self.migrar()
++        self.assertEqual(User.objects.get(pk=pk).email, 'grafia.original@exemplo.test')
++        executor = MigrationExecutor(connection)
++        executor.loader.build_graph()
++        executor.migrate(self.anterior)
++        self.assertFalse(self.aplicada())
++        self.assertFalse({RESTRICAO_CHECK, RESTRICAO_UNIQUE_LOWER} & self.restricoes())
++        self.assertEqual(self.User.objects.get(pk=pk).email, 'grafia.original@exemplo.test')  # a grafia original não volta
+--- a/accounts/test_ten03_limites.py
++++ b/accounts/test_ten03_limites.py
+@@ -192,7 +192,9 @@
+         casos = [
+             ({'email': 'outro@exemplo.test'}, True),
+             ({'email': self.existente}, True),
+-            ({'email': 'Cliente.A1@alfa.test'}, True),        # outra caixa é outro valor para o validador atual
++            ({'email': 'Cliente.A1@alfa.test'}, False),       # AUTH-05: outra caixa é o mesmo e-mail canônico
++            ({'email': ' CLIENTE.A1@ALFA.TEST '}, False),     # idem, com espaços externos
++            ({'email': 'cliente.a1@álfa.test'}, True),        # fora da regra: o serializer recusa, e conta como antes
+             ({'email': None}, True),
+             ({'email': conta.email}, False),
+             ({'email': f'  {conta.email}  '}, False),           # o EmailField corta os espaços
+--- a/config/test_isolamento_tenant.py
++++ b/config/test_isolamento_tenant.py
+@@ -87,16 +87,18 @@
+             email=f'contato@{dominio}', horario_abertura=time(8), horario_fechamento=time(18),
+         )
+ 
+-        def usuario(papel, rotulo):
++        def usuario(papel, rotulo, parte_local=None):
++            # AUTH-05: o e-mail de login é só ASCII (accounts.emails). O rótulo
++            # pode ter acento no nome, mas a parte local do e-mail não.
+             return User.objects.create_user(
+-                email=f'{rotulo.lower()}@{dominio}', nome=f'{rotulo} {nome}', password=SENHA,
++                email=f'{(parte_local or rotulo).lower()}@{dominio}', nome=f'{rotulo} {nome}', password=SENHA,
+                 tipo_perfil=papel, barbershop=shop,
+             )
+ 
+         t = SimpleNamespace(chave=chave, nome=nome, shop=shop)
+         t.admin = usuario('admin', 'Admin')
+         t.cliente = usuario('cliente', 'Cliente')
+-        t.cliente2 = usuario('cliente', 'Freguês')
++        t.cliente2 = usuario('cliente', 'Freguês', parte_local='fregues')
+         t.barbeiro = Barber.objects.create(user=usuario('barbeiro', 'Barbeiro'), barbershop=shop)
+         t.barbeiro2 = Barber.objects.create(user=usuario('barbeiro', 'Navalheiro'), barbershop=shop)
+         # Perfil desativado: a conta volta a ser cliente, como em perform_destroy.

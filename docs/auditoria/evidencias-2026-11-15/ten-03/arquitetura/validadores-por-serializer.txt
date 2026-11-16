@@ -1,0 +1,39 @@
+AUTH_USER_MODEL = accounts.User
+USERNAME_FIELD  = email
+REQUIRED_FIELDS = ['nome']
+Model email: unique=True, max_length=254, db_index=False, error_messages[unique]='%(model_name)s com este %(field_label)s já existe.'
+Meta.constraints = [] | unique_together = ()
+AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
+REST_FRAMEWORK auth = ['rest_framework_simplejwt.authentication.JWTAuthentication']
+SIMPLE_JWT USER_ID_FIELD/CLAIM = id user_id
+
+== PublicRegistrationSerializer
+   tipo: EmailField | read_only: False | trim_whitespace: True
+   UniqueValidator: queryset=User._default_manager (filtro: '(AND: )'), lookup='exact', message='usuário com este e-mail já existe.'
+   MaxLengthValidator
+   ProhibitNullCharactersValidator
+   ProhibitSurrogateCharactersValidator
+   EmailValidator
+== UserCreateSerializer
+   tipo: EmailField | read_only: False | trim_whitespace: True
+   UniqueValidator: queryset=User._default_manager (filtro: '(AND: )'), lookup='exact', message='usuário com este e-mail já existe.'
+   MaxLengthValidator
+   ProhibitNullCharactersValidator
+   ProhibitSurrogateCharactersValidator
+   EmailValidator
+== UserSerializer
+   tipo: EmailField | read_only: False | trim_whitespace: True
+   UniqueValidator: queryset=User._default_manager (filtro: '(AND: )'), lookup='exact', message='usuário com este e-mail já existe.'
+   MaxLengthValidator
+   ProhibitNullCharactersValidator
+   ProhibitSurrogateCharactersValidator
+   EmailValidator
+== CustomTokenObtainPairSerializer
+   tipo: CharField | read_only: False | trim_whitespace: True
+   ProhibitNullCharactersValidator
+   ProhibitSurrogateCharactersValidator
+== PasswordResetRequestSerializer
+   tipo: EmailField | read_only: False | trim_whitespace: True
+   ProhibitNullCharactersValidator
+   ProhibitSurrogateCharactersValidator
+   EmailValidator

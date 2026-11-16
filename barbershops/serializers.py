@@ -4,6 +4,8 @@ Serializers do app barbershops.
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
+from config.tenancy import TenantScopedPrimaryKeyRelatedField
+
 from .models import HORARIO_INVALIDO_MENSAGEM, Barber, Barbershop, validar_dias_funcionamento
 
 
@@ -52,6 +54,10 @@ class BarbershopSerializer(serializers.ModelSerializer):
 
 
 class BarberSerializer(serializers.ModelSerializer):
+    # TEN-01: `user` só aceita e só lista usuários da barbearia do usuário
+    # autenticado; antes, a lista era a de todos os usuários da plataforma.
+    serializer_related_field = TenantScopedPrimaryKeyRelatedField
+
     # Campos "achatados" do usuário vinculado, só para leitura — evita o
     # frontend precisar fazer uma segunda chamada para exibir nome/e-mail.
     nome = serializers.CharField(source='user.nome', read_only=True)

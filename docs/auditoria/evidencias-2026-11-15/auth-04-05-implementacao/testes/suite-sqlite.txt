@@ -1,0 +1,5 @@
+$ manage.py test --settings=config.test_settings --parallel 1  (SQLite em memória)
+Ran 521 tests in 27.084s
+
+OK (skipped=14)
+Destroying test database for alias 'default'...

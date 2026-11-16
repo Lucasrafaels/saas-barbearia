@@ -1,0 +1,348 @@
+TEN-03 — SQL registrado pelo PostgreSQL 18.3 DESCARTÁVEL (t3_db) entre os marcadores de cada cenário.
+log_statement = 'all' só neste banco. Hashes de senha, tokens e jti removidos. As linhas SELECT de autenticação JWT
+(busca do solicitante por id) aparecem antes da validação em todos os pedidos autenticados.
+
+===== R01 | POST /api/v1/auth/register/ | papel=anônimo | status=201
+cenário: e-mail nunca utilizado, senha válida
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'novo.r01@exemplo.test' LIMIT 1
+  [LOG] INSERT INTO "accounts_user" ("password", "last_login", "is_superuser", "is_staff", "is_active", "date_joined", "created_at", "updated_at", "email", "nome", "tipo_perfil", "barbershop_id") VALUES ('<hash de senha removido>', NULL, false, false, true, '2026-11-15T19:25:33.519579+00:00'::timestamptz, '2026-11-15T19:25:33.744334+00:00'::timestamptz, '2026-11-15T19:25:33.744348+00:00'::timestamptz, 'novo.r01@exemplo.test', 'Rita Nova', 'cliente', NULL) RETURNING "accounts_user"."id"
+
+===== R02 | POST /api/v1/auth/register/ | papel=anônimo | status=400
+cenário: e-mail de outra conta sem barbearia (mesmo "espaço" do cadastro público)
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'sem.barbearia@exemplo.test' LIMIT 1
+
+===== R03 | POST /api/v1/auth/register/ | papel=anônimo | status=400
+cenário: e-mail de cliente da barbearia B
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'cliente.b@beta.test' LIMIT 1
+
+===== R04 | POST /api/v1/auth/register/ | papel=anônimo | status=400
+cenário: e-mail de cliente de B + senha que falha nos validadores (sem efeito colateral)
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'cliente.b@beta.test' LIMIT 1
+
+===== R05 | POST /api/v1/auth/register/ | papel=anônimo | status=400
+cenário: e-mail nunca utilizado + a mesma senha fraca (par do R04)
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'novo.r05@exemplo.test' LIMIT 1
+
+===== R06 | POST /api/v1/auth/register/ | papel=anônimo | status=201
+cenário: e-mail de cliente de B com maiúsculas na parte local (Cliente.B@...)
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'Cliente.B@beta.test' LIMIT 1
+  [LOG] INSERT INTO "accounts_user" ("password", "last_login", "is_superuser", "is_staff", "is_active", "date_joined", "created_at", "updated_at", "email", "nome", "tipo_perfil", "barbershop_id") VALUES ('<hash de senha removido>', NULL, false, false, true, '2026-11-15T19:25:36.282011+00:00'::timestamptz, '2026-11-15T19:25:36.509634+00:00'::timestamptz, '2026-11-15T19:25:36.509644+00:00'::timestamptz, 'Cliente.B@beta.test', 'Rita Nova', 'cliente', NULL) RETURNING "accounts_user"."id"
+
+===== R07 | POST /api/v1/auth/register/ | papel=anônimo | status=500
+cenário: e-mail de cliente de B com maiúsculas no domínio (...@BETA.TEST)
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'cliente.b@BETA.TEST' LIMIT 1
+  [LOG] INSERT INTO "accounts_user" ("password", "last_login", "is_superuser", "is_staff", "is_active", "date_joined", "created_at", "updated_at", "email", "nome", "tipo_perfil", "barbershop_id") VALUES ('<hash de senha removido>', NULL, false, false, true, '2026-11-15T19:25:37.000032+00:00'::timestamptz, '2026-11-15T19:25:37.223762+00:00'::timestamptz, '2026-11-15T19:25:37.223772+00:00'::timestamptz, 'cliente.b@beta.test', 'Rita Nova', 'cliente', NULL) RETURNING "accounts_user"."id"
+  [ERROR] duplicate key value violates unique constraint "accounts_user_email_key"
+  [DETAIL] Key (email)=(cliente.b@beta.test) already exists.
+  [STATEMENT] INSERT INTO "accounts_user" ("password", "last_login", "is_superuser", "is_staff", "is_active", "date_joined", "created_at", "updated_at", "email", "nome", "tipo_perfil", "barbershop_id") VALUES ('<hash de senha removido>', NULL, false, false, true, '2026-11-15T19:25:37.000032+00:00'::timestamptz, '2026-11-15T19:25:37.223762+00:00'::timestamptz, '2026-11-15T19:25:37.223772+00:00'::timestamptz, 'cliente.b@beta.test', 'Rita Nova', 'cliente', NULL) RETURNING "accounts_user"."id"
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" ORDER BY "accounts_user"."nome" ASC LIMIT 21
+
+===== R08 | POST /api/v1/auth/register/ | papel=anônimo | status=201
+cenário: e-mail nunca utilizado com maiúsculas no domínio (par do R07)
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'novo.r08@EXEMPLO.TEST' LIMIT 1
+  [LOG] INSERT INTO "accounts_user" ("password", "last_login", "is_superuser", "is_staff", "is_active", "date_joined", "created_at", "updated_at", "email", "nome", "tipo_perfil", "barbershop_id") VALUES ('<hash de senha removido>', NULL, false, false, true, '2026-11-15T19:25:37.815551+00:00'::timestamptz, '2026-11-15T19:25:38.042374+00:00'::timestamptz, '2026-11-15T19:25:38.042384+00:00'::timestamptz, 'novo.r08@exemplo.test', 'Rita Nova', 'cliente', NULL) RETURNING "accounts_user"."id"
+
+===== R09 | POST /api/v1/auth/register/ | papel=anônimo | status=400
+cenário: e-mail de cliente de B com espaços antes e depois
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'cliente.b@beta.test' LIMIT 1
+
+===== R10 | POST /api/v1/auth/register/ | papel=anônimo | status=400
+cenário: e-mail de conta INATIVA de B
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'inativo.b@beta.test' LIMIT 1
+
+===== R11 | POST /api/v1/auth/register/ | papel=anônimo | status=400
+cenário: e-mail do superusuário da plataforma
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'plataforma@exemplo.test' LIMIT 1
+
+===== C01 | POST /api/v1/users/ | papel=admin_a | status=201
+cenário: admin A cria cliente com e-mail nunca utilizado
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'novo.c01@exemplo.test' LIMIT 1
+  [LOG] BEGIN
+  [LOG] SELECT "barbershops_barbershop"."id", "barbershops_barbershop"."created_at", "barbershops_barbershop"."updated_at", "barbershops_barbershop"."nome", "barbershops_barbershop"."endereco", "barbershops_barbershop"."telefone", "barbershops_barbershop"."email", "barbershops_barbershop"."horario_abertura", "barbershops_barbershop"."horario_fechamento", "barbershops_barbershop"."logo", "barbershops_barbershop"."ativo", "barbershops_barbershop"."dias_funcionamento" FROM "barbershops_barbershop" WHERE "barbershops_barbershop"."id" = 1 LIMIT 21
+  [LOG] INSERT INTO "accounts_user" ("password", "last_login", "is_superuser", "is_staff", "is_active", "date_joined", "created_at", "updated_at", "email", "nome", "tipo_perfil", "barbershop_id") VALUES ('<hash de senha removido>', NULL, false, false, true, '2026-11-15T19:25:39.983669+00:00'::timestamptz, '2026-11-15T19:25:40.215675+00:00'::timestamptz, '2026-11-15T19:25:40.215687+00:00'::timestamptz, 'novo.c01@exemplo.test', 'Caio Novo', 'cliente', 1) RETURNING "accounts_user"."id"
+  [LOG] COMMIT
+
+===== C02 | POST /api/v1/users/ | papel=admin_a | status=400
+cenário: admin A cria cliente com e-mail de cliente A2 (mesma barbearia)
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'cliente.a2@alfa.test' LIMIT 1
+
+===== C03 | POST /api/v1/users/ | papel=admin_a | status=400
+cenário: admin A cria cliente com e-mail de cliente de B (outra barbearia)
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'cliente.b@beta.test' LIMIT 1
+
+===== C04 | POST /api/v1/users/ | papel=admin_a | status=400
+cenário: admin A: e-mail de cliente de B + senha fraca (sem efeito colateral)
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'cliente.b@beta.test' LIMIT 1
+
+===== C05 | POST /api/v1/users/ | papel=admin_a | status=400
+cenário: admin A: e-mail nunca utilizado + a mesma senha fraca (par do C04)
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'novo.c05@exemplo.test' LIMIT 1
+
+===== C06 | POST /api/v1/users/ | papel=admin_a | status=400
+cenário: admin A cria barbeiro com e-mail de barbeiro de B
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'barbeiro.b@beta.test' LIMIT 1
+
+===== C07 | POST /api/v1/users/ | papel=admin_a | status=400
+cenário: admin A cria cliente com e-mail do admin de B
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'admin.b@beta.test' LIMIT 1
+
+===== C08 | POST /api/v1/users/ | papel=admin_a | status=201
+cenário: admin A: e-mail de cliente de B com maiúsculas na parte local
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'Cliente.B@beta.test' LIMIT 1
+  [LOG] BEGIN
+  [LOG] SELECT "barbershops_barbershop"."id", "barbershops_barbershop"."created_at", "barbershops_barbershop"."updated_at", "barbershops_barbershop"."nome", "barbershops_barbershop"."endereco", "barbershops_barbershop"."telefone", "barbershops_barbershop"."email", "barbershops_barbershop"."horario_abertura", "barbershops_barbershop"."horario_fechamento", "barbershops_barbershop"."logo", "barbershops_barbershop"."ativo", "barbershops_barbershop"."dias_funcionamento" FROM "barbershops_barbershop" WHERE "barbershops_barbershop"."id" = 1 LIMIT 21
+  [LOG] INSERT INTO "accounts_user" ("password", "last_login", "is_superuser", "is_staff", "is_active", "date_joined", "created_at", "updated_at", "email", "nome", "tipo_perfil", "barbershop_id") VALUES ('<hash de senha removido>', NULL, false, false, true, '2026-11-15T19:25:43.645344+00:00'::timestamptz, '2026-11-15T19:25:43.873255+00:00'::timestamptz, '2026-11-15T19:25:43.873269+00:00'::timestamptz, 'Cliente.B@beta.test', 'Caio Novo', 'cliente', 1) RETURNING "accounts_user"."id"
+  [LOG] COMMIT
+
+===== C09 | POST /api/v1/users/ | papel=admin_a | status=500
+cenário: admin A: e-mail de cliente de B com maiúsculas no domínio
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'cliente.b@BETA.TEST' LIMIT 1
+  [LOG] BEGIN
+  [LOG] SELECT "barbershops_barbershop"."id", "barbershops_barbershop"."created_at", "barbershops_barbershop"."updated_at", "barbershops_barbershop"."nome", "barbershops_barbershop"."endereco", "barbershops_barbershop"."telefone", "barbershops_barbershop"."email", "barbershops_barbershop"."horario_abertura", "barbershops_barbershop"."horario_fechamento", "barbershops_barbershop"."logo", "barbershops_barbershop"."ativo", "barbershops_barbershop"."dias_funcionamento" FROM "barbershops_barbershop" WHERE "barbershops_barbershop"."id" = 1 LIMIT 21
+  [LOG] INSERT INTO "accounts_user" ("password", "last_login", "is_superuser", "is_staff", "is_active", "date_joined", "created_at", "updated_at", "email", "nome", "tipo_perfil", "barbershop_id") VALUES ('<hash de senha removido>', NULL, false, false, true, '2026-11-15T19:25:44.365789+00:00'::timestamptz, '2026-11-15T19:25:44.591290+00:00'::timestamptz, '2026-11-15T19:25:44.591300+00:00'::timestamptz, 'cliente.b@beta.test', 'Caio Novo', 'cliente', 1) RETURNING "accounts_user"."id"
+  [ERROR] duplicate key value violates unique constraint "accounts_user_email_key"
+  [DETAIL] Key (email)=(cliente.b@beta.test) already exists.
+  [STATEMENT] INSERT INTO "accounts_user" ("password", "last_login", "is_superuser", "is_staff", "is_active", "date_joined", "created_at", "updated_at", "email", "nome", "tipo_perfil", "barbershop_id") VALUES ('<hash de senha removido>', NULL, false, false, true, '2026-11-15T19:25:44.365789+00:00'::timestamptz, '2026-11-15T19:25:44.591290+00:00'::timestamptz, '2026-11-15T19:25:44.591300+00:00'::timestamptz, 'cliente.b@beta.test', 'Caio Novo', 'cliente', 1) RETURNING "accounts_user"."id"
+  [LOG] ROLLBACK
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" ORDER BY "accounts_user"."nome" ASC LIMIT 21
+
+===== C10 | POST /api/v1/users/ | papel=admin_a | status=400
+cenário: admin A: e-mail de cliente de B com espaços
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'cliente.b@beta.test' LIMIT 1
+
+===== C11 | POST /api/v1/users/ | papel=admin_a | status=400
+cenário: admin A: e-mail de conta INATIVA de B
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'inativo.b@beta.test' LIMIT 1
+
+===== C12 | POST /api/v1/users/ | papel=cliente_a1 | status=403
+cenário: cliente A1 tenta criar usuário com e-mail de B
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 3 LIMIT 21
+
+===== C13 | POST /api/v1/users/ | papel=barbeiro_a | status=403
+cenário: barbeiro A tenta criar usuário com e-mail de B
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 2 LIMIT 21
+
+===== C14 | POST /api/v1/users/ | papel=sem_barbearia | status=403
+cenário: conta sem barbearia tenta criar usuário com e-mail de B
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 9 LIMIT 21
+
+===== C15 | POST /api/v1/users/ | papel=superuser | status=400
+cenário: superusuário (sem barbearia) cria com e-mail de B
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 10 LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'cliente.b@beta.test' LIMIT 1
+
+===== C16 | POST /api/v1/users/ | papel=superuser | status=400
+cenário: superusuário (sem barbearia) cria com e-mail nunca utilizado
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 10 LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'novo.c16@exemplo.test' LIMIT 1
+
+===== P01 | PATCH /api/v1/users/3/ | papel=cliente_a1 | status=200
+cenário: cliente A1 troca o próprio e-mail por um nunca utilizado
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 3 LIMIT 21
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 3) LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE ("accounts_user"."email" = 'novo.p01@exemplo.test' AND NOT ("accounts_user"."id" = 3)) LIMIT 1
+  [LOG] BEGIN
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 3 LIMIT 21 FOR UPDATE
+  [LOG] SELECT "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."is_active" AND "accounts_user"."tipo_perfil" = 'admin' AND "accounts_user"."id" = 3) ORDER BY "accounts_user"."nome" ASC LIMIT 1
+  [LOG] UPDATE "accounts_user" SET "password" = '<hash de senha removido>', "last_login" = NULL, "is_superuser" = false, "is_staff" = false, "is_active" = true, "date_joined" = '2026-11-15T19:23:10.219458+00:00'::timestamptz, "created_at" = '2026-11-15T19:23:10.443312+00:00'::timestamptz, "updated_at" = '2026-11-15T19:25:48.543640+00:00'::timestamptz, "email" = 'novo.p01@exemplo.test', "nome" = 'Carlos Cliente A1', "tipo_perfil" = 'cliente', "barbershop_id" = 1 WHERE "accounts_user"."id" = 3
+  [LOG] COMMIT
+
+===== P02 | PATCH /api/v1/users/3/ | papel=cliente_a1 | status=200
+cenário: cliente A1 reenvia o próprio e-mail
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 3 LIMIT 21
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 3) LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE ("accounts_user"."email" = 'cliente.a1@alfa.test' AND NOT ("accounts_user"."id" = 3)) LIMIT 1
+  [LOG] BEGIN
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 3 LIMIT 21 FOR UPDATE
+  [LOG] SELECT "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."is_active" AND "accounts_user"."tipo_perfil" = 'admin' AND "accounts_user"."id" = 3) ORDER BY "accounts_user"."nome" ASC LIMIT 1
+  [LOG] UPDATE "accounts_user" SET "password" = '<hash de senha removido>', "last_login" = NULL, "is_superuser" = false, "is_staff" = false, "is_active" = true, "date_joined" = '2026-11-15T19:23:10.219458+00:00'::timestamptz, "created_at" = '2026-11-15T19:23:10.443312+00:00'::timestamptz, "updated_at" = '2026-11-15T19:25:49.068086+00:00'::timestamptz, "email" = 'cliente.a1@alfa.test', "nome" = 'Carlos Cliente A1', "tipo_perfil" = 'cliente', "barbershop_id" = 1 WHERE "accounts_user"."id" = 3
+  [LOG] COMMIT
+
+===== P03 | PATCH /api/v1/users/3/ | papel=cliente_a1 | status=400
+cenário: cliente A1 tenta usar o e-mail de cliente A2 (mesma barbearia)
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 3 LIMIT 21
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 3) LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE ("accounts_user"."email" = 'cliente.a2@alfa.test' AND NOT ("accounts_user"."id" = 3)) LIMIT 1
+
+===== P04 | PATCH /api/v1/users/3/ | papel=cliente_a1 | status=400
+cenário: cliente A1 tenta usar o e-mail de cliente de B (outra barbearia)
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 3 LIMIT 21
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 3) LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE ("accounts_user"."email" = 'cliente.b@beta.test' AND NOT ("accounts_user"."id" = 3)) LIMIT 1
+
+===== P05 | PATCH /api/v1/users/3/ | papel=cliente_a1 | status=400
+cenário: cliente A1: e-mail de B + nome vazio (sem efeito colateral)
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 3 LIMIT 21
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 3) LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE ("accounts_user"."email" = 'cliente.b@beta.test' AND NOT ("accounts_user"."id" = 3)) LIMIT 1
+
+===== P06 | PATCH /api/v1/users/3/ | papel=cliente_a1 | status=400
+cenário: cliente A1: e-mail nunca utilizado + nome vazio (par do P05)
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 3 LIMIT 21
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 3) LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE ("accounts_user"."email" = 'novo.p06@exemplo.test' AND NOT ("accounts_user"."id" = 3)) LIMIT 1
+
+===== P07 | PATCH /api/v1/users/2/ | papel=barbeiro_a | status=400
+cenário: barbeiro A tenta usar o e-mail de cliente de B na própria conta
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 2 LIMIT 21
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 2) LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE ("accounts_user"."email" = 'cliente.b@beta.test' AND NOT ("accounts_user"."id" = 2)) LIMIT 1
+
+===== P08 | PATCH /api/v1/users/1/ | papel=admin_a | status=400
+cenário: admin A tenta usar o e-mail do admin de B na própria conta
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 1) LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE ("accounts_user"."email" = 'admin.b@beta.test' AND NOT ("accounts_user"."id" = 1)) LIMIT 1
+
+===== P09 | PATCH /api/v1/users/3/ | papel=admin_a | status=200
+cenário: admin A dá ao cliente A1 um e-mail nunca utilizado
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 3) LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE ("accounts_user"."email" = 'novo.p09@exemplo.test' AND NOT ("accounts_user"."id" = 3)) LIMIT 1
+  [LOG] BEGIN
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 3 LIMIT 21 FOR UPDATE
+  [LOG] SELECT "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."is_active" AND "accounts_user"."tipo_perfil" = 'admin' AND "accounts_user"."id" = 3) ORDER BY "accounts_user"."nome" ASC LIMIT 1
+  [LOG] UPDATE "accounts_user" SET "password" = '<hash de senha removido>', "last_login" = NULL, "is_superuser" = false, "is_staff" = false, "is_active" = true, "date_joined" = '2026-11-15T19:23:10.219458+00:00'::timestamptz, "created_at" = '2026-11-15T19:23:10.443312+00:00'::timestamptz, "updated_at" = '2026-11-15T19:25:52.733096+00:00'::timestamptz, "email" = 'novo.p09@exemplo.test', "nome" = 'Carlos Cliente A1', "tipo_perfil" = 'cliente', "barbershop_id" = 1 WHERE "accounts_user"."id" = 3
+  [LOG] COMMIT
+
+===== P10 | PATCH /api/v1/users/3/ | papel=admin_a | status=400
+cenário: admin A dá ao cliente A1 o e-mail do cliente A2 (mesma barbearia)
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 3) LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE ("accounts_user"."email" = 'cliente.a2@alfa.test' AND NOT ("accounts_user"."id" = 3)) LIMIT 1
+
+===== P11 | PATCH /api/v1/users/3/ | papel=admin_a | status=400
+cenário: admin A dá ao cliente A1 o e-mail de cliente de B
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 3) LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE ("accounts_user"."email" = 'cliente.b@beta.test' AND NOT ("accounts_user"."id" = 3)) LIMIT 1
+
+===== P12 | PATCH /api/v1/users/3/ | papel=admin_a | status=200
+cenário: admin A reenvia o e-mail atual do cliente A1
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 3) LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE ("accounts_user"."email" = 'cliente.a1@alfa.test' AND NOT ("accounts_user"."id" = 3)) LIMIT 1
+  [LOG] BEGIN
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 3 LIMIT 21 FOR UPDATE
+  [LOG] SELECT "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."is_active" AND "accounts_user"."tipo_perfil" = 'admin' AND "accounts_user"."id" = 3) ORDER BY "accounts_user"."nome" ASC LIMIT 1
+  [LOG] UPDATE "accounts_user" SET "password" = '<hash de senha removido>', "last_login" = NULL, "is_superuser" = false, "is_staff" = false, "is_active" = true, "date_joined" = '2026-11-15T19:23:10.219458+00:00'::timestamptz, "created_at" = '2026-11-15T19:23:10.443312+00:00'::timestamptz, "updated_at" = '2026-11-15T19:25:54.295075+00:00'::timestamptz, "email" = 'cliente.a1@alfa.test', "nome" = 'Carlos Cliente A1', "tipo_perfil" = 'cliente', "barbershop_id" = 1 WHERE "accounts_user"."id" = 3
+  [LOG] COMMIT
+
+===== P13 | PATCH /api/v1/users/7/ | papel=admin_a | status=404
+cenário: admin A tenta editar o e-mail de um cliente de B
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 7) LIMIT 21
+
+===== P14 | PATCH /api/v1/users/4/ | papel=cliente_a1 | status=403
+cenário: cliente A1 tenta editar o e-mail do cliente A2 (SEC-12: 403, não alterado)
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 3 LIMIT 21
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 4) LIMIT 21
+
+===== P15 | PATCH /api/v1/users/3/ | papel=admin_a | status=200
+cenário: admin A: cliente A1 com e-mail de B em maiúsculas na parte local
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 3) LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE ("accounts_user"."email" = 'Cliente.B@beta.test' AND NOT ("accounts_user"."id" = 3)) LIMIT 1
+  [LOG] BEGIN
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 3 LIMIT 21 FOR UPDATE
+  [LOG] SELECT "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."is_active" AND "accounts_user"."tipo_perfil" = 'admin' AND "accounts_user"."id" = 3) ORDER BY "accounts_user"."nome" ASC LIMIT 1
+  [LOG] UPDATE "accounts_user" SET "password" = '<hash de senha removido>', "last_login" = NULL, "is_superuser" = false, "is_staff" = false, "is_active" = true, "date_joined" = '2026-11-15T19:23:10.219458+00:00'::timestamptz, "created_at" = '2026-11-15T19:23:10.443312+00:00'::timestamptz, "updated_at" = '2026-11-15T19:25:55.866929+00:00'::timestamptz, "email" = 'Cliente.B@beta.test', "nome" = 'Carlos Cliente A1', "tipo_perfil" = 'cliente', "barbershop_id" = 1 WHERE "accounts_user"."id" = 3
+  [LOG] COMMIT
+
+===== P16 | PATCH /api/v1/users/3/ | papel=admin_a | status=200
+cenário: admin A: cliente A1 com e-mail de B em maiúsculas no domínio
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 3) LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE ("accounts_user"."email" = 'cliente.b@BETA.TEST' AND NOT ("accounts_user"."id" = 3)) LIMIT 1
+  [LOG] BEGIN
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 3 LIMIT 21 FOR UPDATE
+  [LOG] SELECT "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."is_active" AND "accounts_user"."tipo_perfil" = 'admin' AND "accounts_user"."id" = 3) ORDER BY "accounts_user"."nome" ASC LIMIT 1
+  [LOG] UPDATE "accounts_user" SET "password" = '<hash de senha removido>', "last_login" = NULL, "is_superuser" = false, "is_staff" = false, "is_active" = true, "date_joined" = '2026-11-15T19:23:10.219458+00:00'::timestamptz, "created_at" = '2026-11-15T19:23:10.443312+00:00'::timestamptz, "updated_at" = '2026-11-15T19:25:56.398291+00:00'::timestamptz, "email" = 'cliente.b@BETA.TEST', "nome" = 'Carlos Cliente A1', "tipo_perfil" = 'cliente', "barbershop_id" = 1 WHERE "accounts_user"."id" = 3
+  [LOG] COMMIT
+
+===== P17 | PATCH /api/v1/users/3/ | papel=admin_a | status=400
+cenário: admin A: cliente A1 com e-mail de B com espaços
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 3) LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE ("accounts_user"."email" = 'cliente.b@beta.test' AND NOT ("accounts_user"."id" = 3)) LIMIT 1
+
+===== P18 | PATCH /api/v1/users/3/ | papel=admin_a | status=400
+cenário: admin A: cliente A1 com e-mail de conta INATIVA de B
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 3) LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE ("accounts_user"."email" = 'inativo.b@beta.test' AND NOT ("accounts_user"."id" = 3)) LIMIT 1
+
+===== P19 | PATCH /api/v1/users/9/ | papel=sem_barbearia | status=404
+cenário: conta sem barbearia tenta trocar o próprio e-mail
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 9 LIMIT 21
+
+===== P20 | PATCH /api/v1/users/3/ | papel=superuser | status=400
+cenário: superusuário dá ao cliente A1 o e-mail de cliente de B
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 10 LIMIT 21
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 3 LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE ("accounts_user"."email" = 'cliente.b@beta.test' AND NOT ("accounts_user"."id" = 3)) LIMIT 1
+
+===== P21 | PUT /api/v1/users/3/ | papel=admin_a | status=400
+cenário: PUT: admin A envia o cadastro do cliente A1 com e-mail de B
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 3) LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE ("accounts_user"."email" = 'cliente.b@beta.test' AND NOT ("accounts_user"."id" = 3)) LIMIT 1
+
+===== P22 | PUT /api/v1/users/3/ | papel=admin_a | status=200
+cenário: PUT: admin A envia o cadastro do cliente A1 com e-mail nunca utilizado
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 3) LIMIT 21
+  [LOG] SELECT 1 AS "a" FROM "accounts_user" WHERE ("accounts_user"."email" = 'novo.p22@exemplo.test' AND NOT ("accounts_user"."id" = 3)) LIMIT 1
+  [LOG] BEGIN
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."id" = 3 LIMIT 21 FOR UPDATE
+  [LOG] SELECT "accounts_user"."barbershop_id" FROM "accounts_user" WHERE ("accounts_user"."is_active" AND "accounts_user"."tipo_perfil" = 'admin' AND "accounts_user"."id" = 3) ORDER BY "accounts_user"."nome" ASC LIMIT 1
+  [LOG] UPDATE "accounts_user" SET "password" = '<hash de senha removido>', "last_login" = NULL, "is_superuser" = false, "is_staff" = false, "is_active" = true, "date_joined" = '2026-11-15T19:23:10.219458+00:00'::timestamptz, "created_at" = '2026-11-15T19:23:10.443312+00:00'::timestamptz, "updated_at" = '2026-11-15T19:25:59.509797+00:00'::timestamptz, "email" = 'novo.p22@exemplo.test', "nome" = 'Carlos Cliente A1', "tipo_perfil" = 'cliente', "barbershop_id" = 1 WHERE "accounts_user"."id" = 3
+  [LOG] COMMIT
+
+===== L01 | POST /api/v1/auth/login/ | papel=anônimo | status=401
+cenário: login: e-mail existente (cliente de B), senha errada
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."email" = 'cliente.b@beta.test' LIMIT 21
+
+===== L02 | POST /api/v1/auth/login/ | papel=anônimo | status=401
+cenário: login: e-mail nunca utilizado
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."email" = 'novo.l02@exemplo.test' LIMIT 21
+
+===== L03 | POST /api/v1/auth/login/ | papel=anônimo | status=401
+cenário: login: conta inativa com a senha correta
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."email" = 'inativo.b@beta.test' LIMIT 21
+
+===== L04 | POST /api/v1/auth/login/ | papel=anônimo | status=401
+cenário: login: cliente A1 com a senha correta e maiúsculas na parte local
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."email" = 'Cliente.A1@alfa.test' LIMIT 21
+
+===== L05 | POST /api/v1/auth/login/ | papel=anônimo | status=401
+cenário: login: cliente A1 com a senha correta e maiúsculas no domínio
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."email" = 'cliente.a1@ALFA.TEST' LIMIT 21
+
+===== L06 | POST /api/v1/auth/login/ | papel=anônimo | status=200
+cenário: login: cliente A1 com a senha correta e espaços
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE "accounts_user"."email" = 'cliente.a1@alfa.test' LIMIT 21
+  [LOG] INSERT INTO "token_blacklist_outstandingtoken" ("user_id", "jti", "token", "created_at", "expires_at") VALUES (3, '<jti removido>', '<token removido>', '2026-11-15T19:26:03.832534+00:00'::timestamptz, '2026-11-22T19:26:03+00:00'::timestamptz) RETURNING "token_blacklist_outstandingtoken"."id"
+
+===== L07 | POST /api/v1/auth/password/reset/ | papel=anônimo | status=204
+cenário: recuperação: e-mail existente
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE (UPPER("accounts_user"."email"::text) = UPPER('cliente.b@beta.test') AND "accounts_user"."is_active") ORDER BY "accounts_user"."nome" ASC LIMIT 1
+
+===== L08 | POST /api/v1/auth/password/reset/ | papel=anônimo | status=204
+cenário: recuperação: e-mail nunca utilizado
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE (UPPER("accounts_user"."email"::text) = UPPER('novo.l08@exemplo.test') AND "accounts_user"."is_active") ORDER BY "accounts_user"."nome" ASC LIMIT 1
+
+===== L09 | POST /api/v1/auth/password/reset/ | papel=anônimo | status=204
+cenário: recuperação do cliente de B depois que um terceiro cadastrou "Cliente.B@beta.test" (nome "Aaron Variante")
+  [LOG] SELECT "accounts_user"."id", "accounts_user"."password", "accounts_user"."last_login", "accounts_user"."is_superuser", "accounts_user"."is_staff", "accounts_user"."is_active", "accounts_user"."date_joined", "accounts_user"."created_at", "accounts_user"."updated_at", "accounts_user"."email", "accounts_user"."nome", "accounts_user"."tipo_perfil", "accounts_user"."barbershop_id" FROM "accounts_user" WHERE (UPPER("accounts_user"."email"::text) = UPPER('cliente.b@beta.test') AND "accounts_user"."is_active") ORDER BY "accounts_user"."nome" ASC LIMIT 1

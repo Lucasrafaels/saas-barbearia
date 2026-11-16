@@ -1,0 +1,54 @@
+# testes de isolamento (TEN-02, TEN-01 estrutural e contenção, isolamento existentes), PostgreSQL 18.3 DESCARTÁVEL, executor com --debug-mode (DEBUG=True)
+Creating test database for alias 'default'...
+Found 75 test(s).
+System check identified no issues (0 silenced).
+.Forbidden: /api/v1/appointments/
+.Bad Request: /api/v1/appointments/
+.Bad Request: /api/v1/appointments/
+...Not Found: /api/v1/appointments/10/
+.Forbidden: /api/v1/appointments/
+..Forbidden: /api/v1/appointments/
+.Bad Request: /api/v1/appointments/
+.....Bad Request: /api/v1/appointments/
+.Not Found: /api/v1/appointments/available-slots/
+....Bad Request: /api/v1/appointments/
+..Bad Request: /api/v1/appointments/
+..Bad Request: /api/v1/barbers/
+.Bad Request: /api/v1/appointments/
+.Bad Request: /api/v1/appointments/26/
+.Bad Request: /api/v1/appointments/
+.Bad Request: /api/v1/appointments/30/
+..Forbidden: /api/v1/barbers/
+..Bad Request: /api/v1/appointments/
+.Unauthorized: /api/v1/
+..Unauthorized: /api/v1/users/me/
+.Not Acceptable: /api/v1/appointments/
+.....Not Found: /api/v1/users/139/
+..Bad Request: /api/v1/appointments/41/
+.Not Found: /api/v1/appointments/available-slots/
+...Bad Request: /api/v1/appointments/
+.Not Found: /api/v1/users/184/
+..Bad Request: /api/v1/appointments/
+...Not Found: /api/v1/users/217/
+..Unauthorized: /api/v1/users/
+.Forbidden: /api/v1/users/
+.Forbidden: /api/v1/users/
+.Bad Request: /api/v1/users/253/
+....Not Found: /api/v1/users/283/
+..Bad Request: /api/v1/users/296/
+.Unauthorized: /api/v1/users/
+.Not Found: /api/v1/appointments/63/
+.Not Found: /api/v1/barbers/83/
+.Bad Request: /api/v1/appointments/
+..Forbidden: /api/v1/services/
+.Not Found: /api/v1/services/78/
+.Bad Request: /api/v1/users/356/
+.Not Found: /api/v1/users/363/
+..
+----------------------------------------------------------------------
+Ran 75 tests in 10.274s
+
+OK
+Destroying test database for alias 'default'...
+env PYTHONPATH=$S/iso/pkg:$P venv/bin/python -W default manage.py test         8,77s user 0,44s system 80% cpu 11,504 total
+exit=0

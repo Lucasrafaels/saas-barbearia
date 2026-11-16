@@ -1,0 +1,2210 @@
+[
+ {
+  "id": "cadastro-000",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.1@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "livre.1@exemplo.test",
+   "password": "<senha omitida>"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'livre.1@exemplo.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "cadastro-001",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "cadastro-002",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.2@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "livre.2@exemplo.test",
+   "password": "<senha omitida>"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'livre.2@exemplo.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "cadastro-003",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "cadastro-004",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.3@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "livre.3@exemplo.test",
+   "password": "<senha omitida>"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'livre.3@exemplo.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "cadastro-005",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "cadastro-006",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.4@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "livre.4@exemplo.test",
+   "password": "<senha omitida>"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'livre.4@exemplo.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "cadastro-007",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "cadastro-008",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.5@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "livre.5@exemplo.test",
+   "password": "<senha omitida>"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'livre.5@exemplo.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "cadastro-009",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "cadastro-010",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.6@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "livre.6@exemplo.test",
+   "password": "<senha omitida>"
+  },
+  "status": 429,
+  "retry_after": "3600",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3600 seconds.\"}",
+  "sql_do_servidor": [],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "cadastro-011",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>"
+  },
+  "status": 429,
+  "retry_after": "3600",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3600 seconds.\"}",
+  "sql_do_servidor": [],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "cadastro-012",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.7@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "livre.7@exemplo.test",
+   "password": "<senha omitida>"
+  },
+  "status": 429,
+  "retry_after": "3600",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3600 seconds.\"}",
+  "sql_do_servidor": [],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "cadastro-013",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>"
+  },
+  "status": 429,
+  "retry_after": "3600",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3600 seconds.\"}",
+  "sql_do_servidor": [],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "cadastro-014",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.8@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "livre.8@exemplo.test",
+   "password": "<senha omitida>"
+  },
+  "status": 429,
+  "retry_after": "3600",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3600 seconds.\"}",
+  "sql_do_servidor": [],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "cadastro-015",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>"
+  },
+  "status": 429,
+  "retry_after": "3600",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3600 seconds.\"}",
+  "sql_do_servidor": [],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "cadastro-016",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.9@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "livre.9@exemplo.test",
+   "password": "<senha omitida>"
+  },
+  "status": 429,
+  "retry_after": "3600",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3600 seconds.\"}",
+  "sql_do_servidor": [],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "cadastro-017",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>"
+  },
+  "status": 429,
+  "retry_after": "3600",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3600 seconds.\"}",
+  "sql_do_servidor": [],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "cadastro-018",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.10@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "livre.10@exemplo.test",
+   "password": "<senha omitida>"
+  },
+  "status": 429,
+  "retry_after": "3600",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3600 seconds.\"}",
+  "sql_do_servidor": [],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "cadastro-019",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>"
+  },
+  "status": 429,
+  "retry_after": "3600",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3600 seconds.\"}",
+  "sql_do_servidor": [],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "cadastro-020",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.11@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "livre.11@exemplo.test",
+   "password": "<senha omitida>"
+  },
+  "status": 429,
+  "retry_after": "86400",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 86400 seconds.\"}",
+  "sql_do_servidor": [],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "cadastro-021",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>"
+  },
+  "status": 429,
+  "retry_after": "86400",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 86400 seconds.\"}",
+  "sql_do_servidor": [],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "cadastro-022",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.12@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "livre.12@exemplo.test",
+   "password": "<senha omitida>"
+  },
+  "status": 429,
+  "retry_after": "86400",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 86400 seconds.\"}",
+  "sql_do_servidor": [],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "cadastro-023",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>"
+  },
+  "status": 429,
+  "retry_after": "86400",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 86400 seconds.\"}",
+  "sql_do_servidor": [],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "cadastro-024",
+  "etapa": "cadastro",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.13@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "livre.13@exemplo.test",
+   "password": "<senha omitida>"
+  },
+  "status": 429,
+  "retry_after": "86400",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 86400 seconds.\"}",
+  "sql_do_servidor": [],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "cadastro-xff-025",
+  "etapa": "cadastro-xff",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {
+   "X-Forwarded-For": "203.0.113.1"
+  },
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "cadastro-xff-026",
+  "etapa": "cadastro-xff",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {
+   "X-Forwarded-For": "203.0.113.2"
+  },
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "cadastro-xff-027",
+  "etapa": "cadastro-xff",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {
+   "X-Forwarded-For": "203.0.113.3"
+  },
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "cadastro-xff-028",
+  "etapa": "cadastro-xff",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {
+   "X-Forwarded-For": "203.0.113.4"
+  },
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "cadastro-xff-029",
+  "etapa": "cadastro-xff",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {
+   "X-Forwarded-For": "203.0.113.5"
+  },
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Pessoa Fictícia",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-030",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.14@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "livre.14@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'livre.14@exemplo.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-031",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-032",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.15@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "livre.15@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'livre.15@exemplo.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-033",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-034",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.16@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "livre.16@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'livre.16@exemplo.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-035",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-036",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.17@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "livre.17@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'livre.17@exemplo.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-037",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-038",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.18@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "livre.18@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'livre.18@exemplo.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-039",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-040",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.19@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "livre.19@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'livre.19@exemplo.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-041",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-042",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.20@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "livre.20@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'livre.20@exemplo.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-043",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-044",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.21@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "livre.21@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'livre.21@exemplo.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-045",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-046",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.22@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "livre.22@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'livre.22@exemplo.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-047",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-048",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.23@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "livre.23@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'livre.23@exemplo.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-049",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-050",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.24@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "livre.24@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'livre.24@exemplo.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-051",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-052",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.25@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "livre.25@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'livre.25@exemplo.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-053",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-054",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.26@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "livre.26@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'livre.26@exemplo.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-055",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-056",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.27@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "livre.27@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'livre.27@exemplo.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-057",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-058",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.28@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "livre.28@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'livre.28@exemplo.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-059",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "criacao-060",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.29@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "livre.29@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 429,
+  "retry_after": "3599",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3599 seconds.\"}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+  ],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "criacao-061",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 429,
+  "retry_after": "3599",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3599 seconds.\"}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+  ],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "criacao-062",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.30@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "livre.30@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 429,
+  "retry_after": "3599",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3599 seconds.\"}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+  ],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "criacao-063",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 429,
+  "retry_after": "3599",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3599 seconds.\"}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+  ],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "criacao-064",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.31@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "livre.31@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 429,
+  "retry_after": "3599",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3599 seconds.\"}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+  ],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "criacao-065",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 429,
+  "retry_after": "3599",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3599 seconds.\"}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+  ],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "criacao-066",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.32@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "livre.32@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 429,
+  "retry_after": "3599",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3599 seconds.\"}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+  ],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "criacao-067",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 429,
+  "retry_after": "3599",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3599 seconds.\"}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+  ],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "criacao-068",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.33@exemplo.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "livre.33@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 429,
+  "retry_after": "3599",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3599 seconds.\"}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+  ],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "criacao-069",
+  "etapa": "criacao",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "Cliente Fictício",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 429,
+  "retry_after": "3599",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3599 seconds.\"}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+  ],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "criacao-outro-admin-070",
+  "etapa": "criacao-outro-admin",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_b",
+  "cabecalhos_extras": {},
+  "email_sondado": null,
+  "corpo_enviado": {
+   "nome": "Cliente Novo B",
+   "email": "livre.34@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "status": 201,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"id\":6,\"email\":\"livre.34@exemplo.test\",\"nome\":\"Cliente Novo B\",\"tipo_perfil\":\"cliente\",\"barbershop\":2}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 4 LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'livre.34@exemplo.test' LIMIT 1",
+   "[LOG] BEGIN",
+   "[LOG] SELECT \"barbershops_barbershop\".\"id\", \"barbershops_barbershop\".\"created_at\", \"barbershops_barbershop\".\"updated_at\", \"barbershops_barbershop\".\"nome\", \"barbershops_barbershop\".\"endereco\", \"barbershops_barbershop\".\"telefone\", \"barbershops_barbershop\".\"email\", \"barbershops_barbershop\".\"horario_abertura\", \"barbershops_barbershop\".\"horario_fechamento\", \"barbershops_barbershop\".\"logo\", \"barbershops_barbershop\".\"ativo\", \"barbershops_barbershop\".\"dias_funcionamento\" FROM \"barbershops_barbershop\" WHERE \"barbershops_barbershop\".\"id\" = 2 LIMIT 21",
+   "[LOG] INSERT INTO \"accounts_user\" (\"password\", \"last_login\", \"is_superuser\", \"is_staff\", \"is_active\", \"date_joined\", \"created_at\", \"updated_at\", \"email\", \"nome\", \"tipo_perfil\", \"barbershop_id\") VALUES ('<hash de senha removido>', NULL, false, false, true, '2026-11-15T20:03:37.382767+00:00'::timestamptz, '2026-11-15T20:03:37.601465+00:00'::timestamptz, '2026-11-15T20:03:37.601477+00:00'::timestamptz, 'livre.34@exemplo.test', 'Cliente Novo B', 'cliente', 2) RETURNING \"accounts_user\".\"id\"",
+   "[LOG] COMMIT"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "troca-071",
+  "etapa": "troca",
+  "pedido": "PATCH /api/v1/users/2/",
+  "papel": "cliente_a1",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.35@exemplo.test",
+  "corpo_enviado": {
+   "nome": "",
+   "email": "livre.35@exemplo.test"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"nome\":[\"Este campo não pode ser em branco.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 2 LIMIT 21",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 2) LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'livre.35@exemplo.test' AND NOT (\"accounts_user\".\"id\" = 2)) LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "troca-072",
+  "etapa": "troca",
+  "pedido": "PATCH /api/v1/users/2/",
+  "papel": "cliente_a1",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "",
+   "email": "cliente.b@beta.test"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"],\"nome\":[\"Este campo não pode ser em branco.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 2 LIMIT 21",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 2) LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'cliente.b@beta.test' AND NOT (\"accounts_user\".\"id\" = 2)) LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "troca-073",
+  "etapa": "troca",
+  "pedido": "PATCH /api/v1/users/2/",
+  "papel": "cliente_a1",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.36@exemplo.test",
+  "corpo_enviado": {
+   "nome": "",
+   "email": "livre.36@exemplo.test"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"nome\":[\"Este campo não pode ser em branco.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 2 LIMIT 21",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 2) LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'livre.36@exemplo.test' AND NOT (\"accounts_user\".\"id\" = 2)) LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "troca-074",
+  "etapa": "troca",
+  "pedido": "PATCH /api/v1/users/2/",
+  "papel": "cliente_a1",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "",
+   "email": "cliente.b@beta.test"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"],\"nome\":[\"Este campo não pode ser em branco.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 2 LIMIT 21",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 2) LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'cliente.b@beta.test' AND NOT (\"accounts_user\".\"id\" = 2)) LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "troca-075",
+  "etapa": "troca",
+  "pedido": "PATCH /api/v1/users/2/",
+  "papel": "cliente_a1",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.37@exemplo.test",
+  "corpo_enviado": {
+   "nome": "",
+   "email": "livre.37@exemplo.test"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"nome\":[\"Este campo não pode ser em branco.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 2 LIMIT 21",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 2) LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'livre.37@exemplo.test' AND NOT (\"accounts_user\".\"id\" = 2)) LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "troca-076",
+  "etapa": "troca",
+  "pedido": "PATCH /api/v1/users/2/",
+  "papel": "cliente_a1",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "",
+   "email": "cliente.b@beta.test"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"],\"nome\":[\"Este campo não pode ser em branco.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 2 LIMIT 21",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 2) LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'cliente.b@beta.test' AND NOT (\"accounts_user\".\"id\" = 2)) LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "troca-077",
+  "etapa": "troca",
+  "pedido": "PATCH /api/v1/users/2/",
+  "papel": "cliente_a1",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.38@exemplo.test",
+  "corpo_enviado": {
+   "nome": "",
+   "email": "livre.38@exemplo.test"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"nome\":[\"Este campo não pode ser em branco.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 2 LIMIT 21",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 2) LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'livre.38@exemplo.test' AND NOT (\"accounts_user\".\"id\" = 2)) LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "troca-078",
+  "etapa": "troca",
+  "pedido": "PATCH /api/v1/users/2/",
+  "papel": "cliente_a1",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "",
+   "email": "cliente.b@beta.test"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"],\"nome\":[\"Este campo não pode ser em branco.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 2 LIMIT 21",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 2) LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'cliente.b@beta.test' AND NOT (\"accounts_user\".\"id\" = 2)) LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "troca-079",
+  "etapa": "troca",
+  "pedido": "PATCH /api/v1/users/2/",
+  "papel": "cliente_a1",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.39@exemplo.test",
+  "corpo_enviado": {
+   "nome": "",
+   "email": "livre.39@exemplo.test"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"nome\":[\"Este campo não pode ser em branco.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 2 LIMIT 21",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 2) LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'livre.39@exemplo.test' AND NOT (\"accounts_user\".\"id\" = 2)) LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "troca-080",
+  "etapa": "troca",
+  "pedido": "PATCH /api/v1/users/2/",
+  "papel": "cliente_a1",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "",
+   "email": "cliente.b@beta.test"
+  },
+  "status": 400,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"],\"nome\":[\"Este campo não pode ser em branco.\"]}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 2 LIMIT 21",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 2) LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'cliente.b@beta.test' AND NOT (\"accounts_user\".\"id\" = 2)) LIMIT 1"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "troca-081",
+  "etapa": "troca",
+  "pedido": "PATCH /api/v1/users/2/",
+  "papel": "cliente_a1",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.40@exemplo.test",
+  "corpo_enviado": {
+   "nome": "",
+   "email": "livre.40@exemplo.test"
+  },
+  "status": 429,
+  "retry_after": "3600",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3600 seconds.\"}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 2 LIMIT 21",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 2) LIMIT 21"
+  ],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "troca-082",
+  "etapa": "troca",
+  "pedido": "PATCH /api/v1/users/2/",
+  "papel": "cliente_a1",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "",
+   "email": "cliente.b@beta.test"
+  },
+  "status": 429,
+  "retry_after": "3600",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3600 seconds.\"}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 2 LIMIT 21",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 2) LIMIT 21"
+  ],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "troca-083",
+  "etapa": "troca",
+  "pedido": "PATCH /api/v1/users/2/",
+  "papel": "cliente_a1",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.41@exemplo.test",
+  "corpo_enviado": {
+   "nome": "",
+   "email": "livre.41@exemplo.test"
+  },
+  "status": 429,
+  "retry_after": "3600",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3600 seconds.\"}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 2 LIMIT 21",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 2) LIMIT 21"
+  ],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "troca-084",
+  "etapa": "troca",
+  "pedido": "PATCH /api/v1/users/2/",
+  "papel": "cliente_a1",
+  "cabecalhos_extras": {},
+  "email_sondado": "cliente.b@beta.test",
+  "corpo_enviado": {
+   "nome": "",
+   "email": "cliente.b@beta.test"
+  },
+  "status": 429,
+  "retry_after": "3600",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3600 seconds.\"}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 2 LIMIT 21",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 2) LIMIT 21"
+  ],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "troca-085",
+  "etapa": "troca",
+  "pedido": "PATCH /api/v1/users/2/",
+  "papel": "cliente_a1",
+  "cabecalhos_extras": {},
+  "email_sondado": "livre.42@exemplo.test",
+  "corpo_enviado": {
+   "nome": "",
+   "email": "livre.42@exemplo.test"
+  },
+  "status": 429,
+  "retry_after": "3600",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 3600 seconds.\"}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 2 LIMIT 21",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 2) LIMIT 21"
+  ],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "edicao-sem-troca-086",
+  "etapa": "edicao-sem-troca",
+  "pedido": "PATCH /api/v1/users/2/",
+  "papel": "cliente_a1",
+  "cabecalhos_extras": {},
+  "email_sondado": null,
+  "corpo_enviado": {
+   "nome": "Carlos Cliente A1",
+   "email": "cliente.a1@alfa.test"
+  },
+  "status": 200,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"id\":2,\"email\":\"cliente.a1@alfa.test\",\"nome\":\"Carlos Cliente A1\",\"tipo_perfil\":\"cliente\",\"barbershop\":1,\"is_active\":true,\"created_at\":\"2026-11-15T17:02:52.062456-03:00\"}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 2 LIMIT 21",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 2) LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'cliente.a1@alfa.test' AND NOT (\"accounts_user\".\"id\" = 2)) LIMIT 1",
+   "[LOG] BEGIN",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 2 LIMIT 21 FOR UPDATE",
+   "[LOG] SELECT \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"is_active\" AND \"accounts_user\".\"tipo_perfil\" = 'admin' AND \"accounts_user\".\"id\" = 2) ORDER BY \"accounts_user\".\"nome\" ASC LIMIT 1",
+   "[LOG] UPDATE \"accounts_user\" SET \"password\" = '<hash de senha removido>', \"last_login\" = NULL, \"is_superuser\" = false, \"is_staff\" = false, \"is_active\" = true, \"date_joined\" = '2026-11-15T20:02:51.842107+00:00'::timestamptz, \"created_at\" = '2026-11-15T20:02:52.062456+00:00'::timestamptz, \"updated_at\" = '2026-11-15T20:03:38.301369+00:00'::timestamptz, \"email\" = 'cliente.a1@alfa.test', \"nome\" = 'Carlos Cliente A1', \"tipo_perfil\" = 'cliente', \"barbershop_id\" = 1 WHERE \"accounts_user\".\"id\" = 2",
+   "[LOG] COMMIT"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "edicao-sem-troca-087",
+  "etapa": "edicao-sem-troca",
+  "pedido": "PATCH /api/v1/users/2/",
+  "papel": "cliente_a1",
+  "cabecalhos_extras": {},
+  "email_sondado": null,
+  "corpo_enviado": {
+   "nome": "Carlos Cliente A1"
+  },
+  "status": 200,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"id\":2,\"email\":\"cliente.a1@alfa.test\",\"nome\":\"Carlos Cliente A1\",\"tipo_perfil\":\"cliente\",\"barbershop\":1,\"is_active\":true,\"created_at\":\"2026-11-15T17:02:52.062456-03:00\"}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 2 LIMIT 21",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 2) LIMIT 21",
+   "[LOG] BEGIN",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 2 LIMIT 21 FOR UPDATE",
+   "[LOG] SELECT \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"is_active\" AND \"accounts_user\".\"tipo_perfil\" = 'admin' AND \"accounts_user\".\"id\" = 2) ORDER BY \"accounts_user\".\"nome\" ASC LIMIT 1",
+   "[LOG] UPDATE \"accounts_user\" SET \"password\" = '<hash de senha removido>', \"last_login\" = NULL, \"is_superuser\" = false, \"is_staff\" = false, \"is_active\" = true, \"date_joined\" = '2026-11-15T20:02:51.842107+00:00'::timestamptz, \"created_at\" = '2026-11-15T20:02:52.062456+00:00'::timestamptz, \"updated_at\" = '2026-11-15T20:03:38.349707+00:00'::timestamptz, \"email\" = 'cliente.a1@alfa.test', \"nome\" = 'Carlos Cliente A1', \"tipo_perfil\" = 'cliente', \"barbershop_id\" = 1 WHERE \"accounts_user\".\"id\" = 2",
+   "[LOG] COMMIT"
+  ],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "vitima-088",
+  "etapa": "vitima",
+  "pedido": "PATCH /api/v1/users/5/",
+  "papel": "cliente_b",
+  "cabecalhos_extras": {},
+  "email_sondado": null,
+  "corpo_enviado": {
+   "email": "livre.43@exemplo.test"
+  },
+  "status": 200,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"id\":5,\"email\":\"livre.43@exemplo.test\",\"nome\":\"Clara Cliente B\",\"tipo_perfil\":\"cliente\",\"barbershop\":2,\"is_active\":true,\"created_at\":\"2026-11-15T17:02:52.727841-03:00\"}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 5 LIMIT 21",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 2 AND \"accounts_user\".\"id\" = 5) LIMIT 21",
+   "[LOG] SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'livre.43@exemplo.test' AND NOT (\"accounts_user\".\"id\" = 5)) LIMIT 1",
+   "[LOG] BEGIN",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 5 LIMIT 21 FOR UPDATE",
+   "[LOG] SELECT \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"is_active\" AND \"accounts_user\".\"tipo_perfil\" = 'admin' AND \"accounts_user\".\"id\" = 5) ORDER BY \"accounts_user\".\"nome\" ASC LIMIT 1",
+   "[LOG] UPDATE \"accounts_user\" SET \"password\" = '<hash de senha removido>', \"last_login\" = NULL, \"is_superuser\" = false, \"is_staff\" = false, \"is_active\" = true, \"date_joined\" = '2026-11-15T20:02:52.506432+00:00'::timestamptz, \"created_at\" = '2026-11-15T20:02:52.727841+00:00'::timestamptz, \"updated_at\" = '2026-11-15T20:03:38.397274+00:00'::timestamptz, \"email\" = 'livre.43@exemplo.test', \"nome\" = 'Clara Cliente B', \"tipo_perfil\" = 'cliente', \"barbershop_id\" = 2 WHERE \"accounts_user\".\"id\" = 5",
+   "[LOG] COMMIT"
+  ],
+  "consultou_unicidade": true
+ },
+ {
+  "id": "vitima-089",
+  "etapa": "vitima",
+  "pedido": "POST /api/v1/auth/login/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": null,
+  "corpo_enviado": {
+   "email": "livre.43@exemplo.test",
+   "password": "<senha omitida>"
+  },
+  "status": 200,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"access\": \"<token removido>\"}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'livre.43@exemplo.test' LIMIT 21",
+   "[LOG] INSERT INTO \"token_blacklist_outstandingtoken\" (\"user_id\", \"jti\", \"token\", \"created_at\", \"expires_at\") VALUES (5, '<jti removido>', '<token removido>', '2026-11-15T20:03:38.662847+00:00'::timestamptz, '2026-11-22T20:03:38+00:00'::timestamptz) RETURNING \"token_blacklist_outstandingtoken\".\"id\""
+  ],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "vitima-090",
+  "etapa": "vitima",
+  "pedido": "POST /api/v1/auth/password/reset/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": null,
+  "corpo_enviado": {
+   "email": "livre.43@exemplo.test"
+  },
+  "status": 204,
+  "retry_after": null,
+  "content_type": null,
+  "resposta": "",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (UPPER(\"accounts_user\".\"email\"::text) = UPPER('livre.43@exemplo.test') AND \"accounts_user\".\"is_active\") ORDER BY \"accounts_user\".\"nome\" ASC LIMIT 1"
+  ],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "login-091",
+  "etapa": "login",
+  "pedido": "POST /api/v1/auth/login/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": null,
+  "corpo_enviado": {
+   "email": "admin.a@alfa.test",
+   "password": "<senha omitida>"
+  },
+  "status": 401,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Usuário e/ou senha incorreto(s)\"}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'admin.a@alfa.test' LIMIT 21"
+  ],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "login-092",
+  "etapa": "login",
+  "pedido": "POST /api/v1/auth/login/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": null,
+  "corpo_enviado": {
+   "email": "admin.a@alfa.test",
+   "password": "<senha omitida>"
+  },
+  "status": 401,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Usuário e/ou senha incorreto(s)\"}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'admin.a@alfa.test' LIMIT 21"
+  ],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "login-093",
+  "etapa": "login",
+  "pedido": "POST /api/v1/auth/login/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": null,
+  "corpo_enviado": {
+   "email": "admin.a@alfa.test",
+   "password": "<senha omitida>"
+  },
+  "status": 401,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Usuário e/ou senha incorreto(s)\"}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'admin.a@alfa.test' LIMIT 21"
+  ],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "login-094",
+  "etapa": "login",
+  "pedido": "POST /api/v1/auth/login/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": null,
+  "corpo_enviado": {
+   "email": "admin.a@alfa.test",
+   "password": "<senha omitida>"
+  },
+  "status": 401,
+  "retry_after": null,
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Usuário e/ou senha incorreto(s)\"}",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'admin.a@alfa.test' LIMIT 21"
+  ],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "login-095",
+  "etapa": "login",
+  "pedido": "POST /api/v1/auth/login/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": null,
+  "corpo_enviado": {
+   "email": "admin.a@alfa.test",
+   "password": "<senha omitida>"
+  },
+  "status": 429,
+  "retry_after": "59",
+  "content_type": "application/json",
+  "resposta": "{\"detail\":\"Pedido foi limitado. Expected available in 59 seconds.\"}",
+  "sql_do_servidor": [],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "recuperacao-096",
+  "etapa": "recuperacao",
+  "pedido": "POST /api/v1/auth/password/reset/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": null,
+  "corpo_enviado": {
+   "email": "cliente.a2@alfa.test"
+  },
+  "status": 204,
+  "retry_after": null,
+  "content_type": null,
+  "resposta": "",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (UPPER(\"accounts_user\".\"email\"::text) = UPPER('cliente.a2@alfa.test') AND \"accounts_user\".\"is_active\") ORDER BY \"accounts_user\".\"nome\" ASC LIMIT 1"
+  ],
+  "consultou_unicidade": false
+ },
+ {
+  "id": "recuperacao-097",
+  "etapa": "recuperacao",
+  "pedido": "POST /api/v1/auth/password/reset/",
+  "papel": "anônimo",
+  "cabecalhos_extras": {},
+  "email_sondado": null,
+  "corpo_enviado": {
+   "email": "livre.44@exemplo.test"
+  },
+  "status": 204,
+  "retry_after": null,
+  "content_type": null,
+  "resposta": "",
+  "sql_do_servidor": [
+   "[LOG] SELECT set_config('TimeZone', 'UTC', false)",
+   "[LOG] SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (UPPER(\"accounts_user\".\"email\"::text) = UPPER('livre.44@exemplo.test') AND \"accounts_user\".\"is_active\") ORDER BY \"accounts_user\".\"nome\" ASC LIMIT 1"
+  ],
+  "consultou_unicidade": false
+ }
+]

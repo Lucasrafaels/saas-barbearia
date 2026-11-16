@@ -1,0 +1,14 @@
+PER-13 — testes de regressão (accounts/test_per13.py), SQLite em memória
+Código anterior = árvore com a contenção, o TEN-01, o TEN-02 e o exclude_appointment_id, antes do PER-13.
+Resultado no código anterior: FAILED (failures=48)
+Resultado no código corrigido: OK
+
+DemaisOperacoesTests.test_escritas_mantem_as_permissoes_anteriores           | anterior: passa      | corrigido: passa
+DemaisOperacoesTests.test_listagem_users_sem_regressao                       | anterior: passa      | corrigido: passa
+DemaisOperacoesTests.test_users_me_continua                                  | anterior: passa      | corrigido: passa
+LeituraDeDetalheTests.test_admin_consulta_usuarios_da_propria_barbearia      | anterior: passa      | corrigido: passa
+LeituraDeDetalheTests.test_cada_um_consulta_a_propria_conta                  | anterior: passa      | corrigido: passa
+LeituraDeDetalheTests.test_nao_autorizado_igual_a_inexistente                | anterior: 24 falhas  | corrigido: passa
+LeituraDeDetalheTests.test_nao_autorizado_igual_a_inexistente_debug          | anterior: 24 falhas  | corrigido: passa
+LeituraDeDetalheTests.test_superusuario_mantem_o_comportamento               | anterior: passa      | corrigido: passa
+LeituraDeDetalheTests.test_usuario_sem_barbearia_continua_sem_acesso         | anterior: passa      | corrigido: passa

@@ -1,0 +1,5 @@
+NUM_PROXIES = None
+vítima, conexão direta                                  -> chave throttle_register_day_198.51.100.7
+terceiro forjando X-Forwarded-For com o IP da vítima    -> chave throttle_register_day_198.51.100.7
+terceiro, valor forjado 1                               -> chave throttle_register_day_203.0.113.1
+terceiro, valor forjado 2                               -> chave throttle_register_day_203.0.113.2

@@ -1,0 +1,12 @@
+# suíte completa, PostgreSQL 18.3 DESCARTÁVEL 127.0.0.1:55432; DEBUG do .env na importação; o executor roda com DEBUG=False
+Creating test database for alias 'default'...
+Found 432 test(s).
+System check identified no issues (0 silenced).
+................................................................................................................................................................................................................................................................................................................................................................................................................................................
+----------------------------------------------------------------------
+Ran 432 tests in 17.718s
+
+OK
+Destroying test database for alias 'default'...
+env PYTHONPATH=$S/iso/pkg:$P venv/bin/python -W default manage.py test    13,54s user 0,81s system 75% cpu 19,069 total
+exit=0

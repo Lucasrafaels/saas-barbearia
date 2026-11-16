@@ -1,0 +1,64 @@
+== P5.1 ambiente descartável
+marca do cluster descartável confere
+diretorio_confere|porta|versao|escuta
+t|55432|18.3|127.0.0.1
+(1 row)
+datname|datcollate|datctype|datlocprovider|datcollversion
+ensaio_restaurado|pt_BR.UTF-8|pt_BR.UTF-8|c|2.44
+(1 row)
+== P5.2 pg_restore (--no-owner --no-privileges --exit-on-error)
+pg_restore exit=0; mensagens: 0
+== P5.3 isolamento da cópia: extensões e servidores externos (esperado: só plpgsql; 0 servidores)
+extensoes
+plpgsql
+(1 row)
+servidores_externos
+0
+(1 row)
+== P5.4 contagens na cópia × banco real no momento do backup
+contagens: IDÊNTICAS ao banco real
+== P5.5 estrutura: índice do backup × dump só de esquema da cópia (sem OIDs e sem dono)
+estrutura: IDÊNTICA ao backup (108 objetos)
+== P5.6 as mesmas pré-verificações na cópia (devem coincidir com P2)
+5c5
+< (1 linha)
+---
+> (1 row)
+10c10
+< (0 linha)
+---
+> (0 rows)
+15c15
+< (0 linha)
+---
+> (0 rows)
+20c20
+< (0 linha)
+---
+> (0 rows)
+11c11
+< (7 linhas)
+---
+> (7 rows)
+17c17
+< (1 linha)
+---
+> (1 row)
+25c25
+< (4 linhas)
+---
+> (4 rows)
+31c31
+< (1 linha)
+---
+> (1 row)
+36c36
+< (0 linha)
+---
+> (0 rows)
+41c41
+< (0 linha)
+---
+> (0 rows)
+regra exata: IDÊNTICA ao banco real (8 contas, 8 canônicas, 0 a normalizar, 0 fora, 0 colisões)
+migrações, restrições, índices e regra do CHECK da pré-verificação: IDÊNTICOS ao banco real

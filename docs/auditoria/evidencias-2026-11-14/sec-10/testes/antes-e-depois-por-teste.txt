@@ -1,0 +1,16 @@
+SEC-10 — testes de regressão (appointments/test_sec10.py), SQLite em memória
+Código anterior = árvore com a contenção e as correções do TEN-01 e do TEN-02, antes desta etapa.
+Resultado no código anterior: FAILED (failures=14)
+Resultado no código corrigido: OK
+
+EquivalenciaTests.test_consulta_do_excluido_ja_tem_condicao_de_barbearia           | anterior: 1 falhas   | corrigido: passa
+EquivalenciaTests.test_id_de_outra_barbearia_igual_a_inexistente                   | anterior: 6 falhas   | corrigido: passa
+EquivalenciaTests.test_id_de_outra_barbearia_igual_a_inexistente_debug             | anterior: 6 falhas   | corrigido: passa
+PapeisEContextoTests.test_regras_atuais_dentro_da_propria_barbearia                | anterior: passa      | corrigido: passa
+PapeisEContextoTests.test_superusuario_mantem_as_regras_atuais                     | anterior: 1 falhas   | corrigido: passa
+PapeisEContextoTests.test_usuario_sem_barbearia_continua_recusado_antes_de_tudo    | anterior: passa      | corrigido: passa
+ParametroTests.test_parametro_omitido_ou_vazio_mantem_a_ocupacao                   | anterior: passa      | corrigido: passa
+ParametroTests.test_proprio_agendamento_e_excluido_da_ocupacao                     | anterior: passa      | corrigido: passa
+ParametroTests.test_valor_malformado_responde_como_inexistente                     | anterior: passa      | corrigido: passa
+RemarcacaoTests.test_conflitos_da_mesma_barbearia_continuam_valendo                | anterior: passa      | corrigido: passa
+RemarcacaoTests.test_remarcacao_legitima_com_horario_que_so_aparece_ao_excluir_o_proprio | anterior: passa      | corrigido: passa

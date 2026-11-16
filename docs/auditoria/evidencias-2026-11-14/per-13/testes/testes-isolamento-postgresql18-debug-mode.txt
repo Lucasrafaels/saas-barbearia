@@ -1,0 +1,80 @@
+# testes de isolamento e permissões (PER-13, SEC-10, TEN-02, TEN-01 estrutural e contenção, isolamento, permissões de usuários, exclude_appointment_id e remarcação), PostgreSQL 18.3 DESCARTÁVEL, executor com --debug-mode (DEBUG=True)
+Creating test database for alias 'default'...
+Found 123 test(s).
+System check identified no issues (0 silenced).
+.Forbidden: /api/v1/users/
+......Not Found: /api/v1/users/999999/
+.Not Found: /api/v1/users/28/
+.Not Found: /api/v1/appointments/available-slots/
+...Forbidden: /api/v1/appointments/available-slots/
+.Forbidden: /api/v1/appointments/available-slots/
+.Forbidden: /api/v1/appointments/available-slots/
+...Not Found: /api/v1/appointments/available-slots/
+.Bad Request: /api/v1/appointments/14/
+..Forbidden: /api/v1/appointments/
+.Forbidden: /api/v1/appointments/
+.Bad Request: /api/v1/appointments/
+.Bad Request: /api/v1/appointments/
+...Not Found: /api/v1/appointments/28/
+.Forbidden: /api/v1/appointments/
+..Forbidden: /api/v1/appointments/
+.Bad Request: /api/v1/appointments/
+.....Bad Request: /api/v1/appointments/
+.Not Found: /api/v1/appointments/available-slots/
+....Bad Request: /api/v1/appointments/
+..Bad Request: /api/v1/appointments/
+..Bad Request: /api/v1/barbers/
+.Bad Request: /api/v1/appointments/
+.Bad Request: /api/v1/appointments/44/
+.Bad Request: /api/v1/appointments/
+.Bad Request: /api/v1/appointments/48/
+..Forbidden: /api/v1/barbers/
+..Bad Request: /api/v1/appointments/
+.Unauthorized: /api/v1/
+..Unauthorized: /api/v1/users/me/
+.Not Acceptable: /api/v1/appointments/
+.....Not Found: /api/v1/users/217/
+..Bad Request: /api/v1/appointments/59/
+.Not Found: /api/v1/appointments/available-slots/
+...Bad Request: /api/v1/appointments/
+.Not Found: /api/v1/users/262/
+..Bad Request: /api/v1/appointments/
+...Not Found: /api/v1/users/295/
+..Unauthorized: /api/v1/users/
+.Forbidden: /api/v1/users/
+.Forbidden: /api/v1/users/
+.Bad Request: /api/v1/users/331/
+....Not Found: /api/v1/users/361/
+..Bad Request: /api/v1/users/374/
+.Unauthorized: /api/v1/users/
+.Not Found: /api/v1/appointments/81/
+.Not Found: /api/v1/barbers/107/
+.Bad Request: /api/v1/appointments/
+..Forbidden: /api/v1/services/
+.Not Found: /api/v1/services/94/
+.Bad Request: /api/v1/users/434/
+.Not Found: /api/v1/users/441/
+.......Not Found: /api/v1/users/477/
+.Not Found: /api/v1/users/480/
+.Not Found: /api/v1/users/482/
+.Unauthorized: /api/v1/users/
+.Forbidden: /api/v1/appointments/available-slots/
+.Bad Request: /api/v1/appointments/available-slots/
+.Forbidden: /api/v1/appointments/available-slots/
+.Not Found: /api/v1/appointments/available-slots/
+.Bad Request: /api/v1/appointments/available-slots/
+..Not Found: /api/v1/appointments/available-slots/
+...Not Found: /api/v1/appointments/108/
+.Bad Request: /api/v1/appointments/109/
+.Bad Request: /api/v1/appointments/110/
+.Bad Request: /api/v1/appointments/111/
+...Not Found: /api/v1/appointments/available-slots/
+..Bad Request: /api/v1/appointments/117/
+..
+----------------------------------------------------------------------
+Ran 123 tests in 11.971s
+
+OK
+Destroying test database for alias 'default'...
+env PYTHONPATH=$S/iso/pkg:$P venv/bin/python -W default manage.py test         10,01s user 0,45s system 79% cpu 13,167 total
+exit=0

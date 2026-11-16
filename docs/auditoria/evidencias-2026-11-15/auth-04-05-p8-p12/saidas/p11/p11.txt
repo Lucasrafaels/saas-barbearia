@@ -1,0 +1,42 @@
+== P11.1 HTTP (GET/HEAD/OPTIONS, sem login)
+== Backend: rotas protegidas recusam sem login (401), sem tocar no banco
+ok   lista de serviços                                             GET     127.0.0.1:8000/api/v1/services/ -> 401 (application/json)
+ok   dados da própria conta                                        GET     127.0.0.1:8000/api/v1/users/me/ -> 401 (application/json)
+ok   agendamentos                                                   GET     127.0.0.1:8000/api/v1/appointments/ -> 401 (application/json)
+ok   barbearia                                                      GET     127.0.0.1:8000/api/v1/barbershops/ -> 401 (application/json)
+ok   barbeiros                                                      GET     127.0.0.1:8000/api/v1/barbers/ -> 401 (application/json)
+== Backend: rotas de escrita existem, mas só aceitam POST (aqui só GET/OPTIONS)
+ok   login (GET não permitido)                                     GET     127.0.0.1:8000/api/v1/auth/login/ -> 405 (application/json)
+ok   cadastro público (GET não permitido)                         GET     127.0.0.1:8000/api/v1/auth/register/ -> 405 (application/json)
+ok   cadastro público (OPTIONS, metadados)                         OPTIONS 127.0.0.1:8000/api/v1/auth/register/ -> 200 (application/json)
+ok   recuperação de senha (GET não permitido)                    GET     127.0.0.1:8000/api/v1/auth/password/reset/ -> 405 (application/json)
+== Backend: contenção do TEN-01 (só JSON; nunca HTML da API navegável)
+ok   Accept: text/html                                              GET     127.0.0.1:8000/api/v1/services/ -> 406 (application/json)
+ok   ?format=api                                                    GET     127.0.0.1:8000/api/v1/services/?format=api -> 404 (application/json)
+== Backend: CORS do frontend (preflight OPTIONS; o navegador não envia o POST aqui)
+ok   preflight do login a partir do frontend                        OPTIONS 127.0.0.1:8000/api/v1/auth/login/ -> 200 (text/html; charset=utf-8)
+   Access-Control-Allow-Origin: http://localhost:5173
+== Backend: Django Admin (página de login, sem enviar o formulário)
+ok   página de login do admin                                      GET     127.0.0.1:8000/admin/login/ -> 200 (text/html; charset=utf-8)
+== Frontend (Vite)
+ok   página inicial                                                GET     localhost:5173/ -> 200 (text/html)
+ok   tela de login (rota da SPA)                                    GET     localhost:5173/login -> 200 (text/html)
+ok   tela de cadastro (rota da SPA)                                 GET     localhost:5173/register -> 200 (text/html)
+ok   tela de recuperação (rota da SPA)                            GET     localhost:5173/password/reset -> 200 (text/html)
+ok   módulo principal do app                                       GET     localhost:5173/src/main.tsx -> 200 (text/javascript)
+
+== P11.2 verificações internas somente leitura (sessão default_transaction_read_only=on)
+sessão: banco=barbershop_db somente_leitura=on
+ok   contas na forma canônica: 8/8
+ok   login: a busca do ModelBackend acha a mesma conta com o e-mail em MAIÚSCULAS: 8/8
+ok   login: idem com caixa trocada e espaços nas pontas: 8/8
+ok   recuperação: a busca exata acha a própria conta ativa a partir do e-mail em outra caixa: 8/8
+ok   recuperação: conta inativa não é encontrada (resposta 204 igual, envio fictício): 0/0
+ok   cadastro (só validação, sem salvar): e-mail existente em MAIÚSCULAS é recusado como duplicado: 8/8
+ok   cadastro (só validação, sem salvar): e-mails fora da regra são recusados como inválidos: 4/4
+contas ativas: 8 | inativas: 0
+RESULTADO INTERNO: OK
+
+== P11.3 contadores de escrita do banco real depois da P11
+contadores de inserção/atualização/exclusão (s2-depois-p11): IDÊNTICOS à linha de base — nenhuma escrita
+== P11.4 respostas 500 no log do backend: 0; tracebacks: 0

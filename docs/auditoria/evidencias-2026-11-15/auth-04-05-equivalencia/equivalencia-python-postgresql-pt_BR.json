@@ -1,0 +1,550 @@
+{
+ "banco": {
+  "datcollate": "pt_BR.UTF-8",
+  "datctype": "pt_BR.UTF-8",
+  "provider": "c",
+  "collversion": "2.44",
+  "version": "PostgreSQL 18.3 on x86_64-redhat-linux-gnu, compiled by gcc (GCC) 16.2.1 20260819 (Red Hat 16.2.1-2), 64-bit"
+ },
+ "python_unicode": "15.0.0",
+ "python": "3.12.16",
+ "lower_total_de_pontos": 1112063,
+ "lower_divergentes": 56,
+ "lower_divergentes_ascii": [],
+ "lower_python_que_violaria_o_check": 55,
+ "lower_divergentes_aceitos_pelo_EmailValidator_no_dominio": 56,
+ "lower_divergentes_aceitos_amostra": [
+  {
+   "cp": "U+0130",
+   "nome": "LATIN CAPITAL LETTER I WITH DOT ABOVE",
+   "python_lower": [
+    "U+0069",
+    "U+0307"
+   ],
+   "pg_lower": [
+    "U+0069"
+   ]
+  },
+  {
+   "cp": "U+1C89",
+   "nome": "?",
+   "python_lower": [
+    "U+1C89"
+   ],
+   "pg_lower": [
+    "U+1C8A"
+   ]
+  },
+  {
+   "cp": "U+A7CB",
+   "nome": "?",
+   "python_lower": [
+    "U+A7CB"
+   ],
+   "pg_lower": [
+    "U+0264"
+   ]
+  },
+  {
+   "cp": "U+A7CC",
+   "nome": "?",
+   "python_lower": [
+    "U+A7CC"
+   ],
+   "pg_lower": [
+    "U+A7CD"
+   ]
+  },
+  {
+   "cp": "U+A7CE",
+   "nome": "?",
+   "python_lower": [
+    "U+A7CE"
+   ],
+   "pg_lower": [
+    "U+A7CF"
+   ]
+  },
+  {
+   "cp": "U+A7D2",
+   "nome": "?",
+   "python_lower": [
+    "U+A7D2"
+   ],
+   "pg_lower": [
+    "U+A7D3"
+   ]
+  },
+  {
+   "cp": "U+A7D4",
+   "nome": "?",
+   "python_lower": [
+    "U+A7D4"
+   ],
+   "pg_lower": [
+    "U+A7D5"
+   ]
+  },
+  {
+   "cp": "U+A7DA",
+   "nome": "?",
+   "python_lower": [
+    "U+A7DA"
+   ],
+   "pg_lower": [
+    "U+A7DB"
+   ]
+  },
+  {
+   "cp": "U+A7DC",
+   "nome": "?",
+   "python_lower": [
+    "U+A7DC"
+   ],
+   "pg_lower": [
+    "U+019B"
+   ]
+  },
+  {
+   "cp": "U+10D50",
+   "nome": "?",
+   "python_lower": [
+    "U+10D50"
+   ],
+   "pg_lower": [
+    "U+10D70"
+   ]
+  },
+  {
+   "cp": "U+10D51",
+   "nome": "?",
+   "python_lower": [
+    "U+10D51"
+   ],
+   "pg_lower": [
+    "U+10D71"
+   ]
+  },
+  {
+   "cp": "U+10D52",
+   "nome": "?",
+   "python_lower": [
+    "U+10D52"
+   ],
+   "pg_lower": [
+    "U+10D72"
+   ]
+  }
+ ],
+ "entradas_aceitas_cujo_lower_python_violaria_o_check": 55,
+ "entradas_aceitas_violariam_check_amostra": [
+  {
+   "cp": "U+1C89",
+   "nome": "?",
+   "python_lower": [
+    "U+1C89"
+   ],
+   "pg_lower": [
+    "U+1C8A"
+   ]
+  },
+  {
+   "cp": "U+A7CB",
+   "nome": "?",
+   "python_lower": [
+    "U+A7CB"
+   ],
+   "pg_lower": [
+    "U+0264"
+   ]
+  },
+  {
+   "cp": "U+A7CC",
+   "nome": "?",
+   "python_lower": [
+    "U+A7CC"
+   ],
+   "pg_lower": [
+    "U+A7CD"
+   ]
+  },
+  {
+   "cp": "U+A7CE",
+   "nome": "?",
+   "python_lower": [
+    "U+A7CE"
+   ],
+   "pg_lower": [
+    "U+A7CF"
+   ]
+  },
+  {
+   "cp": "U+A7D2",
+   "nome": "?",
+   "python_lower": [
+    "U+A7D2"
+   ],
+   "pg_lower": [
+    "U+A7D3"
+   ]
+  },
+  {
+   "cp": "U+A7D4",
+   "nome": "?",
+   "python_lower": [
+    "U+A7D4"
+   ],
+   "pg_lower": [
+    "U+A7D5"
+   ]
+  },
+  {
+   "cp": "U+A7DA",
+   "nome": "?",
+   "python_lower": [
+    "U+A7DA"
+   ],
+   "pg_lower": [
+    "U+A7DB"
+   ]
+  },
+  {
+   "cp": "U+A7DC",
+   "nome": "?",
+   "python_lower": [
+    "U+A7DC"
+   ],
+   "pg_lower": [
+    "U+019B"
+   ]
+  },
+  {
+   "cp": "U+10D50",
+   "nome": "?",
+   "python_lower": [
+    "U+10D50"
+   ],
+   "pg_lower": [
+    "U+10D70"
+   ]
+  },
+  {
+   "cp": "U+10D51",
+   "nome": "?",
+   "python_lower": [
+    "U+10D51"
+   ],
+   "pg_lower": [
+    "U+10D71"
+   ]
+  },
+  {
+   "cp": "U+10D52",
+   "nome": "?",
+   "python_lower": [
+    "U+10D52"
+   ],
+   "pg_lower": [
+    "U+10D72"
+   ]
+  },
+  {
+   "cp": "U+10D53",
+   "nome": "?",
+   "python_lower": [
+    "U+10D53"
+   ],
+   "pg_lower": [
+    "U+10D73"
+   ]
+  }
+ ],
+ "espacos": {
+  "python_strip_e_drf": [
+   "U+0009",
+   "U+000A",
+   "U+000B",
+   "U+000C",
+   "U+000D",
+   "U+001C",
+   "U+001D",
+   "U+001E",
+   "U+001F",
+   "U+0020",
+   "U+0085",
+   "U+00A0",
+   "U+1680",
+   "U+2000",
+   "U+2001",
+   "U+2002",
+   "U+2003",
+   "U+2004",
+   "U+2005",
+   "U+2006",
+   "U+2007",
+   "U+2008",
+   "U+2009",
+   "U+200A",
+   "U+2028",
+   "U+2029",
+   "U+202F",
+   "U+205F",
+   "U+3000"
+  ],
+  "drf_trim_whitespace_igual_ao_python": true,
+  "postgresql_btrim_padrao_remove": [
+   "U+0020"
+  ],
+  "postgresql_regex_s_pt_BR": [
+   "U+0009",
+   "U+000A",
+   "U+000B",
+   "U+000C",
+   "U+000D",
+   "U+0020",
+   "U+1680",
+   "U+2000",
+   "U+2001",
+   "U+2002",
+   "U+2003",
+   "U+2004",
+   "U+2005",
+   "U+2006",
+   "U+2008",
+   "U+2009",
+   "U+200A",
+   "U+2028",
+   "U+2029",
+   "U+205F",
+   "U+3000"
+  ],
+  "python_mas_nao_regex_s_do_postgresql": [
+   "U+001C",
+   "U+001D",
+   "U+001E",
+   "U+001F",
+   "U+0085",
+   "U+00A0",
+   "U+2007",
+   "U+202F"
+  ],
+  "regex_s_do_postgresql_mas_nao_python": []
+ },
+ "invisiveis_no_EmailValidator": [
+  {
+   "cp": "U+00AD",
+   "nome": "SOFT HYPHEN",
+   "posicao": "no meio do domínio",
+   "aceito": true,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+00AD",
+   "nome": "SOFT HYPHEN",
+   "posicao": "no fim",
+   "aceito": true,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+00AD",
+   "nome": "SOFT HYPHEN",
+   "posicao": "na parte local",
+   "aceito": false,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+034F",
+   "nome": "COMBINING GRAPHEME JOINER",
+   "posicao": "no meio do domínio",
+   "aceito": true,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+034F",
+   "nome": "COMBINING GRAPHEME JOINER",
+   "posicao": "no fim",
+   "aceito": true,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+034F",
+   "nome": "COMBINING GRAPHEME JOINER",
+   "posicao": "na parte local",
+   "aceito": false,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+180B",
+   "nome": "MONGOLIAN FREE VARIATION SELECTOR ONE",
+   "posicao": "no meio do domínio",
+   "aceito": true,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+180B",
+   "nome": "MONGOLIAN FREE VARIATION SELECTOR ONE",
+   "posicao": "no fim",
+   "aceito": true,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+180B",
+   "nome": "MONGOLIAN FREE VARIATION SELECTOR ONE",
+   "posicao": "na parte local",
+   "aceito": false,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+200B",
+   "nome": "ZERO WIDTH SPACE",
+   "posicao": "no meio do domínio",
+   "aceito": true,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+200B",
+   "nome": "ZERO WIDTH SPACE",
+   "posicao": "no fim",
+   "aceito": true,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+200B",
+   "nome": "ZERO WIDTH SPACE",
+   "posicao": "na parte local",
+   "aceito": false,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+200C",
+   "nome": "ZERO WIDTH NON-JOINER",
+   "posicao": "no meio do domínio",
+   "aceito": true,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+200C",
+   "nome": "ZERO WIDTH NON-JOINER",
+   "posicao": "no fim",
+   "aceito": true,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+200C",
+   "nome": "ZERO WIDTH NON-JOINER",
+   "posicao": "na parte local",
+   "aceito": false,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+200D",
+   "nome": "ZERO WIDTH JOINER",
+   "posicao": "no meio do domínio",
+   "aceito": true,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+200D",
+   "nome": "ZERO WIDTH JOINER",
+   "posicao": "no fim",
+   "aceito": true,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+200D",
+   "nome": "ZERO WIDTH JOINER",
+   "posicao": "na parte local",
+   "aceito": false,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+2060",
+   "nome": "WORD JOINER",
+   "posicao": "no meio do domínio",
+   "aceito": true,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+2060",
+   "nome": "WORD JOINER",
+   "posicao": "no fim",
+   "aceito": true,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+2060",
+   "nome": "WORD JOINER",
+   "posicao": "na parte local",
+   "aceito": false,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+FE00",
+   "nome": "VARIATION SELECTOR-1",
+   "posicao": "no meio do domínio",
+   "aceito": true,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+FE00",
+   "nome": "VARIATION SELECTOR-1",
+   "posicao": "no fim",
+   "aceito": true,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+FE00",
+   "nome": "VARIATION SELECTOR-1",
+   "posicao": "na parte local",
+   "aceito": false,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+FE0F",
+   "nome": "VARIATION SELECTOR-16",
+   "posicao": "no meio do domínio",
+   "aceito": true,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+FE0F",
+   "nome": "VARIATION SELECTOR-16",
+   "posicao": "no fim",
+   "aceito": true,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+FE0F",
+   "nome": "VARIATION SELECTOR-16",
+   "posicao": "na parte local",
+   "aceito": false,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+FEFF",
+   "nome": "ZERO WIDTH NO-BREAK SPACE",
+   "posicao": "no meio do domínio",
+   "aceito": true,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+FEFF",
+   "nome": "ZERO WIDTH NO-BREAK SPACE",
+   "posicao": "no fim",
+   "aceito": true,
+   "python_strip_remove": false
+  },
+  {
+   "cp": "U+FEFF",
+   "nome": "ZERO WIDTH NO-BREAK SPACE",
+   "posicao": "na parte local",
+   "aceito": false,
+   "python_strip_remove": false
+  }
+ ],
+ "invisiveis_aceitos": 20,
+ "ascii_lower_python_igual_postgresql": true,
+ "regex_faixa_ascii_divergencias_em_todos_os_pontos": 0,
+ "octet_length_1_igual_ascii_divergencias": 0,
+ "ascii_imprimiveis_aceitos_em_algum_ponto_do_email": 82
+}

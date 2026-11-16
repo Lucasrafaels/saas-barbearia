@@ -1,0 +1,42 @@
+AUTH-05 — matriz fluxo × variação (PG 18.3 pt_BR). Formato: status / valor gravado / contas equivalentes depois.
+fluxo                    variação                               | ANTERIOR                                   | CORRIGIDO (DEBUG=False)                    | DEBUG=True igual
+cadastro público         novo, minúsculas                       | 201 / novo.1@exemplo.test / 1              | 201 / novo.1@exemplo.test / 1              | True
+cadastro público         novo, maiúsculas na parte local        | 201 / Novo.2@exemplo.test / 1              | 201 / novo.2@exemplo.test / 1              | True
+cadastro público         novo, maiúsculas no domínio            | 201 / novo.3@exemplo.test / 1              | 201 / novo.3@exemplo.test / 1              | True
+cadastro público         novo, tudo maiúsculo                   | 201 / NOVO.4@exemplo.test / 1              | 201 / novo.4@exemplo.test / 1              | True
+cadastro público         novo, com espaços                      | 201 / novo.5@exemplo.test / 1              | 201 / novo.5@exemplo.test / 1              | True
+cadastro público         existente, exato                       | 400 / None / 1                             | 400 / None / 1                             | True
+cadastro público         existente, maiúsculas na parte local   | 201 / Cliente.A1@alfa.test / 2             | 400 / None / 1                             | True
+cadastro público         existente, maiúsculas no domínio       | 500 / None / 1                             | 400 / None / 1                             | True
+cadastro público         existente, tudo maiúsculo              | 201 / CLIENTE.A1@alfa.test / 2             | 400 / None / 1                             | True
+cadastro público         existente, com espaços                 | 400 / None / 1                             | 400 / None / 1                             | True
+criação pelo admin       novo, minúsculas                       | 201 / novo.11@exemplo.test / 1             | 201 / novo.11@exemplo.test / 1             | True
+criação pelo admin       novo, maiúsculas na parte local        | 201 / Novo.12@exemplo.test / 1             | 201 / novo.12@exemplo.test / 1             | True
+criação pelo admin       novo, maiúsculas no domínio            | 201 / novo.13@exemplo.test / 1             | 201 / novo.13@exemplo.test / 1             | True
+criação pelo admin       novo, tudo maiúsculo                   | 201 / NOVO.14@exemplo.test / 1             | 201 / novo.14@exemplo.test / 1             | True
+criação pelo admin       novo, com espaços                      | 201 / novo.15@exemplo.test / 1             | 201 / novo.15@exemplo.test / 1             | True
+criação pelo admin       existente, exato                       | 400 / None / 1                             | 400 / None / 1                             | True
+criação pelo admin       existente, maiúsculas na parte local   | 201 / Cliente.A1@alfa.test / 2             | 400 / None / 1                             | True
+criação pelo admin       existente, maiúsculas no domínio       | 500 / None / 1                             | 400 / None / 1                             | True
+criação pelo admin       existente, tudo maiúsculo              | 201 / CLIENTE.A1@alfa.test / 2             | 400 / None / 1                             | True
+criação pelo admin       existente, com espaços                 | 400 / None / 1                             | 400 / None / 1                             | True
+troca do próprio e-mail  novo, minúsculas                       | 200 / novo.21@exemplo.test / 1             | 200 / novo.21@exemplo.test / 1             | True
+troca do próprio e-mail  novo, maiúsculas na parte local        | 200 / Novo.22@exemplo.test / 1             | 200 / novo.22@exemplo.test / 1             | True
+troca do próprio e-mail  novo, maiúsculas no domínio            | 200 / novo.23@EXEMPLO.TEST / 1             | 200 / novo.23@exemplo.test / 1             | True
+troca do próprio e-mail  novo, tudo maiúsculo                   | 200 / NOVO.24@EXEMPLO.TEST / 1             | 200 / novo.24@exemplo.test / 1             | True
+troca do próprio e-mail  novo, com espaços                      | 200 / novo.25@exemplo.test / 1             | 200 / novo.25@exemplo.test / 1             | True
+troca do próprio e-mail  existente, exato                       | 400 / cliente.a2@alfa.test / 1             | 400 / cliente.a2@alfa.test / 1             | True
+troca do próprio e-mail  existente, maiúsculas na parte local   | 200 / Cliente.A1@alfa.test / 2             | 400 / cliente.a2@alfa.test / 1             | True
+troca do próprio e-mail  existente, maiúsculas no domínio       | 200 / cliente.a1@ALFA.TEST / 2             | 400 / cliente.a2@alfa.test / 1             | True
+troca do próprio e-mail  existente, tudo maiúsculo              | 200 / CLIENTE.A1@ALFA.TEST / 2             | 400 / cliente.a2@alfa.test / 1             | True
+troca do próprio e-mail  existente, com espaços                 | 400 / cliente.a2@alfa.test / 1             | 400 / cliente.a2@alfa.test / 1             | True
+login (senha correta)    exato                                  | 200 / None / -                             | 200 / None / -                             | True
+login (senha correta)    maiúsculas na parte local              | 401 / None / -                             | 200 / None / -                             | True
+login (senha correta)    maiúsculas no domínio                  | 401 / None / -                             | 200 / None / -                             | True
+login (senha correta)    tudo maiúsculo                         | 401 / None / -                             | 200 / None / -                             | True
+login (senha correta)    com espaços                            | 200 / None / -                             | 200 / None / -                             | True
+recuperação de senha     exato                                  | 204 conta [2]                              | 204 conta [2]                              | True
+recuperação de senha     maiúsculas na parte local              | 204 conta [2]                              | 204 conta [2]                              | True
+recuperação de senha     tudo maiúsculo                         | 204 conta [2]                              | 204 conta [2]                              | True
+recuperação de senha     com espaços                            | 204 conta [2]                              | 204 conta [2]                              | True
+duplicatas: anterior 7, corrigido 0 | respostas 500: anterior 2, corrigido 0

@@ -1,0 +1,5 @@
+antes: 217 verificações, 214 conformes
+depois: 217 verificações, 214 conformes
+mesmos IDs: True
+veredito alterado: 0
+divergentes que continuam: MT-US-16 (P3), MT-US-27 (P3), MT-UP-01 (P3)

@@ -4,7 +4,7 @@ Serializers do app accounts.
 from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.db import transaction
+from django.db import IntegrityError, models, transaction
 from django.utils import timezone
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -18,9 +18,57 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.utils.field_mapping import get_unique_error_message
 
 from .admin_integrity import AdminIntegrityError, check_self_change, lock_active_admins
+from .emails import e_violacao_da_unicidade_do_email, forma_canonica
 from .models import User
+
+
+class EmailNormalizadoField(serializers.EmailField):
+    """
+    `EmailField` que entrega o valor já na forma canônica (accounts.emails).
+
+    A normalização precisa estar aqui, e não num `validate_email`. O DRF roda os
+    validadores do campo, inclusive o `UniqueValidator`, dentro de
+    `run_validation`, logo depois deste `to_internal_value` e **antes** do
+    `validate_<campo>` do serializer. Assim, a checagem de duplicidade já
+    compara a forma canônica.
+
+    A resposta para entrada inválida é a mesma de antes. Um valor que não é
+    texto recebe 'invalid' sem conversão de tipo; `null` e vazio continuam a
+    cargo do DRF ('null' e 'blank'). Um texto fora da regra também recebe
+    'invalid'.
+    """
+
+    def to_internal_value(self, data):
+        if not isinstance(data, str):
+            self.fail('invalid')
+        canonico = forma_canonica(super().to_internal_value(data))
+        if canonico is None:
+            self.fail('invalid')
+        return canonico
+
+
+class EmailCanonicoMixin:
+    """Faz os ModelSerializers de usuário gerarem o campo `email` como `EmailNormalizadoField`."""
+
+    serializer_field_mapping = {
+        **serializers.ModelSerializer.serializer_field_mapping,
+        models.EmailField: EmailNormalizadoField,
+    }
+
+
+def recusar_email_duplicado(erro):
+    """
+    Pedido simultâneo: os dois passaram pelo `UniqueValidator`, mas o banco
+    recusou o segundo. Responde o mesmo 400 que o validador daria. Qualquer
+    outro `IntegrityError` é levantado de novo, sem ser mascarado.
+    """
+    if e_violacao_da_unicidade_do_email(erro):
+        mensagem = get_unique_error_message(User._meta.get_field('email'))
+        raise serializers.ValidationError({'email': [serializers.ErrorDetail(mensagem, code='unique')]}) from erro
+    raise erro
 
 
 def revoke_user_refresh_tokens(user):
@@ -40,7 +88,7 @@ def admin_integrity_error_as_drf(error, key=None):
     return serializers.ValidationError({key or 'detail': error.messages})
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(EmailCanonicoMixin, serializers.ModelSerializer):
     """Serializer de leitura/edição de usuários já existentes."""
 
     class Meta:
@@ -112,6 +160,10 @@ class UserSerializer(serializers.ModelSerializer):
             return self._apply_update(instance, validated_data)
         except AdminIntegrityError as error:
             raise admin_integrity_error_as_drf(error, key='detail') from error
+        except IntegrityError as erro:
+            # AUTH-05: _apply_update roda em transaction.atomic(). O erro chega
+            # aqui com a transação desfeita até esse ponto e íntegra.
+            recusar_email_duplicado(erro)
 
     def _apply_update(self, instance, validated_data):
         """Atualiza campos permitidos. Alteração de papel (tipo_perfil) sincroniza
@@ -219,7 +271,7 @@ class PasswordValidationMixin:
         return attrs
 
 
-class UserCreateSerializer(PasswordValidationMixin, serializers.ModelSerializer):
+class UserCreateSerializer(EmailCanonicoMixin, PasswordValidationMixin, serializers.ModelSerializer):
     """Serializer usado para cadastro de novos usuários (recebe senha)."""
 
     password = serializers.CharField(write_only=True, min_length=8)
@@ -276,37 +328,42 @@ class UserCreateSerializer(PasswordValidationMixin, serializers.ModelSerializer)
         if is_barber and not barber_active:
             validated_data['tipo_perfil'] = User.TipoPerfil.CLIENTE
 
-        with transaction.atomic():
-            user = User.objects.create_user(
-                password=password,
-                barbershop=request.user.barbershop,
-                **validated_data,
-            )
-
-            if is_barber:
-                from barbershops.models import Barber
-                barber = Barber(
-                    user=user,
+        try:
+            with transaction.atomic():
+                user = User.objects.create_user(
+                    password=password,
                     barbershop=request.user.barbershop,
-                    especialidade=especialidade or '',
-                    ativo=barber_active,
+                    **validated_data,
                 )
-                # create()/save() não chama clean() automaticamente no
-                # Django. Validamos explicitamente para preservar as regras
-                # de tenant e de perfil também neste fluxo composto.
-                try:
-                    barber.full_clean()
-                except DjangoValidationError as error:
-                    raise serializers.ValidationError(error.message_dict) from error
-                if not barber_active:
-                    barber.deleted_at = timezone.now()
-                    barber.deleted_by = request.user
-                barber.save()
+
+                if is_barber:
+                    from barbershops.models import Barber
+                    barber = Barber(
+                        user=user,
+                        barbershop=request.user.barbershop,
+                        especialidade=especialidade or '',
+                        ativo=barber_active,
+                    )
+                    # create()/save() não chama clean() automaticamente no
+                    # Django. Validamos explicitamente para preservar as regras
+                    # de tenant e de perfil também neste fluxo composto.
+                    try:
+                        barber.full_clean()
+                    except DjangoValidationError as error:
+                        raise serializers.ValidationError(error.message_dict) from error
+                    if not barber_active:
+                        barber.deleted_at = timezone.now()
+                        barber.deleted_by = request.user
+                    barber.save()
+        except IntegrityError as erro:
+            # AUTH-05: pedido simultâneo com o mesmo e-mail. O atomic() acima já
+            # desfez esta criação, e a transação externa continua íntegra.
+            recusar_email_duplicado(erro)
 
         return user
 
 
-class PublicRegistrationSerializer(PasswordValidationMixin, serializers.ModelSerializer):
+class PublicRegistrationSerializer(EmailCanonicoMixin, PasswordValidationMixin, serializers.ModelSerializer):
     """Cadastro público inicial, sempre criado como cliente sem tenant."""
 
     password = serializers.CharField(write_only=True, min_length=8)
@@ -318,7 +375,13 @@ class PublicRegistrationSerializer(PasswordValidationMixin, serializers.ModelSer
 
     def create(self, validated_data):
         password = validated_data.pop('password')
-        return User.objects.create_user(password=password, **validated_data)
+        try:
+            with transaction.atomic():
+                return User.objects.create_user(password=password, **validated_data)
+        except IntegrityError as erro:
+            # AUTH-05: cadastro simultâneo com o mesmo e-mail (o banco recusa o
+            # segundo). Mesmo 400 do UniqueValidator, sem 500.
+            recusar_email_duplicado(erro)
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -379,7 +442,8 @@ class PasswordChangeSerializer(serializers.Serializer):
 
 
 class PasswordResetRequestSerializer(serializers.Serializer):
-    email = serializers.EmailField()
+    # AUTH-04: o e-mail chega na forma canônica (accounts.emails).
+    email = EmailNormalizadoField()
 
     def save(self, **kwargs):
         # A resposta é idêntica para e-mails existentes e inexistentes, para
@@ -388,7 +452,14 @@ class PasswordResetRequestSerializer(serializers.Serializer):
         # timing attack: a latência deve ser constante independentemente da
         # existência da conta. Em produção, usar Celery para envio assíncrono.
         email = self.validated_data['email']
-        user = User.objects.filter(email__iexact=email, is_active=True).first()
+        # AUTH-04: igualdade exata com a forma canônica, que o banco mantém
+        # única (accounts.0006). Antes era `email__iexact` + `.first()` pela
+        # ordem do nome, e uma conta com outra caixa podia ser escolhida no
+        # lugar da certa.
+        try:
+            user = User.objects.get(email=email, is_active=True)
+        except User.DoesNotExist:
+            user = None
 
         # Sempre preparar dados do e-mail (mesmo se user for None)
         if user is not None:

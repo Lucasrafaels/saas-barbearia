@@ -1,0 +1,86 @@
+TEN-01, correção estrutural — sondagem HTTP de referências entre barbearias (ten01e_probe.py)
+Cada pedido com ID de outra barbearia é comparado com o mesmo pedido com um ID inexistente (999999).
+
+== antes-debug-true (porta 8769)
+   pedidos_comparados: 288
+   oraculos (resposta diferente da de um ID inexistente): 288
+   referencias_aceitas (2xx): 0
+   respostas_com_nomes_de_outra_barbearia: 0
+   respostas_500: 0
+   banco_inalterado: True
+   tabelas_alteradas: []
+   associacoes_entre_tenants (antes, depois): [0, 0]
+   oráculo: POST /appointments/ barbeiro: 18 pedidos (admin A, admin B, barbeiro A, barbeiro B, cliente A, cliente B)
+   oráculo: PATCH /appointments/{id}/ barbeiro: 18 pedidos (admin A, admin B, barbeiro A, barbeiro B, cliente A, cliente B)
+   oráculo: PUT /appointments/{id}/ barbeiro: 18 pedidos (admin A, admin B, barbeiro A, barbeiro B, cliente A, cliente B)
+   oráculo: POST /appointments/ servico: 27 pedidos (admin A, admin B, barbeiro A, barbeiro B, cliente A, cliente B)
+   oráculo: PATCH /appointments/{id}/ servico: 27 pedidos (admin A, admin B, barbeiro A, barbeiro B, cliente A, cliente B)
+   oráculo: PUT /appointments/{id}/ servico: 27 pedidos (admin A, admin B, barbeiro A, barbeiro B, cliente A, cliente B)
+   oráculo: POST /appointments/ cliente: 21 pedidos (admin A, admin B, barbeiro A, barbeiro B, cliente A, cliente B)
+   oráculo: PATCH /appointments/{id}/ cliente: 21 pedidos (admin A, admin B, barbeiro A, barbeiro B, cliente A, cliente B)
+   oráculo: PUT /appointments/{id}/ cliente: 21 pedidos (admin A, admin B, barbeiro A, barbeiro B, cliente A, cliente B)
+   oráculo: GET /appointments/?barbeiro=: 30 pedidos (admin A, admin B, admin C (onboarding), barbeiro A, barbeiro B, cliente A, cliente B, sem barbearia (cadastro público))
+   oráculo: GET /appointments/?servico=: 27 pedidos (admin A, admin B, barbeiro A, barbeiro B, cliente A, cliente B)
+   oráculo: POST /barbers/ user: 28 pedidos (admin A, admin B, admin C (onboarding))
+   oráculo: POST /appointments/ (todos os campos de outra barbearia): 4 pedidos (admin C (onboarding), sem barbearia (cadastro público))
+   oráculo: MT-AP-27: POST com horário ocupado x livre de B: 1 pedidos (sem barbearia (cadastro público))
+
+== antes-debug-false (porta 8770)
+   pedidos_comparados: 288
+   oraculos (resposta diferente da de um ID inexistente): 288
+   referencias_aceitas (2xx): 0
+   respostas_com_nomes_de_outra_barbearia: 0
+   respostas_500: 0
+   banco_inalterado: True
+   tabelas_alteradas: []
+   associacoes_entre_tenants (antes, depois): [0, 0]
+   oráculo: POST /appointments/ barbeiro: 18 pedidos (admin A, admin B, barbeiro A, barbeiro B, cliente A, cliente B)
+   oráculo: PATCH /appointments/{id}/ barbeiro: 18 pedidos (admin A, admin B, barbeiro A, barbeiro B, cliente A, cliente B)
+   oráculo: PUT /appointments/{id}/ barbeiro: 18 pedidos (admin A, admin B, barbeiro A, barbeiro B, cliente A, cliente B)
+   oráculo: POST /appointments/ servico: 27 pedidos (admin A, admin B, barbeiro A, barbeiro B, cliente A, cliente B)
+   oráculo: PATCH /appointments/{id}/ servico: 27 pedidos (admin A, admin B, barbeiro A, barbeiro B, cliente A, cliente B)
+   oráculo: PUT /appointments/{id}/ servico: 27 pedidos (admin A, admin B, barbeiro A, barbeiro B, cliente A, cliente B)
+   oráculo: POST /appointments/ cliente: 21 pedidos (admin A, admin B, barbeiro A, barbeiro B, cliente A, cliente B)
+   oráculo: PATCH /appointments/{id}/ cliente: 21 pedidos (admin A, admin B, barbeiro A, barbeiro B, cliente A, cliente B)
+   oráculo: PUT /appointments/{id}/ cliente: 21 pedidos (admin A, admin B, barbeiro A, barbeiro B, cliente A, cliente B)
+   oráculo: GET /appointments/?barbeiro=: 30 pedidos (admin A, admin B, admin C (onboarding), barbeiro A, barbeiro B, cliente A, cliente B, sem barbearia (cadastro público))
+   oráculo: GET /appointments/?servico=: 27 pedidos (admin A, admin B, barbeiro A, barbeiro B, cliente A, cliente B)
+   oráculo: POST /barbers/ user: 28 pedidos (admin A, admin B, admin C (onboarding))
+   oráculo: POST /appointments/ (todos os campos de outra barbearia): 4 pedidos (admin C (onboarding), sem barbearia (cadastro público))
+   oráculo: MT-AP-27: POST com horário ocupado x livre de B: 1 pedidos (sem barbearia (cadastro público))
+
+== depois-debug-true (porta 8767)
+   pedidos_comparados: 288
+   oraculos (resposta diferente da de um ID inexistente): 0
+   referencias_aceitas (2xx): 0
+   respostas_com_nomes_de_outra_barbearia: 0
+   respostas_500: 0
+   banco_inalterado: True
+   tabelas_alteradas: []
+   associacoes_entre_tenants (antes, depois): [0, 0]
+
+== depois-debug-false (porta 8768)
+   pedidos_comparados: 288
+   oraculos (resposta diferente da de um ID inexistente): 0
+   referencias_aceitas (2xx): 0
+   respostas_com_nomes_de_outra_barbearia: 0
+   respostas_500: 0
+   banco_inalterado: True
+   tabelas_alteradas: []
+   associacoes_entre_tenants (antes, depois): [0, 0]
+
+Exemplos do código anterior (resposta para ID de outra barbearia | para ID inexistente):
+   POST /appointments/ barbeiro [cliente A]: 400 {"barbeiro":["Este barbeiro não pertence à sua barbearia."]} | 400 {"barbeiro":["Pk inválido \"999999\" - objeto não existe."]}
+   PATCH /appointments/{id}/ barbeiro [cliente A]: 400 {"barbeiro":["Este barbeiro não pertence à sua barbearia."]} | 400 {"barbeiro":["Pk inválido \"999999\" - objeto não existe."]}
+   PUT /appointments/{id}/ barbeiro [cliente A]: 400 {"barbeiro":["Este barbeiro não pertence à sua barbearia."]} | 400 {"barbeiro":["Pk inválido \"999999\" - objeto não existe."]}
+   POST /appointments/ servico [cliente A]: 400 {"servico":["Este serviço não pertence à sua barbearia."]} | 400 {"servico":["Pk inválido \"999999\" - objeto não existe."]}
+   PATCH /appointments/{id}/ servico [cliente A]: 400 {"servico":["Este serviço não pertence à sua barbearia."]} | 400 {"servico":["Pk inválido \"999999\" - objeto não existe."]}
+   PUT /appointments/{id}/ servico [cliente A]: 400 {"servico":["Este serviço não pertence à sua barbearia."]} | 400 {"servico":["Pk inválido \"999999\" - objeto não existe."]}
+   POST /appointments/ cliente [cliente A]: 400 {"cliente":["Este cliente não pertence à sua barbearia."]} | 400 {"cliente":["Pk inválido \"999999\" - objeto não existe."]}
+   PATCH /appointments/{id}/ cliente [cliente A]: 400 {"cliente":["Este cliente não pertence à sua barbearia."]} | 400 {"cliente":["Pk inválido \"999999\" - objeto não existe."]}
+   PUT /appointments/{id}/ cliente [cliente A]: 400 {"cliente":["Este cliente não pertence à sua barbearia."]} | 400 {"cliente":["Pk inválido \"999999\" - objeto não existe."]}
+   GET /appointments/?barbeiro= [cliente A]: 200 {"count":0,"next":null,"previous":null,"results":[]} | 400 {"barbeiro":["Faça uma escolha válida. Sua escolha não é uma das disponíveis."]}
+   GET /appointments/?servico= [cliente A]: 200 {"count":0,"next":null,"previous":null,"results":[]} | 400 {"servico":["Faça uma escolha válida. Sua escolha não é uma das disponíveis."]}
+   POST /barbers/ user [admin A]: 400 {"user":["Usuários administradores não podem ser convertidos em barbeiros."]} | 400 {"user":["Pk inválido \"999999\" - objeto não existe."]}
+   POST /appointments/ (todos os campos de outra barbearia) [sem barbearia (cadastro público)]: 400 {"barbershop":["Este campo não pode ser nulo."]} | 400 {"cliente":["Pk inválido \"999999\" - objeto não existe."],"barbeiro":["Pk invál
+   MT-AP-27: POST com horário ocupado x livre de B [sem barbearia (cadastro público)]: 400 {"barbershop":["Este campo não pode ser nulo."],"data_hora":["Este barbeiro já possui um agendamento neste hor | 400 {"barbershop":["Este campo não pode ser nulo."]}

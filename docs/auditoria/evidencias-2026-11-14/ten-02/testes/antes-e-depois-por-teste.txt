@@ -1,0 +1,14 @@
+TEN-02 — testes de regressão (appointments/test_ten02.py), SQLite em memória
+Código anterior = árvore com a contenção e a correção estrutural do TEN-01, antes desta etapa.
+Resultado no código anterior: FAILED (failures=18)
+Resultado no código corrigido: OK
+
+FluxosLegitimosTen02Tests.test_cadastro_publico_e_onboarding                           | anterior: 1 falhas   | corrigido: passa
+FluxosLegitimosTen02Tests.test_superusuario                                            | anterior: 1 falhas   | corrigido: passa
+FluxosLegitimosTen02Tests.test_usuario_legitimo_agenda_na_propria_barbearia            | anterior: passa      | corrigido: passa
+OutraBarbeariaTests.test_usuario_de_a_nao_sonda_a_agenda_de_b                          | anterior: passa      | corrigido: passa
+SemBarbeariaTests.test_criacao_recusada_antes_da_validacao_com_resposta_unica          | anterior: 6 falhas   | corrigido: passa
+SemBarbeariaTests.test_criacao_recusada_antes_da_validacao_com_resposta_unica_debug    | anterior: 6 falhas   | corrigido: passa
+SemBarbeariaTests.test_demais_operacoes_sem_barbearia_nao_revelam_nada                 | anterior: passa      | corrigido: passa
+SemBarbeariaTests.test_recusa_nao_depende_do_escopo_dos_campos                         | anterior: 3 falhas   | corrigido: passa
+SemBarbeariaTests.test_validate_recusa_sem_barbearia_antes_das_regras_de_negocio       | anterior: 1 falhas   | corrigido: passa

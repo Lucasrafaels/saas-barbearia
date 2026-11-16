@@ -1,0 +1,12 @@
+# suíte completa, SQLite em memória (config.test_settings)
+Creating test database for alias 'default'...
+Found 452 test(s).
+System check identified no issues (0 silenced).
+.................................................................................................................................................................................................................................................................................................................................................................................................................................................sssssssss..........
+----------------------------------------------------------------------
+Ran 452 tests in 12.005s
+
+OK (skipped=9)
+Destroying test database for alias 'default'...
+venv/bin/python -W default manage.py test --settings=config.test_settings  12,73s user 0,19s system 98% cpu 13,176 total
+exit=0

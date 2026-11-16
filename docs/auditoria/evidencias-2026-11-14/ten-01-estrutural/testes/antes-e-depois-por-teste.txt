@@ -1,0 +1,30 @@
+TEN-01, correção estrutural — testes novos (config/test_isolamento_tenant.py), SQLite em memória
+Código anterior = cópia do backend no estado HEAD + contenção do TEN-01 (config/tenancy.py copiado só para o import dos testes).
+Resultado no código anterior: FAILED (failures=188)
+Resultado no código corrigido: OK
+
+classe.teste                                                                                 | anterior (subtestes com falha) | corrigido
+CadastroPublicoEOnboardingTests.test_conta_do_cadastro_publico_nao_referencia_nenhuma_barbearia | 1 falhas                       | passa
+CadastroPublicoEOnboardingTests.test_onboarding_cria_barbearia_isolada_e_funcional           | 10 falhas                      | passa
+EscopoEstruturalTests.test_opcoes_do_formulario_de_filtros_so_listam_o_proprio_tenant        | 6 falhas                       | passa
+EscopoEstruturalTests.test_opcoes_dos_campos_so_listam_o_proprio_tenant                      | 9 falhas                       | passa
+EscopoEstruturalTests.test_todo_campo_relacional_gravavel_usa_escopo_de_tenant               | 4 falhas                       | passa
+EscopoEstruturalTests.test_todo_filtro_relacional_de_listagem_usa_escopo_de_tenant           | 2 falhas                       | passa
+FiltrosDeAgendamentoTests.test_filtros_sem_oraculo_e_sem_dados_alheios                       | 32 falhas                      | passa
+FiltrosDeAgendamentoTests.test_horarios_livres_e_faturamento_sem_oraculo                     | passa                          | passa
+FiltrosDeAgendamentoTests.test_listagem_so_traz_o_proprio_tenant                             | passa                          | passa
+FluxosLegitimosTests.test_admin_promove_cliente_da_propria_barbearia                         | passa                          | passa
+FluxosLegitimosTests.test_barbeiro_e_admin_registram_e_confirmam                             | passa                          | passa
+FluxosLegitimosTests.test_barbeiro_so_gerencia_a_propria_agenda                              | passa                          | passa
+FluxosLegitimosTests.test_cliente_agenda_e_remarca                                           | passa                          | passa
+FluxosLegitimosTests.test_mensagens_de_validacao_dentro_do_tenant_continuam_iguais           | passa                          | passa
+ReferenciasCruzadasTests.test_barbearia_no_corpo_e_ignorada                                  | passa                          | passa
+ReferenciasCruzadasTests.test_cadastrar_barbeiro_com_usuario_de_outro_tenant_ou_sem_barbearia | 10 falhas                      | passa
+ReferenciasCruzadasTests.test_criar_agendamento_com_id_de_outro_tenant                       | 36 falhas                      | passa
+ReferenciasCruzadasTests.test_editar_agendamento_com_id_de_outro_tenant                      | 72 falhas                      | passa
+ReferenciasCruzadasTests.test_registro_de_outro_tenant_nao_e_lido_do_banco                   | 6 falhas                       | passa
+SuperusuarioTests.test_superusuario_edita_dentro_da_barbearia_do_registro                    | passa                          | passa
+SuperusuarioTests.test_superusuario_le_e_filtra_qualquer_barbearia                           | passa                          | passa
+SuperusuarioTests.test_superusuario_sem_barbearia_continua_sem_criar_recursos_de_tenant      | passa                          | passa
+
+Testes que falham no código anterior: 11 de 22. Os que passam nas duas versões protegem fluxos legítimos (cliente, barbeiro, admin, superusuário) e propriedades já existentes.

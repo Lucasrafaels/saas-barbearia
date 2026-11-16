@@ -1,0 +1,453 @@
+[
+ {
+  "fluxo": "cadastro público",
+  "variacao": "novo, minúsculas",
+  "enviado": "novo.1@exemplo.test",
+  "status": 201,
+  "resposta": "{\"id\":6,\"email\":\"novo.1@exemplo.test\",\"nome\":\"Pessoa Fictícia\",\"tipo_perfil\":\"cliente\",\"barbershop\":null,\"is_active\":true,\"created_at\":\"2026-11-15T18:11:55.447670-03:00\"}",
+  "gravado": "novo.1@exemplo.test",
+  "contas_equivalentes_depois": [
+   "6 novo.1@exemplo.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "cadastro público",
+  "variacao": "novo, maiúsculas na parte local",
+  "enviado": "Novo.2@exemplo.test",
+  "status": 201,
+  "resposta": "{\"id\":7,\"email\":\"novo.2@exemplo.test\",\"nome\":\"Pessoa Fictícia\",\"tipo_perfil\":\"cliente\",\"barbershop\":null,\"is_active\":true,\"created_at\":\"2026-11-15T18:11:55.724118-03:00\"}",
+  "gravado": "novo.2@exemplo.test",
+  "contas_equivalentes_depois": [
+   "7 novo.2@exemplo.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "cadastro público",
+  "variacao": "novo, maiúsculas no domínio",
+  "enviado": "novo.3@EXEMPLO.TEST",
+  "status": 201,
+  "resposta": "{\"id\":8,\"email\":\"novo.3@exemplo.test\",\"nome\":\"Pessoa Fictícia\",\"tipo_perfil\":\"cliente\",\"barbershop\":null,\"is_active\":true,\"created_at\":\"2026-11-15T18:11:55.998681-03:00\"}",
+  "gravado": "novo.3@exemplo.test",
+  "contas_equivalentes_depois": [
+   "8 novo.3@exemplo.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "cadastro público",
+  "variacao": "novo, tudo maiúsculo",
+  "enviado": "NOVO.4@EXEMPLO.TEST",
+  "status": 201,
+  "resposta": "{\"id\":9,\"email\":\"novo.4@exemplo.test\",\"nome\":\"Pessoa Fictícia\",\"tipo_perfil\":\"cliente\",\"barbershop\":null,\"is_active\":true,\"created_at\":\"2026-11-15T18:11:56.273148-03:00\"}",
+  "gravado": "novo.4@exemplo.test",
+  "contas_equivalentes_depois": [
+   "9 novo.4@exemplo.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "cadastro público",
+  "variacao": "novo, com espaços",
+  "enviado": "  novo.5@exemplo.test  ",
+  "status": 201,
+  "resposta": "{\"id\":10,\"email\":\"novo.5@exemplo.test\",\"nome\":\"Pessoa Fictícia\",\"tipo_perfil\":\"cliente\",\"barbershop\":null,\"is_active\":true,\"created_at\":\"2026-11-15T18:11:56.563036-03:00\"}",
+  "gravado": "novo.5@exemplo.test",
+  "contas_equivalentes_depois": [
+   "10 novo.5@exemplo.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "cadastro público",
+  "variacao": "existente, exato",
+  "enviado": "cliente.a1@alfa.test",
+  "status": 400,
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "gravado": null,
+  "contas_equivalentes_depois": [
+   "2 cliente.a1@alfa.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "cadastro público",
+  "variacao": "existente, maiúsculas na parte local",
+  "enviado": "Cliente.A1@alfa.test",
+  "status": 400,
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "gravado": null,
+  "contas_equivalentes_depois": [
+   "2 cliente.a1@alfa.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "cadastro público",
+  "variacao": "existente, maiúsculas no domínio",
+  "enviado": "cliente.a1@ALFA.TEST",
+  "status": 400,
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "gravado": null,
+  "contas_equivalentes_depois": [
+   "2 cliente.a1@alfa.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "cadastro público",
+  "variacao": "existente, tudo maiúsculo",
+  "enviado": "CLIENTE.A1@ALFA.TEST",
+  "status": 400,
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "gravado": null,
+  "contas_equivalentes_depois": [
+   "2 cliente.a1@alfa.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "cadastro público",
+  "variacao": "existente, com espaços",
+  "enviado": "  cliente.a1@alfa.test  ",
+  "status": 400,
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "gravado": null,
+  "contas_equivalentes_depois": [
+   "2 cliente.a1@alfa.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "criação pelo admin",
+  "variacao": "novo, minúsculas",
+  "enviado": "novo.11@exemplo.test",
+  "status": 201,
+  "resposta": "{\"id\":11,\"email\":\"novo.11@exemplo.test\",\"nome\":\"Pessoa Fictícia\",\"tipo_perfil\":\"cliente\",\"barbershop\":1}",
+  "gravado": "novo.11@exemplo.test",
+  "contas_equivalentes_depois": [
+   "11 novo.11@exemplo.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "criação pelo admin",
+  "variacao": "novo, maiúsculas na parte local",
+  "enviado": "Novo.12@exemplo.test",
+  "status": 201,
+  "resposta": "{\"id\":12,\"email\":\"novo.12@exemplo.test\",\"nome\":\"Pessoa Fictícia\",\"tipo_perfil\":\"cliente\",\"barbershop\":1}",
+  "gravado": "novo.12@exemplo.test",
+  "contas_equivalentes_depois": [
+   "12 novo.12@exemplo.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "criação pelo admin",
+  "variacao": "novo, maiúsculas no domínio",
+  "enviado": "novo.13@EXEMPLO.TEST",
+  "status": 201,
+  "resposta": "{\"id\":13,\"email\":\"novo.13@exemplo.test\",\"nome\":\"Pessoa Fictícia\",\"tipo_perfil\":\"cliente\",\"barbershop\":1}",
+  "gravado": "novo.13@exemplo.test",
+  "contas_equivalentes_depois": [
+   "13 novo.13@exemplo.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "criação pelo admin",
+  "variacao": "novo, tudo maiúsculo",
+  "enviado": "NOVO.14@EXEMPLO.TEST",
+  "status": 201,
+  "resposta": "{\"id\":14,\"email\":\"novo.14@exemplo.test\",\"nome\":\"Pessoa Fictícia\",\"tipo_perfil\":\"cliente\",\"barbershop\":1}",
+  "gravado": "novo.14@exemplo.test",
+  "contas_equivalentes_depois": [
+   "14 novo.14@exemplo.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "criação pelo admin",
+  "variacao": "novo, com espaços",
+  "enviado": "  novo.15@exemplo.test  ",
+  "status": 201,
+  "resposta": "{\"id\":15,\"email\":\"novo.15@exemplo.test\",\"nome\":\"Pessoa Fictícia\",\"tipo_perfil\":\"cliente\",\"barbershop\":1}",
+  "gravado": "novo.15@exemplo.test",
+  "contas_equivalentes_depois": [
+   "15 novo.15@exemplo.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "criação pelo admin",
+  "variacao": "existente, exato",
+  "enviado": "cliente.a1@alfa.test",
+  "status": 400,
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "gravado": null,
+  "contas_equivalentes_depois": [
+   "2 cliente.a1@alfa.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "criação pelo admin",
+  "variacao": "existente, maiúsculas na parte local",
+  "enviado": "Cliente.A1@alfa.test",
+  "status": 400,
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "gravado": null,
+  "contas_equivalentes_depois": [
+   "2 cliente.a1@alfa.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "criação pelo admin",
+  "variacao": "existente, maiúsculas no domínio",
+  "enviado": "cliente.a1@ALFA.TEST",
+  "status": 400,
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "gravado": null,
+  "contas_equivalentes_depois": [
+   "2 cliente.a1@alfa.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "criação pelo admin",
+  "variacao": "existente, tudo maiúsculo",
+  "enviado": "CLIENTE.A1@ALFA.TEST",
+  "status": 400,
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "gravado": null,
+  "contas_equivalentes_depois": [
+   "2 cliente.a1@alfa.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "criação pelo admin",
+  "variacao": "existente, com espaços",
+  "enviado": "  cliente.a1@alfa.test  ",
+  "status": 400,
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "gravado": null,
+  "contas_equivalentes_depois": [
+   "2 cliente.a1@alfa.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "troca do próprio e-mail",
+  "variacao": "novo, minúsculas",
+  "enviado": "novo.21@exemplo.test",
+  "status": 200,
+  "resposta": "{\"id\":3,\"email\":\"novo.21@exemplo.test\",\"nome\":\"Celia Cliente A2\",\"tipo_perfil\":\"cliente\",\"barbershop\":1,\"is_active\":true,\"created_at\":\"2026-11-15T18:11:38.448586-03:00\"}",
+  "gravado": "novo.21@exemplo.test",
+  "contas_equivalentes_depois": [
+   "3 novo.21@exemplo.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "troca do próprio e-mail",
+  "variacao": "novo, maiúsculas na parte local",
+  "enviado": "Novo.22@exemplo.test",
+  "status": 200,
+  "resposta": "{\"id\":3,\"email\":\"novo.22@exemplo.test\",\"nome\":\"Celia Cliente A2\",\"tipo_perfil\":\"cliente\",\"barbershop\":1,\"is_active\":true,\"created_at\":\"2026-11-15T18:11:38.448586-03:00\"}",
+  "gravado": "novo.22@exemplo.test",
+  "contas_equivalentes_depois": [
+   "3 novo.22@exemplo.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "troca do próprio e-mail",
+  "variacao": "novo, maiúsculas no domínio",
+  "enviado": "novo.23@EXEMPLO.TEST",
+  "status": 200,
+  "resposta": "{\"id\":3,\"email\":\"novo.23@exemplo.test\",\"nome\":\"Celia Cliente A2\",\"tipo_perfil\":\"cliente\",\"barbershop\":1,\"is_active\":true,\"created_at\":\"2026-11-15T18:11:38.448586-03:00\"}",
+  "gravado": "novo.23@exemplo.test",
+  "contas_equivalentes_depois": [
+   "3 novo.23@exemplo.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "troca do próprio e-mail",
+  "variacao": "novo, tudo maiúsculo",
+  "enviado": "NOVO.24@EXEMPLO.TEST",
+  "status": 200,
+  "resposta": "{\"id\":3,\"email\":\"novo.24@exemplo.test\",\"nome\":\"Celia Cliente A2\",\"tipo_perfil\":\"cliente\",\"barbershop\":1,\"is_active\":true,\"created_at\":\"2026-11-15T18:11:38.448586-03:00\"}",
+  "gravado": "novo.24@exemplo.test",
+  "contas_equivalentes_depois": [
+   "3 novo.24@exemplo.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "troca do próprio e-mail",
+  "variacao": "novo, com espaços",
+  "enviado": "  novo.25@exemplo.test  ",
+  "status": 200,
+  "resposta": "{\"id\":3,\"email\":\"novo.25@exemplo.test\",\"nome\":\"Celia Cliente A2\",\"tipo_perfil\":\"cliente\",\"barbershop\":1,\"is_active\":true,\"created_at\":\"2026-11-15T18:11:38.448586-03:00\"}",
+  "gravado": "novo.25@exemplo.test",
+  "contas_equivalentes_depois": [
+   "3 novo.25@exemplo.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "troca do próprio e-mail",
+  "variacao": "existente, exato",
+  "enviado": "cliente.a1@alfa.test",
+  "status": 400,
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "gravado": "cliente.a2@alfa.test",
+  "contas_equivalentes_depois": [
+   "2 cliente.a1@alfa.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "troca do próprio e-mail",
+  "variacao": "existente, maiúsculas na parte local",
+  "enviado": "Cliente.A1@alfa.test",
+  "status": 400,
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "gravado": "cliente.a2@alfa.test",
+  "contas_equivalentes_depois": [
+   "2 cliente.a1@alfa.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "troca do próprio e-mail",
+  "variacao": "existente, maiúsculas no domínio",
+  "enviado": "cliente.a1@ALFA.TEST",
+  "status": 400,
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "gravado": "cliente.a2@alfa.test",
+  "contas_equivalentes_depois": [
+   "2 cliente.a1@alfa.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "troca do próprio e-mail",
+  "variacao": "existente, tudo maiúsculo",
+  "enviado": "CLIENTE.A1@ALFA.TEST",
+  "status": 400,
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "gravado": "cliente.a2@alfa.test",
+  "contas_equivalentes_depois": [
+   "2 cliente.a1@alfa.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "troca do próprio e-mail",
+  "variacao": "existente, com espaços",
+  "enviado": "  cliente.a1@alfa.test  ",
+  "status": 400,
+  "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "gravado": "cliente.a2@alfa.test",
+  "contas_equivalentes_depois": [
+   "2 cliente.a1@alfa.test"
+  ],
+  "duplicata": false
+ },
+ {
+  "fluxo": "login (senha correta)",
+  "variacao": "exato",
+  "enviado": "cliente.a1@alfa.test",
+  "status": 200,
+  "resposta": "{\"access\": \"<token removido>\"}"
+ },
+ {
+  "fluxo": "login (senha correta)",
+  "variacao": "maiúsculas na parte local",
+  "enviado": "Cliente.A1@alfa.test",
+  "status": 200,
+  "resposta": "{\"access\": \"<token removido>\"}"
+ },
+ {
+  "fluxo": "login (senha correta)",
+  "variacao": "maiúsculas no domínio",
+  "enviado": "cliente.a1@ALFA.TEST",
+  "status": 200,
+  "resposta": "{\"access\": \"<token removido>\"}"
+ },
+ {
+  "fluxo": "login (senha correta)",
+  "variacao": "tudo maiúsculo",
+  "enviado": "CLIENTE.A1@ALFA.TEST",
+  "status": 200,
+  "resposta": "{\"access\": \"<token removido>\"}"
+ },
+ {
+  "fluxo": "login (senha correta)",
+  "variacao": "com espaços",
+  "enviado": "  cliente.a1@alfa.test  ",
+  "status": 200,
+  "resposta": "{\"access\": \"<token removido>\"}"
+ },
+ {
+  "fluxo": "recuperação de senha",
+  "variacao": "exato",
+  "enviado": "cliente.a1@alfa.test",
+  "status": 204,
+  "emails": [
+   {
+    "para": [
+     "cliente.a1@alfa.test"
+    ],
+    "uid_da_conta": 2
+   }
+  ]
+ },
+ {
+  "fluxo": "recuperação de senha",
+  "variacao": "maiúsculas na parte local",
+  "enviado": "Cliente.A1@alfa.test",
+  "status": 204,
+  "emails": [
+   {
+    "para": [
+     "cliente.a1@alfa.test"
+    ],
+    "uid_da_conta": 2
+   }
+  ]
+ },
+ {
+  "fluxo": "recuperação de senha",
+  "variacao": "tudo maiúsculo",
+  "enviado": "CLIENTE.A1@ALFA.TEST",
+  "status": 204,
+  "emails": [
+   {
+    "para": [
+     "cliente.a1@alfa.test"
+    ],
+    "uid_da_conta": 2
+   }
+  ]
+ },
+ {
+  "fluxo": "recuperação de senha",
+  "variacao": "com espaços",
+  "enviado": "  cliente.a1@alfa.test  ",
+  "status": 204,
+  "emails": [
+   {
+    "para": [
+     "cliente.a1@alfa.test"
+    ],
+    "uid_da_conta": 2
+   }
+  ]
+ }
+]

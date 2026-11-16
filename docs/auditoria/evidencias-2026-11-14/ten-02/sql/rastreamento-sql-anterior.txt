@@ -1,0 +1,13 @@
+### código da anterior
+
+[1 horário ocupado de B] 400 {"cliente":["Pk inválido \"1\" - objeto não existe."],"barbeiro":["Pk inválido \"1\" - objeto não existe."],"servico":["Pk inválido \"1\" - objeto não existe."]}
+   agendamentos criados: 0; consultas: 0
+
+[2 horário livre de B] 400 {"cliente":["Pk inválido \"1\" - objeto não existe."],"barbeiro":["Pk inválido \"1\" - objeto não existe."],"servico":["Pk inválido \"1\" - objeto não existe."]}
+   agendamentos criados: 0; consultas: 0
+
+[3 barbeiro de B (válido), sem os demais campos de B] 400 {"cliente":["Pk inválido \"3\" - objeto não existe."],"barbeiro":["Pk inválido \"1\" - objeto não existe."],"servico":["Pk inválido \"1\" - objeto não existe."]}
+   agendamentos criados: 0; consultas: 0
+
+[4 IDs inexistentes] 400 {"cliente":["Pk inválido \"999999\" - objeto não existe."],"barbeiro":["Pk inválido \"999999\" - objeto não existe."],"servico":["Pk inválido \"999999\" - objeto não existe."]}
+   agendamentos criados: 0; consultas: 0

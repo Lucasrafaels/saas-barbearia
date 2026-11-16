@@ -1,0 +1,4 @@
+$ manage.py test accounts.test_auth04_auth05 --settings=config.test_settings --debug-mode  (SQLite, DEBUG=True)
+
+OK (skipped=5)
+Destroying test database for alias 'default'...

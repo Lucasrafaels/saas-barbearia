@@ -1,0 +1,17 @@
+relname|n_tup_ins|n_tup_upd|n_tup_del|n_tup_hot_upd
+accounts_user|52|4|34|3
+accounts_user_groups|0|0|0|0
+accounts_user_user_permissions|0|0|0|0
+appointments_appointment|15|19|13|19
+auth_group|0|0|0|0
+auth_group_permissions|0|0|0|0
+auth_permission|48|0|0|0
+barbershops_barber|15|0|13|0
+barbershops_barbershop|28|0|24|0
+django_admin_log|0|0|0|0
+django_content_type|12|0|0|0
+django_migrations|54|0|0|0
+django_session|5|3|2|0
+services_service|15|0|13|0
+token_blacklist_blacklistedtoken|1|0|0|0
+token_blacklist_outstandingtoken|13|0|0|0

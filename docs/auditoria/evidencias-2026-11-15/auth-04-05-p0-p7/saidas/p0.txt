@@ -1,0 +1,10 @@
+diretório do backup criado: 700 lucasrafael /home/lucasrafael/backups/barberpro/accounts0006_20261115_224006
+cópia idêntica ao original: 107 arquivos
+arquivos .env no retrato (esperado 0): 1
+600 39631541 /home/lucasrafael/backups/barberpro/accounts0006_20261115_224006/codigo_20261115_224006.tar.gz
+600 96 /home/lucasrafael/backups/barberpro/accounts0006_20261115_224006/codigo_20261115_224006.tar.gz.sha256
+entradas .env* (esperado 0): 0
+entradas de venv/node_modules/dist/ferramentas (esperado 0): 0
+topo do retrato: accounts appointments barbershops config frontend manage.py requirements.txt services 
+600 349115 /home/lucasrafael/backups/barberpro/accounts0006_20261115_224006/codigo_20261115_224006.tar.gz
+600 96 /home/lucasrafael/backups/barberpro/accounts0006_20261115_224006/codigo_20261115_224006.tar.gz.sha256

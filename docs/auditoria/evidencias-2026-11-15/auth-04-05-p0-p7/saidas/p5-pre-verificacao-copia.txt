@@ -1,0 +1,61 @@
+BEGIN
+SET
+== 1. Identidade (esperado: barbershop_db, 18.3, porta 5432, pt_BR.UTF-8, libc)
+       banco       | versao | porta | datcollate  |  datctype   | datlocprovider | datcollversion | tamanho 
+-------------------+--------+-------+-------------+-------------+----------------+----------------+---------
+ ensaio_restaurado | 18.3   | 55432 | pt_BR.UTF-8 | pt_BR.UTF-8 | c              | 2.44           | 9238 kB
+(1 row)
+
+== 2. Migrações (esperado: accounts até 0005; barbershops.0006 e auth.0012 aplicadas; accounts.0006 AUSENTE)
+     app     |                       name                       |            applied            
+-------------+--------------------------------------------------+-------------------------------
+ accounts    | 0001_initial                                     | 2026-11-08 23:23:30.36191-03
+ accounts    | 0002_initial                                     | 2026-11-08 23:23:30.54437-03
+ accounts    | 0003_rename_timestamps                           | 2026-11-08 23:23:30.559476-03
+ accounts    | 0004_alter_user_created_at_alter_user_updated_at | 2026-11-08 23:23:30.572599-03
+ accounts    | 0005_protect_barbershop                          | 2026-11-08 23:23:30.580747-03
+ auth        | 0012_alter_user_first_name_max_length            | 2026-11-08 23:23:30.514607-03
+ barbershops | 0006_barbershop_dias_funcionamento               | 2026-11-13 22:06:59.258934-03
+(7 rows)
+
+== 3. Restrições e índices de accounts_user (esperado: UNIQUE accounts_user_email_key; nenhuma das novas)
+         conname         | contype |   definicao    
+-------------------------+---------+----------------
+ accounts_user_email_key | u       | UNIQUE (email)
+(1 row)
+
+              indexname               |                                                    indexdef                                                    
+--------------------------------------+----------------------------------------------------------------------------------------------------------------
+ accounts_user_barbershop_id_f73426d9 | CREATE INDEX accounts_user_barbershop_id_f73426d9 ON public.accounts_user USING btree (barbershop_id)
+ accounts_user_email_b2644a56_like    | CREATE INDEX accounts_user_email_b2644a56_like ON public.accounts_user USING btree (email varchar_pattern_ops)
+ accounts_user_email_key              | CREATE UNIQUE INDEX accounts_user_email_key ON public.accounts_user USING btree (email)
+ accounts_user_pkey                   | CREATE UNIQUE INDEX accounts_user_pkey ON public.accounts_user USING btree (id)
+(4 rows)
+
+== 4. Regra exata do CHECK futuro (esperado: violariam_o_check = 0, vazios = 0, grupos = 0)
+ contas | violariam_o_check | vazios | grupos_lower_iguais 
+--------+-------------------+--------+---------------------
+      8 |                 0 |      0 |                   0
+(1 row)
+
+   ids que violariam o CHECK (a migração normaliza o que puder; o resto a interrompe):
+ id 
+----
+(0 rows)
+
+   grupos com o mesmo lower(email) (ids):
+ ids 
+-----
+(0 rows)
+
+== 5. Outras sessões neste banco (esperado na janela: nenhuma da aplicação; nenhuma "idle in transaction")
+ pid | application_name | client_addr | state | backend_start | xact_start | transacao_aberta_ha | wait_event_type 
+-----+------------------+-------------+-------+---------------+------------+---------------------+-----------------
+(0 rows)
+
+== 6. Travas em accounts_user de outras sessões (esperado: nenhuma)
+ pid | mode | granted 
+-----+------+---------
+(0 rows)
+
+ROLLBACK

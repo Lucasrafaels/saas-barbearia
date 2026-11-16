@@ -1,0 +1,61 @@
+PER-13 — GET/HEAD /api/v1/users/{id}/ no servidor real, com o SQL lido do log do PostgreSQL descartável (log_statement=all)
+
+== anterior-debug-true (porta 8769): {"pedidos": 130, "respostas_500": 0, "usuarios_inalterados": true}
+   cliente A      autorizados {'o próprio': 200}; não autorizados 6: resposta ≠ inexistente 3, SQL ≠ inexistente 0, HEAD ≠ 3, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante 7
+   barbeiro A     autorizados {'o próprio': 200}; não autorizados 6: resposta ≠ inexistente 3, SQL ≠ inexistente 0, HEAD ≠ 3, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante 7
+   admin A        autorizados {'o próprio': 200, 'cliente da mesma barbearia': 200, 'barbeiro da mesma barbearia': 200}; não autorizados 3: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante None
+   cliente B      autorizados {'o próprio': 200}; não autorizados 5: resposta ≠ inexistente 2, SQL ≠ inexistente 0, HEAD ≠ 2, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante 6
+   barbeiro B     autorizados {'o próprio': 200}; não autorizados 5: resposta ≠ inexistente 2, SQL ≠ inexistente 0, HEAD ≠ 2, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante 6
+   admin B        autorizados {'o próprio': 200, 'cliente da mesma barbearia': 200, 'barbeiro da mesma barbearia': 200}; não autorizados 3: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante None
+   superusuário   autorizados {'o próprio': 200, 'cliente A': 200, 'admin B': 200}; não autorizados 0: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia —, busca sem o solicitante None
+   sem barbearia  autorizados {}; não autorizados 3: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante None
+
+== anterior-debug-false (porta 8770): {"pedidos": 130, "respostas_500": 0, "usuarios_inalterados": true}
+   cliente A      autorizados {'o próprio': 200}; não autorizados 6: resposta ≠ inexistente 3, SQL ≠ inexistente 0, HEAD ≠ 3, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante 7
+   barbeiro A     autorizados {'o próprio': 200}; não autorizados 6: resposta ≠ inexistente 3, SQL ≠ inexistente 0, HEAD ≠ 3, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante 7
+   admin A        autorizados {'o próprio': 200, 'cliente da mesma barbearia': 200, 'barbeiro da mesma barbearia': 200}; não autorizados 3: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante None
+   cliente B      autorizados {'o próprio': 200}; não autorizados 5: resposta ≠ inexistente 2, SQL ≠ inexistente 0, HEAD ≠ 2, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante 6
+   barbeiro B     autorizados {'o próprio': 200}; não autorizados 5: resposta ≠ inexistente 2, SQL ≠ inexistente 0, HEAD ≠ 2, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante 6
+   admin B        autorizados {'o próprio': 200, 'cliente da mesma barbearia': 200, 'barbeiro da mesma barbearia': 200}; não autorizados 3: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante None
+   superusuário   autorizados {'o próprio': 200, 'cliente A': 200, 'admin B': 200}; não autorizados 0: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia —, busca sem o solicitante None
+   sem barbearia  autorizados {}; não autorizados 3: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante None
+
+== corrigido-debug-true (porta 8767): {"pedidos": 130, "respostas_500": 0, "usuarios_inalterados": true}
+   cliente A      autorizados {'o próprio': 200}; não autorizados 6: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante 0
+   barbeiro A     autorizados {'o próprio': 200}; não autorizados 6: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante 0
+   admin A        autorizados {'o próprio': 200, 'cliente da mesma barbearia': 200, 'barbeiro da mesma barbearia': 200}; não autorizados 3: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante None
+   cliente B      autorizados {'o próprio': 200}; não autorizados 5: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante 0
+   barbeiro B     autorizados {'o próprio': 200}; não autorizados 5: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante 0
+   admin B        autorizados {'o próprio': 200, 'cliente da mesma barbearia': 200, 'barbeiro da mesma barbearia': 200}; não autorizados 3: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante None
+   superusuário   autorizados {'o próprio': 200, 'cliente A': 200, 'admin B': 200}; não autorizados 0: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia —, busca sem o solicitante None
+   sem barbearia  autorizados {}; não autorizados 3: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante None
+
+== corrigido-debug-false (porta 8768): {"pedidos": 130, "respostas_500": 0, "usuarios_inalterados": true}
+   cliente A      autorizados {'o próprio': 200}; não autorizados 6: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante 0
+   barbeiro A     autorizados {'o próprio': 200}; não autorizados 6: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante 0
+   admin A        autorizados {'o próprio': 200, 'cliente da mesma barbearia': 200, 'barbeiro da mesma barbearia': 200}; não autorizados 3: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante None
+   cliente B      autorizados {'o próprio': 200}; não autorizados 5: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante 0
+   barbeiro B     autorizados {'o próprio': 200}; não autorizados 5: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante 0
+   admin B        autorizados {'o próprio': 200, 'cliente da mesma barbearia': 200, 'barbeiro da mesma barbearia': 200}; não autorizados 3: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante None
+   superusuário   autorizados {'o próprio': 200, 'cliente A': 200, 'admin B': 200}; não autorizados 0: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia —, busca sem o solicitante None
+   sem barbearia  autorizados {}; não autorizados 3: resposta ≠ inexistente 0, SQL ≠ inexistente 0, HEAD ≠ 0, dados do alvo 0, busca do alvo sem barbearia 0, busca sem o solicitante None
+
+SEC-12 (achado separado, não corrigido): PATCH com corpo vazio em outro usuário da mesma barbearia x inexistente
+   anterior-debug-true: {"cliente A": [["admin da mesma barbearia", 403], ["barbeiro da mesma barbearia", 403], ["cliente da mesma barbearia", 403], ["inexistente", 404]], "barbeiro A": [["admin da mesma barbearia", 403], ["barbeiro da mesma barbearia", 403], ["cliente da mesma barbearia", 403], ["inexistente", 404]], "cliente B": [["admin da mesma barbearia", 403], ["barbeiro da mesma barbearia", 403], ["inexistente", 404]], "barbeiro B": [["admin da mesma barbearia", 403], ["cliente da mesma barbearia", 403], ["inexistente", 404]]}
+   anterior-debug-false: {"cliente A": [["admin da mesma barbearia", 403], ["barbeiro da mesma barbearia", 403], ["cliente da mesma barbearia", 403], ["inexistente", 404]], "barbeiro A": [["admin da mesma barbearia", 403], ["barbeiro da mesma barbearia", 403], ["cliente da mesma barbearia", 403], ["inexistente", 404]], "cliente B": [["admin da mesma barbearia", 403], ["barbeiro da mesma barbearia", 403], ["inexistente", 404]], "barbeiro B": [["admin da mesma barbearia", 403], ["cliente da mesma barbearia", 403], ["inexistente", 404]]}
+   corrigido-debug-true: {"cliente A": [["admin da mesma barbearia", 403], ["barbeiro da mesma barbearia", 403], ["cliente da mesma barbearia", 403], ["inexistente", 404]], "barbeiro A": [["admin da mesma barbearia", 403], ["barbeiro da mesma barbearia", 403], ["cliente da mesma barbearia", 403], ["inexistente", 404]], "cliente B": [["admin da mesma barbearia", 403], ["barbeiro da mesma barbearia", 403], ["inexistente", 404]], "barbeiro B": [["admin da mesma barbearia", 403], ["cliente da mesma barbearia", 403], ["inexistente", 404]]}
+   corrigido-debug-false: {"cliente A": [["admin da mesma barbearia", 403], ["barbeiro da mesma barbearia", 403], ["cliente da mesma barbearia", 403], ["inexistente", 404]], "barbeiro A": [["admin da mesma barbearia", 403], ["barbeiro da mesma barbearia", 403], ["cliente da mesma barbearia", 403], ["inexistente", 404]], "cliente B": [["admin da mesma barbearia", 403], ["barbeiro da mesma barbearia", 403], ["inexistente", 404]], "barbeiro B": [["admin da mesma barbearia", 403], ["cliente da mesma barbearia", 403], ["inexistente", 404]]}
+
+SQL executado pelo servidor (cliente A consultando o barbeiro da mesma barbearia e um ID inexistente):
+-- anterior-debug-false | barbeiro da mesma barbearia (id 2; solicitante 5): 403 {"detail":"Você não tem permissão para executar essa ação."}
+     SELECT … FROM "accounts_user" WHERE "accounts_user"."id" = 5 LIMIT 21
+     SELECT … FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 2) LIMIT 21
+-- anterior-debug-false | inexistente (id 999999; solicitante 5): 404 {"detail":"No User matches the given query."}
+     SELECT … FROM "accounts_user" WHERE "accounts_user"."id" = 5 LIMIT 21
+     SELECT … FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 999999) LIMIT 21
+-- corrigido-debug-false | barbeiro da mesma barbearia (id 2; solicitante 5): 404 {"detail":"No User matches the given query."}
+     SELECT … FROM "accounts_user" WHERE "accounts_user"."id" = 5 LIMIT 21
+     SELECT … FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 5 AND "accounts_user"."id" = 2) LIMIT 21
+-- corrigido-debug-false | inexistente (id 999999; solicitante 5): 404 {"detail":"No User matches the given query."}
+     SELECT … FROM "accounts_user" WHERE "accounts_user"."id" = 5 LIMIT 21
+     SELECT … FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 5 AND "accounts_user"."id" = 999999) LIMIT 21

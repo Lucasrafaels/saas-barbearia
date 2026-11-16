@@ -1,0 +1,42 @@
+== L1. Criar o índice único em lower(email) com as colisões presentes
+BEGIN
+psql:/tmp/claude-1000/-home-lucasrafael-arquivos-faculdade-saas-barbearia/b732fc01-eeb5-4087-becf-e69fa27549d7/scratchpad/a45/scripts/laboratorio-ddl-em-transacao-desfeita.sql:7: ERROR:  could not create unique index "lab_email_lower_unico"
+DETAIL:  Key (lower(email::text))=(cliente.b@beta.test) is duplicated.
+ROLLBACK
+== L2. Converter os e-mails para minúsculas antes de resolver as colisões
+BEGIN
+psql:/tmp/claude-1000/-home-lucasrafael-arquivos-faculdade-saas-barbearia/b732fc01-eeb5-4087-becf-e69fa27549d7/scratchpad/a45/scripts/laboratorio-ddl-em-transacao-desfeita.sql:11: ERROR:  duplicate key value violates unique constraint "accounts_user_email_key"
+DETAIL:  Key (email)=(cliente.b@beta.test) already exists.
+ROLLBACK
+== L3. Exigir e-mail já normalizado (CHECK) com os dados atuais
+BEGIN
+psql:/tmp/claude-1000/-home-lucasrafael-arquivos-faculdade-saas-barbearia/b732fc01-eeb5-4087-becf-e69fa27549d7/scratchpad/a45/scripts/laboratorio-ddl-em-transacao-desfeita.sql:15: ERROR:  check constraint "lab_email_normalizado" of relation "accounts_user" is violated by some row
+ROLLBACK
+== L4. Com as colisões resolvidas (simulação: o dono escolheu manter a conta de menor id de cada grupo)
+BEGIN
+UPDATE 4
+UPDATE 3
+CREATE INDEX
+ALTER TABLE
+ contas | emails_distintos 
+--------+------------------
+     14 |               14
+(1 row)
+
+== L5. Depois disso, o banco recusa variações de caixa e e-mail fora do padrão, venha de onde vier
+SAVEPOINT
+psql:/tmp/claude-1000/-home-lucasrafael-arquivos-faculdade-saas-barbearia/b732fc01-eeb5-4087-becf-e69fa27549d7/scratchpad/a45/scripts/laboratorio-ddl-em-transacao-desfeita.sql:27: ERROR:  new row for relation "accounts_user" violates check constraint "lab_email_normalizado"
+DETAIL:  Failing row contains (15, !, null, f, f, t, 2026-11-15 17:22:36.296792-03, 2026-11-15 17:22:36.296792-03, 2026-11-15 17:22:36.296792-03, cliente.b@beta.test , Teste, cliente, null).
+ROLLBACK
+psql:/tmp/claude-1000/-home-lucasrafael-arquivos-faculdade-saas-barbearia/b732fc01-eeb5-4087-becf-e69fa27549d7/scratchpad/a45/scripts/laboratorio-ddl-em-transacao-desfeita.sql:30: ERROR:  new row for relation "accounts_user" violates check constraint "lab_email_normalizado"
+DETAIL:  Failing row contains (16, !, null, f, f, t, 2026-11-15 17:22:36.296792-03, 2026-11-15 17:22:36.296792-03, 2026-11-15 17:22:36.296792-03, CLIENTE.B@beta.test, Teste, cliente, null).
+ROLLBACK
+psql:/tmp/claude-1000/-home-lucasrafael-arquivos-faculdade-saas-barbearia/b732fc01-eeb5-4087-becf-e69fa27549d7/scratchpad/a45/scripts/laboratorio-ddl-em-transacao-desfeita.sql:32: ERROR:  new row for relation "accounts_user" violates check constraint "lab_email_normalizado"
+DETAIL:  Failing row contains (3, !jOayO8rNbKVBl5wFiTBF6MDVzRrXOULUoaO2l9pk, null, f, f, t, 2026-11-15 17:21:53.639-03, 2026-11-15 17:21:53.639236-03, 2026-11-15 17:21:53.639243-03, Cliente.B@beta.test, Clara Cliente B, cliente, 2).
+ROLLBACK
+== L6. Conferência: nada ficou gravado
+ contas | fora_do_padrao | indice_de_laboratorio | check_de_laboratorio 
+--------+----------------+-----------------------+----------------------
+     14 |              7 |                     0 |                    0
+(1 row)
+

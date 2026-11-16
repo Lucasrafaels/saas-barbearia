@@ -1,0 +1,26 @@
+[
+ {
+  "digitado": "pessoa.um@exemplo.test",
+  "cadastro": 201,
+  "gravado": "pessoa.um@exemplo.test",
+  "login_com_o_mesmo_texto": 200
+ },
+ {
+  "digitado": "Pessoa.Dois@exemplo.test",
+  "cadastro": 201,
+  "gravado": "Pessoa.Dois@exemplo.test",
+  "login_com_o_mesmo_texto": 200
+ },
+ {
+  "digitado": "pessoa.tres@EXEMPLO.TEST",
+  "cadastro": 201,
+  "gravado": "pessoa.tres@exemplo.test",
+  "login_com_o_mesmo_texto": 401
+ },
+ {
+  "digitado": "Pessoa.Quatro@Exemplo.Test",
+  "cadastro": 201,
+  "gravado": "Pessoa.Quatro@exemplo.test",
+  "login_com_o_mesmo_texto": 401
+ }
+]

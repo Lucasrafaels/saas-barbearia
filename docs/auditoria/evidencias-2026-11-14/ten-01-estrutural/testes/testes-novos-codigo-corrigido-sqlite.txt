@@ -1,0 +1,95 @@
+# testes novos da correção estrutural no código CORRIGIDO (projeto); SQLite
+Creating test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
+Found 22 test(s).
+Operations to perform:
+  Synchronize unmigrated apps: corsheaders, django_filters, messages, rest_framework, rest_framework_simplejwt, staticfiles
+  Apply all migrations: accounts, admin, appointments, auth, barbershops, contenttypes, services, sessions, token_blacklist
+Synchronizing apps without migrations:
+  Creating tables...
+    Running deferred SQL...
+Running migrations:
+  Applying accounts.0001_initial... OK
+  Applying barbershops.0001_initial... OK
+  Applying barbershops.0002_rename_timestamps... OK
+  Applying barbershops.0003_alter_barber_created_at_alter_barber_updated_at_and_more... OK
+  Applying contenttypes.0001_initial... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0001_initial... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying accounts.0002_initial... OK
+  Applying accounts.0003_rename_timestamps... OK
+  Applying accounts.0004_alter_user_created_at_alter_user_updated_at... OK
+  Applying accounts.0005_protect_barbershop... OK
+  Applying admin.0001_initial... OK
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying admin.0003_logentry_add_action_flag_choices... OK
+  Applying services.0001_initial... OK
+  Applying services.0002_rename_timestamps... OK
+  Applying services.0003_alter_service_created_at_alter_service_updated_at... OK
+  Applying barbershops.0004_protect_barber_history... OK
+  Applying services.0004_protect_service_history... OK
+  Applying appointments.0001_initial... OK
+  Applying appointments.0002_rename_timestamps... OK
+  Applying appointments.0003_alter_appointment_created_at_and_more... OK
+  Applying appointments.0004_protect_appointment_history... OK
+  Applying appointments.0005_appointment_appointment_barbeir_26b217_idx_and_more... OK
+  Applying appointments.0007_appointment_preco_historico... OK
+  Applying appointments.0008_populate_preco_historico... OK
+  Applying barbershops.0005_barber_deleted_at_barber_deleted_by_and_more... OK
+  Applying barbershops.0006_barbershop_dias_funcionamento... OK
+  Applying services.0005_service_deleted_at_service_deleted_by_and_more... OK
+  Applying sessions.0001_initial... OK
+  Applying token_blacklist.0001_initial... OK
+  Applying token_blacklist.0002_outstandingtoken_jti_hex... OK
+  Applying token_blacklist.0003_auto_20171017_2007... OK
+  Applying token_blacklist.0004_auto_20171017_2013... OK
+  Applying token_blacklist.0005_remove_outstandingtoken_jti... OK
+  Applying token_blacklist.0006_auto_20171017_2113... OK
+  Applying token_blacklist.0007_auto_20171017_2214... OK
+  Applying token_blacklist.0008_migrate_to_bigautofield... OK
+  Applying token_blacklist.0010_fix_migrate_to_bigautofield... OK
+  Applying token_blacklist.0011_linearizes_history... OK
+  Applying token_blacklist.0012_alter_outstandingtoken_user... OK
+System check identified no issues (0 silenced).
+test_conta_do_cadastro_publico_nao_referencia_nenhuma_barbearia (config.test_isolamento_tenant.CadastroPublicoEOnboardingTests.test_conta_do_cadastro_publico_nao_referencia_nenhuma_barbearia) ... ok
+test_onboarding_cria_barbearia_isolada_e_funcional (config.test_isolamento_tenant.CadastroPublicoEOnboardingTests.test_onboarding_cria_barbearia_isolada_e_funcional) ... ok
+test_opcoes_do_formulario_de_filtros_so_listam_o_proprio_tenant (config.test_isolamento_tenant.EscopoEstruturalTests.test_opcoes_do_formulario_de_filtros_so_listam_o_proprio_tenant) ... ok
+test_opcoes_dos_campos_so_listam_o_proprio_tenant (config.test_isolamento_tenant.EscopoEstruturalTests.test_opcoes_dos_campos_so_listam_o_proprio_tenant)
+O que um formulário (como o da API navegável) listaria para cada papel. ... ok
+test_todo_campo_relacional_gravavel_usa_escopo_de_tenant (config.test_isolamento_tenant.EscopoEstruturalTests.test_todo_campo_relacional_gravavel_usa_escopo_de_tenant) ... ok
+test_todo_filtro_relacional_de_listagem_usa_escopo_de_tenant (config.test_isolamento_tenant.EscopoEstruturalTests.test_todo_filtro_relacional_de_listagem_usa_escopo_de_tenant) ... ok
+test_filtros_sem_oraculo_e_sem_dados_alheios (config.test_isolamento_tenant.FiltrosDeAgendamentoTests.test_filtros_sem_oraculo_e_sem_dados_alheios) ... ok
+test_horarios_livres_e_faturamento_sem_oraculo (config.test_isolamento_tenant.FiltrosDeAgendamentoTests.test_horarios_livres_e_faturamento_sem_oraculo)
+Consultas por ID que já filtravam pela barbearia continuam sem oráculo. ... ok
+test_listagem_so_traz_o_proprio_tenant (config.test_isolamento_tenant.FiltrosDeAgendamentoTests.test_listagem_so_traz_o_proprio_tenant) ... ok
+test_admin_promove_cliente_da_propria_barbearia (config.test_isolamento_tenant.FluxosLegitimosTests.test_admin_promove_cliente_da_propria_barbearia) ... ok
+test_barbeiro_e_admin_registram_e_confirmam (config.test_isolamento_tenant.FluxosLegitimosTests.test_barbeiro_e_admin_registram_e_confirmam) ... ok
+test_barbeiro_so_gerencia_a_propria_agenda (config.test_isolamento_tenant.FluxosLegitimosTests.test_barbeiro_so_gerencia_a_propria_agenda) ... ok
+test_cliente_agenda_e_remarca (config.test_isolamento_tenant.FluxosLegitimosTests.test_cliente_agenda_e_remarca) ... ok
+test_mensagens_de_validacao_dentro_do_tenant_continuam_iguais (config.test_isolamento_tenant.FluxosLegitimosTests.test_mensagens_de_validacao_dentro_do_tenant_continuam_iguais) ... ok
+test_barbearia_no_corpo_e_ignorada (config.test_isolamento_tenant.ReferenciasCruzadasTests.test_barbearia_no_corpo_e_ignorada) ... ok
+test_cadastrar_barbeiro_com_usuario_de_outro_tenant_ou_sem_barbearia (config.test_isolamento_tenant.ReferenciasCruzadasTests.test_cadastrar_barbeiro_com_usuario_de_outro_tenant_ou_sem_barbearia) ... ok
+test_criar_agendamento_com_id_de_outro_tenant (config.test_isolamento_tenant.ReferenciasCruzadasTests.test_criar_agendamento_com_id_de_outro_tenant) ... ok
+test_editar_agendamento_com_id_de_outro_tenant (config.test_isolamento_tenant.ReferenciasCruzadasTests.test_editar_agendamento_com_id_de_outro_tenant) ... ok
+test_registro_de_outro_tenant_nao_e_lido_do_banco (config.test_isolamento_tenant.ReferenciasCruzadasTests.test_registro_de_outro_tenant_nao_e_lido_do_banco)
+A condição de barbearia faz parte da consulta: o registro alheio nunca é carregado. ... ok
+test_superusuario_edita_dentro_da_barbearia_do_registro (config.test_isolamento_tenant.SuperusuarioTests.test_superusuario_edita_dentro_da_barbearia_do_registro) ... ok
+test_superusuario_le_e_filtra_qualquer_barbearia (config.test_isolamento_tenant.SuperusuarioTests.test_superusuario_le_e_filtra_qualquer_barbearia) ... ok
+test_superusuario_sem_barbearia_continua_sem_criar_recursos_de_tenant (config.test_isolamento_tenant.SuperusuarioTests.test_superusuario_sem_barbearia_continua_sem_criar_recursos_de_tenant) ... ok
+
+----------------------------------------------------------------------
+Ran 22 tests in 4.583s
+
+OK
+Destroying test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
+exit=0

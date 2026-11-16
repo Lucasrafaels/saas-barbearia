@@ -1,0 +1,122 @@
+[
+ {
+  "caso": "dois cadastros públicos simultâneos, mesmo e-mail",
+  "email": "corrida.cadastro.0@exemplo.test",
+  "status": [
+   201,
+   500
+  ]
+ },
+ {
+  "caso": "dois cadastros públicos simultâneos, mesmo e-mail",
+  "email": "corrida.cadastro.1@exemplo.test",
+  "status": [
+   500,
+   201
+  ]
+ },
+ {
+  "caso": "dois cadastros públicos simultâneos, mesmo e-mail",
+  "email": "corrida.cadastro.2@exemplo.test",
+  "status": [
+   500,
+   201
+  ]
+ },
+ {
+  "caso": "dois cadastros públicos simultâneos, mesmo e-mail",
+  "email": "corrida.cadastro.3@exemplo.test",
+  "status": [
+   500,
+   201
+  ]
+ },
+ {
+  "caso": "dois cadastros públicos simultâneos, mesmo e-mail",
+  "email": "corrida.cadastro.4@exemplo.test",
+  "status": [
+   500,
+   201
+  ]
+ },
+ {
+  "caso": "admin A e admin B criam ao mesmo tempo, mesmo e-mail",
+  "email": "corrida.criacao.0@exemplo.test",
+  "status": [
+   500,
+   201
+  ]
+ },
+ {
+  "caso": "admin A e admin B criam ao mesmo tempo, mesmo e-mail",
+  "email": "corrida.criacao.1@exemplo.test",
+  "status": [
+   500,
+   201
+  ]
+ },
+ {
+  "caso": "admin A e admin B criam ao mesmo tempo, mesmo e-mail",
+  "email": "corrida.criacao.2@exemplo.test",
+  "status": [
+   500,
+   201
+  ]
+ },
+ {
+  "caso": "admin A e admin B criam ao mesmo tempo, mesmo e-mail",
+  "email": "corrida.criacao.3@exemplo.test",
+  "status": [
+   201,
+   500
+  ]
+ },
+ {
+  "caso": "admin A e admin B criam ao mesmo tempo, mesmo e-mail",
+  "email": "corrida.criacao.4@exemplo.test",
+  "status": [
+   201,
+   500
+  ]
+ },
+ {
+  "caso": "cliente A1 e cliente B trocam o próprio e-mail ao mesmo tempo, para o mesmo",
+  "email": "corrida.troca.0@exemplo.test",
+  "status": [
+   200,
+   500
+  ]
+ },
+ {
+  "caso": "cliente A1 e cliente B trocam o próprio e-mail ao mesmo tempo, para o mesmo",
+  "email": "corrida.troca.1@exemplo.test",
+  "status": [
+   200,
+   500
+  ]
+ },
+ {
+  "caso": "cliente A1 e cliente B trocam o próprio e-mail ao mesmo tempo, para o mesmo",
+  "email": "corrida.troca.2@exemplo.test",
+  "status": [
+   200,
+   500
+  ]
+ },
+ {
+  "caso": "cliente A1 e cliente B trocam o próprio e-mail ao mesmo tempo, para o mesmo",
+  "email": "corrida.troca.3@exemplo.test",
+  "status": [
+   200,
+   500
+  ]
+ },
+ {
+  "caso": "cliente A1 e cliente B trocam o próprio e-mail ao mesmo tempo, para o mesmo",
+  "email": "corrida.troca.4@exemplo.test",
+  "status": [
+   500,
+   200
+  ]
+ }
+]

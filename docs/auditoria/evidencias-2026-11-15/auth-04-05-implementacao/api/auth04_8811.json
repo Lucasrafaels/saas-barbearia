@@ -1,0 +1,398 @@
+{
+ "contas_no_fim": {
+  "1": {
+   "id": "1",
+   "email": "admin.a@alfa.test",
+   "nome": "Ana Admin A",
+   "barbershop_id": "1",
+   "is_active": "t"
+  },
+  "2": {
+   "id": "2",
+   "email": "corrida.troca.0@exemplo.test",
+   "nome": "Carlos Cliente A1",
+   "barbershop_id": "1",
+   "is_active": "t"
+  },
+  "3": {
+   "id": "3",
+   "email": "cliente.a2@alfa.test",
+   "nome": "Celia Cliente A2",
+   "barbershop_id": "1",
+   "is_active": "t"
+  },
+  "4": {
+   "id": "4",
+   "email": "admin.b@beta.test",
+   "nome": "Beatriz Admin B",
+   "barbershop_id": "2",
+   "is_active": "t"
+  },
+  "5": {
+   "id": "5",
+   "email": "corrida.troca.4@exemplo.test",
+   "nome": "Clara Cliente B",
+   "barbershop_id": "2",
+   "is_active": "t"
+  },
+  "16": {
+   "id": "16",
+   "email": "pessoa.um@exemplo.test",
+   "nome": "Pessoa Fictícia",
+   "barbershop_id": "null",
+   "is_active": "t"
+  },
+  "17": {
+   "id": "17",
+   "email": "pessoa.dois@exemplo.test",
+   "nome": "Pessoa Fictícia",
+   "barbershop_id": "null",
+   "is_active": "t"
+  },
+  "18": {
+   "id": "18",
+   "email": "pessoa.tres@exemplo.test",
+   "nome": "Pessoa Fictícia",
+   "barbershop_id": "null",
+   "is_active": "t"
+  },
+  "19": {
+   "id": "19",
+   "email": "pessoa.quatro@exemplo.test",
+   "nome": "Pessoa Fictícia",
+   "barbershop_id": "null",
+   "is_active": "t"
+  },
+  "20": {
+   "id": "20",
+   "email": "corrida.cadastro.0@exemplo.test",
+   "nome": "Pessoa Fictícia",
+   "barbershop_id": "null",
+   "is_active": "t"
+  },
+  "22": {
+   "id": "22",
+   "email": "corrida.cadastro.1@exemplo.test",
+   "nome": "Pessoa Fictícia",
+   "barbershop_id": "null",
+   "is_active": "t"
+  },
+  "24": {
+   "id": "24",
+   "email": "corrida.cadastro.2@exemplo.test",
+   "nome": "Pessoa Fictícia",
+   "barbershop_id": "null",
+   "is_active": "t"
+  },
+  "26": {
+   "id": "26",
+   "email": "corrida.cadastro.3@exemplo.test",
+   "nome": "Pessoa Fictícia",
+   "barbershop_id": "null",
+   "is_active": "t"
+  },
+  "28": {
+   "id": "28",
+   "email": "corrida.cadastro.4@exemplo.test",
+   "nome": "Pessoa Fictícia",
+   "barbershop_id": "null",
+   "is_active": "t"
+  },
+  "30": {
+   "id": "30",
+   "email": "corrida.criacao.0@exemplo.test",
+   "nome": "Pessoa Fictícia",
+   "barbershop_id": "1",
+   "is_active": "t"
+  },
+  "32": {
+   "id": "32",
+   "email": "corrida.criacao.1@exemplo.test",
+   "nome": "Pessoa Fictícia",
+   "barbershop_id": "1",
+   "is_active": "t"
+  },
+  "34": {
+   "id": "34",
+   "email": "corrida.criacao.2@exemplo.test",
+   "nome": "Pessoa Fictícia",
+   "barbershop_id": "1",
+   "is_active": "t"
+  },
+  "36": {
+   "id": "36",
+   "email": "corrida.criacao.3@exemplo.test",
+   "nome": "Pessoa Fictícia",
+   "barbershop_id": "2",
+   "is_active": "t"
+  },
+  "38": {
+   "id": "38",
+   "email": "corrida.criacao.4@exemplo.test",
+   "nome": "Pessoa Fictícia",
+   "barbershop_id": "1",
+   "is_active": "t"
+  },
+  "40": {
+   "id": "40",
+   "email": "cliente.b@beta.test",
+   "nome": "Aaron Variante",
+   "barbershop_id": "null",
+   "is_active": "t"
+  }
+ },
+ "ids": {
+  "vitima_cliente_b": 5,
+  "variante_aaron": 40,
+  "vitima_cliente_a2": 3,
+  "vitima_admin_b": 4,
+  "variante_abel": null
+ },
+ "passos": [
+  {
+   "passo": "A1 controle: recuperação da vítima, sem variação",
+   "pedido": "POST /api/v1/auth/password/reset/",
+   "papel": "anônimo",
+   "corpo_enviado": {
+    "email": "cliente.b@beta.test"
+   },
+   "status": 204,
+   "resposta": "",
+   "emails_de_recuperacao": [
+    {
+     "para": [
+      "no-reply@barbearia.local"
+     ],
+     "uid_da_conta": 0
+    }
+   ]
+  },
+  {
+   "passo": "A2 terceiro cadastra \"Cliente.B@beta.test\" (nome \"Aaron\")",
+   "pedido": "POST /api/v1/auth/register/",
+   "papel": "anônimo",
+   "corpo_enviado": {
+    "nome": "Aaron Variante",
+    "email": "Cliente.B@beta.test",
+    "password": "<senha omitida>"
+   },
+   "status": 201,
+   "resposta": "{\"id\":40,\"email\":\"cliente.b@beta.test\",\"nome\":\"Aaron Variante\",\"tipo_perfil\":\"cliente\",\"barbershop\":null,\"is_active\":true,\"created_at\":\"2026-11-15T18:12:07.036935-03:00\"}",
+   "emails_de_recuperacao": []
+  },
+  {
+   "passo": "A3 vítima pede recuperação com \"cliente.b@beta.test\"",
+   "pedido": "POST /api/v1/auth/password/reset/",
+   "papel": "anônimo",
+   "corpo_enviado": {
+    "email": "cliente.b@beta.test"
+   },
+   "status": 204,
+   "resposta": "",
+   "emails_de_recuperacao": [
+    {
+     "para": [
+      "cliente.b@beta.test"
+     ],
+     "uid_da_conta": 40
+    }
+   ]
+  },
+  {
+   "passo": "A4 vítima pede recuperação com \"CLIENTE.B@BETA.TEST\"",
+   "pedido": "POST /api/v1/auth/password/reset/",
+   "papel": "anônimo",
+   "corpo_enviado": {
+    "email": "CLIENTE.B@BETA.TEST"
+   },
+   "status": 204,
+   "resposta": "",
+   "emails_de_recuperacao": [
+    {
+     "para": [
+      "cliente.b@beta.test"
+     ],
+     "uid_da_conta": 40
+    }
+   ]
+  },
+  {
+   "passo": "A5 vítima confirma com o uid e o token recebidos em A3",
+   "pedido": "POST /api/v1/auth/password/reset/confirm/",
+   "papel": "anônimo",
+   "corpo_enviado": {
+    "uid": "NDA",
+    "token": "<token omitido>",
+    "new_password": "<senha omitida>"
+   },
+   "status": 204,
+   "resposta": "",
+   "emails_de_recuperacao": []
+  },
+  {
+   "passo": "A6a login \"cliente.b@beta.test\" + senha NOVA",
+   "pedido": "POST /api/v1/auth/login/",
+   "papel": "anônimo",
+   "corpo_enviado": {
+    "email": "cliente.b@beta.test",
+    "password": "<senha omitida>"
+   },
+   "status": 200,
+   "resposta": "{\"access\": \"<token removido>\"}",
+   "emails_de_recuperacao": []
+  },
+  {
+   "passo": "A6b login \"cliente.b@beta.test\" + senha ANTIGA",
+   "pedido": "POST /api/v1/auth/login/",
+   "papel": "anônimo",
+   "corpo_enviado": {
+    "email": "cliente.b@beta.test",
+    "password": "<senha omitida>"
+   },
+   "status": 401,
+   "resposta": "{\"detail\":\"Usuário e/ou senha incorreto(s)\"}",
+   "emails_de_recuperacao": []
+  },
+  {
+   "passo": "A6c login \"Cliente.B@beta.test\" + senha NOVA",
+   "pedido": "POST /api/v1/auth/login/",
+   "papel": "anônimo",
+   "corpo_enviado": {
+    "email": "Cliente.B@beta.test",
+    "password": "<senha omitida>"
+   },
+   "status": 200,
+   "resposta": "{\"access\": \"<token removido>\"}",
+   "emails_de_recuperacao": []
+  },
+  {
+   "passo": "A7a terceiro cadastra \"Cliente.A2@alfa.test\" (nome \"Zuleica\")",
+   "pedido": "POST /api/v1/auth/register/",
+   "papel": "anônimo",
+   "corpo_enviado": {
+    "nome": "Zuleica Variante",
+    "email": "Cliente.A2@alfa.test",
+    "password": "<senha omitida>"
+   },
+   "status": 400,
+   "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+   "emails_de_recuperacao": []
+  },
+  {
+   "passo": "A7b recuperação de \"cliente.a2@alfa.test\"",
+   "pedido": "POST /api/v1/auth/password/reset/",
+   "papel": "anônimo",
+   "corpo_enviado": {
+    "email": "cliente.a2@alfa.test"
+   },
+   "status": 204,
+   "resposta": "",
+   "emails_de_recuperacao": [
+    {
+     "para": [
+      "cliente.a2@alfa.test"
+     ],
+     "uid_da_conta": 3
+    }
+   ]
+  },
+  {
+   "passo": "A8a admin A cria cliente \"ADMIN.B@beta.test\" (nome \"Abel\") na barbearia A",
+   "pedido": "POST /api/v1/users/",
+   "papel": "admin_a",
+   "corpo_enviado": {
+    "nome": "Abel Variante",
+    "email": "ADMIN.B@beta.test",
+    "password": "<senha omitida>",
+    "tipo_perfil": "cliente"
+   },
+   "status": 400,
+   "resposta": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+   "emails_de_recuperacao": []
+  },
+  {
+   "passo": "A8b recuperação de \"admin.b@beta.test\" (admin de B)",
+   "pedido": "POST /api/v1/auth/password/reset/",
+   "papel": "anônimo",
+   "corpo_enviado": {
+    "email": "admin.b@beta.test"
+   },
+   "status": 204,
+   "resposta": "",
+   "emails_de_recuperacao": [
+    {
+     "para": [
+      "admin.b@beta.test"
+     ],
+     "uid_da_conta": 4
+    }
+   ]
+  }
+ ],
+ "invariante_token_x_destinatario": [
+  {
+   "passo": "A1 controle: recuperação da vítima, sem variação",
+   "para": [
+    "no-reply@barbearia.local"
+   ],
+   "conta": null,
+   "destinatario_e_o_email_da_propria_conta": false
+  },
+  {
+   "passo": "A3 vítima pede recuperação com \"cliente.b@beta.test\"",
+   "para": [
+    "cliente.b@beta.test"
+   ],
+   "conta": {
+    "id": "40",
+    "email": "cliente.b@beta.test",
+    "nome": "Aaron Variante",
+    "barbershop_id": "null",
+    "is_active": "t"
+   },
+   "destinatario_e_o_email_da_propria_conta": true
+  },
+  {
+   "passo": "A4 vítima pede recuperação com \"CLIENTE.B@BETA.TEST\"",
+   "para": [
+    "cliente.b@beta.test"
+   ],
+   "conta": {
+    "id": "40",
+    "email": "cliente.b@beta.test",
+    "nome": "Aaron Variante",
+    "barbershop_id": "null",
+    "is_active": "t"
+   },
+   "destinatario_e_o_email_da_propria_conta": true
+  },
+  {
+   "passo": "A7b recuperação de \"cliente.a2@alfa.test\"",
+   "para": [
+    "cliente.a2@alfa.test"
+   ],
+   "conta": {
+    "id": "3",
+    "email": "cliente.a2@alfa.test",
+    "nome": "Celia Cliente A2",
+    "barbershop_id": "1",
+    "is_active": "t"
+   },
+   "destinatario_e_o_email_da_propria_conta": true
+  },
+  {
+   "passo": "A8b recuperação de \"admin.b@beta.test\" (admin de B)",
+   "para": [
+    "admin.b@beta.test"
+   ],
+   "conta": {
+    "id": "4",
+    "email": "admin.b@beta.test",
+    "nome": "Beatriz Admin B",
+    "barbershop_id": "2",
+    "is_active": "t"
+   },
+   "destinatario_e_o_email_da_propria_conta": true
+  }
+ ]
+}

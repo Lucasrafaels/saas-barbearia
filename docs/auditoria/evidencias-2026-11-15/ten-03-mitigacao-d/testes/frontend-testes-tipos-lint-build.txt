@@ -1,0 +1,33 @@
+$ npm test
+✔ mudança de configuração (0.409015ms)
+▶ coerência com o calendário de agendamento
+  ✔ aberta só em dia de funcionamento e dentro do horário; o dia prometido é aberto e é o primeiro aberto (23.365191ms)
+✔ coerência com o calendário de agendamento (23.600902ms)
+ℹ tests 45
+ℹ suites 12
+ℹ pass 45
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 545.663108
+exit=0
+
+$ npx tsc -b  (app e node)
+exit=0
+
+$ npm run lint
+
+> barbearia-saas-frontend@1.0.0 lint
+> eslint . --max-warnings=0
+
+exit=0
+
+$ npx vite build --outDir <diretório temporário> --emptyOutDir  (não toca frontend/dist)
+../../../../../tmp/claude-1000/-home-lucasrafael-arquivos-faculdade-saas-barbearia/b732fc01-eeb5-4087-becf-e69fa27549d7/scratchpad/d/frontend-build/assets/AdminClientsPage-DPqPHN9Z.js                      9.43 kB │ gzip:   3.39 kB
+../../../../../tmp/claude-1000/-home-lucasrafael-arquivos-faculdade-saas-barbearia/b732fc01-eeb5-4087-becf-e69fa27549d7/scratchpad/d/frontend-build/assets/LandingPage-BQJ1QQVp.js                          10.06 kB │ gzip:   3.38 kB
+../../../../../tmp/claude-1000/-home-lucasrafael-arquivos-faculdade-saas-barbearia/b732fc01-eeb5-4087-becf-e69fa27549d7/scratchpad/d/frontend-build/assets/AppointmentCreatePage-CqVQUEoV.js                16.49 kB │ gzip:   5.30 kB
+../../../../../tmp/claude-1000/-home-lucasrafael-arquivos-faculdade-saas-barbearia/b732fc01-eeb5-4087-becf-e69fa27549d7/scratchpad/d/frontend-build/assets/AdminDashboardPage-D1tTad9H.js                   18.06 kB │ gzip:   6.18 kB
+../../../../../tmp/claude-1000/-home-lucasrafael-arquivos-faculdade-saas-barbearia/b732fc01-eeb5-4087-becf-e69fa27549d7/scratchpad/d/frontend-build/assets/index-Dwex0SI_.js                               436.32 kB │ gzip: 139.04 kB
+✓ built in 3.23s
+exit=0

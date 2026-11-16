@@ -1,0 +1,35 @@
+configuração da aplicação: motor=postgresql banco=barbershop_db host=localhost porta=5432
+BEGIN
+SET
+== 0. Ambiente: o lower() do PostgreSQL depende do LC_CTYPE deste banco
+     banco     | datcollate  |  datctype   | datlocprovider |     versao      
+---------------+-------------+-------------+----------------+-----------------
+ barbershop_db | pt_BR.UTF-8 | pt_BR.UTF-8 | c              | PostgreSQL 18.3
+(1 row)
+
+== 1. Resumo (sem dados pessoais)
+ total_de_contas | mudariam_com_a_normalizacao | com_espacos_nas_pontas | com_caracteres_nao_ascii | grupos_que_colidiriam | contas_nesses_grupos 
+-----------------+-----------------------------+------------------------+--------------------------+-----------------------+----------------------
+               8 |                           0 |                      0 |                        0 |                     0 |                    0
+(1 row)
+
+== 2. Grupos que colidiriam (sem e-mail nem nome): o grupo é identificado pelo menor id
+ grupo | contas | ids | barbearias | papeis | ativas | superusuarios | ultimo_login | criada_em | agendamentos_como_cliente | tem_perfil_de_barbeiro | ja_esta_normalizado 
+-------+--------+-----+------------+--------+--------+---------------+--------------+-----------+---------------------------+------------------------+---------------------
+(0 rows)
+
+== 4. Contas que a normalização mudaria (sem e-mail): só ids e o tipo de mudança
+ id | espacos_nas_pontas | maiusculas_na_parte_local | maiusculas_no_dominio | em_grupo_de_colisao 
+----+--------------------+---------------------------+-----------------------+---------------------
+(0 rows)
+
+== 5. Contas com caracteres não ASCII (onde o lower() do PostgreSQL e o do Python podem divergir)
+ id | ja_minusculo 
+----+--------------
+(0 rows)
+
+ROLLBACK
+AVISO:  o banco de dados "barbershop_db" possui uma não correspondência de versão de ordenação
+DETAIL:  The database was created using collation version 2.43, but the operating system provides version 2.44.
+HINT:  Rebuild all objects in this database that use the default collation and run ALTER DATABASE barbershop_db REFRESH COLLATION VERSION, or build PostgreSQL with the right library version.
+psql exit=0

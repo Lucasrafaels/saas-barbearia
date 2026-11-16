@@ -1,0 +1,16 @@
+A1 controle: recuperação da vítima, sem variação           204    [{'para': ['cliente.b@beta.test'], 'uid_da_conta': 5}]
+A2 terceiro cadastra "Cliente.B@beta.test" (nome "Aaron")  201  {"id":6,"email":"Cliente.B@beta.test","nome":"Aaron Variante","tipo_perfil":"cliente","bar  []
+A3 vítima pede recuperação com "cliente.b@beta.test"       204    [{'para': ['Cliente.B@beta.test'], 'uid_da_conta': 6}]
+A4 vítima pede recuperação com "CLIENTE.B@BETA.TEST"       204    [{'para': ['Cliente.B@beta.test'], 'uid_da_conta': 6}]
+A5 vítima confirma com o uid e o token recebidos em A3     204    []
+A6a login "cliente.b@beta.test" + senha NOVA               401  {"detail":"Usuário e/ou senha incorreto(s)"}  []
+A6b login "cliente.b@beta.test" + senha ANTIGA             200  {"access": "<token removido>"}  []
+A6c login "Cliente.B@beta.test" + senha NOVA               200  {"access": "<token removido>"}  []
+A7a terceiro cadastra "Cliente.A2@alfa.test" (nome "Zuleica") 201  {"id":7,"email":"Cliente.A2@alfa.test","nome":"Zuleica Variante","tipo_perfil":"cliente","  []
+A7b recuperação de "cliente.a2@alfa.test"                  204    [{'para': ['cliente.a2@alfa.test'], 'uid_da_conta': 3}]
+A8a admin A cria cliente "ADMIN.B@beta.test" (nome "Abel") na barbearia A 201  {"id":8,"email":"ADMIN.B@beta.test","nome":"Abel Variante","tipo_perfil":"cliente","barber  []
+A8b recuperação de "admin.b@beta.test" (admin de B)        204    [{'para': ['ADMIN.B@beta.test'], 'uid_da_conta': 8}]
+A9a admin A desativa o cliente "Abel"                      204    []
+A9b recuperação de "admin.b@beta.test" de novo             204    [{'para': ['admin.b@beta.test'], 'uid_da_conta': 4}]
+
+invariante (token sempre para o e-mail da própria conta): True (6 mensagens)

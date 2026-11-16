@@ -1,0 +1,13 @@
+== C1 processos da aplicação imediatamente antes: 0
+== C2 migração guardada (início 2026-11-15 22:56:21)
+conexão: banco=barbershop_db versão=18.3 porta=5432 usuário_confere=True transação_somente_leitura=off lock_timeout=5s statement_timeout=1min
+outras sessões no banco: 0 | travas de outros em accounts_user: 0
+plano: ['accounts.0006_email_normalizado']
+--- migrate accounts 0006 (início)
+Operations to perform:
+  Target specific migration: 0006_email_normalizado, from accounts
+Running migrations:
+  Applying accounts.0006_email_normalizado... OK
+--- migrate accounts 0006 (fim): concluído sem exceção
+avisos do servidor ao conectar: 1 (versão de ordenação 2.43 × 2.44, DB-02)
+== C2 fim 2026-11-15 22:56:22; código de saída=0

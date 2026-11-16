@@ -1,0 +1,8 @@
+217 verificações; 211 conforme; 6 divergentes
+ X  MT-US-16 P3 | admin | POST /users/ | criar usuário com o e-mail de um cliente de B | 400 {"email": ["usuário com este e-mail já existe."]} | e-mail livre (senha inválida): 400 {"password": ["Certifique-se de que este campo tenha mais de 8 caracteres."]}
+ X  MT-US-27 P3 | admin | PATCH /users/{id}/ | dar a um cliente de A o e-mail de um cliente de B | 400 {"email": ["usuário com este e-mail já existe."]}
+ X  MT-FI-01 P3 | admin | GET /appointments/?barbeiro=… | comparar filtro com barbeiro de B e com ID inexistente | B: 200 | inexistente: 400 {"barbeiro": ["Faça uma escolha válida. Sua escolha não é uma das disponíveis."]}
+ X  MT-AP-27 P2 | sem barbearia | POST /appointments/ (validação) | tentar marcar com o barbeiro de B num horário ocupado e num livre | ocupado: 400 {"barbershop": ["Este campo não pode ser nulo."], "data_hora": ["Este barbeiro já possui um agendamento neste horário."]} | livre: 400 {"barbershop": ["Este campo não pode ser nulo."]}; criados=0
+ X  MT-AV-02 P3 | cliente | GET /appointments/available-slots/?exclude_appointment_id=… | excluir agendamento de B da ocupação | B: 404 {"detail": "Agendamento a excluir não pertence à sua barbearia."} | inexistente: 404 {"detail": "Agendamento a excluir não encontrado."}
+ X  MT-UP-01 P3 | anônimo | GET /media/barbershops/logos/… | baixar o logo de B sem autenticação | 200 (/media/barbershops/logos/logo-b.png)
+venv/bin/python -I $I/scripts/iso_probe.py $I/evidencias/estado_seed.json   0,74s user 0,14s system 8% cpu 10,154 total

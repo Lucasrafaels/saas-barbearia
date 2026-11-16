@@ -6,6 +6,7 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.db import models
 
 from .admin_integrity import GUARDED_FIELDS, preserving_active_admins
+from .emails import forma_canonica, normalizar_email
 
 
 class UserQuerySet(models.QuerySet):
@@ -36,6 +37,30 @@ class UserManager(BaseUserManager.from_queryset(UserQuerySet)):
     """Gerencia a criação de usuários e superusuários usando e-mail."""
 
     use_in_migrations = True
+
+    @classmethod
+    def normalize_email(cls, email):
+        """
+        Regra única do e-mail (accounts.emails), no lugar da do Django, que só
+        punha o domínio em minúsculas (AUTH-05). Vale para `create_user` e
+        `create_superuser`. Valor fora da regra: `ValidationError`.
+        """
+        return normalizar_email(email)
+
+    def get_by_natural_key(self, username):
+        """
+        Busca pela forma canônica e com igualdade exata.
+
+        É o que o `ModelBackend` usa no login da API, no login do Django Admin
+        e no `createsuperuser`. Por isso o login não diferencia caixa e não
+        precisa mudar nas views (AUTH-05). Um valor fora da regra se comporta
+        como conta inexistente: o `ModelBackend` mantém a mesma proteção de
+        tempo e a mesma resposta.
+        """
+        email = forma_canonica(username)
+        if email is None:
+            raise self.model.DoesNotExist('Nenhuma conta com esse e-mail.')
+        return self.get(**{self.model.USERNAME_FIELD: email})
 
     def create_user(self, email, nome, password=None, **extra_fields):
         if not email:

@@ -13,9 +13,10 @@ from rest_framework.response import Response
 
 from barbershops.models import Barber
 from config.mixins import TenantScopedQuerysetMixin
-from config.permissions import IsAdminRole, IsBarberRole
+from config.permissions import HasBarbershop, IsAdminRole, IsBarberRole
 from services.models import Service
 
+from .filters import AppointmentFilter
 from .models import BARBEARIA_DESATIVADA_MENSAGEM, Appointment, barbearia_esta_ativa
 from .serializers import AppointmentSerializer
 
@@ -31,9 +32,18 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
     ).all()
     serializer_class = AppointmentSerializer
     permission_classes = [permissions.IsAuthenticated]
-    filterset_fields = ['status', 'barbeiro', 'servico']
+    # Filtros status, barbeiro e servico, com as opções limitadas à barbearia
+    # do usuário (TEN-01, SEC-10).
+    filterset_class = AppointmentFilter
 
     def get_permissions(self):
+        if self.action == 'create':
+            # TEN-02: quem não tem barbearia é recusado aqui, antes da
+            # validação. A validação consulta a agenda do barbeiro, e a
+            # resposta não pode depender de um horário estar livre ou ocupado.
+            # Vale também para o superusuário sem barbearia, que perform_create
+            # já recusava (só que depois da validação).
+            return [permissions.IsAuthenticated(), HasBarbershop()]
         # Clientes podem criar e cancelar o próprio horário, mas não podem
         # alterar status (confirmado/realizado). Essas transições ficam com
         # administrador e barbeiro; o queryset continua impondo o escopo.
@@ -146,7 +156,8 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
         informe o ID do agendamento original para que ele não seja considerado
         como horário ocupado. O backend valida:
         - Se o agendamento existe.
-        - Se pertence à barbearia do usuário.
+        - Se pertence à barbearia do usuário (condição da própria consulta; o de outra
+          barbearia responde como inexistente).
         - Se o usuário tem permissão para reagendá-lo.
         - Se o status permite reagendamento (agendado ou confirmado).
         - Se não está cancelado ou realizado.
@@ -202,16 +213,16 @@ class AppointmentViewSet(TenantScopedQuerysetMixin, viewsets.ModelViewSet):
         # Validação do exclude_appointment_id (opcional)
         exclude_appointment = None
         if exclude_appointment_id:
+            # SEC-10: a barbearia do usuário faz parte da própria consulta. O
+            # agendamento de outra barbearia nunca é lido e recebe exatamente a
+            # mesma resposta de um ID inexistente (antes, "não pertence à sua
+            # barbearia" x "não encontrado" revelava que ele existia).
             try:
-                exclude_appointment = Appointment.objects.select_related(
-                    'cliente', 'barbeiro', 'servico', 'barbershop'
+                exclude_appointment = Appointment.objects.filter(
+                    barbershop_id=user.barbershop_id,
                 ).get(pk=exclude_appointment_id)
             except (Appointment.DoesNotExist, ValueError):
                 return Response({'detail': 'Agendamento a excluir não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
-
-            # Verifica se pertence à barbearia do usuário
-            if exclude_appointment.barbershop_id != user.barbershop_id:
-                return Response({'detail': 'Agendamento a excluir não pertence à sua barbearia.'}, status=status.HTTP_404_NOT_FOUND)
 
             # Verifica permissão do usuário para reagendar
             if user.is_cliente:

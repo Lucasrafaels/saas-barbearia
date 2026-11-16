@@ -1,0 +1,87 @@
+TEN-02 — sondagem HTTP com o SQL executado pelo servidor (log do PostgreSQL descartável, log_statement=all)
+
+== auditoria-debug-true (porta 8773)
+   criação: ocupado x livre x barbeiro de B x inexistente: status [400]; respostas distintas 3 (sem números: 3); consultas à agenda 3; leituras sem escopo de barbearia 14; usuários alheios lidos sem escopo 5
+   criação: corpo vazio: status [400]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   PATCH: agendamento de B x inexistente: status [404]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   DELETE: agendamento de B x inexistente: status [404]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   horários livres: dia ocupado x livre x inexistente: status [403]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   lista filtrada: barbeiro de B x inexistente: status [200, 400]; respostas distintas 2 (sem números: 2); consultas à agenda 0; leituras sem escopo de barbearia 2; usuários alheios lidos sem escopo 0
+   cliente A: barbeiro de B ocupado x livre x inexistente: status [400]; respostas distintas 2 (sem números: 2); consultas à agenda 0; leituras sem escopo de barbearia 6; usuários alheios lidos sem escopo 0
+   admin A: barbeiro de B ocupado x livre x inexistente: status [400]; respostas distintas 2 (sem números: 2); consultas à agenda 0; leituras sem escopo de barbearia 6; usuários alheios lidos sem escopo 3
+   cliente A na própria barbearia: [('horário livre de A', 201), ('mesmo horário de novo (conflito na própria agenda)', 400)]; consultas à agenda 3
+   cadastro público e onboarding: [('agendar antes do onboarding', 400), ('criar a barbearia', 201), ('criar serviço', 201), ('criar cliente 1', 201), ('criar cliente 2', 201), ('promover a barbeiro', 201), ('agendar na barbearia nova', 201)]
+
+== anterior-debug-true (porta 8769)
+   criação: ocupado x livre x barbeiro de B x inexistente: status [400]; respostas distintas 3 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   criação: corpo vazio: status [400]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   PATCH: agendamento de B x inexistente: status [404]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   DELETE: agendamento de B x inexistente: status [404]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   horários livres: dia ocupado x livre x inexistente: status [403]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   lista filtrada: barbeiro de B x inexistente: status [400]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   cliente A: barbeiro de B ocupado x livre x inexistente: status [400]; respostas distintas 2 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   admin A: barbeiro de B ocupado x livre x inexistente: status [400]; respostas distintas 2 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   cliente A na própria barbearia: [('horário livre de A', 201), ('mesmo horário de novo (conflito na própria agenda)', 400)]; consultas à agenda 3
+   cadastro público e onboarding: [('agendar antes do onboarding', 400), ('criar a barbearia', 201), ('criar serviço', 201), ('criar cliente 1', 201), ('criar cliente 2', 201), ('promover a barbeiro', 201), ('agendar na barbearia nova', 201)]
+
+== anterior-debug-false (porta 8770)
+   criação: ocupado x livre x barbeiro de B x inexistente: status [400]; respostas distintas 3 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   criação: corpo vazio: status [400]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   PATCH: agendamento de B x inexistente: status [404]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   DELETE: agendamento de B x inexistente: status [404]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   horários livres: dia ocupado x livre x inexistente: status [403]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   lista filtrada: barbeiro de B x inexistente: status [400]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   cliente A: barbeiro de B ocupado x livre x inexistente: status [400]; respostas distintas 2 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   admin A: barbeiro de B ocupado x livre x inexistente: status [400]; respostas distintas 2 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   cliente A na própria barbearia: [('horário livre de A', 201), ('mesmo horário de novo (conflito na própria agenda)', 400)]; consultas à agenda 3
+   cadastro público e onboarding: [('agendar antes do onboarding', 400), ('criar a barbearia', 201), ('criar serviço', 201), ('criar cliente 1', 201), ('criar cliente 2', 201), ('promover a barbeiro', 201), ('agendar na barbearia nova', 201)]
+
+== corrigido-debug-true (porta 8767)
+   criação: ocupado x livre x barbeiro de B x inexistente: status [403]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   criação: corpo vazio: status [403]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   PATCH: agendamento de B x inexistente: status [404]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   DELETE: agendamento de B x inexistente: status [404]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   horários livres: dia ocupado x livre x inexistente: status [403]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   lista filtrada: barbeiro de B x inexistente: status [400]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   cliente A: barbeiro de B ocupado x livre x inexistente: status [400]; respostas distintas 2 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   admin A: barbeiro de B ocupado x livre x inexistente: status [400]; respostas distintas 2 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   cliente A na própria barbearia: [('horário livre de A', 201), ('mesmo horário de novo (conflito na própria agenda)', 400)]; consultas à agenda 3
+   cadastro público e onboarding: [('agendar antes do onboarding', 403), ('criar a barbearia', 201), ('criar serviço', 201), ('criar cliente 1', 201), ('criar cliente 2', 201), ('promover a barbeiro', 201), ('agendar na barbearia nova', 201)]
+
+== corrigido-debug-false (porta 8768)
+   criação: ocupado x livre x barbeiro de B x inexistente: status [403]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   criação: corpo vazio: status [403]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   PATCH: agendamento de B x inexistente: status [404]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   DELETE: agendamento de B x inexistente: status [404]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   horários livres: dia ocupado x livre x inexistente: status [403]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   lista filtrada: barbeiro de B x inexistente: status [400]; respostas distintas 1 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   cliente A: barbeiro de B ocupado x livre x inexistente: status [400]; respostas distintas 2 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   admin A: barbeiro de B ocupado x livre x inexistente: status [400]; respostas distintas 2 (sem números: 1); consultas à agenda 0; leituras sem escopo de barbearia 0; usuários alheios lidos sem escopo 0
+   cliente A na própria barbearia: [('horário livre de A', 201), ('mesmo horário de novo (conflito na própria agenda)', 400)]; consultas à agenda 3
+   cadastro público e onboarding: [('agendar antes do onboarding', 403), ('criar a barbearia', 201), ('criar serviço', 201), ('criar cliente 1', 201), ('criar cliente 2', 201), ('promover a barbeiro', 201), ('agendar na barbearia nova', 201)]
+
+SQL executado pelo servidor para "sem barbearia, 1 horário ocupado de B":
+-- auditoria-debug-true: 400 {"barbershop":["Este campo não pode ser nulo."],"data_hora":["Este barbeiro já possui um agendamento neste horário."]}
+     SELECT set_config('TimeZone', 'UTC', false)
+     SELECT … FROM "accounts_user" WHERE "accounts_user"."id" = 35 LIMIT 21
+     SELECT … FROM "accounts_user" WHERE ("accounts_user"."tipo_perfil" = 'cliente' AND "accounts_user"."id" = 13) LIMIT 21
+     SELECT … FROM "barbershops_barber" WHERE "barbershops_barber"."id" = 4 LIMIT 21
+     SELECT … FROM "services_service" WHERE "services_service"."id" = 6 LIMIT 21
+     SELECT … FROM "accounts_user" WHERE ("accounts_user"."id" = 13 AND "accounts_user"."tipo_perfil" = 'cliente') LIMIT 1
+     SELECT … FROM "barbershops_barber" WHERE "barbershops_barber"."id" = 4 LIMIT 1
+     SELECT … FROM "services_service" WHERE "services_service"."id" = 6 LIMIT 1
+     SELECT … FROM "appointments_appointment" INNER JOIN "services_service" ON ("appointments_appointment"."servico_id" = "services_service"."id") WHERE ("appointments_appointment"."barbeiro_id" = 4 AND "appointments_appointment"."data_hora" >= '2026-11-15T10:00:00
+-- anterior-debug-true: 400 {"cliente":["Pk inválido \"13\" - objeto não existe."],"barbeiro":["Pk inválido \"4\" - objeto não existe."],"servico":[
+     SELECT set_config('TimeZone', 'UTC', false)
+     SELECT … FROM "accounts_user" WHERE "accounts_user"."id" = 39 LIMIT 21
+-- corrigido-debug-true: 403 {"detail":"Usuário sem barbearia vinculada."}
+     SELECT set_config('TimeZone', 'UTC', false)
+     SELECT … FROM "accounts_user" WHERE "accounts_user"."id" = 47 LIMIT 21
+-- corrigido-debug-false: 403 {"detail":"Usuário sem barbearia vinculada."}
+     SELECT set_config('TimeZone', 'UTC', false)
+     SELECT … FROM "accounts_user" WHERE "accounts_user"."id" = 51 LIMIT 21
+
+SQL executado pelo servidor para "cliente A na própria barbearia, conflito" (validação legítima da agenda de A):
+-- corrigido-debug-true: 400 {"data_hora":["Este barbeiro já possui um agendamento neste horário."]}
+     SELECT … FROM "appointments_appointment" INNER JOIN "services_service" ON ("appointments_appointment"."servico_id" = "services_service"."id") WHERE ("appointments_appointment"."barbeiro_id" = 1 AND "appointments_appointment"."data_hora" >= '2027-01-03T11:00:00
+   (o barbeiro_id é o barbeiro de A escolhido pelo próprio cliente de A)

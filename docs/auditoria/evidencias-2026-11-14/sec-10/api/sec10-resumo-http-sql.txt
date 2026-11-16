@@ -1,0 +1,72 @@
+SEC-10 — GET /appointments/available-slots/?exclude_appointment_id=… no servidor real, com o SQL lido do log do PostgreSQL descartável
+
+== anterior-debug-true (porta 8769)
+   comparacoes_outra_barbearia_x_inexistente: 6
+   diferencas_de_status: 0
+   diferencas_de_corpo: 6
+   diferencas_de_sql: 0
+   buscas_do_agendamento_alheio_sem_condicao_de_barbearia: 6
+   buscas_com_join: 6
+   malformados_iguais_ao_inexistente: True
+   vazio_igual_ao_omitido: True
+   proprio_libera_o_horario: True
+   sem_barbearia: [[403, '{"detail":"Usuário sem barbearia vinculada."}']]
+   sem_barbearia_consultas_a_agendamentos: 0
+   respostas_500: 0
+   agendamentos_inalterados: True
+
+== anterior-debug-false (porta 8770)
+   comparacoes_outra_barbearia_x_inexistente: 6
+   diferencas_de_status: 0
+   diferencas_de_corpo: 6
+   diferencas_de_sql: 0
+   buscas_do_agendamento_alheio_sem_condicao_de_barbearia: 6
+   buscas_com_join: 6
+   malformados_iguais_ao_inexistente: True
+   vazio_igual_ao_omitido: True
+   proprio_libera_o_horario: True
+   sem_barbearia: [[403, '{"detail":"Usuário sem barbearia vinculada."}']]
+   sem_barbearia_consultas_a_agendamentos: 0
+   respostas_500: 0
+   agendamentos_inalterados: True
+
+== corrigido-debug-true (porta 8767)
+   comparacoes_outra_barbearia_x_inexistente: 6
+   diferencas_de_status: 0
+   diferencas_de_corpo: 0
+   diferencas_de_sql: 0
+   buscas_do_agendamento_alheio_sem_condicao_de_barbearia: 0
+   buscas_com_join: 0
+   malformados_iguais_ao_inexistente: True
+   vazio_igual_ao_omitido: True
+   proprio_libera_o_horario: True
+   sem_barbearia: [[403, '{"detail":"Usuário sem barbearia vinculada."}']]
+   sem_barbearia_consultas_a_agendamentos: 0
+   respostas_500: 0
+   agendamentos_inalterados: True
+
+== corrigido-debug-false (porta 8768)
+   comparacoes_outra_barbearia_x_inexistente: 6
+   diferencas_de_status: 0
+   diferencas_de_corpo: 0
+   diferencas_de_sql: 0
+   buscas_do_agendamento_alheio_sem_condicao_de_barbearia: 0
+   buscas_com_join: 0
+   malformados_iguais_ao_inexistente: True
+   vazio_igual_ao_omitido: True
+   proprio_libera_o_horario: True
+   sem_barbearia: [[403, '{"detail":"Usuário sem barbearia vinculada."}']]
+   sem_barbearia_consultas_a_agendamentos: 0
+   respostas_500: 0
+   agendamentos_inalterados: True
+
+-- anterior-debug-false | cliente A | outra barbearia (exclude_appointment_id=419): 404 {"detail":"Agendamento a excluir não pertence à sua barbearia."}
+     SELECT … FROM "appointments_appointment" INNER JOIN "barbershops_barbershop" ON (…) INNER JOIN "accounts_user" ON (…) INNER JOIN "barbershops_barber" ON (…) INNER JOIN "services_service" ON (…) WHERE "appointments_appointment"."id" = 419 LIMIT 21
+-- anterior-debug-false | cliente A | inexistente (exclude_appointment_id=999999): 404 {"detail":"Agendamento a excluir não encontrado."}
+     SELECT … FROM "appointments_appointment" INNER JOIN "barbershops_barbershop" ON (…) INNER JOIN "accounts_user" ON (…) INNER JOIN "barbershops_barber" ON (…) INNER JOIN "services_service" ON (…) WHERE "appointments_appointment"."id" = 999999 LIMIT 21
+
+-- corrigido-debug-false | cliente A | outra barbearia (exclude_appointment_id=419): 404 {"detail":"Agendamento a excluir não encontrado."}
+     SELECT … FROM "appointments_appointment" WHERE ("appointments_appointment"."barbershop_id" = 1 AND "appointments_appointment"."id" = 419) LIMIT 21
+-- corrigido-debug-false | cliente A | inexistente (exclude_appointment_id=999999): 404 {"detail":"Agendamento a excluir não encontrado."}
+     SELECT … FROM "appointments_appointment" WHERE ("appointments_appointment"."barbershop_id" = 1 AND "appointments_appointment"."id" = 999999) LIMIT 21
+

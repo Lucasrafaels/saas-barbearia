@@ -1,0 +1,37 @@
+### código da auditoria
+
+[1 horário ocupado de B] 400 {"barbershop":["Este campo não pode ser nulo."],"data_hora":["Este barbeiro já possui um agendamento neste horário."]}
+   agendamentos criados: 0; consultas: 7
+   - accounts_user: WHERE ("accounts_user"."tipo_perfil" = 'cliente' AND "accounts_user"."id" = 1) LIMIT 21
+   - barbershops_barber: WHERE "barbershops_barber"."id" = 1 LIMIT 21
+   - services_service: WHERE "services_service"."id" = 1 LIMIT 21
+   - accounts_user: WHERE ("accounts_user"."id" = 1 AND "accounts_user"."tipo_perfil" = 'cliente') LIMIT 1
+   - barbershops_barber: WHERE "barbershops_barber"."id" = 1 LIMIT 1
+   - services_service: WHERE "services_service"."id" = 1 LIMIT 1
+   - appointments_appointment: WHERE ("appointments_appointment"."barbeiro_id" = 1 AND "appointments_appointment"."data_hora" >= '2026-11-15 13:00:00' AND "appointments_appointment"."data  <<< DISPONIBILIDADE (agenda do barbeiro)
+
+[2 horário livre de B] 400 {"barbershop":["Este campo não pode ser nulo."]}
+   agendamentos criados: 0; consultas: 7
+   - accounts_user: WHERE ("accounts_user"."tipo_perfil" = 'cliente' AND "accounts_user"."id" = 1) LIMIT 21
+   - barbershops_barber: WHERE "barbershops_barber"."id" = 1 LIMIT 21
+   - services_service: WHERE "services_service"."id" = 1 LIMIT 21
+   - accounts_user: WHERE ("accounts_user"."id" = 1 AND "accounts_user"."tipo_perfil" = 'cliente') LIMIT 1
+   - barbershops_barber: WHERE "barbershops_barber"."id" = 1 LIMIT 1
+   - services_service: WHERE "services_service"."id" = 1 LIMIT 1
+   - appointments_appointment: WHERE ("appointments_appointment"."barbeiro_id" = 1 AND "appointments_appointment"."data_hora" >= '2026-11-15 17:00:00' AND "appointments_appointment"."data  <<< DISPONIBILIDADE (agenda do barbeiro)
+
+[3 barbeiro de B (válido), sem os demais campos de B] 400 {"barbershop":["Este campo não pode ser nulo."],"data_hora":["Este barbeiro já possui um agendamento neste horário."]}
+   agendamentos criados: 0; consultas: 7
+   - accounts_user: WHERE ("accounts_user"."tipo_perfil" = 'cliente' AND "accounts_user"."id" = 3) LIMIT 21
+   - barbershops_barber: WHERE "barbershops_barber"."id" = 1 LIMIT 21
+   - services_service: WHERE "services_service"."id" = 1 LIMIT 21
+   - accounts_user: WHERE ("accounts_user"."id" = 3 AND "accounts_user"."tipo_perfil" = 'cliente') LIMIT 1
+   - barbershops_barber: WHERE "barbershops_barber"."id" = 1 LIMIT 1
+   - services_service: WHERE "services_service"."id" = 1 LIMIT 1
+   - appointments_appointment: WHERE ("appointments_appointment"."barbeiro_id" = 1 AND "appointments_appointment"."data_hora" >= '2026-11-15 13:00:00' AND "appointments_appointment"."data  <<< DISPONIBILIDADE (agenda do barbeiro)
+
+[4 IDs inexistentes] 400 {"cliente":["Pk inválido \"999999\" - objeto não existe."],"barbeiro":["Pk inválido \"999999\" - objeto não existe."],"servico":["Pk inválido \"999999\" - objeto não existe."]}
+   agendamentos criados: 0; consultas: 3
+   - accounts_user: WHERE ("accounts_user"."tipo_perfil" = 'cliente' AND "accounts_user"."id" = 999999) LIMIT 21
+   - barbershops_barber: WHERE "barbershops_barber"."id" = 999999 LIMIT 21
+   - services_service: WHERE "services_service"."id" = 999999 LIMIT 21

@@ -1,0 +1,127 @@
+NOTA:  banco de dados "m_legado" não existe, ignorando
+NOTA:  banco de dados "m_valido" não existe, ignorando
+datname|datcollate|datctype|datlocprovider|datcollversion
+m_legado|pt_BR.UTF-8|pt_BR.UTF-8|c|2.44
+m_valido|pt_BR.UTF-8|pt_BR.UTF-8|c|2.44
+(2 rows)
+
+=== 1. m_legado: esquema e dados com o CÓDIGO ANTERIOR (até accounts.0005)
+  Applying token_blacklist.0012_alter_outstandingtoken_user... OK
+contas fictícias: 14
+
+=== 2. m_legado: migrate com o CÓDIGO CORRIGIDO (deve interromper e mostrar só ids)
+  Applying accounts.0006_email_normalizado...Traceback (most recent call last):
+    raise MigracaoDeEmailInterrompida(
+MigracaoDeEmailInterrompida: accounts.0006 interrompida; nada foi alterado. Contas com e-mail fora da regra (ids): [12]. Grupos que ficariam com o mesmo e-mail após a normalização (ids): [[2, 5], [3, 4], [6, 7], [10, 11]]. Decida cada caso no banco e rode a migração de novo.
+conname|pg_get_constraintdef
+accounts_user_email_key|UNIQUE (email)
+(1 row)
+indexname|indexdef
+accounts_user_email_key|CREATE UNIQUE INDEX accounts_user_email_key ON public.accounts_user USING btree (email)
+accounts_user_pkey|CREATE UNIQUE INDEX accounts_user_pkey ON public.accounts_user USING btree (id)
+(2 rows)
+contas|fora_do_padrao
+14|7
+(1 row)
+name
+0005_protect_barbershop
+(1 row)
+
+=== 3. m_legado: o dono decide os grupos (SIMULAÇÃO: as contas 4, 5, 7 e 10 recebem e-mail provisório; a 12, não ASCII, também)
+UPDATE 5
+  Applying accounts.0006_email_normalizado... OK
+conname|pg_get_constraintdef
+accounts_user_email_key|UNIQUE (email)
+accounts_user_email_normalizado|CHECK ((((email)::text = lower((email)::text)) AND ((email)::text ~ '^[!-~]+$'::text)))
+(2 rows)
+indexname|indexdef
+accounts_user_email_key|CREATE UNIQUE INDEX accounts_user_email_key ON public.accounts_user USING btree (email)
+accounts_user_email_lower_unico|CREATE UNIQUE INDEX accounts_user_email_lower_unico ON public.accounts_user USING btree (lower((email)::text))
+accounts_user_pkey|CREATE UNIQUE INDEX accounts_user_pkey ON public.accounts_user USING btree (id)
+(3 rows)
+contas|fora_do_padrao
+14|0
+(1 row)
+name
+0006_email_normalizado
+(1 row)
+
+=== 4. m_legado: reversão (migrate accounts 0005)
+  Unapplying accounts.0006_email_normalizado... OK
+conname|pg_get_constraintdef
+accounts_user_email_key|UNIQUE (email)
+(1 row)
+indexname|indexdef
+accounts_user_email_key|CREATE UNIQUE INDEX accounts_user_email_key ON public.accounts_user USING btree (email)
+accounts_user_pkey|CREATE UNIQUE INDEX accounts_user_pkey ON public.accounts_user USING btree (id)
+(2 rows)
+contas|fora_do_padrao
+14|0
+(1 row)
+name
+0005_protect_barbershop
+(1 row)
+id|email
+6|joao.barbeiro@alfa.test
+8|pessoa.dois@exemplo.test
+9|novo.3@exemplo.test
+13|tudo.minusculo@alfa.test
+(4 rows)
+
+=== 5. m_valido: dados antigos que a regra normaliza sem colisão
+  Applying token_blacklist.0012_alter_outstandingtoken_user... OK
+contas: 6
+id|antes
+1|[ja.normalizado@exemplo.test]
+2|[Pessoa.Dois@exemplo.test]
+3|[novo.3@EXEMPLO.TEST]
+4|[TUDO@MAIUSCULO.TEST]
+5|[ espaco.inicio@exemplo.test]
+6|[espaco.fim@exemplo.test	]
+(6 rows)
+  Applying accounts.0006_email_normalizado... OK
+id|depois
+1|[ja.normalizado@exemplo.test]
+2|[pessoa.dois@exemplo.test]
+3|[novo.3@exemplo.test]
+4|[tudo@maiusculo.test]
+5|[espaco.inicio@exemplo.test]
+6|[espaco.fim@exemplo.test]
+(6 rows)
+conname|pg_get_constraintdef
+accounts_user_email_key|UNIQUE (email)
+accounts_user_email_normalizado|CHECK ((((email)::text = lower((email)::text)) AND ((email)::text ~ '^[!-~]+$'::text)))
+(2 rows)
+indexname|indexdef
+accounts_user_email_key|CREATE UNIQUE INDEX accounts_user_email_key ON public.accounts_user USING btree (email)
+accounts_user_email_lower_unico|CREATE UNIQUE INDEX accounts_user_email_lower_unico ON public.accounts_user USING btree (lower((email)::text))
+accounts_user_pkey|CREATE UNIQUE INDEX accounts_user_pkey ON public.accounts_user USING btree (id)
+(3 rows)
+contas|fora_do_padrao
+6|0
+(1 row)
+name
+0006_email_normalizado
+(1 row)
+
+=== 6. m_valido: o banco recusa, por fora da aplicação, variação de caixa, espaço e não ASCII
+ERRO:  a nova linha da relação "accounts_user" viola a restrição de verificação "accounts_user_email_normalizado"
+ERRO:  a nova linha da relação "accounts_user" viola a restrição de verificação "accounts_user_email_normalizado"
+ERRO:  a nova linha da relação "accounts_user" viola a restrição de verificação "accounts_user_email_normalizado"
+ERRO:  duplicar valor da chave viola a restrição de unicidade "accounts_user_email_key"
+
+=== 7. SQL da migração no PostgreSQL (sqlmigrate accounts 0006)
+BEGIN;
+--
+-- Raw Python operation
+--
+-- THIS OPERATION CANNOT BE WRITTEN AS SQL
+--
+-- Create constraint accounts_user_email_normalizado on model user
+--
+ALTER TABLE "accounts_user" ADD CONSTRAINT "accounts_user_email_normalizado" CHECK (("email" = (LOWER("email")) AND "email"::text ~ '^[!-~]+$'));
+--
+-- Create constraint accounts_user_email_lower_unico on model user
+--
+CREATE UNIQUE INDEX "accounts_user_email_lower_unico" ON "accounts_user" ((LOWER("email")));
+COMMIT;

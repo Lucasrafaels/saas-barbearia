@@ -1,0 +1,25 @@
+== P1 2026-11-15 22:41:14
+-- espaço em disco
+   Sist. Arq.      Tam. Usado Disp. Uso% Montado em
+   /dev/nvme0n1p3  475G  120G  353G  26% /home
+   tmpfs           7,5G  268M  7,3G   4% /tmp
+-- servidores ouvindo (5432 = PostgreSQL 18 do host; 5433 = Docker; 55432 e 8899 precisam estar livres)
+   State  Recv-Q Send-Q Local Address:Port  Peer Address:Port
+   LISTEN 0      200        127.0.0.1:5432       0.0.0.0:*
+   LISTEN 0      4096         0.0.0.0:5433       0.0.0.0:*
+   LISTEN 0      200            [::1]:5432          [::]:*
+   LISTEN 0      4096            [::]:5433          [::]:*
+-- pg_isready (sem autenticar)
+   localhost:5432 - aceitando conexões
+-- ferramentas
+   initdb (PostgreSQL) 18.3
+   pg_ctl (PostgreSQL) 18.3
+   pg_dump (PostgreSQL) 18.3
+   pg_restore (PostgreSQL) 18.3
+   psql (PostgreSQL) 18.3
+   ldd (GNU libc) 2.44
+   locale pt_BR.utf8 disponível: 1
+-- processos da aplicação em execução
+-- identidade configurada (antes de conectar)
+   motor=postgresql banco=barbershop_db host=localhost porta=5432 usuario_confere=True senha_definida=True
+   IDENTIDADE CONFIGURADA: CONFERE

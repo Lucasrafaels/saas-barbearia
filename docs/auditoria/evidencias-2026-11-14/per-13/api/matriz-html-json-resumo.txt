@@ -1,0 +1,2 @@
+matriz HTML/JSON corrigido-debug-true (porta 8767): 1926 pedidos; respostas HTML=0; com dados de outro tenant=0; 500=0; OPTIONS renders=['application/json']
+matriz HTML/JSON corrigido-debug-false (porta 8768): 1926 pedidos; respostas HTML=0; com dados de outro tenant=0; 500=0; OPTIONS renders=['application/json']

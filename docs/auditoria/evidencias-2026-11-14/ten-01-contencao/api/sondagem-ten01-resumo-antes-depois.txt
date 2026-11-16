@@ -1,0 +1,69 @@
+== antes-debug-true (porta 8769): 1926 pedidos | HTML: 1071 | com dados de outro tenant: 114 | 500: 26 | OPTIONS renders=['application/json', 'text/html']
+   pedidos "html": 882 | status {200: 366, 401: 73, 403: 62, 404: 112, 405: 244, 500: 25} | content-type {'text/html': 882} | HTML 882 | com dados alheios 95
+   pedidos "navegador": 189 | status {200: 76, 401: 15, 403: 13, 404: 23, 405: 61, 500: 1} | content-type {'text/html': 189} | HTML 189 | com dados alheios 19
+   pedidos "json": 855 | status {200: 366, 401: 75, 403: 58, 404: 112, 405: 244} | content-type {'application/json': 855} | HTML 0 | com dados alheios 0
+   vazamentos (rota | papel | formas de pedido | maior nº de <option> alheios | exemplos de nomes alheios):
+     agendamento A | admin A | 6 formas | 11 | ['Barba B', 'Barbearia Outra Fictícia', 'Bento Barbeiro B', 'Clara Cliente B']
+     agendamento A | admin B | 6 formas | 23 | ['Barbearia Navalha Fictícia', 'Bruno Cliente', 'Caio Pente', 'Carla Cliente']
+     agendamento A | admin C (onboarding) | 6 formas | 28 | ['Barba B', 'Barbearia Navalha Fictícia', 'Barbearia Outra Fictícia', 'Bento Barbeiro B']
+     agendamento A | barbeiro A | 6 formas | 11 | ['Barba B', 'Barbearia Outra Fictícia', 'Bento Barbeiro B', 'Clara Cliente B']
+     agendamento A | cliente A | 6 formas | 11 | ['Barba B', 'Barbearia Outra Fictícia', 'Bento Barbeiro B', 'Clara Cliente B']
+     agendamento A | cliente B | 6 formas | 23 | ['Barbearia Navalha Fictícia', 'Bruno Cliente', 'Caio Pente', 'Carla Cliente']
+     agendamento A | sem barbearia (cadastro público) | 6 formas | 27 | ['Barba B', 'Barbearia Navalha Fictícia', 'Barbearia Outra Fictícia', 'Bento Barbeiro B']
+     agendamentos | admin A | 6 formas | 15 | ['Barba B', 'Barbearia Outra Fictícia', 'Bento Barbeiro B', 'Clara Cliente B']
+     agendamentos | admin B | 6 formas | 34 | ['Barbearia Navalha Fictícia', 'Bruno Cliente', 'Caio Pente', 'Carla Cliente']
+     agendamentos | admin C (onboarding) | 6 formas | 43 | ['Barba B', 'Barbearia Navalha Fictícia', 'Barbearia Outra Fictícia', 'Bento Barbeiro B']
+     agendamentos | barbeiro A | 6 formas | 15 | ['Barba B', 'Barbearia Outra Fictícia', 'Bento Barbeiro B', 'Clara Cliente B']
+     agendamentos | cliente A | 6 formas | 15 | ['Barba B', 'Barbearia Outra Fictícia', 'Bento Barbeiro B', 'Clara Cliente B']
+     agendamentos | cliente B | 6 formas | 34 | ['Barbearia Navalha Fictícia', 'Bruno Cliente', 'Caio Pente', 'Carla Cliente']
+     agendamentos | sem barbearia (cadastro público) | 6 formas | 42 | ['Barba B', 'Barbearia Navalha Fictícia', 'Barbearia Outra Fictícia', 'Bento Barbeiro B']
+     barbeiro A | admin B | 6 formas | 25 | ['Ana Proprietária', 'Bruno Cliente', 'Caio Pente', 'Carla Cliente']
+     barbeiro A | admin C (onboarding) | 6 formas | 27 | ['Ana Proprietária', 'Beatriz Proprietária B', 'Bento Barbeiro B', 'Bruno Cliente']
+     barbeiros | admin A | 6 formas | 16 | ['Beatriz Proprietária B', 'Bento Barbeiro B', 'Clara Cliente B', 'Onboarding Fictício']
+     barbeiros | admin B | 6 formas | 25 | ['Ana Proprietária', 'Bruno Cliente', 'Caio Pente', 'Carla Cliente']
+     barbeiros | admin C (onboarding) | 6 formas | 27 | ['Ana Proprietária', 'Beatriz Proprietária B', 'Bento Barbeiro B', 'Bruno Cliente']
+   respostas 500: {('usuário atual', 'cliente A', 'html'): 1, ('usuário atual', 'barbeiro A', 'html'): 1, ('usuário atual', 'admin A', 'html'): 1, ('usuário atual', 'cliente B', 'html'): 1, ('usuário atual', 'admin B', 'html'): 1, ('usuário atual', 'sem barbearia (cadastro público)', 'html'): 1, ('usuário atual', 'admin C (onboarding)', 'html'): 1, ('usuário atual', 'superusuário', 'html'): 1, ('agendamento A', 'anônimo', 'html'): 5, ('agendamento A', 'anônimo', 'navegador'): 1, ('horários livres', 'cliente A', 'html'): 1, ('horários livres', 'barbeiro A', 'html'): 1, ('horários livres', 'admin A', 'html'): 1, ('horários livres', 'cliente B', 'html'): 1, ('horários livres', 'admin B', 'html'): 1, ('horários livres', 'sem barbearia (cadastro público)', 'html'): 1, ('horários livres', 'admin C (onboarding)', 'html'): 1, ('horários livres', 'superusuário', 'html'): 1, ('faturamento', 'admin A', 'html'): 1, ('faturamento', 'admin B', 'html'): 1, ('faturamento', 'admin C (onboarding)', 'html'): 1, ('faturamento', 'superusuário', 'html'): 1}
+== antes-debug-false (porta 8770): 1926 pedidos | HTML: 1071 | com dados de outro tenant: 114 | 500: 26 | OPTIONS renders=['application/json', 'text/html']
+   pedidos "html": 882 | status {200: 366, 401: 73, 403: 62, 404: 112, 405: 244, 500: 25} | content-type {'text/html': 882} | HTML 882 | com dados alheios 95
+   pedidos "navegador": 189 | status {200: 76, 401: 15, 403: 13, 404: 23, 405: 61, 500: 1} | content-type {'text/html': 189} | HTML 189 | com dados alheios 19
+   pedidos "json": 855 | status {200: 366, 401: 75, 403: 58, 404: 112, 405: 244} | content-type {'application/json': 855} | HTML 0 | com dados alheios 0
+   vazamentos (rota | papel | formas de pedido | maior nº de <option> alheios | exemplos de nomes alheios):
+     agendamento A | admin A | 6 formas | 12 | ['Barba B', 'Barbearia Outra Fictícia', 'Bento Barbeiro B', 'Clara Cliente B']
+     agendamento A | admin B | 6 formas | 24 | ['Barbearia Navalha Fictícia', 'Bruno Cliente', 'Caio Pente', 'Carla Cliente']
+     agendamento A | admin C (onboarding) | 6 formas | 29 | ['Barba B', 'Barbearia Navalha Fictícia', 'Barbearia Outra Fictícia', 'Bento Barbeiro B']
+     agendamento A | barbeiro A | 6 formas | 12 | ['Barba B', 'Barbearia Outra Fictícia', 'Bento Barbeiro B', 'Clara Cliente B']
+     agendamento A | cliente A | 6 formas | 12 | ['Barba B', 'Barbearia Outra Fictícia', 'Bento Barbeiro B', 'Clara Cliente B']
+     agendamento A | cliente B | 6 formas | 24 | ['Barbearia Navalha Fictícia', 'Bruno Cliente', 'Caio Pente', 'Carla Cliente']
+     agendamento A | sem barbearia (cadastro público) | 6 formas | 28 | ['Barba B', 'Barbearia Navalha Fictícia', 'Barbearia Outra Fictícia', 'Bento Barbeiro B']
+     agendamentos | admin A | 6 formas | 16 | ['Barba B', 'Barbearia Outra Fictícia', 'Bento Barbeiro B', 'Clara Cliente B']
+     agendamentos | admin B | 6 formas | 35 | ['Barbearia Navalha Fictícia', 'Bruno Cliente', 'Caio Pente', 'Carla Cliente']
+     agendamentos | admin C (onboarding) | 6 formas | 44 | ['Barba B', 'Barbearia Navalha Fictícia', 'Barbearia Outra Fictícia', 'Bento Barbeiro B']
+     agendamentos | barbeiro A | 6 formas | 16 | ['Barba B', 'Barbearia Outra Fictícia', 'Bento Barbeiro B', 'Clara Cliente B']
+     agendamentos | cliente A | 6 formas | 16 | ['Barba B', 'Barbearia Outra Fictícia', 'Bento Barbeiro B', 'Clara Cliente B']
+     agendamentos | cliente B | 6 formas | 35 | ['Barbearia Navalha Fictícia', 'Bruno Cliente', 'Caio Pente', 'Carla Cliente']
+     agendamentos | sem barbearia (cadastro público) | 6 formas | 43 | ['Barba B', 'Barbearia Navalha Fictícia', 'Barbearia Outra Fictícia', 'Bento Barbeiro B']
+     barbeiro A | admin B | 6 formas | 27 | ['Ana Proprietária', 'Bruno Cliente', 'Caio Pente', 'Carla Cliente']
+     barbeiro A | admin C (onboarding) | 6 formas | 29 | ['Ana Proprietária', 'Beatriz Proprietária B', 'Bento Barbeiro B', 'Bruno Cliente']
+     barbeiros | admin A | 6 formas | 18 | ['Beatriz Proprietária B', 'Bento Barbeiro B', 'Clara Cliente B', 'Onboarding Fictício']
+     barbeiros | admin B | 6 formas | 27 | ['Ana Proprietária', 'Bruno Cliente', 'Caio Pente', 'Carla Cliente']
+     barbeiros | admin C (onboarding) | 6 formas | 29 | ['Ana Proprietária', 'Beatriz Proprietária B', 'Bento Barbeiro B', 'Bruno Cliente']
+   respostas 500: {('usuário atual', 'cliente A', 'html'): 1, ('usuário atual', 'barbeiro A', 'html'): 1, ('usuário atual', 'admin A', 'html'): 1, ('usuário atual', 'cliente B', 'html'): 1, ('usuário atual', 'admin B', 'html'): 1, ('usuário atual', 'sem barbearia (cadastro público)', 'html'): 1, ('usuário atual', 'admin C (onboarding)', 'html'): 1, ('usuário atual', 'superusuário', 'html'): 1, ('agendamento A', 'anônimo', 'html'): 5, ('agendamento A', 'anônimo', 'navegador'): 1, ('horários livres', 'cliente A', 'html'): 1, ('horários livres', 'barbeiro A', 'html'): 1, ('horários livres', 'admin A', 'html'): 1, ('horários livres', 'cliente B', 'html'): 1, ('horários livres', 'admin B', 'html'): 1, ('horários livres', 'sem barbearia (cadastro público)', 'html'): 1, ('horários livres', 'admin C (onboarding)', 'html'): 1, ('horários livres', 'superusuário', 'html'): 1, ('faturamento', 'admin A', 'html'): 1, ('faturamento', 'admin B', 'html'): 1, ('faturamento', 'admin C (onboarding)', 'html'): 1, ('faturamento', 'superusuário', 'html'): 1}
+== depois-debug-true (porta 8767): 1926 pedidos | HTML: 0 | com dados de outro tenant: 0 | 500: 0 | OPTIONS renders=['application/json']
+   pedidos "html": 882 | status {404: 504, 406: 378} | content-type {'application/json': 882} | HTML 0 | com dados alheios 0
+   pedidos "navegador": 189 | status {200: 76, 401: 16, 403: 13, 404: 23, 405: 61} | content-type {'application/json': 189} | HTML 0 | com dados alheios 0
+   pedidos "json": 855 | status {200: 366, 401: 75, 403: 58, 404: 112, 405: 244} | content-type {'application/json': 855} | HTML 0 | com dados alheios 0
+== depois-debug-false (porta 8768): 1926 pedidos | HTML: 0 | com dados de outro tenant: 0 | 500: 0 | OPTIONS renders=['application/json']
+   pedidos "html": 882 | status {404: 504, 406: 378} | content-type {'application/json': 882} | HTML 0 | com dados alheios 0
+   pedidos "navegador": 189 | status {200: 76, 401: 16, 403: 13, 404: 23, 405: 61} | content-type {'application/json': 189} | HTML 0 | com dados alheios 0
+   pedidos "json": 855 | status {200: 366, 401: 75, 403: 58, 404: 112, 405: 244} | content-type {'application/json': 855} | HTML 0 | com dados alheios 0
+
+[debug-true] pedidos "json": 855; status igual antes e depois em 855; diferentes: 0
+[debug-true] pedidos "navegador": 189; status igual antes e depois em 188; diferentes: 1
+     ('agendamento A', 'Accept de navegador', 'anônimo'): 500 text/html -> 401 application/json
+[debug-true] pedidos de HTML depois: status {406: 378, 404: 504}; corpo só com "detail": 882/882
+[debug-false] pedidos "json": 855; status igual antes e depois em 855; diferentes: 0
+[debug-false] pedidos "navegador": 189; status igual antes e depois em 188; diferentes: 1
+     ('agendamento A', 'Accept de navegador', 'anônimo'): 500 text/html -> 401 application/json
+[debug-false] pedidos de HTML depois: status {406: 378, 404: 504}; corpo só com "detail": 882/882
+
+DEBUG=True e DEBUG=False dão os mesmos status, content-types e formato, antes e depois: True

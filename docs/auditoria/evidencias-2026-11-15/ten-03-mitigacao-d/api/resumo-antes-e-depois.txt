@@ -1,0 +1,61 @@
+TEN-03, mitigação D — sondagem HTTP de antes e depois, com as taxas REAIS de cada versão do código.
+Bancos PG 18.3 DESCARTÁVEIS, um por instância. "Unicidade consultada" vem do log do próprio PostgreSQL.
+
+== cadastro: POST /api/v1/auth/register/
+  corrigido DEBUG=True  | 10×400, 15×429                           | unicidade consultada: 10 dos não limitados, 0 dos 429 | Retry-After: 3600, 86400 | corpos 429 distintos (sem os números): 1 | existente × livre iguais: True
+  corrigido DEBUG=False | 10×400, 15×429                           | unicidade consultada: 10 dos não limitados, 0 dos 429 | Retry-After: 3600, 86400 | corpos 429 distintos (sem os números): 1 | existente × livre iguais: True
+  anterior  DEBUG=True  | 10×400, 15×429                           | unicidade consultada: 10 dos não limitados, 0 dos 429 | Retry-After: 3599, 3600 | corpos 429 distintos (sem os números): 1 | existente × livre iguais: True
+  anterior  DEBUG=False | 10×400, 15×429                           | unicidade consultada: 10 dos não limitados, 0 dos 429 | Retry-After: 3600 | corpos 429 distintos (sem os números): 1 | existente × livre iguais: True
+
+== cadastro-xff: POST /api/v1/auth/register/
+  corrigido DEBUG=True  | 5×400                                    | unicidade consultada: 5 dos não limitados, 0 dos 429
+  corrigido DEBUG=False | 5×400                                    | unicidade consultada: 5 dos não limitados, 0 dos 429
+  anterior  DEBUG=True  | 5×400                                    | unicidade consultada: 5 dos não limitados, 0 dos 429
+  anterior  DEBUG=False | 5×400                                    | unicidade consultada: 5 dos não limitados, 0 dos 429
+
+== criacao: POST /api/v1/users/
+  corrigido DEBUG=True  | 30×400, 10×429                           | unicidade consultada: 30 dos não limitados, 0 dos 429 | Retry-After: 3599 | corpos 429 distintos (sem os números): 1 | existente × livre iguais: True
+  corrigido DEBUG=False | 30×400, 10×429                           | unicidade consultada: 30 dos não limitados, 0 dos 429 | Retry-After: 3599 | corpos 429 distintos (sem os números): 1 | existente × livre iguais: True
+  anterior  DEBUG=True  | 40×400                                   | unicidade consultada: 40 dos não limitados, 0 dos 429
+  anterior  DEBUG=False | 40×400                                   | unicidade consultada: 40 dos não limitados, 0 dos 429
+
+== criacao-outro-admin: POST /api/v1/users/
+  corrigido DEBUG=True  | 1×201                                    | unicidade consultada: 1 dos não limitados, 0 dos 429
+  corrigido DEBUG=False | 1×201                                    | unicidade consultada: 1 dos não limitados, 0 dos 429
+  anterior  DEBUG=True  | 1×201                                    | unicidade consultada: 1 dos não limitados, 0 dos 429
+  anterior  DEBUG=False | 1×201                                    | unicidade consultada: 1 dos não limitados, 0 dos 429
+
+== troca: PATCH /api/v1/users/2/
+  corrigido DEBUG=True  | 10×400, 5×429                            | unicidade consultada: 10 dos não limitados, 0 dos 429 | Retry-After: 3600 | corpos 429 distintos (sem os números): 1 | existente × livre iguais: True
+  corrigido DEBUG=False | 10×400, 5×429                            | unicidade consultada: 10 dos não limitados, 0 dos 429 | Retry-After: 3600 | corpos 429 distintos (sem os números): 1 | existente × livre iguais: True
+  anterior  DEBUG=True  | 15×400                                   | unicidade consultada: 15 dos não limitados, 0 dos 429
+  anterior  DEBUG=False | 15×400                                   | unicidade consultada: 15 dos não limitados, 0 dos 429
+
+== edicao-sem-troca: PATCH /api/v1/users/2/
+  corrigido DEBUG=True  | 2×200                                    | unicidade consultada: 1 dos não limitados, 0 dos 429
+  corrigido DEBUG=False | 2×200                                    | unicidade consultada: 1 dos não limitados, 0 dos 429
+  anterior  DEBUG=True  | 2×200                                    | unicidade consultada: 1 dos não limitados, 0 dos 429
+  anterior  DEBUG=False | 2×200                                    | unicidade consultada: 1 dos não limitados, 0 dos 429
+
+== vitima: PATCH /api/v1/users/5/
+  corrigido DEBUG=True  | 2×200, 1×204                             | unicidade consultada: 1 dos não limitados, 0 dos 429
+  corrigido DEBUG=False | 2×200, 1×204                             | unicidade consultada: 1 dos não limitados, 0 dos 429
+  anterior  DEBUG=True  | 2×200, 1×204                             | unicidade consultada: 1 dos não limitados, 0 dos 429
+  anterior  DEBUG=False | 2×200, 1×204                             | unicidade consultada: 1 dos não limitados, 0 dos 429
+
+== login: POST /api/v1/auth/login/
+  corrigido DEBUG=True  | 4×401, 1×429                             | unicidade consultada: 0 dos não limitados, 0 dos 429 | Retry-After: 59 | corpos 429 distintos (sem os números): 1
+  corrigido DEBUG=False | 4×401, 1×429                             | unicidade consultada: 0 dos não limitados, 0 dos 429 | Retry-After: 59 | corpos 429 distintos (sem os números): 1
+  anterior  DEBUG=True  | 4×401, 1×429                             | unicidade consultada: 0 dos não limitados, 0 dos 429 | Retry-After: 59 | corpos 429 distintos (sem os números): 1
+  anterior  DEBUG=False | 4×401, 1×429                             | unicidade consultada: 0 dos não limitados, 0 dos 429 | Retry-After: 59 | corpos 429 distintos (sem os números): 1
+
+== recuperacao: POST /api/v1/auth/password/reset/
+  corrigido DEBUG=True  | 2×204                                    | unicidade consultada: 0 dos não limitados, 0 dos 429
+  corrigido DEBUG=False | 2×204                                    | unicidade consultada: 0 dos não limitados, 0 dos 429
+  anterior  DEBUG=True  | 2×204                                    | unicidade consultada: 0 dos não limitados, 0 dos 429
+  anterior  DEBUG=False | 2×204                                    | unicidade consultada: 0 dos não limitados, 0 dos 429
+
+Exemplo de 429 (corrigido, DEBUG=False): POST /api/v1/auth/register/ -> {"detail":"Pedido foi limitado. Expected available in 3600 seconds."} | Content-Type: application/json | Retry-After: 3600
+
+Exemplo de 429 (corrigido, DEBUG=True): POST /api/v1/auth/register/ -> {"detail":"Pedido foi limitado. Expected available in 3600 seconds."} | Content-Type: application/json
+

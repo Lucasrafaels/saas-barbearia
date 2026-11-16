@@ -1,0 +1,7 @@
+datname|datcollate|datctype|datlocprovider|datcollversion
+validacao_sql|pt_BR.UTF-8|pt_BR.UTF-8|c|2.44
+template1|pt_BR.UTF-8|pt_BR.UTF-8|c|2.44
+(2 linhas)
+diretorio_confere|porta|versao
+t|55432|18.3
+(1 linha)

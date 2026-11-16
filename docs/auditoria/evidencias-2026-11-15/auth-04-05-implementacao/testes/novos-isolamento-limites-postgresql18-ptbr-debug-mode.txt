@@ -1,0 +1,5 @@
+$ manage.py test accounts.test_auth04_auth05 accounts.test_ten03_limites config.test_isolamento_tenant accounts.test_multitenant_isolation appointments.test_multitenant_isolation accounts.tests_multitenant_comprehensive_final config.test_renderers accounts.test_per13 appointments.test_sec10 appointments.test_ten02 accounts.test_permissions accounts.tests accounts.test_correcoes --settings=ptbr_test_settings --debug-mode --parallel 1  (PG 18.3 pt_BR, DEBUG=True no executor)
+Ran 211 tests in 27.428s
+
+OK
+Destroying test database for alias 'default'...

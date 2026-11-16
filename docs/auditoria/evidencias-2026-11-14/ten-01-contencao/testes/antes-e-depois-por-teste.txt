@@ -1,0 +1,55 @@
+TEN-01 — testes novos (config/test_renderers.py), SQLite em memória
+Código anterior = cópia do backend com o settings.py do HEAD (sem DEFAULT_RENDERER_CLASSES). Código corrigido = projeto.
+Resultado no código anterior: FAILED (failures=1493, errors=41)
+Resultado no código corrigido: OK
+
+teste                                                          | anterior (subtestes com falha/erro) | corrigido
+test_pedidos_de_html_nao_recebem_html_nem_dados                | 666 falhas, 20 erros                | passa
+test_pedidos_de_html_nao_recebem_html_nem_dados_com_debug      | 666 falhas, 20 erros                | passa
+test_casos_reproduzidos_na_auditoria                           | 8 falhas, 0 erros                   | passa
+test_options_continua_em_json_e_so_anuncia_json                | 6 falhas, 0 erros                   | passa
+test_nenhuma_view_registrada_reativa_renderizador_html         | 1 falhas, 0 erros                   | passa
+test_json_mantem_status_e_isolamento_de_cada_papel             | 146 falhas, 1 erros                 | passa
+test_listas_json_trazem_os_dados_do_proprio_tenant             | passa                               | passa
+test_fluxo_do_frontend_com_axios_continua_funcionando          | passa                               | passa
+test_escritas_do_admin_e_do_barbeiro_continuam_em_json         | passa                               | passa
+test_token_invalido_continua_recusado                          | passa                               | passa
+
+Motivos no código anterior (quantidade × tipo | forma de pedido | última linha da falha, com valores trocados por …):
+- test_pedidos_de_html_nao_recebem_html_nem_dados
+     146 × FAIL | Accept: text/html | AssertionError: … unexpectedly found in …
+     146 × FAIL | Accept: text/html,application/xhtml+xml | AssertionError: … unexpectedly found in …
+     146 × FAIL | ?format=api | AssertionError: … unexpectedly found in …
+     146 × FAIL | ?format=api com Accept: text/html | AssertionError: … unexpectedly found in …
+      82 × FAIL | sufixo .api | AssertionError: … unexpectedly found in …
+      15 × ERROR | sufixo .api | TypeError
+       1 × ERROR | Accept: text/html | AttributeError
+       1 × ERROR | Accept: text/html,application/xhtml+xml | AttributeError
+       1 × ERROR | ?format=api | AttributeError
+       1 × ERROR | ?format=api com Accept: text/html | AttributeError
+       1 × ERROR | sufixo .api | AttributeError
+- test_pedidos_de_html_nao_recebem_html_nem_dados_com_debug
+     146 × FAIL | Accept: text/html | AssertionError: … unexpectedly found in …
+     146 × FAIL | Accept: text/html,application/xhtml+xml | AssertionError: … unexpectedly found in …
+     146 × FAIL | ?format=api | AssertionError: … unexpectedly found in …
+     146 × FAIL | ?format=api com Accept: text/html | AssertionError: … unexpectedly found in …
+      82 × FAIL | sufixo .api | AssertionError: … unexpectedly found in …
+      15 × ERROR | sufixo .api | TypeError
+       1 × ERROR | Accept: text/html | AttributeError
+       1 × ERROR | Accept: text/html,application/xhtml+xml | AttributeError
+       1 × ERROR | ?format=api | AttributeError
+       1 × ERROR | ?format=api com Accept: text/html | AttributeError
+       1 × ERROR | sufixo .api | AttributeError
+- test_casos_reproduzidos_na_auditoria
+       8 × FAIL | — | AssertionError: … != …
+- test_options_continua_em_json_e_so_anuncia_json
+       6 × FAIL | — | + …
+- test_nenhuma_view_registrada_reativa_renderizador_html
+       1 × FAIL | — | -  <class …>]
+- test_json_mantem_status_e_isolamento_de_cada_papel
+     146 × FAIL | Accept de navegador | AssertionError: False is not true
+       1 × ERROR | Accept de navegador | AttributeError
+
+Leitura: "unexpectedly found" = a resposta era text/html; TypeError = sufixo de formato numa @action (API-03);
+AttributeError = o renderizador HTML chamou get_permissions() de agendamentos para o anônimo (AUTH-03);
+"False is not true" = o Accept de navegador recebia text/html em vez de JSON.

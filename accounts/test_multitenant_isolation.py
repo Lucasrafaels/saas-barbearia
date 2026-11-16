@@ -170,12 +170,13 @@ class AccountMultiTenantIsolationTests(APITestCase):
         url = reverse('user-detail', args=[self.barber_a.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Retrieve other user na mesma barbearia: o queryset o encontra (não é
-        # 404), mas o IsSelfOrAdmin nega no nível de objeto -> 403 (mesmo
-        # comportamento validado em test_permissions.py).
+        # Retrieve other user na mesma barbearia: PER-13 (SEC-10). Na leitura
+        # de detalhe, o barbeiro só enxerga o próprio cadastro já na consulta,
+        # e recebe o mesmo 404 de um ID inexistente (antes, 403 revelava que o
+        # ID existia). Ver accounts/test_per13.py.
         url = reverse('user-detail', args=[self.client_a.id])
         response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         # Update own user (allowed? IsSelfOrAdmin allows update of own)
         url = reverse('user-detail', args=[self.barber_a.id])
         payload = {'nome': 'New Name'}
@@ -196,11 +197,11 @@ class AccountMultiTenantIsolationTests(APITestCase):
         url = reverse('user-detail', args=[self.client_a.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Retrieve other (mesma barbearia): encontrado pelo queryset, mas
-        # negado no nível de objeto pelo IsSelfOrAdmin -> 403.
+        # Retrieve other (mesma barbearia): PER-13 (SEC-10), o mesmo 404 de um
+        # ID inexistente, sem carregar o registro. Ver accounts/test_per13.py.
         url = reverse('user-detail', args=[self.admin_a.id])
         response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         # Update own (allowed? IsSelfOrAdmin)
         url = reverse('user-detail', args=[self.client_a.id])
         payload = {'nome': 'New Name'}

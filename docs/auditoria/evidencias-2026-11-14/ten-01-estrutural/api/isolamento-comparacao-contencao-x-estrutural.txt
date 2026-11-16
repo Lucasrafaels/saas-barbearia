@@ -1,0 +1,11 @@
+antes: 217 verificações, 211 conformes
+depois: 217 verificações, 213 conformes
+mesmos IDs: True
+veredito alterado: 2
+  MT-FI-01: DIVERGENTE -> conforme
+     antes : B: 200 | inexistente: 400 {"barbeiro": ["Faça uma escolha válida. Sua escolha não é uma das disponíveis."]}
+     depois: B: 400 | inexistente: 400 {"barbeiro": ["Faça uma escolha válida. Sua escolha não é uma das disponíveis."]}
+  MT-AP-27: DIVERGENTE -> conforme
+     antes : ocupado: 400 {"barbershop": ["Este campo não pode ser nulo."], "data_hora": ["Este barbeiro já possui um agendamento neste horário."]} | livre: 400 {"barbershop": ["Este campo não pode ser nulo."]}; c
+     depois: ocupado: 400 {"cliente": ["Pk inválido \"15\" - objeto não existe."], "barbeiro": ["Pk inválido \"4\" - objeto não existe."], "servico": ["Pk inválido \" | livre: 400 {"cliente": ["Pk inválido \"15\" 
+divergentes que continuam: MT-US-16 (P3), MT-US-27 (P3), MT-AV-02 (P3), MT-UP-01 (P3)

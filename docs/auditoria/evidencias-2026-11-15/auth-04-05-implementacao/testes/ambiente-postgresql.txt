@@ -1,0 +1,5 @@
+CREATE DATABASE
+suite_ptbr|pt_BR.UTF-8|pt_BR.UTF-8|c|2.44
+template1|pt_BR.UTF-8|pt_BR.UTF-8|c|2.44
+PostgreSQL 18.3 on x86_64-redhat-linux-gnu, compiled by gcc (GCC) 16.2.1 20260819 (Red Hat 16.2.1-2), 64-bit
+ldd (GNU libc) 2.44

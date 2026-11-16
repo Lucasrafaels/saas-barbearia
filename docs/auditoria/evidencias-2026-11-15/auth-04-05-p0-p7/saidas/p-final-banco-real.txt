@@ -1,0 +1,5 @@
+== conferência final no banco real (somente leitura) 2026-11-15 22:49:45
+barbershop_db|t|18.3|::1|5432|t|on|on|pt_BR.UTF-8|pt_BR.UTF-8|c|2.43
+01 exit=0
+migrações, restrições, índices e regra: IDÊNTICOS à P2 (accounts.0006 ausente; nenhuma restrição nova)
+contagens: IDÊNTICAS à P2

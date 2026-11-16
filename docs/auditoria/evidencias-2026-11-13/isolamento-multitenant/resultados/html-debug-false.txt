@@ -1,0 +1,2 @@
+DEBUG=False | cliente A | GET /api/v1/appointments/ Accept: text/html -> HTTP 200, Content-Type text/html; charset=utf-8; nomes de B no HTML: ['Clara Cliente B', 'Bento Barbeiro B', 'Corte B', 'Barbearia Outra Fictícia']
+DEBUG=False confirmado: rota inexistente -> HTTP 404 sem a página técnica de rotas: True

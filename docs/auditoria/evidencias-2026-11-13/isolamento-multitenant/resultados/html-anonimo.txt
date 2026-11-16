@@ -1,0 +1,4 @@
+anônimo | GET /api/v1/ Accept: text/html -> HTTP 401; <select>: 0; nomes no HTML: []
+anônimo | GET /api/v1/appointments/ Accept: text/html -> HTTP 401; <select>: 0; nomes no HTML: []
+anônimo | GET /api/v1/barbers/ Accept: text/html -> HTTP 401; <select>: 0; nomes no HTML: []
+anônimo | GET /api/v1/users/ Accept: text/html -> HTTP 401; <select>: 0; nomes no HTML: []

@@ -1,0 +1,29 @@
+antes: 217 verificações, 203 conformes
+depois: 217 verificações, 211 conformes
+mesmos IDs: True
+veredito alterado: 8
+  MT-HT-01: DIVERGENTE -> conforme
+     antes : 200; 10 opções de outros tenants {'cliente:B': 1, 'cliente:sem barbearia': 1, 'barbeiro:B': 2, 'servico:B': 6}; nomes de B no HTML=['Clara Cliente B', 'Bento Barbeiro B', 'Corte B', 'Barba B', 'Inativ
+     depois: 406; 0 opções de outros tenants {}; nomes de B no HTML=[]
+  MT-HT-02: DIVERGENTE -> conforme
+     antes : 200; 10 opções de outros tenants {'cliente:B': 1, 'cliente:sem barbearia': 1, 'barbeiro:B': 2, 'servico:B': 6}; nomes de B no HTML=['Clara Cliente B', 'Bento Barbeiro B', 'Corte B', 'Barba B', 'Inativ
+     depois: 406; 0 opções de outros tenants {}; nomes de B no HTML=[]
+  MT-HT-03: DIVERGENTE -> conforme
+     antes : 200; 10 opções de outros tenants {'cliente:B': 1, 'cliente:sem barbearia': 1, 'barbeiro:B': 2, 'servico:B': 6}; nomes de B no HTML=['Clara Cliente B', 'Bento Barbeiro B', 'Corte B', 'Barba B', 'Inativ
+     depois: 406; 0 opções de outros tenants {}; nomes de B no HTML=[]
+  MT-HT-04: DIVERGENTE -> conforme
+     antes : 200; 6 opções de outros tenants {'cliente:B': 1, 'cliente:sem barbearia': 1, 'barbeiro:B': 1, 'servico:B': 3}; nomes de B no HTML=['Clara Cliente B', 'Bento Barbeiro B', 'Corte B', 'Barba B', 'Inativo
+     depois: 406; 0 opções de outros tenants {}; nomes de B no HTML=[]
+  MT-HT-05: DIVERGENTE -> conforme
+     antes : 200; 6 opções de outros tenants {'user:B': 3, 'user:C': 1, 'user:sem barbearia': 2}; nomes de B no HTML=['Clara Cliente B', 'Bento Barbeiro B', 'Beatriz Proprietária B', 'Operador Plataforma']
+     depois: 406; 0 opções de outros tenants {}; nomes de B no HTML=[]
+  MT-HT-07: DIVERGENTE -> conforme
+     antes : 200; 37 opções de outros tenants {'cliente:A': 6, 'cliente:B': 1, 'barbeiro:B': 2, 'barbeiro:A': 10, 'servico:A': 12, 'servico:B': 6}; nomes de B no HTML=['Clara Cliente B', 'Bento Barbeiro B', 'Corte
+     depois: 406; 0 opções de outros tenants {}; nomes de B no HTML=[]
+  MT-HT-08: DIVERGENTE -> conforme
+     antes : 200; 17 opções de outros tenants {'user:A': 12, 'user:B': 3, 'user:sem barbearia': 2}; nomes de B no HTML=['Clara Cliente B', 'Bento Barbeiro B', 'Beatriz Proprietária B', 'Operador Plataforma']
+     depois: 406; 0 opções de outros tenants {}; nomes de B no HTML=[]
+  MT-HT-12: DIVERGENTE -> conforme
+     antes : 200; nomes de B=['Clara Cliente B', 'Bento Barbeiro B', 'Corte B', 'Barba B', 'Inativo B', 'Barbearia Outra Fictícia']
+     depois: 404; nomes de B=[]
+divergentes que continuam: MT-US-16 (P3), MT-US-27 (P3), MT-FI-01 (P3), MT-AP-27 (P2), MT-AV-02 (P3), MT-UP-01 (P3)

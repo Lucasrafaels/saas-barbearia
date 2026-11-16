@@ -7,10 +7,17 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
+from config.tenancy import TenantScopedPrimaryKeyRelatedField
+
 from .models import Appointment
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
+    # TEN-01: `cliente`, `barbeiro` e `servico` só aceitam e só listam registros
+    # da barbearia do usuário autenticado. Um ID de outra barbearia recebe a
+    # mesma resposta de um ID inexistente, e o registro alheio não é lido.
+    serializer_related_field = TenantScopedPrimaryKeyRelatedField
+
     # Campos "achatados", só leitura, para o frontend não precisar de
     # chamadas extras para montar a tela de agendamento.
     cliente_nome = serializers.CharField(source='cliente.nome', read_only=True)
@@ -78,8 +85,15 @@ class AppointmentSerializer(serializers.ModelSerializer):
         if not barbershop_id and request:
             barbershop_id = request.user.barbershop_id
             appointment.barbershop_id = barbershop_id
+        # TEN-02: sem barbearia, recusa antes de qualquer regra de negócio.
+        # Antes, as checagens abaixo eram puladas quando barbershop_id era
+        # vazio, e o full_clean() consultava a agenda do barbeiro de outra
+        # barbearia. A view já recusa antes (HasBarbershop); esta segunda
+        # camada não depende dela nem do escopo dos campos relacionais.
+        if not barbershop_id:
+            raise PermissionDenied('Usuário sem barbearia vinculada.')
 
-        if barbeiro and barbershop_id and barbeiro.barbershop_id != barbershop_id:
+        if barbeiro and barbeiro.barbershop_id != barbershop_id:
             raise serializers.ValidationError(
                 {'barbeiro': 'Este barbeiro não pertence à sua barbearia.'}
             )
@@ -87,11 +101,11 @@ class AppointmentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'barbeiro': 'Este barbeiro está inativo.'}
             )
-        if servico and barbershop_id and servico.barbershop_id != barbershop_id:
+        if servico and servico.barbershop_id != barbershop_id:
             raise serializers.ValidationError(
                 {'servico': 'Este serviço não pertence à sua barbearia.'}
             )
-        if cliente and barbershop_id and cliente.barbershop_id != barbershop_id:
+        if cliente and cliente.barbershop_id != barbershop_id:
             raise serializers.ValidationError(
                 {'cliente': 'Este cliente não pertence à sua barbearia.'}
             )

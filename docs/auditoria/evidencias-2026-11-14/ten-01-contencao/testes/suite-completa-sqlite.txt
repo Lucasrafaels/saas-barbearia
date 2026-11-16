@@ -1,0 +1,12 @@
+# suíte completa, SQLite em memória (config.test_settings); DEBUG do .env na importação; o executor roda com DEBUG=False
+Creating test database for alias 'default'...
+Found 401 test(s).
+System check identified no issues (0 silenced).
+..............................................................................................................................................................................................................................................................................................................................................................................................sssssssss..........
+----------------------------------------------------------------------
+Ran 401 tests in 12.661s
+
+OK (skipped=9)
+Destroying test database for alias 'default'...
+venv/bin/python -W default manage.py test --settings=config.test_settings  13,87s user 0,32s system 98% cpu 14,448 total
+exit=0

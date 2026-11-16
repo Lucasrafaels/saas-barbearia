@@ -1,0 +1,39 @@
+cadastro público         novo, minúsculas                       201  gravado=novo.1@exemplo.test          equivalentes=1
+cadastro público         novo, maiúsculas na parte local        201  gravado=novo.2@exemplo.test          equivalentes=1
+cadastro público         novo, maiúsculas no domínio            201  gravado=novo.3@exemplo.test          equivalentes=1
+cadastro público         novo, tudo maiúsculo                   201  gravado=novo.4@exemplo.test          equivalentes=1
+cadastro público         novo, com espaços                      201  gravado=novo.5@exemplo.test          equivalentes=1
+cadastro público         existente, exato                       400  gravado=None                         equivalentes=1
+cadastro público         existente, maiúsculas na parte local   400  gravado=None                         equivalentes=1
+cadastro público         existente, maiúsculas no domínio       400  gravado=None                         equivalentes=1
+cadastro público         existente, tudo maiúsculo              400  gravado=None                         equivalentes=1
+cadastro público         existente, com espaços                 400  gravado=None                         equivalentes=1
+criação pelo admin       novo, minúsculas                       201  gravado=novo.11@exemplo.test         equivalentes=1
+criação pelo admin       novo, maiúsculas na parte local        201  gravado=novo.12@exemplo.test         equivalentes=1
+criação pelo admin       novo, maiúsculas no domínio            201  gravado=novo.13@exemplo.test         equivalentes=1
+criação pelo admin       novo, tudo maiúsculo                   201  gravado=novo.14@exemplo.test         equivalentes=1
+criação pelo admin       novo, com espaços                      201  gravado=novo.15@exemplo.test         equivalentes=1
+criação pelo admin       existente, exato                       400  gravado=None                         equivalentes=1
+criação pelo admin       existente, maiúsculas na parte local   400  gravado=None                         equivalentes=1
+criação pelo admin       existente, maiúsculas no domínio       400  gravado=None                         equivalentes=1
+criação pelo admin       existente, tudo maiúsculo              400  gravado=None                         equivalentes=1
+criação pelo admin       existente, com espaços                 400  gravado=None                         equivalentes=1
+troca do próprio e-mail  novo, minúsculas                       200  gravado=novo.21@exemplo.test         equivalentes=1
+troca do próprio e-mail  novo, maiúsculas na parte local        200  gravado=novo.22@exemplo.test         equivalentes=1
+troca do próprio e-mail  novo, maiúsculas no domínio            200  gravado=novo.23@exemplo.test         equivalentes=1
+troca do próprio e-mail  novo, tudo maiúsculo                   200  gravado=novo.24@exemplo.test         equivalentes=1
+troca do próprio e-mail  novo, com espaços                      200  gravado=novo.25@exemplo.test         equivalentes=1
+troca do próprio e-mail  existente, exato                       400  gravado=cliente.a2@alfa.test         equivalentes=1
+troca do próprio e-mail  existente, maiúsculas na parte local   400  gravado=cliente.a2@alfa.test         equivalentes=1
+troca do próprio e-mail  existente, maiúsculas no domínio       400  gravado=cliente.a2@alfa.test         equivalentes=1
+troca do próprio e-mail  existente, tudo maiúsculo              400  gravado=cliente.a2@alfa.test         equivalentes=1
+troca do próprio e-mail  existente, com espaços                 400  gravado=cliente.a2@alfa.test         equivalentes=1
+login (senha correta)    exato                                  200
+login (senha correta)    maiúsculas na parte local              200
+login (senha correta)    maiúsculas no domínio                  200
+login (senha correta)    tudo maiúsculo                         200
+login (senha correta)    com espaços                            200
+recuperação de senha     exato                                  204  [{'para': ['cliente.a1@alfa.test'], 'uid_da_conta': 2}]
+recuperação de senha     maiúsculas na parte local              204  [{'para': ['cliente.a1@alfa.test'], 'uid_da_conta': 2}]
+recuperação de senha     tudo maiúsculo                         204  [{'para': ['cliente.a1@alfa.test'], 'uid_da_conta': 2}]
+recuperação de senha     com espaços                            204  [{'para': ['cliente.a1@alfa.test'], 'uid_da_conta': 2}]

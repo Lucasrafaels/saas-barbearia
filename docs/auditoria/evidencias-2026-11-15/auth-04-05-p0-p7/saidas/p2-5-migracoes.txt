@@ -1,0 +1,31 @@
+AVISO:  o banco de dados "barbershop_db" possui uma não correspondência de versão de ordenação
+DETAIL:  The database was created using collation version 2.43, but the operating system provides version 2.44.
+HINT:  Rebuild all objects in this database that use the default collation and run ALTER DATABASE barbershop_db REFRESH COLLATION VERSION, or build PostgreSQL with the right library version.
+accounts
+ [X] 0001_initial
+ [X] 0002_initial
+ [X] 0003_rename_timestamps
+ [X] 0004_alter_user_created_at_alter_user_updated_at
+ [X] 0005_protect_barbershop
+ [ ] 0006_email_normalizado
+barbershops
+ [X] 0001_initial
+ [X] 0002_rename_timestamps
+ [X] 0003_alter_barber_created_at_alter_barber_updated_at_and_more
+ [X] 0004_protect_barber_history
+ [X] 0005_barber_deleted_at_barber_deleted_by_and_more
+ [X] 0006_barbershop_dias_funcionamento
+exit=0
+--- migrate --plan
+AVISO:  o banco de dados "barbershop_db" possui uma não correspondência de versão de ordenação
+DETAIL:  The database was created using collation version 2.43, but the operating system provides version 2.44.
+HINT:  Rebuild all objects in this database that use the default collation and run ALTER DATABASE barbershop_db REFRESH COLLATION VERSION, or build PostgreSQL with the right library version.
+AVISO:  o banco de dados "barbershop_db" possui uma não correspondência de versão de ordenação
+DETAIL:  The database was created using collation version 2.43, but the operating system provides version 2.44.
+HINT:  Rebuild all objects in this database that use the default collation and run ALTER DATABASE barbershop_db REFRESH COLLATION VERSION, or build PostgreSQL with the right library version.
+Planned operations:
+accounts.0006_email_normalizado
+    Raw Python operation
+    Create constraint accounts_user_email_normalizado on model user
+    Create constraint accounts_user_email_lower_unico on model user
+exit=0

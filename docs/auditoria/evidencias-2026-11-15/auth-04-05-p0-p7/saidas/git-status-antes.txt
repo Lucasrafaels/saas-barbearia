@@ -1,0 +1,34 @@
+ M accounts/managers.py
+ M accounts/models.py
+ M accounts/serializers.py
+ M accounts/test_correcoes.py
+ M accounts/test_multitenant_isolation.py
+ M accounts/test_permissions.py
+ M accounts/tests.py
+ M accounts/tests_multitenant_comprehensive_final.py
+ M accounts/views.py
+ M appointments/serializers.py
+ M appointments/test_multitenant_isolation.py
+ M appointments/views.py
+ M barbershops/serializers.py
+ M barbershops/tests.py
+ M config/permissions.py
+ M config/settings.py
+ M config/test_postgres_settings.py
+ M config/test_settings.py
+ M docs/AUDITORIA_BARBERPRO.md
+?? accounts/emails.py
+?? accounts/migrations/0006_email_normalizado.py
+?? accounts/test_auth04_auth05.py
+?? accounts/test_per13.py
+?? accounts/test_ten03_limites.py
+?? accounts/throttles.py
+?? appointments/filters.py
+?? appointments/test_sec10.py
+?? appointments/test_ten02.py
+?? config/tenancy.py
+?? config/test_isolamento_tenant.py
+?? config/test_renderers.py
+?? docs/auditoria/evidencias-2026-11-13/isolamento-multitenant/
+?? docs/auditoria/evidencias-2026-11-14/
+?? docs/auditoria/evidencias-2026-11-15/

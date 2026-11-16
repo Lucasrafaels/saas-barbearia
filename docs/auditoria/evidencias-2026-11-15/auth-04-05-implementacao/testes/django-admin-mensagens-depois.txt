@@ -1,0 +1,5 @@
+Depois do ajuste (banco descartável m_valido, accounts.0006 aplicada), dentro de transação desfeita:
+  'TUDO@MAIUSCULO.TEST'        válido=False erros={'email': ['Usuário com este E-mail já existe.']}
+  'x@álfa.test'                válido=False erros={'email': ['Insira um endereço de email válido.']}
+  'Nova.Conta@Admin.TEST'      válido=True erros={} gravado='nova.conta@admin.test'
+contas depois do rollback: 6

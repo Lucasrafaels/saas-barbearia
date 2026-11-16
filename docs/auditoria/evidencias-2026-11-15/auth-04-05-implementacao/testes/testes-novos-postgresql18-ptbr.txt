@@ -1,0 +1,114 @@
+$ manage.py test accounts.test_auth04_auth05 --settings=ptbr_test_settings --parallel 1 -v 2  (PG 18.3 descartável, pt_BR.UTF-8)
+Creating test database for alias 'default' ('test_suite_ptbr')...
+Found 41 test(s).
+Operations to perform:
+  Synchronize unmigrated apps: corsheaders, django_filters, messages, rest_framework, rest_framework_simplejwt, staticfiles
+  Apply all migrations: accounts, admin, appointments, auth, barbershops, contenttypes, services, sessions, token_blacklist
+Synchronizing apps without migrations:
+  Creating tables...
+    Running deferred SQL...
+Running migrations:
+  Applying accounts.0001_initial... OK
+  Applying barbershops.0001_initial... OK
+  Applying barbershops.0002_rename_timestamps... OK
+  Applying barbershops.0003_alter_barber_created_at_alter_barber_updated_at_and_more... OK
+  Applying contenttypes.0001_initial... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0001_initial... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying accounts.0002_initial... OK
+  Applying accounts.0003_rename_timestamps... OK
+  Applying accounts.0004_alter_user_created_at_alter_user_updated_at... OK
+  Applying accounts.0005_protect_barbershop... OK
+  Applying barbershops.0004_protect_barber_history... OK
+  Applying barbershops.0005_barber_deleted_at_barber_deleted_by_and_more... OK
+  Applying barbershops.0006_barbershop_dias_funcionamento... OK
+  Applying accounts.0006_email_normalizado... OK
+  Applying admin.0001_initial... OK
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying admin.0003_logentry_add_action_flag_choices... OK
+  Applying services.0001_initial... OK
+  Applying services.0002_rename_timestamps... OK
+  Applying services.0003_alter_service_created_at_alter_service_updated_at... OK
+  Applying services.0004_protect_service_history... OK
+  Applying appointments.0001_initial... OK
+  Applying appointments.0002_rename_timestamps... OK
+  Applying appointments.0003_alter_appointment_created_at_and_more... OK
+  Applying appointments.0004_protect_appointment_history... OK
+  Applying appointments.0005_appointment_appointment_barbeir_26b217_idx_and_more... OK
+  Applying appointments.0007_appointment_preco_historico... OK
+  Applying appointments.0008_populate_preco_historico... OK
+  Applying services.0005_service_deleted_at_service_deleted_by_and_more... OK
+  Applying sessions.0001_initial... OK
+  Applying token_blacklist.0001_initial... OK
+  Applying token_blacklist.0002_outstandingtoken_jti_hex... OK
+  Applying token_blacklist.0003_auto_20171017_2007... OK
+  Applying token_blacklist.0004_auto_20171017_2013... OK
+  Applying token_blacklist.0005_remove_outstandingtoken_jti... OK
+  Applying token_blacklist.0006_auto_20171017_2113... OK
+  Applying token_blacklist.0007_auto_20171017_2214... OK
+  Applying token_blacklist.0008_migrate_to_bigautofield... OK
+  Applying token_blacklist.0010_fix_migrate_to_bigautofield... OK
+  Applying token_blacklist.0011_linearizes_history... OK
+  Applying token_blacklist.0012_alter_outstandingtoken_user... OK
+System check identified no issues (0 silenced).
+test_formularios_do_django_admin (accounts.test_auth04_auth05.AdminModelECaminhosDiretosTests.test_formularios_do_django_admin) ... ok
+test_manager_e_save_gravam_a_forma_canonica (accounts.test_auth04_auth05.AdminModelECaminhosDiretosTests.test_manager_e_save_gravam_a_forma_canonica) ... ok
+test_update_e_bulk_create_contornam_o_save_e_o_banco_recusa (accounts.test_auth04_auth05.AdminModelECaminhosDiretosTests.test_update_e_bulk_create_contornam_o_save_e_o_banco_recusa) ... ok
+test_cliente_cadastrado_pelo_admin_entra_com_outra_caixa_e_agenda (accounts.test_auth04_auth05.CadastroPublicoTests.test_cliente_cadastrado_pelo_admin_entra_com_outra_caixa_e_agenda) ... ok
+test_conta_sem_barbearia_continua_recusada_no_agendamento (accounts.test_auth04_auth05.CadastroPublicoTests.test_conta_sem_barbearia_continua_recusada_no_agendamento) ... ok
+test_dono_cadastra_entra_cria_a_barbearia_e_agenda (accounts.test_auth04_auth05.CadastroPublicoTests.test_dono_cadastra_entra_cria_a_barbearia_e_agenda)
+Fluxo atual do cadastro público (dono): conta sem barbearia → login → onboarding → agenda pela própria barbearia. ... ok
+test_formas_aceitas_e_gravadas_na_forma_canonica (accounts.test_auth04_auth05.CadastroPublicoTests.test_formas_aceitas_e_gravadas_na_forma_canonica) ... ok
+test_formas_recusadas_com_a_resposta_de_email_invalido (accounts.test_auth04_auth05.CadastroPublicoTests.test_formas_recusadas_com_a_resposta_de_email_invalido) ... ok
+test_variacao_de_caixa_de_conta_existente_e_recusada (accounts.test_auth04_auth05.CadastroPublicoTests.test_variacao_de_caixa_de_conta_existente_e_recusada) ... ok
+test_admin_edita_o_email_de_um_cliente (accounts.test_auth04_auth05.CriacaoEEdicaoTests.test_admin_edita_o_email_de_um_cliente) ... ok
+test_criacao_pelo_admin (accounts.test_auth04_auth05.CriacaoEEdicaoTests.test_criacao_pelo_admin) ... ok
+test_duplicidade_na_mesma_barbearia_e_em_outra (accounts.test_auth04_auth05.CriacaoEEdicaoTests.test_duplicidade_na_mesma_barbearia_e_em_outra) ... ok
+test_edicao_do_proprio_email (accounts.test_auth04_auth05.CriacaoEEdicaoTests.test_edicao_do_proprio_email) ... ok
+test_lower_e_faixa_iguais_em_todo_o_ascii_e_regex_exata_em_todos_os_pontos (accounts.test_auth04_auth05.EquivalenciaPostgreSQLTests.test_lower_e_faixa_iguais_em_todo_o_ascii_e_regex_exata_em_todos_os_pontos) ... ok
+test_toda_forma_canonica_satisfaz_o_check_no_banco (accounts.test_auth04_auth05.EquivalenciaPostgreSQLTests.test_toda_forma_canonica_satisfaz_o_check_no_banco) ... ok
+test_outro_integrity_error_nao_vira_email_duplicado (accounts.test_auth04_auth05.IntegrityErrorTests.test_outro_integrity_error_nao_vira_email_duplicado) ... ok
+test_pedido_simultaneo_simulado_responde_400_e_a_transacao_continua_integra (accounts.test_auth04_auth05.IntegrityErrorTests.test_pedido_simultaneo_simulado_responde_400_e_a_transacao_continua_integra) ... ok
+test_respostas_iguais_com_debug_true_e_false (accounts.test_auth04_auth05.IntegrityErrorTests.test_respostas_iguais_com_debug_true_e_false) ... Bad Request: /api/v1/auth/register/
+ok
+test_email_de_outra_barbearia_em_qualquer_caixa_nao_entra_em_a (accounts.test_auth04_auth05.IsolamentoTests.test_email_de_outra_barbearia_em_qualquer_caixa_nao_entra_em_a) ... ok
+test_proprio_email_em_outra_caixa_nao_consome_cota (accounts.test_auth04_auth05.LimitesExistentesTests.test_proprio_email_em_outra_caixa_nao_consome_cota) ... ok
+test_auth04_variacao_de_caixa_nao_pode_existir_nem_desviar_a_recuperacao (accounts.test_auth04_auth05.LoginERecuperacaoTests.test_auth04_variacao_de_caixa_nao_pode_existir_nem_desviar_a_recuperacao) ... ok
+test_login_do_django_admin_e_createsuperuser_usam_a_mesma_regra (accounts.test_auth04_auth05.LoginERecuperacaoTests.test_login_do_django_admin_e_createsuperuser_usam_a_mesma_regra) ... ok
+test_login_errado_tem_a_mesma_resposta_para_existente_inexistente_e_fora_da_regra (accounts.test_auth04_auth05.LoginERecuperacaoTests.test_login_errado_tem_a_mesma_resposta_para_existente_inexistente_e_fora_da_regra) ... ok
+test_login_sem_diferenciar_caixa_e_com_espacos (accounts.test_auth04_auth05.LoginERecuperacaoTests.test_login_sem_diferenciar_caixa_e_com_espacos) ... ok
+test_recuperacao_inexistente_e_inativa_respondem_igual (accounts.test_auth04_auth05.LoginERecuperacaoTests.test_recuperacao_inexistente_e_inativa_respondem_igual) ... ok
+test_recuperacao_vai_para_a_conta_canonica (accounts.test_auth04_auth05.LoginERecuperacaoTests.test_recuperacao_vai_para_a_conta_canonica) ... ok
+test_acentos_unicode_e_punycode (accounts.test_auth04_auth05.RegraUnicaTests.test_acentos_unicode_e_punycode) ... ok
+test_ascii_valido_minusculas_e_espacos_externos (accounts.test_auth04_auth05.RegraUnicaTests.test_ascii_valido_minusculas_e_espacos_externos) ... ok
+test_campo_da_api_responde_como_antes_para_entradas_invalidas (accounts.test_auth04_auth05.RegraUnicaTests.test_campo_da_api_responde_como_antes_para_entradas_invalidas)
+Mesmo código e mensagem do EmailField do DRF que já era usado (null, blank, invalid). ... ok
+test_divergentes_e_os_que_viram_ascii_sao_recusados_antes_de_converter (accounts.test_auth04_auth05.RegraUnicaTests.test_divergentes_e_os_que_viram_ascii_sao_recusados_antes_de_converter) ... ok
+test_entradas_que_nao_sao_texto (accounts.test_auth04_auth05.RegraUnicaTests.test_entradas_que_nao_sao_texto) ... ok
+test_espacos_internos_sao_recusados (accounts.test_auth04_auth05.RegraUnicaTests.test_espacos_internos_sao_recusados) ... ok
+test_nenhum_ponto_de_codigo_fora_do_ascii_passa (accounts.test_auth04_auth05.RegraUnicaTests.test_nenhum_ponto_de_codigo_fora_do_ascii_passa) ... ok
+test_reconhece_so_a_violacao_da_unicidade_do_email (accounts.test_auth04_auth05.RegraUnicaTests.test_reconhece_so_a_violacao_da_unicidade_do_email) ... ok
+test_dois_admins_de_barbearias_diferentes (accounts.test_auth04_auth05.ConcorrenciaRealTests.test_dois_admins_de_barbearias_diferentes) ... ok
+test_dois_cadastros_publicos_equivalentes (accounts.test_auth04_auth05.ConcorrenciaRealTests.test_dois_cadastros_publicos_equivalentes) ... ok
+test_duas_trocas_de_email_para_o_mesmo (accounts.test_auth04_auth05.ConcorrenciaRealTests.test_duas_trocas_de_email_para_o_mesmo) ... ok
+test_colisoes_interrompem_sem_alterar_nada_e_mostram_so_ids (accounts.test_auth04_auth05.MigracaoEmailNormalizadoTests.test_colisoes_interrompem_sem_alterar_nada_e_mostram_so_ids) ... ok
+test_dados_antigos_validos_sao_convertidos (accounts.test_auth04_auth05.MigracaoEmailNormalizadoTests.test_dados_antigos_validos_sao_convertidos) ... ok
+test_emails_fora_da_faixa_interrompem (accounts.test_auth04_auth05.MigracaoEmailNormalizadoTests.test_emails_fora_da_faixa_interrompem) ... ok
+test_reversao_retira_as_restricoes_e_nao_recupera_a_grafia_original (accounts.test_auth04_auth05.MigracaoEmailNormalizadoTests.test_reversao_retira_as_restricoes_e_nao_recupera_a_grafia_original) ... ok
+
+----------------------------------------------------------------------
+Ran 41 tests in 6.681s
+
+OK
+Destroying test database for alias 'default' ('test_suite_ptbr')...

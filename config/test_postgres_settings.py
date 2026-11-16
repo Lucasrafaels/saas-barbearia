@@ -34,6 +34,12 @@ REST_FRAMEWORK = {
         'password_change': '5/hour',
         'password_reset': '5/hour',
         'password_reset_confirm': '10/hour',
+        # TEN-03 (mitigação D): as mesmas taxas de config/settings.py.
+        'register_day': '20/day',
+        'user_create': '30/hour',
+        'user_create_day': '100/day',
+        'email_change': '10/hour',
+        'email_change_day': '30/day',
     },
 }
 

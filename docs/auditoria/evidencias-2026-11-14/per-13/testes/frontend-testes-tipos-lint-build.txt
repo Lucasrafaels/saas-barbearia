@@ -1,0 +1,140 @@
+$ npm test
+
+> barbearia-saas-frontend@1.0.0 test
+> node --import ./tests/register-ts.mjs --test "tests/**/*.test.ts"
+
+▶ rótulo de cada dia
+  ✔ hoje e amanhã levam a referência relativa e a data uma única vez (1.588767ms)
+  ✔ os demais dias trazem a data uma única vez (o caso da auditoria) (0.39625ms)
+  ✔ dia fechado informa que a barbearia não abre (0.35322ms)
+  ✔ virada de ano (0.302125ms)
+✔ rótulo de cada dia (3.970065ms)
+▶ os 21 dias oferecidos no agendamento
+  ✔ cada rótulo é único e não repete a data nem o dia da semana (fechado=false) (2.218904ms)
+  ✔ cada rótulo é único e não repete a data nem o dia da semana (fechado=true) (1.771399ms)
+✔ os 21 dias oferecidos no agendamento (4.225882ms)
+▶ seção por segmento de caminho
+  ✔ a própria seção e as subpáginas pertencem a ela (1.085407ms)
+  ✔ caminhos que só começam com o mesmo texto não pertencem (caso da auditoria) (0.226102ms)
+✔ seção por segmento de caminho (2.764994ms)
+▶ perfil admin
+  ✔ /admin → /admin (0.86227ms)
+  ✔ /admin/appointments → /admin/appointments (0.301954ms)
+  ✔ /admin/appointments?status=agendado → /admin/appointments (0.242563ms)
+  ✔ /admin/services → /admin/services (0.187781ms)
+  ✔ /admin/barbers → /admin/barbers (0.130865ms)
+  ✔ /admin/clients → /admin/clients (0.171079ms)
+  ✔ /admin/barbershop → nenhuma aba (0.215032ms)
+  ✔ /admin/barbershop/ → nenhuma aba (0.222806ms)
+  ✔ /admin/barbers/ → /admin/barbers (0.121477ms)
+  ✔ /account → nenhuma aba (0.06936ms)
+  ✔ cada aba fica ativa na própria tela (0.212988ms)
+✔ perfil admin (3.660627ms)
+▶ perfil barbeiro
+  ✔ /barber/agenda → /barber/agenda (0.473454ms)
+  ✔ /barber/agenda?status=agendado → /barber/agenda?status=agendado (0.088074ms)
+  ✔ /account → /account (0.051156ms)
+  ✔ cada aba fica ativa na própria tela (0.063739ms)
+✔ perfil barbeiro (0.924968ms)
+▶ perfil cliente
+  ✔ / → / (0.209691ms)
+  ✔ /appointments/new → /appointments/new (0.045886ms)
+  ✔ /appointments/new?reschedule=12 → /appointments/new (0.039523ms)
+  ✔ /appointments → /appointments (0.038201ms)
+  ✔ /services → /services (0.043291ms)
+  ✔ /barbers → /barbers (0.039334ms)
+  ✔ /account → nenhuma aba (0.041367ms)
+  ✔ cada aba fica ativa na própria tela (0.08523ms)
+✔ perfil cliente (0.789705ms)
+✔ "Barbeiros" não fica ativa em "Dados da barbearia" (FE-22) (0.336388ms)
+▶ dia da semana ISO
+  ✔ segue o padrão da API (1 = segunda … 7 = domingo) (0.608026ms)
+✔ dia da semana ISO (1.439729ms)
+▶ barbearia aberta hoje
+  ✔ dentro do horário: aberta até o fechamento (0.751434ms)
+  ✔ limites: abre exatamente na abertura e fecha exatamente no fechamento (0.358209ms)
+  ✔ antes de abrir: abre hoje mais tarde (0.215643ms)
+✔ barbearia aberta hoje (1.636537ms)
+▶ dias em que a barbearia não abre
+  ✔ hoje fechado, amanhã aberto: fechada mesmo dentro do horário (0.378357ms)
+  ✔ hoje e o fim de semana fechados: abre na segunda (0.226624ms)
+  ✔ sábado depois do fechamento com domingo fechado: não promete abrir amanhã (0.205103ms)
+  ✔ só abre um dia por semana: depois do fechamento, abre na semana seguinte (0.278711ms)
+  ✔ sem a configuração de dias (resposta antiga da API): vale o padrão, todos os dias (0.272419ms)
+✔ dias em que a barbearia não abre (1.808157ms)
+▶ barbearia desativada
+  ✔ o status mostra a desativação, mesmo num dia e horário de funcionamento (0.355293ms)
+  ✔ reativada, volta ao status pelo horário (0.178504ms)
+✔ barbearia desativada (0.715246ms)
+▶ mudança de configuração
+  ✔ o mesmo instante muda de status quando os dias mudam (0.237494ms)
+✔ mudança de configuração (0.338542ms)
+▶ coerência com o calendário de agendamento
+  ✔ aberta só em dia de funcionamento e dentro do horário; o dia prometido é aberto e é o primeiro aberto (11.957312ms)
+✔ coerência com o calendário de agendamento (12.128411ms)
+ℹ tests 45
+ℹ suites 12
+ℹ pass 45
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 297.169761
+exit=0
+$ npx tsc -p tsconfig.app.json --noEmit
+exit=0
+$ npx tsc -p tsconfig.node.json --noEmit
+exit=0
+$ npx eslint . --max-warnings=0
+exit=0
+$ npm run build
+
+> barbearia-saas-frontend@1.0.0 build
+> tsc -b && vite build
+
+vite v6.4.3 building for production...
+transforming...
+✓ 177 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                               0.64 kB │ gzip:   0.39 kB
+dist/assets/barberpro-horizontal-fundo-claro-B7fmg6Do.svg     4.15 kB │ gzip:   1.72 kB
+dist/assets/barberpro-horizontal-fundo-escuro-CVi2ZUs8.svg    4.15 kB │ gzip:   1.73 kB
+dist/assets/barberpro-horizontal-mono-BeAn8hzf.svg            4.17 kB │ gzip:   1.74 kB
+dist/assets/barberpro-emblema-fundo-claro-Bm1Asbns.svg       10.08 kB │ gzip:   4.41 kB
+dist/assets/barberpro-emblema-fundo-escuro-3PpSKMMZ.svg      10.13 kB │ gzip:   4.42 kB
+dist/assets/barberpro-emblema-mono-BFkP7c3f.svg              10.17 kB │ gzip:   4.42 kB
+dist/assets/league-gothic-latin-CRZtnArM.woff2               18.65 kB
+dist/assets/public-sans-latin-DdeTHZLK.woff2                 26.83 kB
+dist/assets/settings-DiFT63hj.css                             2.22 kB │ gzip:   0.73 kB
+dist/assets/AdminDashboardPage-Ct3xSlXF.css                   6.44 kB │ gzip:   1.82 kB
+dist/assets/dashboard-DJ_iUWQ5.css                            9.47 kB │ gzip:   2.18 kB
+dist/assets/LandingPage-BxSdd784.css                         10.68 kB │ gzip:   2.67 kB
+dist/assets/client-bXzZ3sk8.css                              15.65 kB │ gzip:   3.35 kB
+dist/assets/index-Dpo2m9dK.css                               53.64 kB │ gzip:  10.77 kB
+dist/assets/settings.module-Dk-W73h3.js                       0.26 kB │ gzip:   0.17 kB
+dist/assets/PageHeader-Duhu7tz4.js                            0.49 kB │ gzip:   0.28 kB
+dist/assets/BarbersPage-Ua9dq5wR.js                           1.29 kB │ gzip:   0.73 kB
+dist/assets/dashboard.module-CE3vYKPE.js                      1.58 kB │ gzip:   0.66 kB
+dist/assets/AppointmentActions-C0g7uUGd.js                    1.79 kB │ gzip:   0.98 kB
+dist/assets/PasswordResetRequestPage-Bc-TU1Jz.js              2.12 kB │ gzip:   1.05 kB
+dist/assets/client.module-qxo9uFYF.js                         2.34 kB │ gzip:   0.93 kB
+dist/assets/ServicesPage-mITl9Fpd.js                          2.49 kB │ gzip:   1.23 kB
+dist/assets/PasswordResetConfirmPage-CaiAKyj1.js              3.14 kB │ gzip:   1.38 kB
+dist/assets/RegisterPage-DdZonYzs.js                          3.15 kB │ gzip:   1.43 kB
+dist/assets/MyAppointmentsPage-Do1CUiwW.js                    3.79 kB │ gzip:   1.72 kB
+dist/assets/OnboardingPage-3cEAyB-q.js                        4.39 kB │ gzip:   1.79 kB
+dist/assets/HomePage-BUlfa1cH.js                              4.76 kB │ gzip:   1.79 kB
+dist/assets/AccountPage-Pb7sG7m0.js                           5.18 kB │ gzip:   1.96 kB
+dist/assets/AdminAppointmentsPage-DqNra9gn.js                 5.44 kB │ gzip:   2.29 kB
+dist/assets/BarberAgendaPage-C8eepdCZ.js                      5.47 kB │ gzip:   2.37 kB
+dist/assets/AdminBarbershopPage-Dz-0Ksxu.js                   6.11 kB │ gzip:   2.30 kB
+dist/assets/AdminServicesPage-Bvc9s-sF.js                     8.65 kB │ gzip:   3.53 kB
+dist/assets/AdminBarbersPage-DuuAxrDh.js                      9.37 kB │ gzip:   3.32 kB
+dist/assets/AdminClientsPage-DPqPHN9Z.js                      9.43 kB │ gzip:   3.39 kB
+dist/assets/LandingPage-BQJ1QQVp.js                          10.06 kB │ gzip:   3.38 kB
+dist/assets/AppointmentCreatePage-CqVQUEoV.js                16.49 kB │ gzip:   5.30 kB
+dist/assets/AdminDashboardPage-D1tTad9H.js                   18.06 kB │ gzip:   6.18 kB
+dist/assets/index-Dwex0SI_.js                               436.32 kB │ gzip: 139.04 kB
+✓ built in 2.03s
+exit=0

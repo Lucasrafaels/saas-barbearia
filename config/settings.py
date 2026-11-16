@@ -175,6 +175,16 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+    # Somente JSON (TEN-01). Sem esta chave, o DRF também ativa a API
+    # navegável (BrowsableAPIRenderer), que responde em HTML a
+    # "Accept: text/html", "?format=api" ou ao sufixo ".api". Os <select>
+    # dos formulários dessa página listavam clientes, barbeiros, admins e
+    # serviços de todas as barbearias, mesmo com DEBUG=False. O frontend
+    # consome só JSON. Não reative renderizadores HTML sem antes limitar
+    # ao tenant o queryset dos campos relacionados e dos filtros.
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
     'DEFAULT_PAGINATION_CLASS': 'config.pagination.DefaultPagination',
     'PAGE_SIZE': 20,
     # Habilitado globalmente; cada ViewSet decide se usa filterset_fields.
@@ -197,6 +207,15 @@ REST_FRAMEWORK = {
         'password_change': '5/hour',
         'password_reset': '5/hour',
         'password_reset_confirm': '10/hour',
+        # TEN-03 (mitigação D, accounts/throttles.py): operações que consultam
+        # a unicidade do e-mail em toda a plataforma. A chave é sempre quem
+        # pede, nunca o e-mail-alvo. Reduzem a sondagem, mas NÃO a eliminam.
+        # A troca de e-mail só conta quando o e-mail enviado difere do atual.
+        'register_day': '20/day',     # soma-se ao 'register' (10/hour)
+        'user_create': '30/hour',     # POST /users/ (administradores)
+        'user_create_day': '100/day',
+        'email_change': '10/hour',    # PATCH/PUT /users/{id}/ com outro e-mail
+        'email_change_day': '30/day',
     },
 }
 

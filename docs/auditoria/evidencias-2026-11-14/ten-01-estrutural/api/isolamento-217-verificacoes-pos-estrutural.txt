@@ -1,0 +1,5 @@
+217 verificações; 213 conforme; 4 divergentes
+ X  MT-US-16 P3 | admin | POST /users/ | criar usuário com o e-mail de um cliente de B | 400 {"email": ["usuário com este e-mail já existe."]} | e-mail livre (senha inválida): 400 {"password": ["Certifique-se de que este campo tenha mais de 8 caracteres."]}
+ X  MT-US-27 P3 | admin | PATCH /users/{id}/ | dar a um cliente de A o e-mail de um cliente de B | 400 {"email": ["usuário com este e-mail já existe."]}
+ X  MT-AV-02 P3 | cliente | GET /appointments/available-slots/?exclude_appointment_id=… | excluir agendamento de B da ocupação | B: 404 {"detail": "Agendamento a excluir não pertence à sua barbearia."} | inexistente: 404 {"detail": "Agendamento a excluir não encontrado."}
+ X  MT-UP-01 P3 | anônimo | GET /media/barbershops/logos/… | baixar o logo de B sem autenticação | 200 (/media/barbershops/logos/logo-b.png)

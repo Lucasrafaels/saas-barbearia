@@ -1,0 +1,10 @@
+configuração da aplicação: motor=postgresql banco=barbershop_db host=localhost porta=5432
+     banco     | versao | endereco | porta | sessao_somente_leitura | limite_por_comando | limite_de_trava 
+---------------+--------+----------+-------+------------------------+--------------------+-----------------
+ barbershop_db | 18.3   | ::1      |  5432 | on                     | 30s                | 5s
+(1 row)
+
+AVISO:  o banco de dados "barbershop_db" possui uma não correspondência de versão de ordenação
+DETAIL:  The database was created using collation version 2.43, but the operating system provides version 2.44.
+HINT:  Rebuild all objects in this database that use the default collation and run ALTER DATABASE barbershop_db REFRESH COLLATION VERSION, or build PostgreSQL with the right library version.
+psql exit=0

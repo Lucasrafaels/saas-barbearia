@@ -1,0 +1,13 @@
+# suíte completa, PostgreSQL 18.3 DESCARTÁVEL, DEBUG=False também na importação (SECURE_SSL_REDIRECT=False só para o cliente de testes HTTP)
+settings.DEBUG na importação = False
+Creating test database for alias 'default'...
+Found 423 test(s).
+System check identified no issues (0 silenced).
+.......................................................................................................................................................................................................................................................................................................................................................................................................................................
+----------------------------------------------------------------------
+Ran 423 tests in 26.233s
+
+OK
+Destroying test database for alias 'default'...
+env DEBUG=False SECURE_SSL_REDIRECT=False PYTHONPATH=$S/iso/pkg:$P  -W defaul  20,45s user 1,24s system 76% cpu 28,182 total
+exit=0

@@ -1,0 +1,5225 @@
+[
+ {
+  "id": "R01",
+  "grupo": "POST /auth/register/ (cadastro público)",
+  "descricao": "e-mail nunca utilizado, senha válida",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "tenant_do_solicitante": "(anônimo)",
+  "email_sondado": "novo.r01@exemplo.test",
+  "dono_do_email": "novo",
+  "esperado_registrado_antes": "201, conta criada",
+  "corpo_enviado": {
+   "nome": "Rita Nova",
+   "email": "novo.r01@exemplo.test",
+   "password": "<senha omitida>"
+  },
+  "preparo": null,
+  "status": 201,
+  "content_type": "application/json",
+  "resposta_integral": "{\"id\":11,\"email\":\"novo.r01@exemplo.test\",\"nome\":\"Rita Nova\",\"tipo_perfil\":\"cliente\",\"barbershop\":null,\"is_active\":true,\"created_at\":\"2026-11-15T16:25:33.744334-03:00\"}",
+  "resposta_json": {
+   "id": 11,
+   "email": "novo.r01@exemplo.test",
+   "nome": "Rita Nova",
+   "tipo_perfil": "cliente",
+   "barbershop": null,
+   "is_active": true,
+   "created_at": "2026-11-15T16:25:33.744334-03:00"
+  },
+  "tempo_ms": 265.7,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "11",
+     "email": "novo.r01@exemplo.test",
+     "barbershop_id": "null",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 11
+  },
+  "usuarios_criados": 1,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'novo.r01@exemplo.test' LIMIT 1"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "INSERT INTO \"accounts_user\" (\"password\", \"last_login\", \"is_superuser\", \"is_staff\", \"is_active\", \"date_joined\", \"created_at\", \"updated_at\", \"email\", \"nome\", \"tipo_perfil\", \"barbershop_id\") VALUES ('<hash de senha removido>', NULL, false, false, true, '2026-11-15T19:25:33.519579+00:00'::timestamptz, '2026-11-15T19:25:33.744334+00:00'::timestamptz, '2026-11-15T19:25:33.744348+00:00'::timestamptz, 'novo.r01@exemplo.test', 'Rita Nova', 'cliente', NULL) RETURNING \"accounts_user\".\"id\""
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'novo.r01@exemplo.test'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [
+   "INSERT INTO \"accounts_user\" (\"password\", \"last_login\", \"is_superuser\", \"is_staff\", \"is_active\", \"date_joined\", \"created_at\", \"updated_at\", \"email\", \"nome\", \"tip"
+  ],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "nenhuma",
+  "fora_do_alcance_do_solicitante": false,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "R02",
+  "grupo": "POST /auth/register/ (cadastro público)",
+  "descricao": "e-mail de outra conta sem barbearia (mesmo \"espaço\" do cadastro público)",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "tenant_do_solicitante": "(anônimo)",
+  "email_sondado": "sem.barbearia@exemplo.test",
+  "dono_do_email": "sem barbearia",
+  "esperado_registrado_antes": "400",
+  "corpo_enviado": {
+   "nome": "Rita Nova",
+   "email": "sem.barbearia@exemplo.test",
+   "password": "<senha omitida>"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 20.5,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "9",
+     "email": "sem.barbearia@exemplo.test",
+     "barbershop_id": "null",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "9",
+     "email": "sem.barbearia@exemplo.test",
+     "barbershop_id": "null",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'sem.barbearia@exemplo.test' LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'sem.barbearia@exemplo.test'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "9",
+    "email": "sem.barbearia@exemplo.test",
+    "barbershop_id": "null",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "(sem barbearia)",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "R03",
+  "grupo": "POST /auth/register/ (cadastro público)",
+  "descricao": "e-mail de cliente da barbearia B",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "tenant_do_solicitante": "(anônimo)",
+  "email_sondado": "cliente.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "400",
+  "corpo_enviado": {
+   "nome": "Rita Nova",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 12.9,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'cliente.b@beta.test'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "R04",
+  "grupo": "POST /auth/register/ (cadastro público)",
+  "descricao": "e-mail de cliente de B + senha que falha nos validadores (sem efeito colateral)",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "tenant_do_solicitante": "(anônimo)",
+  "email_sondado": "cliente.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "400 só em email",
+  "corpo_enviado": {
+   "nome": "Rita Nova",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 13.5,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'cliente.b@beta.test'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "R05",
+  "grupo": "POST /auth/register/ (cadastro público)",
+  "descricao": "e-mail nunca utilizado + a mesma senha fraca (par do R04)",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "tenant_do_solicitante": "(anônimo)",
+  "email_sondado": "novo.r05@exemplo.test",
+  "dono_do_email": "novo",
+  "esperado_registrado_antes": "400 só em password",
+  "corpo_enviado": {
+   "nome": "Rita Nova",
+   "email": "novo.r05@exemplo.test",
+   "password": "<senha omitida>"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+  "resposta_json": {
+   "password": [
+    "Esta senha é muito comum.",
+    "Esta senha é inteiramente numérica."
+   ]
+  },
+  "tempo_ms": 18.6,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'novo.r05@exemplo.test' LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'novo.r05@exemplo.test'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "nenhuma",
+  "fora_do_alcance_do_solicitante": false,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "R06",
+  "grupo": "POST /auth/register/ (cadastro público)",
+  "descricao": "e-mail de cliente de B com maiúsculas na parte local (Cliente.B@...)",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "tenant_do_solicitante": "(anônimo)",
+  "email_sondado": "Cliente.B@beta.test",
+  "dono_do_email": "B (variação de caixa)",
+  "esperado_registrado_antes": "?",
+  "corpo_enviado": {
+   "nome": "Rita Nova",
+   "email": "Cliente.B@beta.test",
+   "password": "<senha omitida>"
+  },
+  "preparo": null,
+  "status": 201,
+  "content_type": "application/json",
+  "resposta_integral": "{\"id\":12,\"email\":\"Cliente.B@beta.test\",\"nome\":\"Rita Nova\",\"tipo_perfil\":\"cliente\",\"barbershop\":null,\"is_active\":true,\"created_at\":\"2026-11-15T16:25:36.509634-03:00\"}",
+  "resposta_json": {
+   "id": 12,
+   "email": "Cliente.B@beta.test",
+   "nome": "Rita Nova",
+   "tipo_perfil": "cliente",
+   "barbershop": null,
+   "is_active": true,
+   "created_at": "2026-11-15T16:25:36.509634-03:00"
+  },
+  "tempo_ms": 243.7,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    },
+    {
+     "id": "12",
+     "email": "Cliente.B@beta.test",
+     "barbershop_id": "null",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 11
+  },
+  "usuarios_criados": 1,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'Cliente.B@beta.test' LIMIT 1"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "INSERT INTO \"accounts_user\" (\"password\", \"last_login\", \"is_superuser\", \"is_staff\", \"is_active\", \"date_joined\", \"created_at\", \"updated_at\", \"email\", \"nome\", \"tipo_perfil\", \"barbershop_id\") VALUES ('<hash de senha removido>', NULL, false, false, true, '2026-11-15T19:25:36.282011+00:00'::timestamptz, '2026-11-15T19:25:36.509634+00:00'::timestamptz, '2026-11-15T19:25:36.509644+00:00'::timestamptz, 'Cliente.B@beta.test', 'Rita Nova', 'cliente', NULL) RETURNING \"accounts_user\".\"id\""
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'Cliente.B@beta.test'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [
+   "INSERT INTO \"accounts_user\" (\"password\", \"last_login\", \"is_superuser\", \"is_staff\", \"is_active\", \"date_joined\", \"created_at\", \"updated_at\", \"email\", \"nome\", \"tip"
+  ],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [],
+  "contas_so_com_outra_caixa_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "conta_encontrada": "nenhuma exata; B com outra caixa",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "R07",
+  "grupo": "POST /auth/register/ (cadastro público)",
+  "descricao": "e-mail de cliente de B com maiúsculas no domínio (...@BETA.TEST)",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "tenant_do_solicitante": "(anônimo)",
+  "email_sondado": "cliente.b@BETA.TEST",
+  "dono_do_email": "B (variação de caixa)",
+  "esperado_registrado_antes": "?",
+  "corpo_enviado": {
+   "nome": "Rita Nova",
+   "email": "cliente.b@BETA.TEST",
+   "password": "<senha omitida>"
+  },
+  "preparo": null,
+  "status": 500,
+  "content_type": "text/html; charset=utf-8",
+  "resposta_integral": "\n<!doctype html>\n<html lang=\"en\">\n<head>\n  <title>Server Error (500)</title>\n</head>\n<body>\n  <h1>Server Error (500)</h1><p></p>\n</body>\n</html>\n",
+  "resposta_json": null,
+  "tempo_ms": 331.6,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@BETA.TEST' LIMIT 1"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "INSERT INTO \"accounts_user\" (\"password\", \"last_login\", \"is_superuser\", \"is_staff\", \"is_active\", \"date_joined\", \"created_at\", \"updated_at\", \"email\", \"nome\", \"tipo_perfil\", \"barbershop_id\") VALUES ('<hash de senha removido>', NULL, false, false, true, '2026-11-15T19:25:37.000032+00:00'::timestamptz, '2026-11-15T19:25:37.223762+00:00'::timestamptz, '2026-11-15T19:25:37.223772+00:00'::timestamptz, 'cliente.b@beta.test', 'Rita Nova', 'cliente', NULL) RETURNING \"accounts_user\".\"id\""
+   },
+   {
+    "tipo": "ERROR",
+    "sql": "duplicate key value violates unique constraint \"accounts_user_email_key\""
+   },
+   {
+    "tipo": "DETAIL",
+    "sql": "Key (email)=(cliente.b@beta.test) already exists."
+   },
+   {
+    "tipo": "STATEMENT",
+    "sql": "INSERT INTO \"accounts_user\" (\"password\", \"last_login\", \"is_superuser\", \"is_staff\", \"is_active\", \"date_joined\", \"created_at\", \"updated_at\", \"email\", \"nome\", \"tipo_perfil\", \"barbershop_id\") VALUES ('<hash de senha removido>', NULL, false, false, true, '2026-11-15T19:25:37.000032+00:00'::timestamptz, '2026-11-15T19:25:37.223762+00:00'::timestamptz, '2026-11-15T19:25:37.223772+00:00'::timestamptz, 'cliente.b@beta.test', 'Rita Nova', 'cliente', NULL) RETURNING \"accounts_user\".\"id\""
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" ORDER BY \"accounts_user\".\"nome\" ASC LIMIT 21"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'cliente.b@BETA.TEST'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [
+   "INSERT INTO \"accounts_user\" (\"password\", \"last_login\", \"is_superuser\", \"is_staff\", \"is_active\", \"date_joined\", \"created_at\", \"updated_at\", \"email\", \"nome\", \"tip"
+  ],
+  "erros_do_banco": [
+   "ERROR: duplicate key value violates unique constraint \"accounts_user_email_key\"",
+   "DETAIL: Key (email)=(cliente.b@beta.test) already exists."
+  ],
+  "contas_com_o_email_exato_antes": [],
+  "contas_so_com_outra_caixa_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "conta_encontrada": "nenhuma exata; B com outra caixa",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "R08",
+  "grupo": "POST /auth/register/ (cadastro público)",
+  "descricao": "e-mail nunca utilizado com maiúsculas no domínio (par do R07)",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "tenant_do_solicitante": "(anônimo)",
+  "email_sondado": "novo.r08@EXEMPLO.TEST",
+  "dono_do_email": "novo",
+  "esperado_registrado_antes": "201",
+  "corpo_enviado": {
+   "nome": "Rita Nova",
+   "email": "novo.r08@EXEMPLO.TEST",
+   "password": "<senha omitida>"
+  },
+  "preparo": null,
+  "status": 201,
+  "content_type": "application/json",
+  "resposta_integral": "{\"id\":14,\"email\":\"novo.r08@exemplo.test\",\"nome\":\"Rita Nova\",\"tipo_perfil\":\"cliente\",\"barbershop\":null,\"is_active\":true,\"created_at\":\"2026-11-15T16:25:38.042374-03:00\"}",
+  "resposta_json": {
+   "id": 14,
+   "email": "novo.r08@exemplo.test",
+   "nome": "Rita Nova",
+   "tipo_perfil": "cliente",
+   "barbershop": null,
+   "is_active": true,
+   "created_at": "2026-11-15T16:25:38.042374-03:00"
+  },
+  "tempo_ms": 244.0,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "14",
+     "email": "novo.r08@exemplo.test",
+     "barbershop_id": "null",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 11
+  },
+  "usuarios_criados": 1,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'novo.r08@EXEMPLO.TEST' LIMIT 1"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "INSERT INTO \"accounts_user\" (\"password\", \"last_login\", \"is_superuser\", \"is_staff\", \"is_active\", \"date_joined\", \"created_at\", \"updated_at\", \"email\", \"nome\", \"tipo_perfil\", \"barbershop_id\") VALUES ('<hash de senha removido>', NULL, false, false, true, '2026-11-15T19:25:37.815551+00:00'::timestamptz, '2026-11-15T19:25:38.042374+00:00'::timestamptz, '2026-11-15T19:25:38.042384+00:00'::timestamptz, 'novo.r08@exemplo.test', 'Rita Nova', 'cliente', NULL) RETURNING \"accounts_user\".\"id\""
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'novo.r08@EXEMPLO.TEST'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [
+   "INSERT INTO \"accounts_user\" (\"password\", \"last_login\", \"is_superuser\", \"is_staff\", \"is_active\", \"date_joined\", \"created_at\", \"updated_at\", \"email\", \"nome\", \"tip"
+  ],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "nenhuma",
+  "fora_do_alcance_do_solicitante": false,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "R09",
+  "grupo": "POST /auth/register/ (cadastro público)",
+  "descricao": "e-mail de cliente de B com espaços antes e depois",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "tenant_do_solicitante": "(anônimo)",
+  "email_sondado": "cliente.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "400",
+  "corpo_enviado": {
+   "nome": "Rita Nova",
+   "email": "  cliente.b@beta.test  ",
+   "password": "<senha omitida>"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 12.6,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'cliente.b@beta.test'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "R10",
+  "grupo": "POST /auth/register/ (cadastro público)",
+  "descricao": "e-mail de conta INATIVA de B",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "tenant_do_solicitante": "(anônimo)",
+  "email_sondado": "inativo.b@beta.test",
+  "dono_do_email": "B (inativa)",
+  "esperado_registrado_antes": "400",
+  "corpo_enviado": {
+   "nome": "Rita Nova",
+   "email": "inativo.b@beta.test",
+   "password": "<senha omitida>"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 13.7,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "8",
+     "email": "inativo.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "f"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "8",
+     "email": "inativo.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "f"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'inativo.b@beta.test' LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'inativo.b@beta.test'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "8",
+    "email": "inativo.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "f"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "R11",
+  "grupo": "POST /auth/register/ (cadastro público)",
+  "descricao": "e-mail do superusuário da plataforma",
+  "pedido": "POST /api/v1/auth/register/",
+  "papel": "anônimo",
+  "tenant_do_solicitante": "(anônimo)",
+  "email_sondado": "plataforma@exemplo.test",
+  "dono_do_email": "plataforma",
+  "esperado_registrado_antes": "400",
+  "corpo_enviado": {
+   "nome": "Rita Nova",
+   "email": "plataforma@exemplo.test",
+   "password": "<senha omitida>"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 13.3,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "10",
+     "email": "plataforma@exemplo.test",
+     "barbershop_id": "null",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "10",
+     "email": "plataforma@exemplo.test",
+     "barbershop_id": "null",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'plataforma@exemplo.test' LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'plataforma@exemplo.test'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "10",
+    "email": "plataforma@exemplo.test",
+    "barbershop_id": "null",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "(sem barbearia)",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "C01",
+  "grupo": "POST /users/ (criação de usuário)",
+  "descricao": "admin A cria cliente com e-mail nunca utilizado",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "novo.c01@exemplo.test",
+  "dono_do_email": "novo",
+  "esperado_registrado_antes": "201",
+  "corpo_enviado": {
+   "nome": "Caio Novo",
+   "email": "novo.c01@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "preparo": null,
+  "status": 201,
+  "content_type": "application/json",
+  "resposta_integral": "{\"id\":15,\"email\":\"novo.c01@exemplo.test\",\"nome\":\"Caio Novo\",\"tipo_perfil\":\"cliente\",\"barbershop\":1}",
+  "resposta_json": {
+   "id": 15,
+   "email": "novo.c01@exemplo.test",
+   "nome": "Caio Novo",
+   "tipo_perfil": "cliente",
+   "barbershop": 1
+  },
+  "tempo_ms": 253.1,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "15",
+     "email": "novo.c01@exemplo.test",
+     "barbershop_id": "1",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 11
+  },
+  "usuarios_criados": 1,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'novo.c01@exemplo.test' LIMIT 1"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "BEGIN"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"barbershops_barbershop\".\"id\", \"barbershops_barbershop\".\"created_at\", \"barbershops_barbershop\".\"updated_at\", \"barbershops_barbershop\".\"nome\", \"barbershops_barbershop\".\"endereco\", \"barbershops_barbershop\".\"telefone\", \"barbershops_barbershop\".\"email\", \"barbershops_barbershop\".\"horario_abertura\", \"barbershops_barbershop\".\"horario_fechamento\", \"barbershops_barbershop\".\"logo\", \"barbershops_barbershop\".\"ativo\", \"barbershops_barbershop\".\"dias_funcionamento\" FROM \"barbershops_barbershop\" WHERE \"barbershops_barbershop\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "INSERT INTO \"accounts_user\" (\"password\", \"last_login\", \"is_superuser\", \"is_staff\", \"is_active\", \"date_joined\", \"created_at\", \"updated_at\", \"email\", \"nome\", \"tipo_perfil\", \"barbershop_id\") VALUES ('<hash de senha removido>', NULL, false, false, true, '2026-11-15T19:25:39.983669+00:00'::timestamptz, '2026-11-15T19:25:40.215675+00:00'::timestamptz, '2026-11-15T19:25:40.215687+00:00'::timestamptz, 'novo.c01@exemplo.test', 'Caio Novo', 'cliente', 1) RETURNING \"accounts_user\".\"id\""
+   },
+   {
+    "tipo": "LOG",
+    "sql": "COMMIT"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'novo.c01@exemplo.test'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [
+   "INSERT INTO \"accounts_user\" (\"password\", \"last_login\", \"is_superuser\", \"is_staff\", \"is_active\", \"date_joined\", \"created_at\", \"updated_at\", \"email\", \"nome\", \"tip"
+  ],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "nenhuma",
+  "fora_do_alcance_do_solicitante": false,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "C02",
+  "grupo": "POST /users/ (criação de usuário)",
+  "descricao": "admin A cria cliente com e-mail de cliente A2 (mesma barbearia)",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "cliente.a2@alfa.test",
+  "dono_do_email": "A",
+  "esperado_registrado_antes": "400",
+  "corpo_enviado": {
+   "nome": "Caio Novo",
+   "email": "cliente.a2@alfa.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 15.9,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "4",
+     "email": "cliente.a2@alfa.test",
+     "barbershop_id": "1",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "4",
+     "email": "cliente.a2@alfa.test",
+     "barbershop_id": "1",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.a2@alfa.test' LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'cliente.a2@alfa.test'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "4",
+    "email": "cliente.a2@alfa.test",
+    "barbershop_id": "1",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "A",
+  "fora_do_alcance_do_solicitante": false,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "C03",
+  "grupo": "POST /users/ (criação de usuário)",
+  "descricao": "admin A cria cliente com e-mail de cliente de B (outra barbearia)",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "cliente.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "400 (oráculo)",
+  "corpo_enviado": {
+   "nome": "Caio Novo",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 14.3,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'cliente.b@beta.test'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "C04",
+  "grupo": "POST /users/ (criação de usuário)",
+  "descricao": "admin A: e-mail de cliente de B + senha fraca (sem efeito colateral)",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "cliente.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "400 só em email",
+  "corpo_enviado": {
+   "nome": "Caio Novo",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 17.4,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'cliente.b@beta.test'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "C05",
+  "grupo": "POST /users/ (criação de usuário)",
+  "descricao": "admin A: e-mail nunca utilizado + a mesma senha fraca (par do C04)",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "novo.c05@exemplo.test",
+  "dono_do_email": "novo",
+  "esperado_registrado_antes": "400 só em password",
+  "corpo_enviado": {
+   "nome": "Caio Novo",
+   "email": "novo.c05@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+  "resposta_json": {
+   "password": [
+    "Esta senha é muito comum.",
+    "Esta senha é inteiramente numérica."
+   ]
+  },
+  "tempo_ms": 15.6,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'novo.c05@exemplo.test' LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'novo.c05@exemplo.test'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "nenhuma",
+  "fora_do_alcance_do_solicitante": false,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "C06",
+  "grupo": "POST /users/ (criação de usuário)",
+  "descricao": "admin A cria barbeiro com e-mail de barbeiro de B",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "barbeiro.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "400",
+  "corpo_enviado": {
+   "nome": "Caio Novo",
+   "email": "barbeiro.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "barbeiro",
+   "especialidade": "Corte"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 15.3,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "6",
+     "email": "barbeiro.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "6",
+     "email": "barbeiro.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'barbeiro.b@beta.test' LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'barbeiro.b@beta.test'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "6",
+    "email": "barbeiro.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "C07",
+  "grupo": "POST /users/ (criação de usuário)",
+  "descricao": "admin A cria cliente com e-mail do admin de B",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "admin.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "400",
+  "corpo_enviado": {
+   "nome": "Caio Novo",
+   "email": "admin.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 17.1,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "5",
+     "email": "admin.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "5",
+     "email": "admin.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'admin.b@beta.test' LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'admin.b@beta.test'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "5",
+    "email": "admin.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "C08",
+  "grupo": "POST /users/ (criação de usuário)",
+  "descricao": "admin A: e-mail de cliente de B com maiúsculas na parte local",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "Cliente.B@beta.test",
+  "dono_do_email": "B (variação de caixa)",
+  "esperado_registrado_antes": "?",
+  "corpo_enviado": {
+   "nome": "Caio Novo",
+   "email": "Cliente.B@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "preparo": null,
+  "status": 201,
+  "content_type": "application/json",
+  "resposta_integral": "{\"id\":16,\"email\":\"Cliente.B@beta.test\",\"nome\":\"Caio Novo\",\"tipo_perfil\":\"cliente\",\"barbershop\":1}",
+  "resposta_json": {
+   "id": 16,
+   "email": "Cliente.B@beta.test",
+   "nome": "Caio Novo",
+   "tipo_perfil": "cliente",
+   "barbershop": 1
+  },
+  "tempo_ms": 248.5,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    },
+    {
+     "id": "16",
+     "email": "Cliente.B@beta.test",
+     "barbershop_id": "1",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 11
+  },
+  "usuarios_criados": 1,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'Cliente.B@beta.test' LIMIT 1"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "BEGIN"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"barbershops_barbershop\".\"id\", \"barbershops_barbershop\".\"created_at\", \"barbershops_barbershop\".\"updated_at\", \"barbershops_barbershop\".\"nome\", \"barbershops_barbershop\".\"endereco\", \"barbershops_barbershop\".\"telefone\", \"barbershops_barbershop\".\"email\", \"barbershops_barbershop\".\"horario_abertura\", \"barbershops_barbershop\".\"horario_fechamento\", \"barbershops_barbershop\".\"logo\", \"barbershops_barbershop\".\"ativo\", \"barbershops_barbershop\".\"dias_funcionamento\" FROM \"barbershops_barbershop\" WHERE \"barbershops_barbershop\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "INSERT INTO \"accounts_user\" (\"password\", \"last_login\", \"is_superuser\", \"is_staff\", \"is_active\", \"date_joined\", \"created_at\", \"updated_at\", \"email\", \"nome\", \"tipo_perfil\", \"barbershop_id\") VALUES ('<hash de senha removido>', NULL, false, false, true, '2026-11-15T19:25:43.645344+00:00'::timestamptz, '2026-11-15T19:25:43.873255+00:00'::timestamptz, '2026-11-15T19:25:43.873269+00:00'::timestamptz, 'Cliente.B@beta.test', 'Caio Novo', 'cliente', 1) RETURNING \"accounts_user\".\"id\""
+   },
+   {
+    "tipo": "LOG",
+    "sql": "COMMIT"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'Cliente.B@beta.test'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [
+   "INSERT INTO \"accounts_user\" (\"password\", \"last_login\", \"is_superuser\", \"is_staff\", \"is_active\", \"date_joined\", \"created_at\", \"updated_at\", \"email\", \"nome\", \"tip"
+  ],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [],
+  "contas_so_com_outra_caixa_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "conta_encontrada": "nenhuma exata; B com outra caixa",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "C09",
+  "grupo": "POST /users/ (criação de usuário)",
+  "descricao": "admin A: e-mail de cliente de B com maiúsculas no domínio",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "cliente.b@BETA.TEST",
+  "dono_do_email": "B (variação de caixa)",
+  "esperado_registrado_antes": "?",
+  "corpo_enviado": {
+   "nome": "Caio Novo",
+   "email": "cliente.b@BETA.TEST",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "preparo": null,
+  "status": 500,
+  "content_type": "text/html; charset=utf-8",
+  "resposta_integral": "\n<!doctype html>\n<html lang=\"en\">\n<head>\n  <title>Server Error (500)</title>\n</head>\n<body>\n  <h1>Server Error (500)</h1><p></p>\n</body>\n</html>\n",
+  "resposta_json": null,
+  "tempo_ms": 276.5,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@BETA.TEST' LIMIT 1"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "BEGIN"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"barbershops_barbershop\".\"id\", \"barbershops_barbershop\".\"created_at\", \"barbershops_barbershop\".\"updated_at\", \"barbershops_barbershop\".\"nome\", \"barbershops_barbershop\".\"endereco\", \"barbershops_barbershop\".\"telefone\", \"barbershops_barbershop\".\"email\", \"barbershops_barbershop\".\"horario_abertura\", \"barbershops_barbershop\".\"horario_fechamento\", \"barbershops_barbershop\".\"logo\", \"barbershops_barbershop\".\"ativo\", \"barbershops_barbershop\".\"dias_funcionamento\" FROM \"barbershops_barbershop\" WHERE \"barbershops_barbershop\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "INSERT INTO \"accounts_user\" (\"password\", \"last_login\", \"is_superuser\", \"is_staff\", \"is_active\", \"date_joined\", \"created_at\", \"updated_at\", \"email\", \"nome\", \"tipo_perfil\", \"barbershop_id\") VALUES ('<hash de senha removido>', NULL, false, false, true, '2026-11-15T19:25:44.365789+00:00'::timestamptz, '2026-11-15T19:25:44.591290+00:00'::timestamptz, '2026-11-15T19:25:44.591300+00:00'::timestamptz, 'cliente.b@beta.test', 'Caio Novo', 'cliente', 1) RETURNING \"accounts_user\".\"id\""
+   },
+   {
+    "tipo": "ERROR",
+    "sql": "duplicate key value violates unique constraint \"accounts_user_email_key\""
+   },
+   {
+    "tipo": "DETAIL",
+    "sql": "Key (email)=(cliente.b@beta.test) already exists."
+   },
+   {
+    "tipo": "STATEMENT",
+    "sql": "INSERT INTO \"accounts_user\" (\"password\", \"last_login\", \"is_superuser\", \"is_staff\", \"is_active\", \"date_joined\", \"created_at\", \"updated_at\", \"email\", \"nome\", \"tipo_perfil\", \"barbershop_id\") VALUES ('<hash de senha removido>', NULL, false, false, true, '2026-11-15T19:25:44.365789+00:00'::timestamptz, '2026-11-15T19:25:44.591290+00:00'::timestamptz, '2026-11-15T19:25:44.591300+00:00'::timestamptz, 'cliente.b@beta.test', 'Caio Novo', 'cliente', 1) RETURNING \"accounts_user\".\"id\""
+   },
+   {
+    "tipo": "LOG",
+    "sql": "ROLLBACK"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" ORDER BY \"accounts_user\".\"nome\" ASC LIMIT 21"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'cliente.b@BETA.TEST'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [
+   "INSERT INTO \"accounts_user\" (\"password\", \"last_login\", \"is_superuser\", \"is_staff\", \"is_active\", \"date_joined\", \"created_at\", \"updated_at\", \"email\", \"nome\", \"tip"
+  ],
+  "erros_do_banco": [
+   "ERROR: duplicate key value violates unique constraint \"accounts_user_email_key\"",
+   "DETAIL: Key (email)=(cliente.b@beta.test) already exists."
+  ],
+  "contas_com_o_email_exato_antes": [],
+  "contas_so_com_outra_caixa_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "conta_encontrada": "nenhuma exata; B com outra caixa",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "C10",
+  "grupo": "POST /users/ (criação de usuário)",
+  "descricao": "admin A: e-mail de cliente de B com espaços",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "cliente.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "400",
+  "corpo_enviado": {
+   "nome": "Caio Novo",
+   "email": " cliente.b@beta.test ",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 15.8,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'cliente.b@beta.test'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "C11",
+  "grupo": "POST /users/ (criação de usuário)",
+  "descricao": "admin A: e-mail de conta INATIVA de B",
+  "pedido": "POST /api/v1/users/",
+  "papel": "admin_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "inativo.b@beta.test",
+  "dono_do_email": "B (inativa)",
+  "esperado_registrado_antes": "400",
+  "corpo_enviado": {
+   "nome": "Caio Novo",
+   "email": "inativo.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 15.4,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "8",
+     "email": "inativo.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "f"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "8",
+     "email": "inativo.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "f"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'inativo.b@beta.test' LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'inativo.b@beta.test'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "8",
+    "email": "inativo.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "f"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "C12",
+  "grupo": "POST /users/ (criação de usuário)",
+  "descricao": "cliente A1 tenta criar usuário com e-mail de B",
+  "pedido": "POST /api/v1/users/",
+  "papel": "cliente_a1",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "cliente.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "403 antes da validação",
+  "corpo_enviado": {
+   "nome": "Caio Novo",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "preparo": null,
+  "status": 403,
+  "content_type": "application/json",
+  "resposta_integral": "{\"detail\":\"Você não tem permissão para executar essa ação.\"}",
+  "resposta_json": {
+   "detail": "Você não tem permissão para executar essa ação."
+  },
+  "tempo_ms": 11.8,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 3 LIMIT 21"
+   }
+  ],
+  "consultas_de_existencia_do_email": [],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": false
+ },
+ {
+  "id": "C13",
+  "grupo": "POST /users/ (criação de usuário)",
+  "descricao": "barbeiro A tenta criar usuário com e-mail de B",
+  "pedido": "POST /api/v1/users/",
+  "papel": "barbeiro_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "cliente.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "403 antes da validação",
+  "corpo_enviado": {
+   "nome": "Caio Novo",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "preparo": null,
+  "status": 403,
+  "content_type": "application/json",
+  "resposta_integral": "{\"detail\":\"Você não tem permissão para executar essa ação.\"}",
+  "resposta_json": {
+   "detail": "Você não tem permissão para executar essa ação."
+  },
+  "tempo_ms": 12.1,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 2 LIMIT 21"
+   }
+  ],
+  "consultas_de_existencia_do_email": [],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": false
+ },
+ {
+  "id": "C14",
+  "grupo": "POST /users/ (criação de usuário)",
+  "descricao": "conta sem barbearia tenta criar usuário com e-mail de B",
+  "pedido": "POST /api/v1/users/",
+  "papel": "sem_barbearia",
+  "tenant_do_solicitante": "(sem barbearia)",
+  "email_sondado": "cliente.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "403 antes da validação",
+  "corpo_enviado": {
+   "nome": "Caio Novo",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "preparo": null,
+  "status": 403,
+  "content_type": "application/json",
+  "resposta_integral": "{\"detail\":\"Você não tem permissão para executar essa ação.\"}",
+  "resposta_json": {
+   "detail": "Você não tem permissão para executar essa ação."
+  },
+  "tempo_ms": 13.5,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 9 LIMIT 21"
+   }
+  ],
+  "consultas_de_existencia_do_email": [],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": false
+ },
+ {
+  "id": "C15",
+  "grupo": "POST /users/ (criação de usuário)",
+  "descricao": "superusuário (sem barbearia) cria com e-mail de B",
+  "pedido": "POST /api/v1/users/",
+  "papel": "superuser",
+  "tenant_do_solicitante": "(plataforma)",
+  "email_sondado": "cliente.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "400",
+  "corpo_enviado": {
+   "nome": "Caio Novo",
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 15.0,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 10 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'cliente.b@beta.test'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": false,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "C16",
+  "grupo": "POST /users/ (criação de usuário)",
+  "descricao": "superusuário (sem barbearia) cria com e-mail nunca utilizado",
+  "pedido": "POST /api/v1/users/",
+  "papel": "superuser",
+  "tenant_do_solicitante": "(plataforma)",
+  "email_sondado": "novo.c16@exemplo.test",
+  "dono_do_email": "novo",
+  "esperado_registrado_antes": "400 barbershop",
+  "corpo_enviado": {
+   "nome": "Caio Novo",
+   "email": "novo.c16@exemplo.test",
+   "password": "<senha omitida>",
+   "tipo_perfil": "cliente"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"barbershop\":\"O administrador precisa pertencer a uma barbearia.\"}",
+  "resposta_json": {
+   "barbershop": "O administrador precisa pertencer a uma barbearia."
+  },
+  "tempo_ms": 17.4,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 10 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'novo.c16@exemplo.test' LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "\"accounts_user\".\"email\" = 'novo.c16@exemplo.test'",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "nenhuma",
+  "fora_do_alcance_do_solicitante": false,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "P01",
+  "grupo": "PATCH/PUT /users/{id}/ (edição)",
+  "descricao": "cliente A1 troca o próprio e-mail por um nunca utilizado",
+  "pedido": "PATCH /api/v1/users/3/",
+  "papel": "cliente_a1",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "novo.p01@exemplo.test",
+  "dono_do_email": "novo",
+  "esperado_registrado_antes": "200",
+  "corpo_enviado": {
+   "email": "novo.p01@exemplo.test"
+  },
+  "preparo": null,
+  "status": 200,
+  "content_type": "application/json",
+  "resposta_integral": "{\"id\":3,\"email\":\"novo.p01@exemplo.test\",\"nome\":\"Carlos Cliente A1\",\"tipo_perfil\":\"cliente\",\"barbershop\":1,\"is_active\":true,\"created_at\":\"2026-11-15T16:23:10.443312-03:00\"}",
+  "resposta_json": {
+   "id": 3,
+   "email": "novo.p01@exemplo.test",
+   "nome": "Carlos Cliente A1",
+   "tipo_perfil": "cliente",
+   "barbershop": 1,
+   "is_active": true,
+   "created_at": "2026-11-15T16:23:10.443312-03:00"
+  },
+  "tempo_ms": 23.5,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "3",
+     "email": "novo.p01@exemplo.test",
+     "barbershop_id": "1",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "novo.p01@exemplo.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": true,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 3 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 3) LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'novo.p01@exemplo.test' AND NOT (\"accounts_user\".\"id\" = 3)) LIMIT 1"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "BEGIN"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 3 LIMIT 21 FOR UPDATE"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"is_active\" AND \"accounts_user\".\"tipo_perfil\" = 'admin' AND \"accounts_user\".\"id\" = 3) ORDER BY \"accounts_user\".\"nome\" ASC LIMIT 1"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "UPDATE \"accounts_user\" SET \"password\" = '<hash de senha removido>', \"last_login\" = NULL, \"is_superuser\" = false, \"is_staff\" = false, \"is_active\" = true, \"date_joined\" = '2026-11-15T19:23:10.219458+00:00'::timestamptz, \"created_at\" = '2026-11-15T19:23:10.443312+00:00'::timestamptz, \"updated_at\" = '2026-11-15T19:25:48.543640+00:00'::timestamptz, \"email\" = 'novo.p01@exemplo.test', \"nome\" = 'Carlos Cliente A1', \"tipo_perfil\" = 'cliente', \"barbershop_id\" = 1 WHERE \"accounts_user\".\"id\" = 3"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "COMMIT"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "(\"accounts_user\".\"email\" = 'novo.p01@exemplo.test' AND NOT (\"accounts_user\".\"id\" = 3))",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [
+   "UPDATE \"accounts_user\" SET \"password\" = '<hash de senha removido>', \"last_login\" = NULL, \"is_superuser\" = false, \"is_staff\" = false, \"is_active\" = true, \"date_j"
+  ],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "nenhuma",
+  "fora_do_alcance_do_solicitante": false,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "P02",
+  "grupo": "PATCH/PUT /users/{id}/ (edição)",
+  "descricao": "cliente A1 reenvia o próprio e-mail",
+  "pedido": "PATCH /api/v1/users/3/",
+  "papel": "cliente_a1",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "cliente.a1@alfa.test",
+  "dono_do_email": "próprio",
+  "esperado_registrado_antes": "200 sem mudança",
+  "corpo_enviado": {
+   "email": "cliente.a1@alfa.test"
+  },
+  "preparo": null,
+  "status": 200,
+  "content_type": "application/json",
+  "resposta_integral": "{\"id\":3,\"email\":\"cliente.a1@alfa.test\",\"nome\":\"Carlos Cliente A1\",\"tipo_perfil\":\"cliente\",\"barbershop\":1,\"is_active\":true,\"created_at\":\"2026-11-15T16:23:10.443312-03:00\"}",
+  "resposta_json": {
+   "id": 3,
+   "email": "cliente.a1@alfa.test",
+   "nome": "Carlos Cliente A1",
+   "tipo_perfil": "cliente",
+   "barbershop": 1,
+   "is_active": true,
+   "created_at": "2026-11-15T16:23:10.443312-03:00"
+  },
+  "tempo_ms": 23.8,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "3",
+     "email": "cliente.a1@alfa.test",
+     "barbershop_id": "1",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "3",
+     "email": "cliente.a1@alfa.test",
+     "barbershop_id": "1",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": false,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 3 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 3) LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'cliente.a1@alfa.test' AND NOT (\"accounts_user\".\"id\" = 3)) LIMIT 1"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "BEGIN"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 3 LIMIT 21 FOR UPDATE"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"is_active\" AND \"accounts_user\".\"tipo_perfil\" = 'admin' AND \"accounts_user\".\"id\" = 3) ORDER BY \"accounts_user\".\"nome\" ASC LIMIT 1"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "UPDATE \"accounts_user\" SET \"password\" = '<hash de senha removido>', \"last_login\" = NULL, \"is_superuser\" = false, \"is_staff\" = false, \"is_active\" = true, \"date_joined\" = '2026-11-15T19:23:10.219458+00:00'::timestamptz, \"created_at\" = '2026-11-15T19:23:10.443312+00:00'::timestamptz, \"updated_at\" = '2026-11-15T19:25:49.068086+00:00'::timestamptz, \"email\" = 'cliente.a1@alfa.test', \"nome\" = 'Carlos Cliente A1', \"tipo_perfil\" = 'cliente', \"barbershop_id\" = 1 WHERE \"accounts_user\".\"id\" = 3"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "COMMIT"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "(\"accounts_user\".\"email\" = 'cliente.a1@alfa.test' AND NOT (\"accounts_user\".\"id\" = 3))",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [
+   "UPDATE \"accounts_user\" SET \"password\" = '<hash de senha removido>', \"last_login\" = NULL, \"is_superuser\" = false, \"is_staff\" = false, \"is_active\" = true, \"date_j"
+  ],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "barbershop_id": "1",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "A",
+  "fora_do_alcance_do_solicitante": false,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "P03",
+  "grupo": "PATCH/PUT /users/{id}/ (edição)",
+  "descricao": "cliente A1 tenta usar o e-mail de cliente A2 (mesma barbearia)",
+  "pedido": "PATCH /api/v1/users/3/",
+  "papel": "cliente_a1",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "cliente.a2@alfa.test",
+  "dono_do_email": "A",
+  "esperado_registrado_antes": "400",
+  "corpo_enviado": {
+   "email": "cliente.a2@alfa.test"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 17.9,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "4",
+     "email": "cliente.a2@alfa.test",
+     "barbershop_id": "1",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "4",
+     "email": "cliente.a2@alfa.test",
+     "barbershop_id": "1",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": false,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 3 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 3) LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'cliente.a2@alfa.test' AND NOT (\"accounts_user\".\"id\" = 3)) LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "(\"accounts_user\".\"email\" = 'cliente.a2@alfa.test' AND NOT (\"accounts_user\".\"id\" = 3))",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "4",
+    "email": "cliente.a2@alfa.test",
+    "barbershop_id": "1",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "A",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "P04",
+  "grupo": "PATCH/PUT /users/{id}/ (edição)",
+  "descricao": "cliente A1 tenta usar o e-mail de cliente de B (outra barbearia)",
+  "pedido": "PATCH /api/v1/users/3/",
+  "papel": "cliente_a1",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "cliente.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "400 (oráculo para qualquer cliente)",
+  "corpo_enviado": {
+   "email": "cliente.b@beta.test"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 17.1,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": false,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 3 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 3) LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'cliente.b@beta.test' AND NOT (\"accounts_user\".\"id\" = 3)) LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "(\"accounts_user\".\"email\" = 'cliente.b@beta.test' AND NOT (\"accounts_user\".\"id\" = 3))",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "P05",
+  "grupo": "PATCH/PUT /users/{id}/ (edição)",
+  "descricao": "cliente A1: e-mail de B + nome vazio (sem efeito colateral)",
+  "pedido": "PATCH /api/v1/users/3/",
+  "papel": "cliente_a1",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "cliente.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "400 email+nome",
+  "corpo_enviado": {
+   "email": "cliente.b@beta.test",
+   "nome": ""
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"],\"nome\":[\"Este campo não pode ser em branco.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ],
+   "nome": [
+    "Este campo não pode ser em branco."
+   ]
+  },
+  "tempo_ms": 17.0,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": false,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 3 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 3) LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'cliente.b@beta.test' AND NOT (\"accounts_user\".\"id\" = 3)) LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "(\"accounts_user\".\"email\" = 'cliente.b@beta.test' AND NOT (\"accounts_user\".\"id\" = 3))",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "P06",
+  "grupo": "PATCH/PUT /users/{id}/ (edição)",
+  "descricao": "cliente A1: e-mail nunca utilizado + nome vazio (par do P05)",
+  "pedido": "PATCH /api/v1/users/3/",
+  "papel": "cliente_a1",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "novo.p06@exemplo.test",
+  "dono_do_email": "novo",
+  "esperado_registrado_antes": "400 só nome",
+  "corpo_enviado": {
+   "email": "novo.p06@exemplo.test",
+   "nome": ""
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"nome\":[\"Este campo não pode ser em branco.\"]}",
+  "resposta_json": {
+   "nome": [
+    "Este campo não pode ser em branco."
+   ]
+  },
+  "tempo_ms": 18.6,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": false,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 3 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 3) LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'novo.p06@exemplo.test' AND NOT (\"accounts_user\".\"id\" = 3)) LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "(\"accounts_user\".\"email\" = 'novo.p06@exemplo.test' AND NOT (\"accounts_user\".\"id\" = 3))",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "nenhuma",
+  "fora_do_alcance_do_solicitante": false,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "P07",
+  "grupo": "PATCH/PUT /users/{id}/ (edição)",
+  "descricao": "barbeiro A tenta usar o e-mail de cliente de B na própria conta",
+  "pedido": "PATCH /api/v1/users/2/",
+  "papel": "barbeiro_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "cliente.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "400",
+  "corpo_enviado": {
+   "email": "cliente.b@beta.test"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 17.6,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "2",
+    "email": "barbeiro.a@alfa.test",
+    "nome": "Bruno Barbeiro A"
+   },
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "2",
+    "email": "barbeiro.a@alfa.test",
+    "nome": "Bruno Barbeiro A"
+   },
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": false,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 2 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 2) LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'cliente.b@beta.test' AND NOT (\"accounts_user\".\"id\" = 2)) LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "(\"accounts_user\".\"email\" = 'cliente.b@beta.test' AND NOT (\"accounts_user\".\"id\" = 2))",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "P08",
+  "grupo": "PATCH/PUT /users/{id}/ (edição)",
+  "descricao": "admin A tenta usar o e-mail do admin de B na própria conta",
+  "pedido": "PATCH /api/v1/users/1/",
+  "papel": "admin_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "admin.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "400",
+  "corpo_enviado": {
+   "email": "admin.b@beta.test"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 21.0,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "5",
+     "email": "admin.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "1",
+    "email": "admin.a@alfa.test",
+    "nome": "Ana Admin A"
+   },
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "5",
+     "email": "admin.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "1",
+    "email": "admin.a@alfa.test",
+    "nome": "Ana Admin A"
+   },
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": false,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 1) LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'admin.b@beta.test' AND NOT (\"accounts_user\".\"id\" = 1)) LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "(\"accounts_user\".\"email\" = 'admin.b@beta.test' AND NOT (\"accounts_user\".\"id\" = 1))",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "5",
+    "email": "admin.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "P09",
+  "grupo": "PATCH/PUT /users/{id}/ (edição)",
+  "descricao": "admin A dá ao cliente A1 um e-mail nunca utilizado",
+  "pedido": "PATCH /api/v1/users/3/",
+  "papel": "admin_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "novo.p09@exemplo.test",
+  "dono_do_email": "novo",
+  "esperado_registrado_antes": "200",
+  "corpo_enviado": {
+   "email": "novo.p09@exemplo.test"
+  },
+  "preparo": null,
+  "status": 200,
+  "content_type": "application/json",
+  "resposta_integral": "{\"id\":3,\"email\":\"novo.p09@exemplo.test\",\"nome\":\"Carlos Cliente A1\",\"tipo_perfil\":\"cliente\",\"barbershop\":1,\"is_active\":true,\"created_at\":\"2026-11-15T16:23:10.443312-03:00\"}",
+  "resposta_json": {
+   "id": 3,
+   "email": "novo.p09@exemplo.test",
+   "nome": "Carlos Cliente A1",
+   "tipo_perfil": "cliente",
+   "barbershop": 1,
+   "is_active": true,
+   "created_at": "2026-11-15T16:23:10.443312-03:00"
+  },
+  "tempo_ms": 21.8,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "3",
+     "email": "novo.p09@exemplo.test",
+     "barbershop_id": "1",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "novo.p09@exemplo.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": true,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 3) LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'novo.p09@exemplo.test' AND NOT (\"accounts_user\".\"id\" = 3)) LIMIT 1"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "BEGIN"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 3 LIMIT 21 FOR UPDATE"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"is_active\" AND \"accounts_user\".\"tipo_perfil\" = 'admin' AND \"accounts_user\".\"id\" = 3) ORDER BY \"accounts_user\".\"nome\" ASC LIMIT 1"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "UPDATE \"accounts_user\" SET \"password\" = '<hash de senha removido>', \"last_login\" = NULL, \"is_superuser\" = false, \"is_staff\" = false, \"is_active\" = true, \"date_joined\" = '2026-11-15T19:23:10.219458+00:00'::timestamptz, \"created_at\" = '2026-11-15T19:23:10.443312+00:00'::timestamptz, \"updated_at\" = '2026-11-15T19:25:52.733096+00:00'::timestamptz, \"email\" = 'novo.p09@exemplo.test', \"nome\" = 'Carlos Cliente A1', \"tipo_perfil\" = 'cliente', \"barbershop_id\" = 1 WHERE \"accounts_user\".\"id\" = 3"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "COMMIT"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "(\"accounts_user\".\"email\" = 'novo.p09@exemplo.test' AND NOT (\"accounts_user\".\"id\" = 3))",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [
+   "UPDATE \"accounts_user\" SET \"password\" = '<hash de senha removido>', \"last_login\" = NULL, \"is_superuser\" = false, \"is_staff\" = false, \"is_active\" = true, \"date_j"
+  ],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "nenhuma",
+  "fora_do_alcance_do_solicitante": false,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "P10",
+  "grupo": "PATCH/PUT /users/{id}/ (edição)",
+  "descricao": "admin A dá ao cliente A1 o e-mail do cliente A2 (mesma barbearia)",
+  "pedido": "PATCH /api/v1/users/3/",
+  "papel": "admin_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "cliente.a2@alfa.test",
+  "dono_do_email": "A",
+  "esperado_registrado_antes": "400",
+  "corpo_enviado": {
+   "email": "cliente.a2@alfa.test"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 19.0,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "4",
+     "email": "cliente.a2@alfa.test",
+     "barbershop_id": "1",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "4",
+     "email": "cliente.a2@alfa.test",
+     "barbershop_id": "1",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": false,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 3) LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'cliente.a2@alfa.test' AND NOT (\"accounts_user\".\"id\" = 3)) LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "(\"accounts_user\".\"email\" = 'cliente.a2@alfa.test' AND NOT (\"accounts_user\".\"id\" = 3))",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "4",
+    "email": "cliente.a2@alfa.test",
+    "barbershop_id": "1",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "A",
+  "fora_do_alcance_do_solicitante": false,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "P11",
+  "grupo": "PATCH/PUT /users/{id}/ (edição)",
+  "descricao": "admin A dá ao cliente A1 o e-mail de cliente de B",
+  "pedido": "PATCH /api/v1/users/3/",
+  "papel": "admin_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "cliente.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "400 (oráculo)",
+  "corpo_enviado": {
+   "email": "cliente.b@beta.test"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 16.9,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": false,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 3) LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'cliente.b@beta.test' AND NOT (\"accounts_user\".\"id\" = 3)) LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "(\"accounts_user\".\"email\" = 'cliente.b@beta.test' AND NOT (\"accounts_user\".\"id\" = 3))",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "P12",
+  "grupo": "PATCH/PUT /users/{id}/ (edição)",
+  "descricao": "admin A reenvia o e-mail atual do cliente A1",
+  "pedido": "PATCH /api/v1/users/3/",
+  "papel": "admin_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "cliente.a1@alfa.test",
+  "dono_do_email": "próprio",
+  "esperado_registrado_antes": "200 sem mudança",
+  "corpo_enviado": {
+   "email": "cliente.a1@alfa.test"
+  },
+  "preparo": null,
+  "status": 200,
+  "content_type": "application/json",
+  "resposta_integral": "{\"id\":3,\"email\":\"cliente.a1@alfa.test\",\"nome\":\"Carlos Cliente A1\",\"tipo_perfil\":\"cliente\",\"barbershop\":1,\"is_active\":true,\"created_at\":\"2026-11-15T16:23:10.443312-03:00\"}",
+  "resposta_json": {
+   "id": 3,
+   "email": "cliente.a1@alfa.test",
+   "nome": "Carlos Cliente A1",
+   "tipo_perfil": "cliente",
+   "barbershop": 1,
+   "is_active": true,
+   "created_at": "2026-11-15T16:23:10.443312-03:00"
+  },
+  "tempo_ms": 22.2,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "3",
+     "email": "cliente.a1@alfa.test",
+     "barbershop_id": "1",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "3",
+     "email": "cliente.a1@alfa.test",
+     "barbershop_id": "1",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": false,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 3) LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'cliente.a1@alfa.test' AND NOT (\"accounts_user\".\"id\" = 3)) LIMIT 1"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "BEGIN"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 3 LIMIT 21 FOR UPDATE"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"is_active\" AND \"accounts_user\".\"tipo_perfil\" = 'admin' AND \"accounts_user\".\"id\" = 3) ORDER BY \"accounts_user\".\"nome\" ASC LIMIT 1"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "UPDATE \"accounts_user\" SET \"password\" = '<hash de senha removido>', \"last_login\" = NULL, \"is_superuser\" = false, \"is_staff\" = false, \"is_active\" = true, \"date_joined\" = '2026-11-15T19:23:10.219458+00:00'::timestamptz, \"created_at\" = '2026-11-15T19:23:10.443312+00:00'::timestamptz, \"updated_at\" = '2026-11-15T19:25:54.295075+00:00'::timestamptz, \"email\" = 'cliente.a1@alfa.test', \"nome\" = 'Carlos Cliente A1', \"tipo_perfil\" = 'cliente', \"barbershop_id\" = 1 WHERE \"accounts_user\".\"id\" = 3"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "COMMIT"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "(\"accounts_user\".\"email\" = 'cliente.a1@alfa.test' AND NOT (\"accounts_user\".\"id\" = 3))",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [
+   "UPDATE \"accounts_user\" SET \"password\" = '<hash de senha removido>', \"last_login\" = NULL, \"is_superuser\" = false, \"is_staff\" = false, \"is_active\" = true, \"date_j"
+  ],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "barbershop_id": "1",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "A",
+  "fora_do_alcance_do_solicitante": false,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "P13",
+  "grupo": "PATCH/PUT /users/{id}/ (edição)",
+  "descricao": "admin A tenta editar o e-mail de um cliente de B",
+  "pedido": "PATCH /api/v1/users/7/",
+  "papel": "admin_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "novo.p13@exemplo.test",
+  "dono_do_email": "novo",
+  "esperado_registrado_antes": "404",
+  "corpo_enviado": {
+   "email": "novo.p13@exemplo.test"
+  },
+  "preparo": null,
+  "status": 404,
+  "content_type": "application/json",
+  "resposta_integral": "{\"detail\":\"No User matches the given query.\"}",
+  "resposta_json": {
+   "detail": "No User matches the given query."
+  },
+  "tempo_ms": 13.9,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [],
+   "conta_alvo": {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "nome": "Clara Cliente B"
+   },
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [],
+   "conta_alvo": {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "nome": "Clara Cliente B"
+   },
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": false,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 7) LIMIT 21"
+   }
+  ],
+  "consultas_de_existencia_do_email": [],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "nenhuma",
+  "fora_do_alcance_do_solicitante": false,
+  "consulta_global_sem_filtro": false
+ },
+ {
+  "id": "P14",
+  "grupo": "PATCH/PUT /users/{id}/ (edição)",
+  "descricao": "cliente A1 tenta editar o e-mail do cliente A2 (SEC-12: 403, não alterado)",
+  "pedido": "PATCH /api/v1/users/4/",
+  "papel": "cliente_a1",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "cliente.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "403 antes da validação",
+  "corpo_enviado": {
+   "email": "cliente.b@beta.test"
+  },
+  "preparo": null,
+  "status": 403,
+  "content_type": "application/json",
+  "resposta_integral": "{\"detail\":\"Você não tem permissão para executar essa ação.\"}",
+  "resposta_json": {
+   "detail": "Você não tem permissão para executar essa ação."
+  },
+  "tempo_ms": 16.5,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "4",
+    "email": "cliente.a2@alfa.test",
+    "nome": "Celia Cliente A2"
+   },
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "4",
+    "email": "cliente.a2@alfa.test",
+    "nome": "Celia Cliente A2"
+   },
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": false,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 3 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 4) LIMIT 21"
+   }
+  ],
+  "consultas_de_existencia_do_email": [],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": false
+ },
+ {
+  "id": "P15",
+  "grupo": "PATCH/PUT /users/{id}/ (edição)",
+  "descricao": "admin A: cliente A1 com e-mail de B em maiúsculas na parte local",
+  "pedido": "PATCH /api/v1/users/3/",
+  "papel": "admin_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "Cliente.B@beta.test",
+  "dono_do_email": "B (variação de caixa)",
+  "esperado_registrado_antes": "?",
+  "corpo_enviado": {
+   "email": "Cliente.B@beta.test"
+  },
+  "preparo": null,
+  "status": 200,
+  "content_type": "application/json",
+  "resposta_integral": "{\"id\":3,\"email\":\"Cliente.B@beta.test\",\"nome\":\"Carlos Cliente A1\",\"tipo_perfil\":\"cliente\",\"barbershop\":1,\"is_active\":true,\"created_at\":\"2026-11-15T16:23:10.443312-03:00\"}",
+  "resposta_json": {
+   "id": 3,
+   "email": "Cliente.B@beta.test",
+   "nome": "Carlos Cliente A1",
+   "tipo_perfil": "cliente",
+   "barbershop": 1,
+   "is_active": true,
+   "created_at": "2026-11-15T16:23:10.443312-03:00"
+  },
+  "tempo_ms": 21.9,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "3",
+     "email": "Cliente.B@beta.test",
+     "barbershop_id": "1",
+     "is_active": "t"
+    },
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "Cliente.B@beta.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": true,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 3) LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'Cliente.B@beta.test' AND NOT (\"accounts_user\".\"id\" = 3)) LIMIT 1"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "BEGIN"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 3 LIMIT 21 FOR UPDATE"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"is_active\" AND \"accounts_user\".\"tipo_perfil\" = 'admin' AND \"accounts_user\".\"id\" = 3) ORDER BY \"accounts_user\".\"nome\" ASC LIMIT 1"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "UPDATE \"accounts_user\" SET \"password\" = '<hash de senha removido>', \"last_login\" = NULL, \"is_superuser\" = false, \"is_staff\" = false, \"is_active\" = true, \"date_joined\" = '2026-11-15T19:23:10.219458+00:00'::timestamptz, \"created_at\" = '2026-11-15T19:23:10.443312+00:00'::timestamptz, \"updated_at\" = '2026-11-15T19:25:55.866929+00:00'::timestamptz, \"email\" = 'Cliente.B@beta.test', \"nome\" = 'Carlos Cliente A1', \"tipo_perfil\" = 'cliente', \"barbershop_id\" = 1 WHERE \"accounts_user\".\"id\" = 3"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "COMMIT"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "(\"accounts_user\".\"email\" = 'Cliente.B@beta.test' AND NOT (\"accounts_user\".\"id\" = 3))",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [
+   "UPDATE \"accounts_user\" SET \"password\" = '<hash de senha removido>', \"last_login\" = NULL, \"is_superuser\" = false, \"is_staff\" = false, \"is_active\" = true, \"date_j"
+  ],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [],
+  "contas_so_com_outra_caixa_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "conta_encontrada": "nenhuma exata; B com outra caixa",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "P16",
+  "grupo": "PATCH/PUT /users/{id}/ (edição)",
+  "descricao": "admin A: cliente A1 com e-mail de B em maiúsculas no domínio",
+  "pedido": "PATCH /api/v1/users/3/",
+  "papel": "admin_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "cliente.b@BETA.TEST",
+  "dono_do_email": "B (variação de caixa)",
+  "esperado_registrado_antes": "?",
+  "corpo_enviado": {
+   "email": "cliente.b@BETA.TEST"
+  },
+  "preparo": null,
+  "status": 200,
+  "content_type": "application/json",
+  "resposta_integral": "{\"id\":3,\"email\":\"cliente.b@BETA.TEST\",\"nome\":\"Carlos Cliente A1\",\"tipo_perfil\":\"cliente\",\"barbershop\":1,\"is_active\":true,\"created_at\":\"2026-11-15T16:23:10.443312-03:00\"}",
+  "resposta_json": {
+   "id": 3,
+   "email": "cliente.b@BETA.TEST",
+   "nome": "Carlos Cliente A1",
+   "tipo_perfil": "cliente",
+   "barbershop": 1,
+   "is_active": true,
+   "created_at": "2026-11-15T16:23:10.443312-03:00"
+  },
+  "tempo_ms": 21.7,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "3",
+     "email": "cliente.b@BETA.TEST",
+     "barbershop_id": "1",
+     "is_active": "t"
+    },
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.b@BETA.TEST",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": true,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 3) LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'cliente.b@BETA.TEST' AND NOT (\"accounts_user\".\"id\" = 3)) LIMIT 1"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "BEGIN"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 3 LIMIT 21 FOR UPDATE"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"is_active\" AND \"accounts_user\".\"tipo_perfil\" = 'admin' AND \"accounts_user\".\"id\" = 3) ORDER BY \"accounts_user\".\"nome\" ASC LIMIT 1"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "UPDATE \"accounts_user\" SET \"password\" = '<hash de senha removido>', \"last_login\" = NULL, \"is_superuser\" = false, \"is_staff\" = false, \"is_active\" = true, \"date_joined\" = '2026-11-15T19:23:10.219458+00:00'::timestamptz, \"created_at\" = '2026-11-15T19:23:10.443312+00:00'::timestamptz, \"updated_at\" = '2026-11-15T19:25:56.398291+00:00'::timestamptz, \"email\" = 'cliente.b@BETA.TEST', \"nome\" = 'Carlos Cliente A1', \"tipo_perfil\" = 'cliente', \"barbershop_id\" = 1 WHERE \"accounts_user\".\"id\" = 3"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "COMMIT"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "(\"accounts_user\".\"email\" = 'cliente.b@BETA.TEST' AND NOT (\"accounts_user\".\"id\" = 3))",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [
+   "UPDATE \"accounts_user\" SET \"password\" = '<hash de senha removido>', \"last_login\" = NULL, \"is_superuser\" = false, \"is_staff\" = false, \"is_active\" = true, \"date_j"
+  ],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [],
+  "contas_so_com_outra_caixa_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "conta_encontrada": "nenhuma exata; B com outra caixa",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "P17",
+  "grupo": "PATCH/PUT /users/{id}/ (edição)",
+  "descricao": "admin A: cliente A1 com e-mail de B com espaços",
+  "pedido": "PATCH /api/v1/users/3/",
+  "papel": "admin_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "cliente.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "400",
+  "corpo_enviado": {
+   "email": "  cliente.b@beta.test  "
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 17.8,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": false,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 3) LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'cliente.b@beta.test' AND NOT (\"accounts_user\".\"id\" = 3)) LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "(\"accounts_user\".\"email\" = 'cliente.b@beta.test' AND NOT (\"accounts_user\".\"id\" = 3))",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "P18",
+  "grupo": "PATCH/PUT /users/{id}/ (edição)",
+  "descricao": "admin A: cliente A1 com e-mail de conta INATIVA de B",
+  "pedido": "PATCH /api/v1/users/3/",
+  "papel": "admin_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "inativo.b@beta.test",
+  "dono_do_email": "B (inativa)",
+  "esperado_registrado_antes": "400",
+  "corpo_enviado": {
+   "email": "inativo.b@beta.test"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 17.0,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "8",
+     "email": "inativo.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "f"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "8",
+     "email": "inativo.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "f"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": false,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 3) LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'inativo.b@beta.test' AND NOT (\"accounts_user\".\"id\" = 3)) LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "(\"accounts_user\".\"email\" = 'inativo.b@beta.test' AND NOT (\"accounts_user\".\"id\" = 3))",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "8",
+    "email": "inativo.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "f"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "P19",
+  "grupo": "PATCH/PUT /users/{id}/ (edição)",
+  "descricao": "conta sem barbearia tenta trocar o próprio e-mail",
+  "pedido": "PATCH /api/v1/users/9/",
+  "papel": "sem_barbearia",
+  "tenant_do_solicitante": "(sem barbearia)",
+  "email_sondado": "cliente.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "404 (queryset vazio)",
+  "corpo_enviado": {
+   "email": "cliente.b@beta.test"
+  },
+  "preparo": null,
+  "status": 404,
+  "content_type": "application/json",
+  "resposta_integral": "{\"detail\":\"No User matches the given query.\"}",
+  "resposta_json": {
+   "detail": "No User matches the given query."
+  },
+  "tempo_ms": 13.3,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "9",
+    "email": "sem.barbearia@exemplo.test",
+    "nome": "Saulo Sem Barbearia"
+   },
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "9",
+    "email": "sem.barbearia@exemplo.test",
+    "nome": "Saulo Sem Barbearia"
+   },
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": false,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 9 LIMIT 21"
+   }
+  ],
+  "consultas_de_existencia_do_email": [],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": false
+ },
+ {
+  "id": "P20",
+  "grupo": "PATCH/PUT /users/{id}/ (edição)",
+  "descricao": "superusuário dá ao cliente A1 o e-mail de cliente de B",
+  "pedido": "PATCH /api/v1/users/3/",
+  "papel": "superuser",
+  "tenant_do_solicitante": "(plataforma)",
+  "email_sondado": "cliente.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "400",
+  "corpo_enviado": {
+   "email": "cliente.b@beta.test"
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 16.3,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": false,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 10 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 3 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'cliente.b@beta.test' AND NOT (\"accounts_user\".\"id\" = 3)) LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "(\"accounts_user\".\"email\" = 'cliente.b@beta.test' AND NOT (\"accounts_user\".\"id\" = 3))",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": false,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "P21",
+  "grupo": "PATCH/PUT /users/{id}/ (edição)",
+  "descricao": "PUT: admin A envia o cadastro do cliente A1 com e-mail de B",
+  "pedido": "PUT /api/v1/users/3/",
+  "papel": "admin_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "cliente.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "400",
+  "corpo_enviado": {
+   "email": "cliente.b@beta.test",
+   "nome": "Carlos Cliente A1",
+   "tipo_perfil": "cliente",
+   "is_active": true
+  },
+  "preparo": null,
+  "status": 400,
+  "content_type": "application/json",
+  "resposta_integral": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+  "resposta_json": {
+   "email": [
+    "usuário com este e-mail já existe."
+   ]
+  },
+  "tempo_ms": 17.8,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": false,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 3) LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'cliente.b@beta.test' AND NOT (\"accounts_user\".\"id\" = 3)) LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "(\"accounts_user\".\"email\" = 'cliente.b@beta.test' AND NOT (\"accounts_user\".\"id\" = 3))",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "P22",
+  "grupo": "PATCH/PUT /users/{id}/ (edição)",
+  "descricao": "PUT: admin A envia o cadastro do cliente A1 com e-mail nunca utilizado",
+  "pedido": "PUT /api/v1/users/3/",
+  "papel": "admin_a",
+  "tenant_do_solicitante": "A",
+  "email_sondado": "novo.p22@exemplo.test",
+  "dono_do_email": "novo",
+  "esperado_registrado_antes": "200",
+  "corpo_enviado": {
+   "email": "novo.p22@exemplo.test",
+   "nome": "Carlos Cliente A1",
+   "tipo_perfil": "cliente",
+   "is_active": true
+  },
+  "preparo": null,
+  "status": 200,
+  "content_type": "application/json",
+  "resposta_integral": "{\"id\":3,\"email\":\"novo.p22@exemplo.test\",\"nome\":\"Carlos Cliente A1\",\"tipo_perfil\":\"cliente\",\"barbershop\":1,\"is_active\":true,\"created_at\":\"2026-11-15T16:23:10.443312-03:00\"}",
+  "resposta_json": {
+   "id": 3,
+   "email": "novo.p22@exemplo.test",
+   "nome": "Carlos Cliente A1",
+   "tipo_perfil": "cliente",
+   "barbershop": 1,
+   "is_active": true,
+   "created_at": "2026-11-15T16:23:10.443312-03:00"
+  },
+  "tempo_ms": 20.8,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [],
+   "conta_alvo": {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "3",
+     "email": "novo.p22@exemplo.test",
+     "barbershop_id": "1",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": {
+    "id": "3",
+    "email": "novo.p22@exemplo.test",
+    "nome": "Carlos Cliente A1"
+   },
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": true,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 1 LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"barbershop_id\" = 1 AND \"accounts_user\".\"id\" = 3) LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT 1 AS \"a\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"email\" = 'novo.p22@exemplo.test' AND NOT (\"accounts_user\".\"id\" = 3)) LIMIT 1"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "BEGIN"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"id\" = 3 LIMIT 21 FOR UPDATE"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (\"accounts_user\".\"is_active\" AND \"accounts_user\".\"tipo_perfil\" = 'admin' AND \"accounts_user\".\"id\" = 3) ORDER BY \"accounts_user\".\"nome\" ASC LIMIT 1"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "UPDATE \"accounts_user\" SET \"password\" = '<hash de senha removido>', \"last_login\" = NULL, \"is_superuser\" = false, \"is_staff\" = false, \"is_active\" = true, \"date_joined\" = '2026-11-15T19:23:10.219458+00:00'::timestamptz, \"created_at\" = '2026-11-15T19:23:10.443312+00:00'::timestamptz, \"updated_at\" = '2026-11-15T19:25:59.509797+00:00'::timestamptz, \"email\" = 'novo.p22@exemplo.test', \"nome\" = 'Carlos Cliente A1', \"tipo_perfil\" = 'cliente', \"barbershop_id\" = 1 WHERE \"accounts_user\".\"id\" = 3"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "COMMIT"
+   }
+  ],
+  "consultas_de_existencia_do_email": [
+   {
+    "where": "(\"accounts_user\".\"email\" = 'novo.p22@exemplo.test' AND NOT (\"accounts_user\".\"id\" = 3))",
+    "filtra_barbearia": false
+   }
+  ],
+  "escritas_em_accounts_user": [
+   "UPDATE \"accounts_user\" SET \"password\" = '<hash de senha removido>', \"last_login\" = NULL, \"is_superuser\" = false, \"is_staff\" = false, \"is_active\" = true, \"date_j"
+  ],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "nenhuma",
+  "fora_do_alcance_do_solicitante": false,
+  "consulta_global_sem_filtro": true
+ },
+ {
+  "id": "L01",
+  "grupo": "login e recuperação de senha (comparação)",
+  "descricao": "login: e-mail existente (cliente de B), senha errada",
+  "pedido": "POST /api/v1/auth/login/",
+  "papel": "anônimo",
+  "tenant_do_solicitante": "(anônimo)",
+  "email_sondado": "cliente.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "401",
+  "corpo_enviado": {
+   "email": "cliente.b@beta.test",
+   "password": "<senha omitida>"
+  },
+  "preparo": null,
+  "status": 401,
+  "content_type": "application/json",
+  "resposta_integral": "{\"detail\":\"Usuário e/ou senha incorreto(s)\"}",
+  "resposta_json": {
+   "detail": "Usuário e/ou senha incorreto(s)"
+  },
+  "tempo_ms": 247.8,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.b@beta.test' LIMIT 21"
+   }
+  ],
+  "consultas_de_existencia_do_email": [],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": false
+ },
+ {
+  "id": "L02",
+  "grupo": "login e recuperação de senha (comparação)",
+  "descricao": "login: e-mail nunca utilizado",
+  "pedido": "POST /api/v1/auth/login/",
+  "papel": "anônimo",
+  "tenant_do_solicitante": "(anônimo)",
+  "email_sondado": "novo.l02@exemplo.test",
+  "dono_do_email": "novo",
+  "esperado_registrado_antes": "401 igual ao L01",
+  "corpo_enviado": {
+   "email": "novo.l02@exemplo.test",
+   "password": "<senha omitida>"
+  },
+  "preparo": null,
+  "status": 401,
+  "content_type": "application/json",
+  "resposta_integral": "{\"detail\":\"Usuário e/ou senha incorreto(s)\"}",
+  "resposta_json": {
+   "detail": "Usuário e/ou senha incorreto(s)"
+  },
+  "tempo_ms": 238.8,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'novo.l02@exemplo.test' LIMIT 21"
+   }
+  ],
+  "consultas_de_existencia_do_email": [],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "nenhuma",
+  "fora_do_alcance_do_solicitante": false,
+  "consulta_global_sem_filtro": false
+ },
+ {
+  "id": "L03",
+  "grupo": "login e recuperação de senha (comparação)",
+  "descricao": "login: conta inativa com a senha correta",
+  "pedido": "POST /api/v1/auth/login/",
+  "papel": "anônimo",
+  "tenant_do_solicitante": "(anônimo)",
+  "email_sondado": "inativo.b@beta.test",
+  "dono_do_email": "B (inativa)",
+  "esperado_registrado_antes": "401 igual",
+  "corpo_enviado": {
+   "email": "inativo.b@beta.test",
+   "password": "<senha omitida>"
+  },
+  "preparo": null,
+  "status": 401,
+  "content_type": "application/json",
+  "resposta_integral": "{\"detail\":\"Usuário e/ou senha incorreto(s)\"}",
+  "resposta_json": {
+   "detail": "Usuário e/ou senha incorreto(s)"
+  },
+  "tempo_ms": 248.7,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "8",
+     "email": "inativo.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "f"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "8",
+     "email": "inativo.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "f"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'inativo.b@beta.test' LIMIT 21"
+   }
+  ],
+  "consultas_de_existencia_do_email": [],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "8",
+    "email": "inativo.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "f"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": false
+ },
+ {
+  "id": "L04",
+  "grupo": "login e recuperação de senha (comparação)",
+  "descricao": "login: cliente A1 com a senha correta e maiúsculas na parte local",
+  "pedido": "POST /api/v1/auth/login/",
+  "papel": "anônimo",
+  "tenant_do_solicitante": "(anônimo)",
+  "email_sondado": "Cliente.A1@alfa.test",
+  "dono_do_email": "A (variação de caixa)",
+  "esperado_registrado_antes": "?",
+  "corpo_enviado": {
+   "email": "Cliente.A1@alfa.test",
+   "password": "<senha omitida>"
+  },
+  "preparo": null,
+  "status": 401,
+  "content_type": "application/json",
+  "resposta_integral": "{\"detail\":\"Usuário e/ou senha incorreto(s)\"}",
+  "resposta_json": {
+   "detail": "Usuário e/ou senha incorreto(s)"
+  },
+  "tempo_ms": 256.0,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "3",
+     "email": "cliente.a1@alfa.test",
+     "barbershop_id": "1",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "3",
+     "email": "cliente.a1@alfa.test",
+     "barbershop_id": "1",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'Cliente.A1@alfa.test' LIMIT 21"
+   }
+  ],
+  "consultas_de_existencia_do_email": [],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [],
+  "contas_so_com_outra_caixa_antes": [
+   {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "barbershop_id": "1",
+    "is_active": "t"
+   }
+  ],
+  "conta_encontrada": "nenhuma exata; A com outra caixa",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": false
+ },
+ {
+  "id": "L05",
+  "grupo": "login e recuperação de senha (comparação)",
+  "descricao": "login: cliente A1 com a senha correta e maiúsculas no domínio",
+  "pedido": "POST /api/v1/auth/login/",
+  "papel": "anônimo",
+  "tenant_do_solicitante": "(anônimo)",
+  "email_sondado": "cliente.a1@ALFA.TEST",
+  "dono_do_email": "A (variação de caixa)",
+  "esperado_registrado_antes": "?",
+  "corpo_enviado": {
+   "email": "cliente.a1@ALFA.TEST",
+   "password": "<senha omitida>"
+  },
+  "preparo": null,
+  "status": 401,
+  "content_type": "application/json",
+  "resposta_integral": "{\"detail\":\"Usuário e/ou senha incorreto(s)\"}",
+  "resposta_json": {
+   "detail": "Usuário e/ou senha incorreto(s)"
+  },
+  "tempo_ms": 238.1,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "3",
+     "email": "cliente.a1@alfa.test",
+     "barbershop_id": "1",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "3",
+     "email": "cliente.a1@alfa.test",
+     "barbershop_id": "1",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.a1@ALFA.TEST' LIMIT 21"
+   }
+  ],
+  "consultas_de_existencia_do_email": [],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [],
+  "contas_so_com_outra_caixa_antes": [
+   {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "barbershop_id": "1",
+    "is_active": "t"
+   }
+  ],
+  "conta_encontrada": "nenhuma exata; A com outra caixa",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": false
+ },
+ {
+  "id": "L06",
+  "grupo": "login e recuperação de senha (comparação)",
+  "descricao": "login: cliente A1 com a senha correta e espaços",
+  "pedido": "POST /api/v1/auth/login/",
+  "papel": "anônimo",
+  "tenant_do_solicitante": "(anônimo)",
+  "email_sondado": "cliente.a1@alfa.test",
+  "dono_do_email": "A",
+  "esperado_registrado_antes": "?",
+  "corpo_enviado": {
+   "email": " cliente.a1@alfa.test ",
+   "password": "<senha omitida>"
+  },
+  "preparo": null,
+  "status": 200,
+  "content_type": "application/json",
+  "resposta_integral": "{\"access\":\"<token removido>\"}",
+  "resposta_json": {
+   "access": "<token removido>"
+  },
+  "tempo_ms": 259.6,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "3",
+     "email": "cliente.a1@alfa.test",
+     "barbershop_id": "1",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "3",
+     "email": "cliente.a1@alfa.test",
+     "barbershop_id": "1",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE \"accounts_user\".\"email\" = 'cliente.a1@alfa.test' LIMIT 21"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "INSERT INTO \"token_blacklist_outstandingtoken\" (\"user_id\", \"jti\", \"token\", \"created_at\", \"expires_at\") VALUES (3, '<jti removido>', '<token removido>', '2026-11-15T19:26:03.832534+00:00'::timestamptz, '2026-11-22T19:26:03+00:00'::timestamptz) RETURNING \"token_blacklist_outstandingtoken\".\"id\""
+   }
+  ],
+  "consultas_de_existencia_do_email": [],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "3",
+    "email": "cliente.a1@alfa.test",
+    "barbershop_id": "1",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "A",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": false
+ },
+ {
+  "id": "L07",
+  "grupo": "login e recuperação de senha (comparação)",
+  "descricao": "recuperação: e-mail existente",
+  "pedido": "POST /api/v1/auth/password/reset/",
+  "papel": "anônimo",
+  "tenant_do_solicitante": "(anônimo)",
+  "email_sondado": "cliente.b@beta.test",
+  "dono_do_email": "B",
+  "esperado_registrado_antes": "204",
+  "corpo_enviado": {
+   "email": "cliente.b@beta.test"
+  },
+  "preparo": null,
+  "status": 204,
+  "content_type": null,
+  "resposta_integral": "",
+  "resposta_json": null,
+  "tempo_ms": 17.0,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [
+   {
+    "para": [
+     "cliente.b@beta.test"
+    ],
+    "uid_decodificado_id_da_conta": [
+     7
+    ],
+    "token": "presente (removido)"
+   }
+  ],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (UPPER(\"accounts_user\".\"email\"::text) = UPPER('cliente.b@beta.test') AND \"accounts_user\".\"is_active\") ORDER BY \"accounts_user\".\"nome\" ASC LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": false
+ },
+ {
+  "id": "L08",
+  "grupo": "login e recuperação de senha (comparação)",
+  "descricao": "recuperação: e-mail nunca utilizado",
+  "pedido": "POST /api/v1/auth/password/reset/",
+  "papel": "anônimo",
+  "tenant_do_solicitante": "(anônimo)",
+  "email_sondado": "novo.l08@exemplo.test",
+  "dono_do_email": "novo",
+  "esperado_registrado_antes": "204 igual",
+  "corpo_enviado": {
+   "email": "novo.l08@exemplo.test"
+  },
+  "preparo": null,
+  "status": 204,
+  "content_type": null,
+  "resposta_integral": "",
+  "resposta_json": null,
+  "tempo_ms": 14.3,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [],
+   "conta_alvo": null,
+   "total_de_usuarios": 10
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [
+   {
+    "para": [
+     "no-reply@barbearia.local"
+    ],
+    "uid_decodificado_id_da_conta": [
+     0
+    ],
+    "token": "presente (removido)"
+   }
+  ],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (UPPER(\"accounts_user\".\"email\"::text) = UPPER('novo.l08@exemplo.test') AND \"accounts_user\".\"is_active\") ORDER BY \"accounts_user\".\"nome\" ASC LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [],
+  "contas_so_com_outra_caixa_antes": [],
+  "conta_encontrada": "nenhuma",
+  "fora_do_alcance_do_solicitante": false,
+  "consulta_global_sem_filtro": false
+ },
+ {
+  "id": "L09",
+  "grupo": "login e recuperação de senha (comparação)",
+  "descricao": "recuperação do cliente de B depois que um terceiro cadastrou \"Cliente.B@beta.test\" (nome \"Aaron Variante\")",
+  "pedido": "POST /api/v1/auth/password/reset/",
+  "papel": "anônimo",
+  "tenant_do_solicitante": "(anônimo)",
+  "email_sondado": "cliente.b@beta.test",
+  "dono_do_email": "B + variação de caixa",
+  "esperado_registrado_antes": "?",
+  "corpo_enviado": {
+   "email": "cliente.b@beta.test"
+  },
+  "preparo": {
+   "pedido": "POST /api/v1/auth/register/",
+   "corpo_enviado": {
+    "nome": "Aaron Variante",
+    "email": "Cliente.B@beta.test"
+   },
+   "status": 201,
+   "resposta": "{\"id\":18,\"email\":\"Cliente.B@beta.test\",\"nome\":\"Aaron Variante\",\"tipo_perfil\":\"cliente\",\"barbershop\":null,\"is_active\":true,\"created_at\":\"2026-11-15T16:26:05.491136-03:00\"}"
+  },
+  "status": 204,
+  "content_type": null,
+  "resposta_integral": "",
+  "resposta_json": null,
+  "tempo_ms": 14.1,
+  "banco_antes": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    },
+    {
+     "id": "18",
+     "email": "Cliente.B@beta.test",
+     "barbershop_id": "null",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 11
+  },
+  "banco_depois": {
+   "contas_com_o_email_sem_diferenciar_caixa": [
+    {
+     "id": "7",
+     "email": "cliente.b@beta.test",
+     "barbershop_id": "2",
+     "is_active": "t"
+    },
+    {
+     "id": "18",
+     "email": "Cliente.B@beta.test",
+     "barbershop_id": "null",
+     "is_active": "t"
+    }
+   ],
+   "conta_alvo": null,
+   "total_de_usuarios": 11
+  },
+  "usuarios_criados": 0,
+  "mensagens_de_email_geradas": [
+   {
+    "para": [
+     "Cliente.B@beta.test"
+    ],
+    "uid_decodificado_id_da_conta": [
+     18
+    ],
+    "token": "presente (removido)"
+   }
+  ],
+  "conta_alvo_alterada": null,
+  "sql_do_servidor": [
+   {
+    "tipo": "LOG",
+    "sql": "SELECT set_config('TimeZone', 'UTC', false)"
+   },
+   {
+    "tipo": "LOG",
+    "sql": "SELECT \"accounts_user\".\"id\", \"accounts_user\".\"password\", \"accounts_user\".\"last_login\", \"accounts_user\".\"is_superuser\", \"accounts_user\".\"is_staff\", \"accounts_user\".\"is_active\", \"accounts_user\".\"date_joined\", \"accounts_user\".\"created_at\", \"accounts_user\".\"updated_at\", \"accounts_user\".\"email\", \"accounts_user\".\"nome\", \"accounts_user\".\"tipo_perfil\", \"accounts_user\".\"barbershop_id\" FROM \"accounts_user\" WHERE (UPPER(\"accounts_user\".\"email\"::text) = UPPER('cliente.b@beta.test') AND \"accounts_user\".\"is_active\") ORDER BY \"accounts_user\".\"nome\" ASC LIMIT 1"
+   }
+  ],
+  "consultas_de_existencia_do_email": [],
+  "escritas_em_accounts_user": [],
+  "erros_do_banco": [],
+  "contas_com_o_email_exato_antes": [
+   {
+    "id": "7",
+    "email": "cliente.b@beta.test",
+    "barbershop_id": "2",
+    "is_active": "t"
+   }
+  ],
+  "contas_so_com_outra_caixa_antes": [
+   {
+    "id": "18",
+    "email": "Cliente.B@beta.test",
+    "barbershop_id": "null",
+    "is_active": "t"
+   }
+  ],
+  "conta_encontrada": "B",
+  "fora_do_alcance_do_solicitante": true,
+  "consulta_global_sem_filtro": false
+ }
+]

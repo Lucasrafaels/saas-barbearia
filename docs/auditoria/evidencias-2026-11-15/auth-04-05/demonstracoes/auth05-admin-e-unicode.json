@@ -1,0 +1,149 @@
+{
+ "django_admin_formulario_de_criacao": [
+  {
+   "digitado": "cliente.b@beta.test",
+   "valido": false,
+   "erros": {
+    "email": [
+     "Usuário com este E-mail já existe."
+    ]
+   },
+   "gravado": null
+  },
+  {
+   "digitado": "cliente.b@BETA.TEST",
+   "valido": false,
+   "erros": {
+    "email": [
+     "Usuário com este E-mail já existe."
+    ]
+   },
+   "gravado": null
+  },
+  {
+   "digitado": "Cliente.B@beta.test",
+   "valido": true,
+   "erros": {},
+   "gravado": "Cliente.B@beta.test"
+  },
+  {
+   "digitado": "CLIENTE.B@BETA.TEST",
+   "valido": true,
+   "erros": {},
+   "gravado": "CLIENTE.B@beta.test"
+  },
+  {
+   "digitado": " cliente.b@beta.test ",
+   "valido": false,
+   "erros": {
+    "email": [
+     "Usuário com este E-mail já existe."
+    ]
+   },
+   "gravado": null
+  }
+ ],
+ "model_full_clean": [
+  {
+   "digitado": "Cliente.B@BETA.TEST",
+   "full_clean": "passou",
+   "email_depois_do_clean": "Cliente.B@beta.test"
+  },
+  {
+   "digitado": "cliente.b@BETA.TEST",
+   "full_clean": "recusou",
+   "erros": {
+    "email": [
+     "Usuário com este E-mail já existe."
+    ]
+   },
+   "email_depois_do_clean": "cliente.b@beta.test"
+  }
+ ],
+ "usuarios_no_banco_depois_do_rollback": 0,
+ "email_validator": [
+  {
+   "email": "joao@exemplo.test",
+   "aceito_pelo_EmailValidator": true
+  },
+  {
+   "email": "joão@exemplo.test",
+   "aceito_pelo_EmailValidator": false
+  },
+  {
+   "email": "cliente@ÁLFA.test",
+   "aceito_pelo_EmailValidator": true
+  },
+  {
+   "email": "cliente@álfa.test",
+   "aceito_pelo_EmailValidator": true
+  },
+  {
+   "email": "cliente@straße.test",
+   "aceito_pelo_EmailValidator": true
+  },
+  {
+   "email": "CLIENTE@STRASSE.TEST",
+   "aceito_pelo_EmailValidator": true
+  },
+  {
+   "email": "\"Quoted Local\"@exemplo.test",
+   "aceito_pelo_EmailValidator": false
+  }
+ ],
+ "banco": {
+  "datcollate": "C.UTF-8",
+  "datctype": "C.UTF-8",
+  "provider": "c"
+ },
+ "lower_python_x_postgresql": [
+  {
+   "texto": "ABC@EXEMPLO.TEST",
+   "python_lower": "abc@exemplo.test",
+   "pg_lower": "abc@exemplo.test",
+   "iguais": true,
+   "pg_upper": "ABC@EXEMPLO.TEST",
+   "python_upper": "ABC@EXEMPLO.TEST"
+  },
+  {
+   "texto": "cliente@ÁLFA.test",
+   "python_lower": "cliente@álfa.test",
+   "pg_lower": "cliente@álfa.test",
+   "iguais": true,
+   "pg_upper": "CLIENTE@ÁLFA.TEST",
+   "python_upper": "CLIENTE@ÁLFA.TEST"
+  },
+  {
+   "texto": "İstanbul@x.test",
+   "python_lower": "i̇stanbul@x.test",
+   "pg_lower": "istanbul@x.test",
+   "iguais": false,
+   "pg_upper": "İSTANBUL@X.TEST",
+   "python_upper": "İSTANBUL@X.TEST"
+  },
+  {
+   "texto": "STRAẞE@x.test",
+   "python_lower": "straße@x.test",
+   "pg_lower": "straße@x.test",
+   "iguais": true,
+   "pg_upper": "STRAẞE@X.TEST",
+   "python_upper": "STRAẞE@X.TEST"
+  },
+  {
+   "texto": "ǅ@x.test",
+   "python_lower": "ǆ@x.test",
+   "pg_lower": "ǆ@x.test",
+   "iguais": true,
+   "pg_upper": "Ǆ@X.TEST",
+   "python_upper": "Ǆ@X.TEST"
+  },
+  {
+   "texto": "Σ@x.test",
+   "python_lower": "σ@x.test",
+   "pg_lower": "σ@x.test",
+   "iguais": true,
+   "pg_upper": "Σ@X.TEST",
+   "python_upper": "Σ@X.TEST"
+  }
+ ]
+}

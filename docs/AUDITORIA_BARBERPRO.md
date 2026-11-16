@@ -8,6 +8,21 @@
 | **Natureza** | Somente diagnóstico. Nenhum código, configuração, dependência, migração ou dado real foi alterado |
 | **Evidências** | [`docs/auditoria/evidencias-2026-11-13/`](auditoria/evidencias-2026-11-13/README.md) |
 | **Correções** | Rodada 1 em 13/11/2026: BUS-15, BUS-03, BUS-05, BUS-04 e FE-13 resolvidos e verificados; BUS-06 parcialmente resolvido. Acompanhamento na [seção 18](#18-acompanhamento-das-correções). Rodada 2 em 13/11/2026 (somente frontend): FE-14, FE-21 e FE-22 resolvidos e verificados, na [seção 19](#19-rodada-2--13112026-fe-14-fe-21-e-fe-22-somente-frontend). As seções 1 a 17 descrevem o estado no momento da auditoria e foram preservadas |
+| **Isolamento multi-tenant** | Auditoria de 13/11/2026, somente diagnóstico, na [seção 20](#20-auditoria-de-isolamento-multi-tenant--13112026). **Achou 1 P0 novo (TEN-01): a API navegável do DRF expõe dados de todas as barbearias.** Com isso, a afirmação "nenhum P0 aberto" do resumo executivo deixou de valer. Também achou TEN-02 (P2), TEN-03 e TEN-04 (P3) e ampliou o SEC-10 |
+| **Contenção do TEN-01** | 14/11/2026, na [seção 21](#21-contenção-do-ten-01--14112026). A API passou a responder só em JSON (`DEFAULT_RENDERER_CLASSES`). **A exposição deixou de ser reproduzível** nas 21 rotas da API, com 9 papéis, todas as formas de pedir HTML e `DEBUG` True ou False. **TEN-01 está contido, não resolvido:** a correção estrutural (querysets limitados ao tenant) continua pendente. Registrados também API-03 e AUTH-03 (P3), que já existiam |
+| **Correção estrutural do TEN-01** | 14/11/2026, na [seção 22](#22-correção-estrutural-do-ten-01--14112026). Os campos relacionais (`cliente`, `barbeiro`, `servico` e `user`) e os filtros de agendamentos passaram a aceitar e listar só registros da barbearia do usuário. **TEN-01 resolvido e verificado** no ambiente de testes; a contenção continua ativa. SEC-10 parcialmente resolvido (filtros e corpo das requisições; falta o `exclude_appointment_id`). O sintoma do TEN-02 deixou de se reproduzir, mas o item segue aberto. Registrada a observação BUS-20 (P3) |
+| **Correção do TEN-02** | 14/11/2026, na [seção 23](#23-correção-do-ten-02--14112026). A conta sem barbearia passou a ser recusada antes de qualquer validação, com uma resposta única (403 "Usuário sem barbearia vinculada."), e o `validate()` deixou de pular as checagens de barbearia. A proteção não depende mais do escopo dos campos do TEN-01. **TEN-02 resolvido e verificado** no ambiente de testes |
+| **Correção do SEC-10 (`exclude_appointment_id`)** | 14/11/2026, na [seção 24](#24-correção-do-sec-10-exclude_appointment_id--14112026). O agendamento a excluir passou a ser buscado com a barbearia do usuário na própria consulta: o de outra barbearia responde exatamente como um ID inexistente e nunca é lido. **Os caminhos do SEC-10 entre barbearias estão fechados.** O SEC-10 continua parcial por um ponto dentro da própria barbearia, que já constava da definição original (PER-13: 403 em vez de 404 ao consultar outro usuário pelo ID), não autorizado nesta etapa |
+| **Correção do PER-13 e conclusão do SEC-10** | 14/11/2026, na [seção 25](#25-correção-do-per-13-e-conclusão-do-sec-10--14112026). Na leitura de detalhe de `/users/{id}/` (GET e HEAD), cliente e barbeiro só enxergam o próprio cadastro, já na consulta: outro usuário da mesma barbearia recebe o mesmo 404 de um ID inexistente. **SEC-10 resolvido e verificado** no ambiente de testes, com os três pontos da definição original cobertos por evidências. A mesma diferença 403 × 404 nas escritas (PATCH e PUT de `/users/{{id}}/`) e no `exclude_appointment_id`, dentro da própria barbearia, foi registrada à parte como **SEC-12 (P3)**, sem correção |
+| **Investigação do TEN-03** | 15/11/2026, somente investigação, na [seção 26](#26-investigação-do-ten-03--15112026). **Causa confirmada:** o e-mail é único em toda a plataforma (model e banco) e é o login, e o `UniqueValidator` do DRF consulta todas as barbearias. O alcance é maior que o registrado em 13/11: além do admin e do cadastro público, também qualquer cliente que troca o próprio e-mail, com variantes sem efeito colateral e um caminho por erro 500. Uma simulação mostrou que trocar a mensagem, ou padronizar status e corpo, não fecha o oráculo. Registrados AUTH-04 (P2) e AUTH-05 (P3). **TEN-03 continua aberto; a regra de unicidade aguarda a decisão do dono** |
+| **Mitigação D do TEN-03** | 15/11/2026, na [seção 27](#27-mitigação-d-do-ten-03-limite-de-tentativas--15112026). O dono decidiu: e-mail único em toda a plataforma (A), limite de tentativas como mitigação temporária (D), confirmação por e-mail e convites (C3) depois da apresentação, e AUTH-04 e AUTH-05 numa etapa prioritária separada. Implementados limites próprios, por conta ou por origem e nunca pelo e-mail-alvo, no cadastro público (+20/dia), na criação de usuários (30/hora e 100/dia) e na troca de e-mail (10/hora e 30/dia, só quando o e-mail muda). Esgotado o limite, a resposta é 429 antes da validação. Login e recuperação não mudaram. **TEN-03 continua aberto, com mitigação parcial.** Registrado o SEC-13 (P2): os limites por origem aceitam `X-Forwarded-For` forjado sem `NUM_PROXIES` |
+| **Investigação do AUTH-04 e do AUTH-05** | 15/11/2026, somente diagnóstico e plano, na [seção 28](#28-investigação-e-plano-do-auth-04-e-do-auth-05--15112026). **Causas confirmadas.** A recuperação procura sem diferenciar caixa e escolhe uma conta pelo nome; o token vai sempre para o e-mail da própria conta, mas a recuperação é desviada para a conta do terceiro. A validação, o manager, a edição, o login e a recuperação tratam a caixa de quatro jeitos diferentes. Medidos: duplicatas, 500 com o domínio em maiúsculas, o login após o cadastro falhando, e 500 em 15 de 15 pedidos simultâneos. Plano: normalização única para minúsculas e `UNIQUE (LOWER(email))`. **Exige migração (não criada).** A consulta de colisões no banco real está pronta e **não foi executada**. AUTH-04 e AUTH-05 continuam abertos |
+| **Verificação de colisões no banco real** | 15/11/2026, somente leitura, na [seção 29](#29-verificação-de-colisões-no-banco-real-somente-leitura--15112026). Banco `barbershop_db` (PostgreSQL 18.3, porta 5432), transação `READ ONLY` terminada em `ROLLBACK`, sem a consulta que mostra nomes e e-mails. **8 contas, 0 a normalizar, 0 fora do ASCII, 0 grupos de colisão.** A migração planejada não exige decisões por grupo. Isso não autoriza a migração nem a implementação |
+| **AUTH-04 e AUTH-05: equivalência e parada** | 15/11/2026, na [seção 30](#30-auth-04-e-auth-05-equivalência-python--postgresql-e-parada-antes-da-implementação--15112026). Antes de implementar, a equivalência entre a normalização em Python e as funções do PostgreSQL foi medida em `pt_BR.UTF-8`, nos 1.112.063 pontos de código. **Ela não se sustenta** para o que o backend aceita hoje: 56 caracteres têm `lower()` divergente, 55 entradas aceitas violariam o `CHECK`, e invisíveis aceitos não são normalizados. **A implementação parou antes de alterar qualquer código**, como o escopo exigia. Alternativa proposta: e-mail normalizado só em ASCII imprimível (o frontend já só aceita ASCII), com equivalência medida e garantida. Aguarda autorização |
+| **Correção do AUTH-04 e do AUTH-05** | 15/11/2026, na [seção 31](#31-correção-do-auth-04-e-do-auth-05-com-e-mail-normalizado-em-ascii--15112026). Uma regra única de e-mail (`accounts/emails.py`) foi aplicada a cadastro, criação, edição, Django Admin, login e recuperação: espaços externos removidos, só ASCII imprimível, minúsculas. A recuperação busca o e-mail normalizado com igualdade exata, e a migração `accounts.0006` cria o `CHECK` e o `UNIQUE (LOWER(email))`. Validado em PostgreSQL 18.3 `pt_BR.UTF-8` descartável: 521 testes OK; antes × depois, 7 → 0 duplicatas, 500 → 400 em 15 de 15 pedidos simultâneos, login com outra caixa 401 → 200. **AUTH-04 e AUTH-05 resolvidos e verificados no ambiente de testes. A migração não foi aplicada no banco real** |
+| **Revisão final e plano de implantação** | 15/11/2026, só leitura e planejamento, na [seção 32](#32-revisão-final-do-auth-04-e-do-auth-05-e-plano-de-implantação-da-accounts0006--15112026). A revisão independente confirmou a implementação e a migração, sem nenhum critério de parada. Há oito observações não bloqueantes, incorporadas ao plano; a principal é que a verificação da seção 29 não cobriu espaço interno, controles ASCII nem e-mail vazio (a migração se interromperia sem alterar nada). Plano P0 a P12: backup novo, ensaio numa cópia restaurada em PG 18.3 pt_BR, aplicação com `lock_timeout`, pós-verificação, fumaça, critérios de interrupção e recuperação. **Nada foi executado no banco real.** PROD-01 continua aberto |
+| **Execução de P0 a P7** | 15/11/2026, na [seção 33](#33-execução-de-p0-a-p7-do-plano-da-accounts0006--15112026). Identidade do banco real confirmada (`barbershop_db`, 18.3, `::1:5432`, pt_BR, libc). Leitura: 8 contas, todas já canônicas, 0 fora da regra, 0 colisões, restrição `accounts_user_email_key`, e o `migrate --plan` só com a `accounts.0006`. Backup novo de 63.004 bytes (SHA-256 `5eb831d6…21af95`), validado. A cópia restaurada em PG 18.3 pt_BR descartável é idêntica ao banco real. A `accounts.0006` foi aplicada, revertida e reaplicada **só na cópia**, e os 40 testes de fumaça passaram, sem 500. **Banco real sem nenhuma escrita; P8 não executada** |
+| **Aplicação no banco real (P8 a P12)** | 15/11/2026, na [seção 34](#34-aplicação-da-accounts0006-no-banco-real-p8-e-etapas-p9-a-p12--15112026). **P8:** pré-verificações idênticas ao ensaio; backup imediato de 63.004 bytes (SHA-256 `5a4c028b…513279`), validado; **`accounts.0006` aplicada às 22:56:22**, com `lock_timeout=5s` e nada além dela. **P9:** `CHECK` validado, índice único em `lower(email)` válido, `accounts_user_email_key` preservada e 8 contas canônicas. **P10:** backend e frontend no ar com o código conferido, sem escrita na inicialização. **P11:** 26 testes só de leitura OK, 0 respostas 500 e contadores de escrita inalterados. Testes com escrita ficam pendentes de autorização. **AUTH-04/05 resolvidos também no banco real** |
 | **Auditoria anterior** | Cópia integral em [`docs/auditorias/historico/AUDITORIA_BARBERPRO_2026-11-11.md`](auditorias/historico/AUDITORIA_BARBERPRO_2026-11-11.md); evidências antigas preservadas em [`docs/auditoria/evidencias/`](auditoria/evidencias/README.md) |
 
 > **Confidencialidade.** Este relatório não contém a `SECRET_KEY`, senhas, tokens nem a string de conexão do banco: só comprimentos, contagens, códigos HTTP e nomes de campos. Todos os dados de teste citados são fictícios.
@@ -35,6 +50,21 @@
 17. [Prontidão para a demonstração](#17-prontidão-para-a-demonstração)
 18. [Acompanhamento das correções](#18-acompanhamento-das-correções)
 19. [Rodada 2: FE-14, FE-21 e FE-22](#19-rodada-2--13112026-fe-14-fe-21-e-fe-22-somente-frontend)
+20. [Auditoria de isolamento multi-tenant](#20-auditoria-de-isolamento-multi-tenant--13112026)
+21. [Contenção do TEN-01](#21-contenção-do-ten-01--14112026)
+22. [Correção estrutural do TEN-01](#22-correção-estrutural-do-ten-01--14112026)
+23. [Correção do TEN-02](#23-correção-do-ten-02--14112026)
+24. [Correção do SEC-10: `exclude_appointment_id`](#24-correção-do-sec-10-exclude_appointment_id--14112026)
+25. [Correção do PER-13 e conclusão do SEC-10](#25-correção-do-per-13-e-conclusão-do-sec-10--14112026)
+26. [Investigação do TEN-03](#26-investigação-do-ten-03--15112026)
+27. [Mitigação D do TEN-03: limite de tentativas](#27-mitigação-d-do-ten-03-limite-de-tentativas--15112026)
+28. [Investigação e plano do AUTH-04 e do AUTH-05](#28-investigação-e-plano-do-auth-04-e-do-auth-05--15112026)
+29. [Verificação de colisões no banco real](#29-verificação-de-colisões-no-banco-real-somente-leitura--15112026)
+30. [AUTH-04 e AUTH-05: equivalência Python × PostgreSQL e parada](#30-auth-04-e-auth-05-equivalência-python--postgresql-e-parada-antes-da-implementação--15112026)
+31. [Correção do AUTH-04 e do AUTH-05](#31-correção-do-auth-04-e-do-auth-05-com-e-mail-normalizado-em-ascii--15112026)
+32. [Revisão final do AUTH-04 e do AUTH-05 e plano de implantação](#32-revisão-final-do-auth-04-e-do-auth-05-e-plano-de-implantação-da-accounts0006--15112026)
+33. [Execução de P0 a P7 do plano da `accounts.0006`](#33-execução-de-p0-a-p7-do-plano-da-accounts0006--15112026)
+34. [Aplicação da `accounts.0006` no banco real (P8) e etapas P9 a P12](#34-aplicação-da-accounts0006-no-banco-real-p8-e-etapas-p9-a-p12--15112026)
 
 ---
 
@@ -1596,6 +1626,10 @@ Os detalhes abaixo seguem esta ordem. Referências do tipo "BUS-03 (sondagem)" a
 |---|---|---|---|---|
 | P3 | Backend | `appointments/serializers.py:82-97`; `appointments/views.py:203-213`; `config/permissions.py` (`IsSelfOrAdmin`) | Confirmado | **Novo** |
 
+> **Atualização de 14/11/2026:** dos três pontos abaixo, os dois primeiros (corpo das requisições e `exclude_appointment_id`) foram corrigidos (seções 22 e 24). O terceiro (403 em vez de 404 em `/users/{id}/`, PER-13) continua presente ([seção 24](#24-correção-do-sec-10-exclude_appointment_id--14112026)).
+>
+> **Atualização de 14/11/2026, PER-13:** o terceiro ponto foi corrigido na leitura de detalhe (GET e HEAD). Os três pontos estão cobertos, e o SEC-10 está resolvido ([seção 25](#25-correção-do-per-13-e-conclusão-do-sec-10--14112026)). A variante nas escritas virou o SEC-12.
+
 - **Descrição.**
   - Para IDs de outra barbearia, a API responde "Este barbeiro não pertence à sua barbearia"; para IDs inexistentes, "Pk inválido".
   - `exclude_appointment_id` distingue "não pertence" de "não encontrado".
@@ -2184,3 +2218,2802 @@ Evidências em [`docs/auditoria/evidencias-2026-11-13/rodada-2-correcoes/`](audi
 | P2 | 28 | 28 |
 | P3 | 34, mais 2 observações (FE-21, FE-22) | 33 (FE-14 resolvido), sem observações pendentes (FE-21 e FE-22 resolvidos) |
 | **Abertos** | 65 dos 70 originais, mais 2 observações | **64 dos 70 originais** |
+
+---
+
+## 20. Auditoria de isolamento multi-tenant — 13/11/2026
+
+**Escopo.** Descobrir se usuários de uma barbearia conseguem acessar, consultar, alterar ou excluir dados de outra. A auditoria cobriu:
+
+- todos os recursos da API;
+- os endpoints secundários;
+- os filtros;
+- o Django Admin;
+- a mídia;
+- as respostas que não são JSON.
+
+Somente diagnóstico.
+
+**Restrições cumpridas:**
+
+- **Código:** nenhum arquivo de código, configuração, migração ou `.env` foi alterado.
+- **Dependências:** nada foi instalado no projeto. A sondagem usa a biblioteca padrão do Python e o `psycopg2` que já está no `venv`.
+- **Arquivos criados:** esta seção, a linha 20 do sumário, uma linha no quadro inicial e a pasta de evidências.
+- **Bancos:** o banco real (`barbershop_db`) e o PostgreSQL do Docker (porta 5433) não foram usados. Todos os testes com escrita rodaram num **PostgreSQL 18.3 descartável** (`127.0.0.1:55432`), com dados fictícios, já apagado.
+- **Repositório:** sem commit, push ou merge. Branch `desenvolvimento`, HEAD `051b00a`, árvore limpa no início.
+
+**Contexto.** A migração `barbershops.0006` foi aplicada no banco real em 13/11/2026 às 22:06, depois de um backup validado. O smoke test seguinte passou:
+
+- 391 de 391 testes do backend em PostgreSQL 18.3;
+- 45 de 45 testes do frontend;
+- 26 de 26 verificações no navegador.
+
+Evidências em [`docs/auditoria/evidencias-2026-11-13/isolamento-multitenant/`](auditoria/evidencias-2026-11-13/isolamento-multitenant/README.md). A matriz completa, com as 217 verificações, está em [`MATRIZ.md`](auditoria/evidencias-2026-11-13/isolamento-multitenant/MATRIZ.md).
+
+### 20.1 Veredito
+
+**O isolamento multi-tenant não pode ser declarado seguro.**
+
+- **A API em JSON isola corretamente.** Foram 203 verificações conformes, que cobrem:
+  - leitura, criação, edição e exclusão;
+  - IDs de outra barbearia na URL e no corpo;
+  - filtros e endpoints secundários;
+  - tentativa de trocar o próprio papel ou a barbearia;
+  - os três papéis, nos dois sentidos (A → B e B → A).
+
+  A fotografia de todas as linhas das barbearias A e B não mudou.
+- **A API navegável do DRF vaza dados.** É a mesma URL respondendo em HTML. Ela expõe nomes de clientes, barbeiros, administradores, serviços e barbearias de **todos os tenants** a qualquer usuário autenticado, inclusive a uma conta criada no cadastro público. Também acontece com `DEBUG=False` (**TEN-01, P0**).
+- **Uma conta sem barbearia sonda a agenda de barbeiros de outras barbearias** (TEN-02, P2).
+- **Há três problemas menores:**
+  - o e-mail de outra barbearia é revelado (TEN-03);
+  - o oráculo de IDs também aparece nos filtros (SEC-10, ampliado);
+  - a mídia é pública por URL (TEN-04).
+- **Afirmação pública.** O `PRODUCT.md` afirma "Dados isolados e seguros" (posicionamento 4). Pelo princípio "Só prometer o que o sistema garante", essa frase não deve ser usada enquanto TEN-01 e TEN-02 estiverem abertos. O `PRODUCT.md` não foi alterado.
+
+### 20.2 Método
+
+| Item | Como |
+|---|---|
+| Leitura de código | Models, serializers, ViewSets, permissões, `TenantScopedQuerysetMixin`, rotas, admin, managers e settings. Foram cobertas as 21 rotas da API (incluindo a raiz `/api/v1/`) e `/media/`. Não há signals, tarefas assíncronas nem notificações. O único envio de e-mail é síncrono, na recuperação de senha |
+| Testes existentes | Cerca de 50 testes de isolamento, pelo nome. Todos verificam respostas JSON; nenhum cobre HTML, `OPTIONS` ou o oráculo dos filtros |
+| Barbearias | A ("Navalha Fictícia", origem dos ataques), B ("Outra Fictícia", alvo) e C, criada durante o teste pelo onboarding de uma conta do cadastro público |
+| Papéis | Admin, barbeiro e cliente de A; admin, barbeiro e cliente de B, no sentido inverso; conta sem barbearia; admin de C; superusuário; anônimo |
+| Ataques | IDs de B na URL e no corpo; filtros apontando para B; endpoints secundários (horários livres, `exclude_appointment_id`, faturamento); criação vinculada a B; edição e exclusão de B; troca do próprio papel e da barbearia; JWT adulterado; logout com cookie alheio; upload; Django Admin; HTML e `OPTIONS` |
+| Conferência dos dados | Além do status HTTP, cada tentativa de escrita é conferida na linha-alvo do banco. Também foi calculado o md5 de todas as linhas de B antes e depois dos ataques de A, e de A antes e depois dos ataques de B |
+| Confirmação em "produção" | Uma segunda instância com `DEBUG=False` reproduziu o TEN-01 |
+
+**Transparência.**
+
+- **Falsos positivos corrigidos.** A primeira execução completa teve três falsos positivos do próprio roteiro (MT-BA-14, MT-AP-22d e MT-AP-23c). O PATCH respondeu 200 ignorando os campos `barbershop` e `user`, e só o `updated_at` mudou. O roteiro passou a comparar as colunas de tenant.
+- **Execuções descartadas.** Duas execuções anteriores foram interrompidas por erros do próprio roteiro: um campo obrigatório faltando e uma variável sobrescrita.
+- **Números finais.** Todos os números abaixo vêm da execução final, feita do zero num banco recriado com migrações e seed.
+
+### 20.3 Vulnerabilidades confirmadas
+
+#### TEN-01 — API navegável do DRF expõe dados de todas as barbearias
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| **P0** | Backend | `config/settings.py:171` (sem `DEFAULT_RENDERER_CLASSES`); `appointments/serializers.py:29-37`; `barbershops/serializers.py:54-68`; `appointments/views.py:34` | Confirmado | **Novo** |
+
+> **Atualização de 14/11/2026:** contenção aplicada e verificada na [seção 21](#21-contenção-do-ten-01--14112026). O texto abaixo descreve o estado em 13/11 e foi preservado.
+>
+> **Atualização de 14/11/2026, correção estrutural:** campos relacionais e filtros limitados à barbearia do usuário. TEN-01 resolvido e verificado na [seção 22](#22-correção-estrutural-do-ten-01--14112026).
+
+- **Descrição.** O DRF ativa o `BrowsableAPIRenderer` por padrão. Quando a requisição pede HTML (`Accept: text/html` ou `?format=api`), a página traz os formulários de criação e edição e o formulário de filtros. Os `<select>` desses formulários são preenchidos com o queryset dos campos relacionados, que é `Model.objects.all()`. O filtro de tenant só existe no `get_queryset()` da view e no `validate()` do serializer, e nenhum dos dois é usado para montar o formulário.
+  - **`/appointments/`**, para qualquer papel que pode criar (cliente e conta sem barbearia inclusive):
+    - `cliente` lista os clientes de todas as barbearias (o `limit_choices_to` só filtra o papel);
+    - `barbeiro` e `servico` listam os de todas as barbearias, inclusive inativos, com o nome da barbearia.
+  - **`/barbers/`**, para admins, inclusive o de uma barbearia recém-criada no onboarding: `user` lista **todos os usuários da plataforma**, com o papel. Aparecem até os admins de outras barbearias e o superusuário.
+  - **Formulário de filtros (`django-filter`):** repete `barbeiro` e `servico` de todos os tenants.
+- **Evidência.**
+  - Verificações MT-HT-01 a 05, 07, 08 e 12.
+  - Texto exposto, em dados fictícios:
+    - `Clara Cliente B (Cliente)`;
+    - `Bento Barbeiro B - Barbearia Outra Fictícia`;
+    - `Corte B (Barbearia Outra Fictícia)`;
+    - `Beatriz Proprietária B (Administrador)`;
+    - `Operador Plataforma (Administrador)`.
+  - A conta do cadastro público viu 22 registros distintos das barbearias A e B, que aparecem como 37 opções porque o formulário de criação e o de filtros se repetem (MT-HT-07).
+  - Também reproduzido com `DEBUG=False` (`resultados/html-debug-false.txt`).
+  - O anônimo recebe 401, sem formulários (`resultados/html-anonimo.txt`).
+  - O `OPTIONS` em JSON não vaza (MT-HT-13).
+- **Reprodução.**
+  1. Fazer o cadastro público.
+  2. Fazer login.
+  3. Pedir `GET /api/v1/appointments/` com `Authorization: Bearer <token>` e `Accept: text/html`.
+  4. Ler os `<option>` dos `<select>`.
+- **Resultado atual.** IDs, nomes e papéis de usuários de todas as barbearias; barbeiros e serviços acompanhados do nome da barbearia.
+- **Resultado esperado.** Nenhum registro de outra barbearia, em qualquer formato de resposta.
+- **Impacto.**
+  - **É uma quebra do isolamento em leitura.** Qualquer pessoa cria uma conta em segundos e obtém a lista de clientes, barbeiros e donos de todas as barbearias, com até 1.000 registros por campo (limite padrão do DRF).
+  - **Expõe dados pessoais.** São clientes de outras empresas, o que é relevante para a LGPD.
+  - **Limites.** Não expõe e-mail, telefone nem senha. Não permite escrita: as fotografias de A e B não mudaram (MT-IN-01 e MT-IN-03).
+- **Recomendação.**
+  1. **Contenção imediata:** `DEFAULT_RENDERER_CLASSES = ['rest_framework.renderers.JSONRenderer']`. O frontend só usa JSON.
+  2. **Correção estrutural:**
+     - limitar ao tenant do usuário o queryset dos campos relacionados (`cliente`, `barbeiro`, `servico` e `user`);
+     - criar um `FilterSet` explícito com o queryset do tenant. Isso também fecha o oráculo do SEC-10.
+  3. **Testes de regressão:** pedir HTML como cada papel e verificar que nenhum nome de outra barbearia aparece.
+
+#### TEN-02 — Conta sem barbearia sonda a agenda de outras barbearias
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Backend | `appointments/serializers.py:76-97` e `:199`; `appointments/views.py:87-89` | Confirmado | **Novo** |
+
+> **Atualização de 14/11/2026:** com a correção estrutural do TEN-01 ([seção 22](#22-correção-estrutural-do-ten-01--14112026)), a conta sem barbearia não referencia nenhum registro, e o MT-AP-27 deixou de se reproduzir. O TEN-02 não foi tratado como item: as checagens condicionais do `validate()` e o 403 tardio do `perform_create` continuam no código, e o item segue aberto até a etapa própria.
+>
+> **Atualização de 14/11/2026, correção do TEN-02:** recusa antecipada e `validate()` sem checagens condicionais. TEN-02 resolvido e verificado na [seção 23](#23-correção-do-ten-02--14112026).
+
+- **Descrição.**
+  - As checagens de tenant do `AppointmentSerializer.validate()` só rodam quando existe `barbershop_id` (`if barbeiro and barbershop_id and ...`).
+  - Para uma conta do cadastro público, sem barbearia, elas são puladas.
+  - Em seguida, o `full_clean()` do modelo checa conflito de horário contra a agenda do barbeiro da outra barbearia.
+  - O 403 de `perform_create` só viria depois da validação.
+- **Evidência.** MT-AP-27 compara duas respostas:
+  - **horário ocupado de B:** `400 {"barbershop": ["Este campo não pode ser nulo."], "data_hora": ["Este barbeiro já possui um agendamento neste horário."]}`;
+  - **horário livre:** só `{"barbershop": [...]}`.
+
+  Nenhum agendamento é criado (MT-AP-24).
+- **Reprodução.** Com uma conta do cadastro público, enviar `POST /api/v1/appointments/` com `barbeiro` e `servico` de B e um `data_hora`. Repetir variando o horário.
+- **Resultado esperado.** A mesma recusa genérica, antes de qualquer validação.
+- **Impacto.**
+  - Revela quando cada barbeiro de outra barbearia está ocupado, o que é informação de negócio.
+  - Com os IDs obtidos pelo TEN-01, permite mapear a agenda de qualquer barbearia.
+  - Não revela nomes de clientes.
+- **Recomendação.**
+  - **Na view:** recusar com 403 criação, edição e horários livres de quem não tem barbearia, **antes** da validação.
+  - **No serializer:** tratar `barbershop_id` ausente como erro, em vez de pular as checagens.
+  - **Teste** de regressão.
+
+#### TEN-03 — E-mail de outra barbearia revelado ao cadastrar ou editar usuários
+
+> **Atualização de 15/11/2026:** investigado na [seção 26](#26-investigação-do-ten-03--15112026). A causa foi confirmada. O alcance inclui também o cadastro público sem efeito colateral, a troca do próprio e-mail por qualquer cliente ou barbeiro e um caminho por erro 500. Uma mensagem genérica não fecha o oráculo. Ficaram registrados o AUTH-04 e o AUTH-05. **Continua aberto**, aguardando a decisão de produto.
+>
+> **Atualização de 15/11/2026, mitigação D:** o dono manteve o e-mail único em toda a plataforma. Foram implementados limites de tentativas específicos ([seção 27](#27-mitigação-d-do-ten-03-limite-de-tentativas--15112026)). **Continua aberto**, com mitigação parcial: abaixo do limite, o oráculo é o mesmo. A correção definitiva planejada é a C3.
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Backend | `accounts/models.py:29` (`email` único em toda a plataforma) | Confirmado | **Novo** |
+
+- **Descrição.**
+  - O e-mail é único em toda a plataforma, porque é o login.
+  - O admin de A que cadastra ou edita um cliente com o e-mail de um cliente de B recebe "usuário com este e-mail já existe".
+  - O cadastro público se comporta do mesmo jeito.
+- **Evidência.** MT-US-16 e MT-US-27.
+- **Impacto.** Confirma que uma pessoa usa o sistema, sem dizer em qual barbearia. Não expõe nenhum dado.
+- **Recomendação.** É uma decisão de produto:
+  - aceitar, porque é inerente ao login global por e-mail; ou
+  - responder com uma mensagem genérica e limitar as tentativas.
+
+#### SEC-10 — Oráculo de existência de IDs (continua presente, ampliado)
+
+> **Atualização de 14/11/2026:** o caminho pelos filtros (MT-FI-01) e um caminho novo, pelo corpo das requisições, foram fechados pela correção estrutural do TEN-01 ([seção 22](#22-correção-estrutural-do-ten-01--14112026)). O `exclude_appointment_id` (MT-AV-02) continua presente.
+>
+> **Atualização de 14/11/2026, `exclude_appointment_id`:** corrigido; o MT-AV-02 ficou conforme ([seção 24](#24-correção-do-sec-10-exclude_appointment_id--14112026)). Segue aberto o ponto dentro da própria barbearia (PER-13).
+>
+> **Atualização de 14/11/2026, PER-13:** corrigido; SEC-10 resolvido ([seção 25](#25-correção-do-per-13-e-conclusão-do-sec-10--14112026)).
+
+- **Continua:** o `exclude_appointment_id` distingue "não pertence à sua barbearia" de "não encontrado" (MT-AV-02).
+- **Novo caminho, pelo filtro:**
+  - o filtro `?barbeiro=` ou `?servico=` de `/appointments/` responde 200, com lista vazia, para um ID de outra barbearia;
+  - para um ID inexistente, responde 400 "Faça uma escolha válida" (MT-FI-01);
+  - a causa é que o `filterset_fields` gera um `ModelChoiceFilter` com os registros de todas as barbearias.
+- **Isolamento preservado:** os dados não vazam, porque as listas continuam vazias (MT-AP-02a a d). A severidade continua P3.
+- **Correção:** a recomendação estrutural do TEN-01 (querysets limitados ao tenant) fecha os dois caminhos.
+
+#### TEN-04 — Mídia pública por URL, com o nome original do arquivo
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Backend / infraestrutura | `barbershops/models.py:68` (`upload_to='barbershops/logos/'`); `config/urls.py:41` | Confirmado | **Novo** |
+
+- **Descrição.**
+  - O logo fica em `/media/barbershops/logos/<nome original>` e é servido sem autenticação: em desenvolvimento pelo Django, em produção pelo servidor web.
+  - O nome é previsível, por exemplo `logo.png`.
+- **Evidência.**
+  - Sem token, a resposta é 200 (MT-UP-01).
+  - Um nome de arquivo com `../` foi saneado para dentro de `barbershops/logos/` (MT-UP-02).
+- **Impacto.** Baixo, porque logos costumam ser públicos. Vira problema se outros documentos forem guardados com o mesmo esquema.
+- **Recomendação.**
+  - Gerar um nome aleatório (`uuid`) no `upload_to`.
+  - Decidir explicitamente que a mídia é pública, ou servi-la por URL assinada.
+
+### 20.4 Matriz
+
+A matriz completa, com as 217 linhas, está em [`MATRIZ.md`](auditoria/evidencias-2026-11-13/isolamento-multitenant/MATRIZ.md). Ela traz, para cada verificação, o ID, o recurso, o papel, a origem e o destino, a operação, os resultados esperado e observado, a evidência reproduzível e a severidade.
+
+**Resumo por área:**
+
+| Área | Verificações | Conformes | Divergentes |
+|---|---|---|---|
+| Autenticação e sessão | 6 | 6 | 0 |
+| Barbearia e configurações | 20 | 20 | 0 |
+| Usuários | 45 | 43 | 2 (MT-US-16, MT-US-27) |
+| Barbeiros | 25 | 25 | 0 |
+| Serviços e preços | 24 | 24 | 0 |
+| Agendamentos e histórico | 38 | 37 | 1 (MT-AP-27) |
+| Relatórios, buscas e filtros | 5 | 4 | 1 (MT-FI-01) |
+| Disponibilidade e horários | 12 | 11 | 1 (MT-AV-02) |
+| Dashboards e relatórios | 6 | 6 | 0 |
+| Uploads e imagens | 2 | 1 | 1 (MT-UP-01) |
+| API navegável (HTML) e metadados | 13 | 5 | 8 (MT-HT-01, MT-HT-02, MT-HT-03, MT-HT-04, MT-HT-05, MT-HT-07, MT-HT-08, MT-HT-12) |
+| Django Admin | 5 | 5 | 0 |
+| Superusuário (plataforma) | 1 | 1 | 0 |
+| Integridade dos dados | 3 | 3 | 0 |
+| Sentido inverso (B → A) | 12 | 12 | 0 |
+| **Total** | **217** | **203** | **14** |
+
+**Todas as divergências:**
+
+| ID | Problema | Recurso | Papel | Origem → destino | Operação | Esperado | Observado | Evidência reproduzível | Sev. |
+|---|---|---|---|---|---|---|---|---|---|
+| MT-US-16 | TEN-03 | POST /users/ | admin | A → B | criar usuário com o e-mail de um cliente de B | recusa sem revelar que o e-mail existe em outra barbearia | 400 {"email": ["usuário com este e-mail já existe."]} \| e-mail livre (senha inválida): 400 {"password": ["Certifique-se de que este campo tenha mais de 8 caracteres."]} | POST /api/v1/users/ {email:<e-mail do cliente B>} e comparar com e-mail inexistente | P3 |
+| MT-US-27 | TEN-03 | PATCH /users/{id}/ | admin | A → B | dar a um cliente de A o e-mail de um cliente de B | recusa sem revelar a existência do e-mail | 400 {"email": ["usuário com este e-mail já existe."]} | PATCH /api/v1/users/<cliente A>/ {email:<e-mail do cliente B>} | P3 |
+| MT-FI-01 | SEC-10 | GET /appointments/?barbeiro=… | admin | A → B | comparar filtro com barbeiro de B e com ID inexistente | mesma resposta (sem oráculo) | B: 200 \| inexistente: 400 {"barbeiro": ["Faça uma escolha válida. Sua escolha não é uma das disponíveis."]} | GET /api/v1/appointments/?barbeiro=<barbeiro B> vs ?barbeiro=999999 | P3 |
+| MT-AP-27 | TEN-02 | POST /appointments/ (validação) | sem barbearia | — → B | tentar marcar com o barbeiro de B num horário ocupado e num livre | mesma recusa genérica nos dois (sem revelar a agenda de B) | ocupado: 400 {"barbershop": ["Este campo não pode ser nulo."], "data_hora": ["Este barbeiro já possui um agendamento neste horário."]} \| livre: 400 {"barbershop": ["Este campo não pode ser nulo."]}; criados=0 | POST /api/v1/appointments/ {cliente:<próprio>, barbeiro:<barbeiro B>, servico:<serviço B>, data_hora:<horário ocupado de B>} e o mesmo num horário livre | P2 |
+| MT-AV-02 | SEC-10 | GET /appointments/available-slots/?exclude_appointment_id=… | cliente | A → B | excluir agendamento de B da ocupação | 404 igual ao de ID inexistente | B: 404 {"detail": "Agendamento a excluir não pertence à sua barbearia."} \| inexistente: 404 {"detail": "Agendamento a excluir não encontrado."} | GET …available-slots/?…&exclude_appointment_id=<agendamento B> vs 999999 | P3 |
+| MT-UP-01 | TEN-04 | GET /media/barbershops/logos/… | anônimo | — → B | baixar o logo de B sem autenticação | documentar: arquivos de mídia são públicos por URL | 200 (/media/barbershops/logos/logo-b.png) | GET /media/barbershops/logos/logo-b.png sem Authorization | P3 |
+| MT-HT-01 | TEN-01 | GET /api/v1/appointments/ (Accept: text/html) | cliente | A → todas | abrir a API navegável do DRF | nenhum registro de outra barbearia no HTML | 200; 10 opções de outros tenants {'cliente:B': 1, 'cliente:sem barbearia': 1, 'barbeiro:B': 2, 'servico:B': 6}; nomes de B no HTML=['Clara Cliente B', 'Bento Barbeiro B', 'Corte B', 'Barba B', 'Inativo B', 'Barbearia Out | GET /api/v1/appointments/ com Authorization: Bearer <token de cliente> e Accept: text/html; ler <select>/<option> | P0 |
+| MT-HT-02 | TEN-01 | GET /api/v1/appointments/ (Accept: text/html) | barbeiro | A → todas | abrir a API navegável do DRF | nenhum registro de outra barbearia no HTML | 200; 10 opções de outros tenants {'cliente:B': 1, 'cliente:sem barbearia': 1, 'barbeiro:B': 2, 'servico:B': 6}; nomes de B no HTML=['Clara Cliente B', 'Bento Barbeiro B', 'Corte B', 'Barba B', 'Inativo B', 'Barbearia Out | GET /api/v1/appointments/ com Authorization: Bearer <token de barbeiro> e Accept: text/html; ler <select>/<option> | P0 |
+| MT-HT-03 | TEN-01 | GET /api/v1/appointments/ (Accept: text/html) | admin | A → todas | abrir a API navegável do DRF | nenhum registro de outra barbearia no HTML | 200; 10 opções de outros tenants {'cliente:B': 1, 'cliente:sem barbearia': 1, 'barbeiro:B': 2, 'servico:B': 6}; nomes de B no HTML=['Clara Cliente B', 'Bento Barbeiro B', 'Corte B', 'Barba B', 'Inativo B', 'Barbearia Out | GET /api/v1/appointments/ com Authorization: Bearer <token de admin> e Accept: text/html; ler <select>/<option> | P0 |
+| MT-HT-04 | TEN-01 | GET /api/v1/appointments/422/ (Accept: text/html) | admin | A → todas | abrir a API navegável do DRF | nenhum registro de outra barbearia no HTML | 200; 6 opções de outros tenants {'cliente:B': 1, 'cliente:sem barbearia': 1, 'barbeiro:B': 1, 'servico:B': 3}; nomes de B no HTML=['Clara Cliente B', 'Bento Barbeiro B', 'Corte B', 'Barba B', 'Inativo B', 'Barbearia Outr | GET /api/v1/appointments/422/ com Authorization: Bearer <token de admin> e Accept: text/html; ler <select>/<option> | P0 |
+| MT-HT-05 | TEN-01 | GET /api/v1/barbers/ (Accept: text/html) | admin | A → todas | abrir a API navegável do DRF | nenhum registro de outra barbearia no HTML | 200; 6 opções de outros tenants {'user:B': 3, 'user:C': 1, 'user:sem barbearia': 2}; nomes de B no HTML=['Clara Cliente B', 'Bento Barbeiro B', 'Beatriz Proprietária B', 'Operador Plataforma'] | GET /api/v1/barbers/ com Authorization: Bearer <token de admin> e Accept: text/html; ler <select>/<option> | P0 |
+| MT-HT-07 | TEN-01 | GET /api/v1/appointments/ (Accept: text/html) | sem barbearia | — → todas | abrir a API navegável do DRF | nenhum registro de outra barbearia no HTML | 200; 37 opções de outros tenants {'cliente:A': 6, 'cliente:B': 1, 'barbeiro:B': 2, 'barbeiro:A': 10, 'servico:A': 12, 'servico:B': 6}; nomes de B no HTML=['Clara Cliente B', 'Bento Barbeiro B', 'Corte B', 'Barba B', 'Ina | GET /api/v1/appointments/ com Authorization: Bearer <token de sem barbearia> e Accept: text/html; ler <select>/<option> | P0 |
+| MT-HT-08 | TEN-01 | GET /api/v1/barbers/ (Accept: text/html) | admin (barbearia C, criada no onboarding) | C → todas | abrir a API navegável do DRF | nenhum registro de outra barbearia no HTML | 200; 17 opções de outros tenants {'user:A': 12, 'user:B': 3, 'user:sem barbearia': 2}; nomes de B no HTML=['Clara Cliente B', 'Bento Barbeiro B', 'Beatriz Proprietária B', 'Operador Plataforma'] | GET /api/v1/barbers/ com Authorization: Bearer <token de admin (barbearia C, criada no onboarding)> e Accept: text/html; ler <select>/<option> | P0 |
+| MT-HT-12 | TEN-01 | GET /api/v1/appointments/?format=api | cliente | A → todas | mesma página via ?format=api (sem cabeçalho Accept) | nenhum nome de B | 200; nomes de B=['Clara Cliente B', 'Bento Barbeiro B', 'Corte B', 'Barba B', 'Inativo B', 'Barbearia Outra Fictícia'] | GET /api/v1/appointments/?format=api | P0 |
+
+### 20.5 Testes que passaram
+
+| Área | O que ficou comprovado | IDs |
+|---|---|---|
+| Barbearia e configurações | A, como admin, barbeiro e cliente, não lê, renomeia, substitui (PUT), desativa, muda os dias nem troca o logo de B; o DELETE com a confirmação correta é recusado. O cliente de A não cria outra barbearia para trocar de tenant. `id` de B no corpo e logo apontando para o arquivo de B são recusados. O onboarding cria sempre uma barbearia nova (C), mesmo com `id` de B no corpo, e o admin de C só vê a si mesmo | MT-BS-01 a 16 |
+| Usuários | Listas só com A, inclusive com filtros forjados. As contas de B, do superusuário e do cadastro público retornam 404 para os três papéis. PATCH, PUT e DELETE em contas de B são recusados e as contas ficam inalteradas. `barbershop=B` no corpo de um cadastro é ignorado e o usuário nasce em A. Ninguém muda o próprio papel, a barbearia nem `is_staff` ou `is_superuser`; o admin não cria outro admin nem move um cliente para B. O cadastro público ignora `barbershop`, `tipo_perfil=admin` e `is_staff` | MT-US-01 a 29 (exceto 16 e 27), MT-AU-01 |
+| Barbeiros | Listas sem B, inclusive com `ativo=all`, `ativo=false` e `barbershop=B`. Leitura, edição, desativação e PUT do barbeiro de B são recusados. Não é possível promover a barbeiro de A o cliente de B, o barbeiro de B, a conta sem barbearia nem o superusuário. `barbershop=B` no corpo é ignorado | MT-BA-01 a 15 |
+| Serviços e preços | Listas sem B. Os serviços ativos e inativos de B retornam 404. Preço, PUT, desativação e reativação de B são recusados. `barbershop=B` é ignorado na criação e na edição. A conta sem barbearia não lista nem cria serviços | MT-SV-01 a 11 |
+| Agendamentos e histórico | As listas de cada papel batem exatamente com o escopo do banco (admin: a barbearia; barbeiro: a própria agenda; cliente: os próprios horários). Leitura, edição, confirmação, remarcação, PUT e cancelamento (PATCH e DELETE) de B são recusados. Não é possível criar agendamento com barbeiro, serviço ou cliente de B, nem mover um agendamento próprio para B. O cliente não marca horário em nome de outra pessoa. Também na mesma barbearia, cliente e barbeiro não leem nem editam horários de outros clientes ou barbeiros | MT-AP-01 a 26 |
+| Disponibilidade | Horários livres com barbeiro ou serviço de B retornam 404 para os três papéis, com a mesma resposta dada a um ID inexistente. Para a conta sem barbearia, 403 | MT-AV-01, 03, 04 |
+| API navegável (sem campos relacionados) | As páginas HTML de serviços, usuários, barbearias e do detalhe de um barbeiro não têm `<select>` de outros tenants. O `OPTIONS` em JSON não lista registros | MT-HT-06, 09, 10, 11, 13 |
+| Uploads | Um nome de arquivo com `../` é saneado para dentro de `barbershops/logos/` | MT-UP-02 |
+| Dashboards e relatórios | O faturamento do admin bate com a soma de A no banco, mesmo com `barbershop=B` na URL, e não traz nomes de B. Filtrar pelo barbeiro de B dá 0. Barbeiro, cliente e conta sem barbearia recebem 403. A contagem do painel bate com o banco | MT-RR-01 a 04 |
+| Autenticação e sessão | Logout com o cookie de refresh de B é recusado e nada é revogado. JWT com `user_id` ou `barbershop_id` adulterados dá 401: a autorização vem do banco, não das claims. Todos os endpoints dão 401 sem token. Redefinir a senha de B com token inventado é recusado | MT-AU-02 a 06 |
+| Django Admin | Sem sessão, redireciona para o login. Admin, barbeiro e cliente não entram, porque não são staff. O `autocomplete` do admin não aceita o token da API | MT-DA-01 a 05 |
+| Integridade | O md5 de todas as linhas de B é idêntico antes e depois de todos os ataques de A. O mesmo vale para A nos ataques de B. A conta do cadastro público ficou inalterada depois das tentativas de promoção | MT-IN-01 a 03 |
+| Sentido inverso | Admin, barbeiro e cliente de B não leem, alteram, desativam nem cancelam objetos de A, e não criam agendamento nem barbeiro com dados de A | MT-RV-01 a 12 |
+
+A sondagem da auditoria anterior (ISO-01 a ISO-21) está toda contida nestes testes e continua conforme.
+
+### 20.6 Áreas que não puderam ser testadas ou não existem
+
+| Área | Situação |
+|---|---|
+| Notificações e operações assíncronas | **Não existem** no código: não há signals, Celery, filas, webhooks nem WhatsApp. O e-mail da recuperação de senha é síncrono e não é entregue (AUTH-01) |
+| Redefinição de senha com token válido de outra pessoa | Não testada: obter o token exige receber o e-mail. Só o token inventado foi testado |
+| Django Admin com staff que não é superusuário | Não existe esse perfil hoje. O admin não tem escopo por tenant, então um staff com permissões de modelo veria todas as barbearias. Isso é por desenho, mas precisa ser considerado antes de criar contas staff |
+| Superusuário | Vê todas as barbearias (MT-SU-01), o que é intencional para o operador da plataforma. Não há "contexto de barbearia" para ele (SA-01) |
+| Produção real (nginx, gunicorn, CDN) | Não disponível. O comportamento foi verificado com `runserver`, com `DEBUG=True` e com `DEBUG=False`. A publicação de `/media/` em produção depende do servidor |
+| Frontend | Não foi testado separadamente nesta auditoria: ele só consome a API JSON, que foi testada |
+| Corridas entre tenants (concorrência) | Não testadas |
+| Banco real | Não usado, por restrição |
+
+**Atenção:** o isolamento só poderá ser declarado seguro depois de corrigidos TEN-01 e TEN-02 e de cobertas as linhas acima que se aplicarem ao ambiente de produção.
+
+### 20.7 Causas prováveis
+
+1. **Escopo do tenant aplicado tarde demais.** Os campos relacionados dos serializers (`PrimaryKeyRelatedField`) usam `Model.objects.all()`. O tenant só é imposto depois, no `get_queryset()` e no `validate()`. Isso basta para o JSON, mas não para quem enumera o queryset do campo: o formulário HTML e o filtro.
+2. **Renderizador HTML ativo por padrão.** As settings não definem `DEFAULT_RENDERER_CLASSES`, e o `DEBUG` não desliga a API navegável.
+3. **Checagens de tenant condicionais.** O `validate()` pula as checagens quando não há barbearia, e a permissão de "ter barbearia" só é verificada em `perform_create`, depois da validação.
+4. **Mensagens diferentes conforme a existência do objeto.** Por isso o SEC-10 aparece em vários caminhos.
+5. **E-mail único em toda a plataforma**, inerente ao login por e-mail (TEN-03).
+6. **Testes só em JSON.** Nenhum teste pede HTML, `OPTIONS` ou compara as respostas de filtros.
+
+### 20.8 Plano de correção priorizado
+
+| Ordem | Item | Sev. | Esforço | Observação |
+|---|---|---|---|---|
+| 1 | TEN-01, contenção: só `JSONRenderer` em `REST_FRAMEWORK`, com teste que pede HTML como cliente, barbeiro, admin e conta sem barbearia | P0 | Baixo | Uma linha de settings. Fecha o vazamento imediatamente. Recomendado antes da apresentação de 17/11 |
+| 2 | TEN-02: recusar antes da validação quem não tem barbearia (criação, edição e horários livres); no `validate()`, tratar `barbershop_id` ausente como erro | P2 | Baixo | Teste: a mesma resposta para horário ocupado e livre |
+| 3 | TEN-01, estrutural: campos relacionados (`cliente`, `barbeiro`, `servico`, `user`) com queryset do tenant; `FilterSet` de agendamentos com queryset do tenant | P0 | Médio | Defesa em profundidade, caso o HTML volte a ser ativado. Fecha também o SEC-10 dos filtros (MT-FI-01) |
+| 4 | SEC-10: a mesma resposta 404 para `exclude_appointment_id` de outra barbearia e inexistente | P3 | Baixo | — |
+| 5 | Suíte de regressão de isolamento: transformar o `iso_probe.py` em testes Django (HTML, `OPTIONS`, filtros, fotografia de B) | — | Médio | Evita que o problema volte |
+| 6 | TEN-03 e TEN-04: decisão de produto (aceitar, ou mensagem genérica e limite); nome aleatório no `upload_to` | P3 | Baixo | O TEN-04 gera uma migração (`AlterField`) |
+
+### 20.9 Arquivos que provavelmente precisarão de alteração
+
+| Arquivo | Para quê |
+|---|---|
+| `config/settings.py` | `DEFAULT_RENDERER_CLASSES` (TEN-01) |
+| `config/` (módulo novo, por exemplo `config/fields.py`) | Campo relacionado limitado ao tenant, reutilizável (TEN-01, SEC-10) |
+| `appointments/serializers.py` | Campos `cliente`, `barbeiro` e `servico` limitados ao tenant; `barbershop_id` ausente tratado como erro (TEN-01, TEN-02) |
+| `barbershops/serializers.py` | Campo `user` do `BarberSerializer` limitado ao tenant (TEN-01) |
+| `appointments/views.py` | `filterset_class` limitado ao tenant; permissão "precisa ter barbearia" antes da validação; mensagem única do `exclude_appointment_id` (TEN-01, TEN-02, SEC-10) |
+| `appointments/filters.py` (novo) | `FilterSet` de agendamentos (SEC-10, TEN-01) |
+| `barbershops/models.py` e uma migração nova | `upload_to` com nome aleatório (TEN-04) |
+| `accounts/serializers.py` | Mensagem de e-mail, se a decisão for ocultar (TEN-03) |
+| Testes: `appointments/test_multitenant_isolation.py`, `accounts/test_multitenant_isolation.py` e um teste novo da API navegável (por exemplo `config/test_renderers.py`) | Regressão de TEN-01, TEN-02 e SEC-10 |
+
+### 20.10 Fora do escopo, apenas registrado
+
+Duas observações do smoke test pós-migração. Ficam registradas aqui para não se perderem, mas **não entram na contagem**:
+
+- **ENV-01 (P3).** O banco real tem a migração `token_blacklist.0013` aplicada (em 09/11), mas o `venv` do projeto, com simplejwt 5.3.1, não tem esse arquivo. Ela veio de um Python 3.14 com simplejwt 5.5.1 instalado no `~/.local` do usuário. A migração só altera metadados (`AlterModelOptions`), e o esquema do banco real é idêntico ao gerado pelas migrações do código. O risco é haver dois ambientes Python com versões diferentes de bibliotecas.
+- **DB-02 (P3).** O banco real avisa que a versão de ordenação gravada (collation 2.43) não confere com a do sistema (2.44). Índices de texto, como o e-mail único, podem precisar ser reconstruídos numa etapa autorizada, com backup.
+
+### 20.11 Contagem após a auditoria de isolamento
+
+| | Após a rodada 2 | Após a auditoria de isolamento |
+|---|---|---|
+| P0 | 0 | **1** (TEN-01) |
+| P1 | 3 | 3 (BUS-06 parcial, PROD-01, AUTH-01) |
+| P2 | 28 | 29 (+TEN-02) |
+| P3 | 33 | 35 (+TEN-03, +TEN-04; SEC-10 ampliado, já contado) |
+| **Abertos** | 64 dos 70 originais | **64 dos 70 originais + 4 novos = 68** |
+
+---
+
+## 21. Contenção do TEN-01 — 14/11/2026
+
+> **Atualização:** a correção estrutural foi feita na sequência, na [seção 22](#22-correção-estrutural-do-ten-01--14112026). Com ela, o TEN-01 passou a resolvido e verificado. Esta seção registra o estado após a contenção e foi preservada.
+
+**Escopo autorizado:** somente a contenção emergencial do TEN-01, que é a exposição de dados pela API navegável do DRF. Ficaram de fora, por instrução, TEN-02, TEN-03, TEN-04, SEC-10 e a correção estrutural do TEN-01 (item 3 do plano da seção 20.8).
+
+**Restrições cumpridas:**
+
+- **Código:** uma chave nova em `config/settings.py` e um arquivo de teste novo, `config/test_renderers.py`. Serializers, models, views, permissões, regras de negócio, frontend e dependências não foram alterados. Não há migração nova (`makemigrations --check`: "No changes detected"). O `.env` não foi alterado.
+- **Bancos:** o banco real (`barbershop_db`) e o PostgreSQL do Docker (porta 5433) não foram usados. Os testes com escrita rodaram em SQLite em memória e num **PostgreSQL 18.3 descartável**, criado com `initdb` no diretório temporário da sessão e acessível só por TCP em `127.0.0.1:55432`, com dados fictícios.
+- **Repositório:** sem commit, push ou merge. Branch `desenvolvimento`. As alterações locais anteriores foram preservadas: a seção 20 deste relatório e a pasta de evidências do isolamento.
+- **Segredos:** nenhum arquivo de evidência contém senha, token, `SECRET_KEY` ou string de conexão.
+
+Evidências em [`docs/auditoria/evidencias-2026-11-14/ten-01-contencao/`](auditoria/evidencias-2026-11-14/ten-01-contencao/README.md).
+
+### 21.1 Resumo
+
+| ID | Situação | O que mudou |
+|---|---|---|
+| TEN-01 | 🟡 **Contido e verificado; correção estrutural pendente** | Nenhuma rota da API entrega mais HTML. A exposição deixou de ser reproduzível nas 21 rotas da API, com 9 papéis, as 5 formas de pedir HTML, o `Accept` de navegador e `DEBUG` True ou False. As 8 verificações do TEN-01 na matriz passaram a conformes, e nenhuma outra mudou. A causa de fundo continua no código: os campos relacionados e os filtros enumeram registros de todas as barbearias (seção 21.7) |
+
+### 21.2 Causa
+
+Três fatores juntos:
+
+1. **Renderizador HTML ativo por padrão.** Sem `DEFAULT_RENDERER_CLASSES`, o DRF usa `JSONRenderer` e `BrowsableAPIRenderer`. O `DEBUG` não muda isso. A negociação de conteúdo escolhe o HTML quando o pedido traz:
+   - `Accept: text/html`, inclusive o `Accept` padrão dos navegadores, que prefere `text/html`;
+   - `?format=api`;
+   - o sufixo `.api`, que o `DefaultRouter` registra para todas as rotas, como `/api/v1/appointments.api`.
+2. **Formulários montados com querysets globais.** A página HTML traz os formulários de criação e edição e o formulário de filtros do `django-filter`. Os `<select>` desses formulários listam o queryset do campo relacionado, e esse queryset é `Model.objects.all()`:
+   - `cliente`, `barbeiro` e `servico` no `AppointmentSerializer`;
+   - `user` no `BarberSerializer`;
+   - `barbeiro` e `servico` no `filterset_fields` de agendamentos.
+
+   O escopo do tenant só existe no `get_queryset()` das views e no `validate()` dos serializers, e nenhum dos dois é usado para montar os formulários.
+3. **Os formulários aparecem também em respostas de erro.** A sondagem desta etapa mostrou que uma página 404, de um objeto de outra barbearia, também desenhava os formulários. Por exemplo, o admin de B, ao abrir o detalhe de um barbeiro de A, recebia 404 com um `<select>` de todos os usuários da plataforma.
+
+### 21.3 Contenção implementada
+
+`config/settings.py`, dentro de `REST_FRAMEWORK` (linhas 178 a 187):
+
+```python
+    # Somente JSON (TEN-01). Sem esta chave, o DRF também ativa a API
+    # navegável (BrowsableAPIRenderer), que responde em HTML a
+    # "Accept: text/html", "?format=api" ou ao sufixo ".api". [...]
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+```
+
+**Por que dessa forma:**
+
+- **Global e sem depender do `DEBUG`.** O `.env` local usa `DEBUG=True`. Uma regra condicionada ao `DEBUG` deixaria o ambiente de desenvolvimento exposto e reabriria o problema num deploy mal configurado.
+- **Nenhuma view reativa o HTML.** Nenhuma view nem `@action` define `renderer_classes`. Isso foi conferido por busca no código e por um teste que percorre as 41 rotas do DRF (13 classes de view).
+- **Parsers inalterados.** Continuam JSON, formulário e multipart, então o upload do logo segue funcionando.
+- **O frontend negocia JSON como antes.** O axios envia `Accept: application/json, text/plain, */*`.
+
+**Comportamento efetivo, medido e não presumido.** A sondagem HTTP rodou nas quatro instâncias, com 1.926 pedidos em cada uma:
+
+| Pedido | Antes | Depois |
+|---|---|---|
+| `Accept: text/html` ou `text/html,application/xhtml+xml` | HTML com os formulários: 200, 401, 403, 404, 405 ou 500 | **406**, JSON `{"detail": …}` |
+| `?format=api`, com ou sem `Accept: text/html` | HTML | **404**, JSON `{"detail": …}` |
+| Sufixo `.api` (`/appointments.api`, `/users/me.api`…) | HTML, ou 500 nas `@action` (API-03) | **404**, JSON `{"detail": …}` |
+| `Accept` de navegador (`text/html,…,*/*;q=0.8`) | HTML | JSON, com o mesmo status de antes |
+| JSON: `Accept: application/json`, `Accept` do axios, sem `Accept`, `?format=json` e sufixo `.json` | JSON | JSON, com status idênticos nos 855 pedidos |
+| `OPTIONS` | `renders: ["application/json", "text/html"]` | `renders: ["application/json"]` |
+
+- **Corpo das respostas.** Nos 882 pedidos de HTML, o corpo é só `{"detail": …}`.
+- **O anônimo também recebe 406 ou 404, e não 401.** O DRF negocia o formato antes de autenticar.
+- **`DEBUG` não muda nada.** `DEBUG=True` e `DEBUG=False` deram os mesmos status, content-types e formatos, antes e depois.
+
+### 21.4 Testes de regressão
+
+O arquivo `config/test_renderers.py` tem 10 testes e cerca de 2.200 subtestes.
+
+**Cenário:**
+
+- barbearias A e B, com barbeiro e serviço inativos em B;
+- superusuário;
+- uma conta criada pelo cadastro público, pela própria API;
+- uma barbearia C criada no onboarding, também pela API.
+
+Todos os papéis entram com **JWT real**, emitido pelo endpoint de login. Os nomes fictícios de cada grupo servem de marca para detectar vazamento.
+
+| Teste | O que comprova | Código anterior | Corrigido |
+|---|---|---|---|
+| `test_pedidos_de_html_nao_recebem_html_nem_dados` (`DEBUG=False`) e `…_com_debug` (`DEBUG=True`) | **21 rotas × 7 papéis** (anônimo, cliente, barbeiro e admin de A, conta sem barbearia, admin de C e superusuário) × **5 formas de pedir HTML** (686 casos por modo). Confere que a resposta não é `text/html`, não contém `<`, traz só `detail` e não tem nome, e-mail ou papel de nenhum grupo. Fixa o status observado: 406 ou 404 | 666 falhas e 20 erros em cada modo | ✅ |
+| `test_casos_reproduzidos_na_auditoria` | MT-HT-01 a 05, 07, 08 e 12, um a um, sem `<select>`, `<option>` nem nomes | 8 falhas | ✅ |
+| `test_options_continua_em_json_e_so_anuncia_json` | `OPTIONS` em JSON, `renders` só com JSON, sem nomes | 6 falhas | ✅ |
+| `test_nenhuma_view_registrada_reativa_renderizador_html` | Configuração efetiva igual a `[JSONRenderer]`. Percorre as 41 rotas do DRF, inclusive os `initkwargs` das `@action`, e confere que todas usam só `JSONRenderer`. **Protege contra uma reativação futura em uma view** | 1 falha | ✅ |
+| `test_json_mantem_status_e_isolamento_de_cada_papel` | 812 casos. Mantém o status de antes para cada rota e papel nas formas JSON (`Accept` JSON, do axios, de navegador, sem `Accept`, `?format=json`, `.json`) e confere que não há dados de outro grupo | 146 falhas e 1 erro (o `Accept` de navegador recebia HTML) | ✅ |
+| `test_listas_json_trazem_os_dados_do_proprio_tenant` | As listas JSON não estão vazias e trazem exatamente os registros do próprio tenant | ✅ | ✅ |
+| `test_fluxo_do_frontend_com_axios_continua_funcionando` | Fluxo com os cabeçalhos do axios: login, cookie de refresh, `/users/me/`, refresh, horários livres, criação (201), erro de validação em JSON (400), cancelamento e logout (204) | ✅ | ✅ |
+| `test_escritas_do_admin_e_do_barbeiro_continuam_em_json` | PATCH de serviço (admin), confirmação de horário (barbeiro) e faturamento (admin) | ✅ | ✅ |
+| `test_token_invalido_continua_recusado` | Token inválido recebe 401 em JSON | ✅ | ✅ |
+
+- **Código anterior.** É uma cópia do backend idêntica ao projeto, exceto pelo `settings.py`, que é o do HEAD. Resultado: **1.493 falhas e 41 erros**. Os 4 testes de fluxo legítimo passam nas duas versões.
+- **Código corrigido.** **10 de 10.**
+- **Os 41 erros** são 500s da própria API navegável: o sufixo `.api` em `@action` (API-03) e o HTML pedido pelo anônimo no detalhe de um agendamento (AUTH-03).
+
+### 21.5 Evidências e testes executados
+
+| Verificação | Resultado |
+|---|---|
+| Testes novos, SQLite | Código anterior: 1.493 falhas e 41 erros. Corrigido: **10/10** |
+| Suíte completa do backend, SQLite (`config.test_settings`) | **401 testes, OK** (9 pulados, que exigem PostgreSQL). Eram 391, mais os 10 novos |
+| Suíte completa, PostgreSQL 18.3 descartável | **401 testes, OK**, 0 pulados |
+| Suíte completa, PostgreSQL 18.3, com `DEBUG=False` também na importação das settings | **401 testes, OK** |
+| Testes do TEN-01 com o executor em `--debug-mode` (`DEBUG=True`) | **10/10** |
+| Sondagem HTTP do TEN-01 (`runserver` real; anterior e corrigido × `DEBUG` True e False; 21 rotas × 9 papéis × 11 formas de pedido; 1.926 pedidos por instância) | **Anterior:** 1.071 respostas HTML, 114 com dados de outro tenant, 26 erros 500 (iguais com `DEBUG` True e False). **Corrigido:** 0 HTML, 0 com dados de outro tenant, 0 erros 500. JSON: 855 de 855 pedidos com o mesmo status antes e depois. `Accept` de navegador: 188 de 189 iguais; o restante passou de 500 (AUTH-03, em HTML) para 401 em JSON |
+| As 217 verificações da auditoria de isolamento (`iso_probe.py`, sem alteração) no código corrigido | De 203 para **211 conformes**. Só as 8 do TEN-01 mudaram (MT-HT-01 a 05, 07, 08 e 12); nenhuma regrediu. As 6 divergentes que continuam são TEN-02, TEN-03 (duas), SEC-10 (duas) e TEN-04, todas fora do escopo |
+| Navegador: build de produção, Firefox 160 headless, API só-JSON | 3 perfis (cliente, barbeiro e admin), login e 16 páginas com carga completa (o que refaz a sessão pelo cookie de refresh). **291 respostas da API, todas 200 e em JSON**; 0 respostas 406; 0 erros de API ou de console; 10 de 10 textos esperados; nenhum nome de B nas telas de A |
+| Frontend | `npm test`: **45/45**; `tsc` (app e node): 0 erros; ESLint (`--max-warnings=0`): 0; build de produção OK (JS inicial 436,3 kB, 139,0 kB gzip, igual ao da rodada 2). Nenhum arquivo do frontend foi alterado |
+| Django | `check`: sem problemas. `makemigrations --check --dry-run`: "No changes detected". `check --deploy` com `DEBUG=False`: só o W021 (HSTS preload, opcional), como na auditoria |
+
+**Alcance do vazamento antes da contenção.** A sondagem desta etapa foi mais ampla que a matriz da seção 20 e confirmou três pontos:
+
+- **Sentido inverso.** O vazamento ocorria também de B para A. O cliente e o admin de B viam clientes, barbeiros e serviços de A nos formulários de `/appointments/`.
+- **Páginas 404.** As páginas de detalhe de objetos de outra barbearia também traziam os formulários:
+  - o admin de B e o admin de C viam **todos os usuários da plataforma** no `<select name="user">` do detalhe de um barbeiro de A;
+  - o cliente de B, a conta sem barbearia e o admin de C viam os `<select>` completos no detalhe de um agendamento de A.
+- **Tamanho.** Foram 19 combinações de rota e papel com dados de outro tenant, com até 44 `<option>` de outras barbearias numa única página (admin de C em `/appointments/`).
+
+Todas essas combinações deixaram de expor dados.
+
+### 21.6 Perfis verificados
+
+| Perfil | Onde |
+|---|---|
+| Anônimo | Testes, sondagem |
+| Cliente, barbeiro e admin da barbearia A | Testes, sondagem, navegador |
+| Cliente e admin da barbearia B (sentido inverso) | Sondagem |
+| Conta do cadastro público, sem barbearia | Testes, sondagem |
+| Admin de uma barbearia criada no onboarding (C) | Testes, sondagem |
+| Superusuário (operador da plataforma) | Testes, sondagem |
+
+### 21.7 Limitações e o que continua aberto
+
+1. **Isto é uma contenção, não a correção estrutural.**
+   - **O que continua no código:** os campos relacionados (`cliente`, `barbeiro`, `servico` e `user`) e os filtros de `/appointments/` continuam com querysets de todas as barbearias.
+   - **Quando o vazamento volta:**
+     - se um renderizador HTML for reativado nas settings, numa view ou numa `@action`. O teste `test_nenhuma_view_registrada_reativa_renderizador_html` falha nesse caso;
+     - se algum componente novo enumerar esses querysets, como um formulário HTML, uma classe de metadados que liste `choices` de campos relacionados ou uma tela que desenhe o formulário do `django-filter`.
+   - **O que fica pendente:** a correção estrutural, item 3 do plano da seção 20.8. Ela também fecha o oráculo do SEC-10 nos filtros (MT-FI-01), que continua presente.
+2. **Os demais itens do isolamento não foram tocados.** TEN-02 (P2), TEN-03, TEN-04 e SEC-10 (P3) seguem divergentes na repetição das 217 verificações. O isolamento ainda **não** pode ser declarado seguro (seção 20.6), e o "Dados isolados e seguros" do `PRODUCT.md` continua sem respaldo.
+3. **A API navegável deixou de existir também em desenvolvimento.** É intencional. Para inspecionar a API, use JSON: `curl`, as ferramentas do navegador ou o próprio frontend.
+4. **Ainda existem páginas HTML fora do DRF.** O Django continua respondendo em HTML em três casos, mas nenhum deles monta querysets de tenant:
+   - o Django Admin, só para staff, conforme MT-DA-01 a 05;
+   - o 404 de URLs que não existem;
+   - a página de erro 500.
+
+   Com `DEBUG=True`, o 404 técnico lista as rotas e o 500 mostra o traceback. Por isso o `DEBUG=True` nunca pode ir para produção (SEC-11).
+5. **Clientes que pedem só HTML recebem 406.** Quem envia `Accept: text/html` sem `*/*` recebe 406, e quem envia `?format=api` recebe 404. Nenhum consumidor legítimo faz isso: o frontend usa o axios, e os navegadores incluem `*/*`.
+6. **Não testados:**
+   - a pilha de produção (nginx, gunicorn, CDN);
+   - o banco real, por restrição;
+   - Chrome e Safari, porque só o Firefox está disponível;
+   - outros clientes da API, que não existem hoje além do frontend.
+
+### 21.8 Fora do escopo, apenas registrado
+
+Dois defeitos **já existentes**, encontrados pelos testes desta etapa. Não foram corrigidos e se comportam igual antes e depois da contenção.
+
+#### API-03 — Sufixo `.json` nas `@action` responde 500
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Backend | `accounts/views.py:254` (`me`); `appointments/views.py:134` (`available_slots`) e `:279` (`revenue_report`) | Confirmado | **Novo** |
+
+- **Descrição.** O `DefaultRouter` registra rotas com sufixo de formato também para as `@action`: `/users/me.json`, `/appointments/available-slots.json` e `/appointments/revenue-report.json`. Os três métodos não aceitam o argumento `format` e quebram com `TypeError: … got an unexpected keyword argument 'format'`.
+- **Resultado.** Um usuário autenticado recebe 500. Com `DEBUG=False`, é a página genérica "Server Error (500)", sem dados. O anônimo recebe 401 antes.
+- **Antes da contenção.** O sufixo `.api` também levava a esse 500. Agora a negociação devolve 404 antes de chamar o método.
+- **Impacto.** Baixo. O frontend não usa sufixos, e não há exposição de dados. Mas qualquer usuário consegue provocar erros 500.
+- **Recomendação.** Aceitar `*args, **kwargs` nos três métodos, ou desligar os sufixos (`include_format_suffixes = False` no router), com teste de regressão.
+
+#### AUTH-03 — Escrita anônima em `/appointments/{id}/` responde 500 em vez de 401
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Backend | `appointments/views.py:41` e `:49` (`get_permissions`) | Confirmado | **Novo** |
+
+- **Descrição.** Para `update`, `partial_update` e `destroy`, o `get_permissions()` lê `request.user.is_cliente` antes de qualquer checagem de autenticação. O `AnonymousUser` não tem esse atributo, e o resultado é um `AttributeError`.
+- **Resultado.** PUT, PATCH e DELETE sem token recebem 500 (com `DEBUG=False`, a página genérica). Nada é alterado no banco.
+- **Antes da contenção.** O mesmo erro aparecia ao pedir o HTML do detalhe de um agendamento sem token.
+- **Por que a auditoria não pegou.** A auditoria testou o anônimo só com GET (MT-AU-04 e 05).
+- **Impacto.** Baixo. Não expõe dados nem permite escrita, mas gera 500 sob demanda e polui os logs.
+- **Recomendação.** Checar a autenticação antes, por exemplo com `getattr(user, 'is_cliente', False)` ou devolvendo `[IsAuthenticated()]` para o anônimo, com teste de regressão.
+
+### 21.9 Contagem após a contenção
+
+| | Após a auditoria de isolamento | Após a contenção do TEN-01 |
+|---|---|---|
+| P0 | **1** (TEN-01) | 1, **contido**: TEN-01 sem exposição reproduzível. Continua aberto até a correção estrutural; a reclassificação fica para o dono decidir depois dela |
+| P1 | 3 (BUS-06 parcial, PROD-01, AUTH-01) | 3 |
+| P2 | 29 | 29 |
+| P3 | 35 | 37 (+API-03, +AUTH-03) |
+| **Abertos** | 64 dos 70 originais + 4 novos = 68 | **64 dos 70 originais + 6 novos = 70**, com o TEN-01 contido |
+
+**Próximo passo sugerido, não iniciado:** a ordem fica com o dono. Pelo plano da seção 20.8, os candidatos são o item 2 (TEN-02) e o item 3 (TEN-01 estrutural, que também fecha o SEC-10 dos filtros).
+
+---
+
+## 22. Correção estrutural do TEN-01 — 14/11/2026
+
+> **Atualização:** o TEN-02, que aqui aparece como "sintoma não reproduzível; item aberto", foi corrigido na sequência, na [seção 23](#23-correção-do-ten-02--14112026). Esta seção foi preservada.
+
+**Escopo autorizado:**
+
+- **Corrigido nesta etapa:**
+  - a causa raiz do TEN-01: campos relacionais, querysets, filtros e validações que permitiam selecionar ou referenciar registros de outra barbearia;
+  - os oráculos do SEC-10 que fazem parte da mesma implementação.
+- **Fora do escopo, por instrução:**
+  - o TEN-02, que não foi iniciado;
+  - o `exclude_appointment_id` (SEC-10), que fica para a próxima etapa;
+  - o TEN-03 e o TEN-04.
+
+**Restrições cumpridas:**
+
+- **Código:**
+  - **Alterado:** `config/tenancy.py` (novo), `appointments/filters.py` (novo), `appointments/serializers.py`, `barbershops/serializers.py` e `appointments/views.py`.
+  - **Testes:** um arquivo de teste novo e três testes existentes atualizados (seção 22.4).
+  - **Intacto:** models, permissões, `settings.py`, `.env`, frontend e dependências não foram alterados.
+- **Migrações:** nenhuma. Nenhum model mudou, e o `makemigrations --check` responde "No changes detected".
+- **Contenção mantida.** O `DEFAULT_RENDERER_CLASSES` continua só com `JSONRenderer`, e o `BrowsableAPIRenderer` não foi reativado no projeto. Ele só foi religado em duas instâncias de laboratório, por um módulo de settings descartável fora do projeto, para medir o que os formulários HTML listariam (seção 22.5).
+- **Bancos:** o banco real (`barbershop_db`) e o PostgreSQL do Docker (porta 5433) não foram usados. Os testes com escrita rodaram em SQLite em memória e num **PostgreSQL 18.3 descartável** (`initdb` no diretório temporário, só TCP em `127.0.0.1:55432`), já apagado.
+- **Repositório:** sem commit, push ou merge. As alterações locais anteriores foram preservadas: as seções 20 e 21 e as duas pastas de evidências.
+
+Evidências em [`docs/auditoria/evidencias-2026-11-14/ten-01-estrutural/`](auditoria/evidencias-2026-11-14/ten-01-estrutural/README.md).
+
+### 22.1 Resumo
+
+| ID | Situação | Base |
+|---|---|---|
+| TEN-01 | ✅ **Resolvido e verificado** no ambiente de testes | Contenção ativa. Os 4 campos relacionais graváveis e os 2 filtros relacionais da API passaram a ter escopo de tenant, e testes estruturais impedem que um novo campo ou filtro escape disso. No laboratório, com a API navegável religada, as páginas com dados de outra barbearia caíram de 114 para 0 |
+| SEC-10 | ◐ **Parcialmente resolvido** | Fechados o filtro (MT-FI-01) e um caminho novo, o corpo das requisições: 288 de 288 pedidos davam resposta diferente da de um ID inexistente, e agora nenhum dá. Continua o `exclude_appointment_id` (MT-AV-02) |
+| TEN-02 | Sintoma não reproduzível; **item aberto** | A conta sem barbearia não referencia mais nenhum registro, e o MT-AP-27 ficou conforme. As correções próprias do TEN-02 não foram feitas (seção 22.8) |
+| BUS-20 | Novo, P3, apenas registrado | Seção 22.8 |
+
+### 22.2 Causa raiz encontrada
+
+A inspeção do código atual confirmou estas superfícies:
+
+| Superfície | Antes | Situação |
+|---|---|---|
+| `AppointmentSerializer.cliente` | Gerado pelo `ModelSerializer` com `User.objects.filter(tipo_perfil='cliente')`: os clientes de **todas** as barbearias | Corrigido |
+| `AppointmentSerializer.barbeiro` e `.servico` | `Barber.objects` e `Service.objects`, todas as barbearias, inclusive inativos | Corrigido |
+| `BarberSerializer.user` (criação) | `User.objects`: **todos os usuários da plataforma**, inclusive admins, superusuário e contas sem barbearia | Corrigido |
+| Filtros `barbeiro` e `servico` de `/appointments/` (`filterset_fields`) | `ModelChoiceFilter` com `Barber.objects` e `Service.objects`, todas as barbearias | Corrigido |
+| `barbershop` (agendamentos, barbeiros, serviços, usuários); `UserSerializer`, `UserCreateSerializer`, `BarbershopSerializer`, `ServiceSerializer` | Somente leitura, ou sem campo relacional gravável | Já estava correto |
+| `available-slots` (`barbeiro`, `servico`) e `revenue-report` (`barbeiro`) | Consultas já filtradas pela barbearia do usuário: o ID de outra barbearia recebe a mesma resposta de um inexistente | Já estava correto; agora há teste |
+| `available-slots` (`exclude_appointment_id`) | Busca global e mensagem diferente (SEC-10) | Fora do escopo |
+
+**Causa raiz.** O `ModelSerializer` e o `django-filter` geram os campos relacionais a partir do model, com o manager padrão, ou seja, todas as barbearias. O escopo do tenant só era aplicado depois, no `get_queryset()` da view, no `validate()` do serializer e no `clean()` do model. Isso tinha quatro consequências:
+
+1. **Vazamento em formulários.** Qualquer formulário montado a partir desses campos, como o da API navegável, listava as outras barbearias. Era o TEN-01 original.
+2. **Oráculo de existência pelo corpo da requisição.** Para um ID de outra barbearia, a resposta era "Este barbeiro não pertence à sua barbearia."; para um inexistente, "objeto não existe". No cadastro de barbeiro, a mensagem chegava a revelar o **papel** do usuário na outra barbearia: "Usuários administradores não podem ser convertidos em barbeiros.".
+3. **Oráculo pelos filtros.** O ID de outra barbearia recebia 200 com lista vazia, e o inexistente, 400 (MT-FI-01).
+4. **Leitura do registro alheio.** O registro de outra barbearia era lido do banco antes da recusa. Para a conta sem barbearia, o `validate()` pulava as checagens de tenant, e a validação de conflito de horário rodava contra a agenda da outra barbearia (MT-AP-27).
+
+### 22.3 Estratégia de isolamento implementada
+
+**`config/tenancy.py` (novo):**
+
+- **`barbearia_do_pedido(request, instancia=None)`.** Decide de quais barbearias o pedido pode referenciar registros. O escopo vem sempre do usuário autenticado, nunca de IDs enviados no corpo ou na URL:
+
+  | Quem | Escopo |
+  |---|---|
+  | Anônimo, ou sem requisição no contexto | Nenhum registro (falha fechado) |
+  | Usuário comum | A própria barbearia |
+  | Usuário sem barbearia (por exemplo, cadastro público) | **Nenhum registro.** A falta de contexto não amplia o acesso |
+  | Superusuário (exceção explícita, decidida por `is_superuser`, como no `TenantScopedQuerysetMixin`) | Ao editar, a barbearia do registro, que a view já autorizou. Ao criar, a própria barbearia, se houver; senão, todas. A criação sem contexto continua barrada pelas views |
+
+- **`limitar_a_barbearia(queryset, escopo)`** aplica o escopo na própria consulta.
+- **`campo_de_tenant(model)`** falha fechado (`ImproperlyConfigured`) para um model sem barbearia.
+- **`TenantScopedPrimaryKeyRelatedField`** é o `PrimaryKeyRelatedField` com o queryset limitado. Ele exige um queryset quando é gravável, porque o DRF dispensa essa checagem em subclasses.
+
+**Onde foi aplicado:**
+
+- **`AppointmentSerializer` e `BarberSerializer`** recebem `serializer_related_field = TenantScopedPrimaryKeyRelatedField`. Os campos continuam gerados pelo model, com o mesmo rótulo, os mesmos validadores (o `UniqueValidator` de `Barber.user`) e o mesmo `limit_choices_to` (o perfil de cliente). Só ganham o escopo.
+- **`appointments/filters.py` (novo)** define o `AppointmentFilter`, com os filtros `status`, `barbeiro` e `servico`. Os querysets de `barbeiro` e `servico` são calculados a cada pedido pela mesma regra. O `AppointmentViewSet` passou de `filterset_fields` para `filterset_class`.
+- **As checagens que já existiam continuam,** como defesa em profundidade: `get_queryset()`, `validate()`, `clean()` e `perform_create`.
+
+**Efeito:**
+
+- um ID de outra barbearia recebe **exatamente a mesma resposta** de um ID inexistente;
+- o registro alheio **nunca é lido**, porque a condição de barbearia está na mesma consulta SQL;
+- formulários e opções só listam o próprio tenant;
+- a conta sem barbearia não referencia nada.
+
+### 22.4 Testes adicionados e atualizados
+
+**`config/test_isolamento_tenant.py` (novo, 22 testes).** O cenário tem:
+
+- as barbearias A e B, cada uma com admin, dois clientes, dois barbeiros ativos, um barbeiro inativo, um serviço ativo, um serviço inativo e um agendamento;
+- uma conta sem barbearia e o superusuário;
+- nos testes de cadastro e onboarding, contas criadas pela API, com login JWT real.
+
+| Classe | O que comprova |
+|---|---|
+| `EscopoEstruturalTests` | **Varredura de todos os serializers do projeto:** os campos relacionais graváveis são exatamente 4, e todos têm escopo de tenant. **Varredura de todas as rotas:** os filtros relacionais são exatamente 2, e os dois têm escopo. Também confere as opções de cada campo e as do formulário de filtros, por papel, nas duas barbearias: sem barbearia, nada; anônimo ou sem requisição, nada; superusuário editando um registro de B, só B |
+| `ReferenciasCruzadasTests` | IDs de outra barbearia (ativos e inativos) em `cliente`, `barbeiro` e `servico`, no POST, PATCH e PUT de agendamentos; e em `user`, no POST de barbeiros: cliente, admin e barbeiro da outra barbearia, conta sem barbearia e superusuário. Cobre os três papéis, **A → B e B → A**. Para cada caso confere: <br>• 400; <br>• resposta idêntica à de um ID inexistente; <br>• nenhum nome da outra barbearia; <br>• **nenhuma consulta SQL que leia o registro alheio sem condição de barbearia**; <br>• nada criado nem alterado; <br>• fotografia da outra barbearia inalterada; <br>• nenhum vínculo entre barbearias. <br>`barbershop` no corpo continua ignorado |
+| `FiltrosDeAgendamentoTests` | Os filtros `barbeiro` e `servico` com IDs da outra barbearia (ativos e inativos) e com um inexistente, para os seis papéis e a conta sem barbearia: mesma resposta e nenhum dado alheio. O filtro com ID próprio continua retornando só os registros do tenant. Horários livres e faturamento continuam sem oráculo. A listagem traz só o próprio tenant |
+| `FluxosLegitimosTests` | Na própria barbearia: <br>• o cliente agenda e remarca (inclusive trocando de barbeiro); <br>• o barbeiro registra e confirma; <br>• o admin registra e troca o barbeiro; <br>• o admin promove um cliente. <br>As mensagens de validação dentro do tenant ficaram iguais: barbeiro inativo, serviço inativo, admin como barbeiro e "Barbeiros só podem gerenciar a própria agenda" |
+| `CadastroPublicoEOnboardingTests` | **Conta do cadastro público** (API e JWT): não referencia nenhuma barbearia, e o MT-AP-27 mostra horário ocupado e livre de B com a mesma resposta de IDs inexistentes. <br>**Onboarding de uma barbearia nova (Gama)**, com o fluxo completo: serviço, dois clientes, barbeiro e agendamento. A barbearia nova também não alcança A nem B, nem pelo corpo nem pelos filtros |
+| `SuperusuarioTests` | O superusuário lê e filtra qualquer barbearia; edita dentro da barbearia do registro e recebe 400 ao apontar para outra; e, sem barbearia, continua sem criar barbeiros (403) nem agendamentos |
+
+**Testes existentes atualizados.** Os três abaixo protegiam a propriedade de segurança certa (nenhum dado de B, nenhum vínculo criado), mas fixavam a resposta antiga, que era o próprio oráculo. As asserções de segurança foram mantidas e ficaram mais estritas. Nenhuma permissão foi enfraquecida.
+
+| Teste | Antes | Agora |
+|---|---|---|
+| `appointments/test_multitenant_isolation.py:254` (`test_filtros_com_ids_de_outro_tenant_nao_contornam_a_queryset`) | Exigia 200 para `?barbeiro=` e `?servico=` com ID de B | Exige 400, igual ao de um ID inexistente, e sem `results`. Os filtros `ativo` continuam com 200 |
+| `barbershops/tests.py:476` (`test_barber_from_other_tenant_cannot_be_associated_via_api`) | Exigia o erro em `barbershop` (que revelava a outra barbearia) | Exige `user` com o código `does_not_exist`, e nenhum barbeiro criado |
+| `accounts/tests_multitenant_comprehensive_final.py:397` (`test_filter_search_isolation`) | Exigia 200 com lista vazia | Exige 400, igual ao de um ID inexistente, e sem `results` |
+
+### 22.5 Resultados
+
+| Verificação | Resultado |
+|---|---|
+| Testes novos, SQLite | **Código anterior** (HEAD + contenção): 11 de 22 testes falham, com 188 subtestes. Entre as falhas estão 6 leituras de registros de outra barbearia sem condição de tenant. **Corrigido: 22/22.** Os 11 que passam nas duas versões protegem fluxos legítimos e o superusuário |
+| Suíte completa, SQLite | **423 testes, OK** (9 pulados, que exigem PostgreSQL). Eram 401, mais os 22 novos |
+| Suíte completa, PostgreSQL 18.3 descartável | **423, OK**, 0 pulados |
+| Suíte completa, PostgreSQL 18.3, com `DEBUG=False` também na importação das settings | **423, OK** |
+| 66 testes de isolamento (novos, contenção e isolamento existentes) com `--debug-mode` (`DEBUG=True`) | **66, OK** |
+| Django | `check` limpo. `makemigrations --check`: "No changes detected". `check --deploy` com `DEBUG=False`: só o W021, como antes |
+| As 217 verificações da auditoria (`iso_probe.py`, sem alteração) | De 211 para **213 conformes**. Mudaram só MT-FI-01 (SEC-10) e MT-AP-27 (TEN-02), as duas para conforme; nenhuma regrediu. As 4 divergentes restantes são TEN-03 (duas), TEN-04 e `exclude_appointment_id` |
+| Referências entre barbearias: `runserver` real, 288 pedidos por instância (seis papéis nos dois sentidos, conta sem barbearia e admin do onboarding), cada um comparado com um ID inexistente | **Anterior:** 288 oráculos, iguais com `DEBUG` True e False. **Corrigido:** 0 oráculos. Nos dois: 0 referências aceitas, 0 respostas com nomes de outra barbearia, 0 erros 500, banco inalterado (md5 de todas as linhas) e 0 vínculos entre barbearias |
+| Matriz HTML/JSON da contenção (21 rotas × 9 papéis × 11 formas de pedido) | Corrigido: 0 respostas HTML com `DEBUG` True e False. Os 1.926 pedidos tiveram status e content-type iguais aos do código só com a contenção. A API continua respondendo só em JSON |
+| **Laboratório:** API navegável religada só em duas instâncias descartáveis | Com 1.071 páginas HTML e 653 formulários nas duas versões: <br>• **anterior:** 114 respostas com dados de outra barbearia, em 19 combinações de rota e papel, com até 47 `<option>` alheios numa página; <br>• **corrigido: 0, 0 e 0.** <br>Os formulários continuam sendo desenhados, com o mesmo status e o mesmo número de `<select>` (1.926/1.926), mas só com o próprio tenant. Os 26 erros 500 das duas versões são o API-03 e o AUTH-03, que já existiam |
+| Navegador: build de produção contra a API corrigida, Firefox headless | 3 logins e 16 páginas: 317 respostas da API, todas em JSON, 0 erros de API ou de console, 10/10 textos esperados, nenhum nome de B. **Fluxos pela interface:** <br>• o cliente agenda (POST 201, "Está marcado.", e no banco todos os vínculos na mesma barbearia); <br>• o cliente remarca (PATCH 200, horário alterado no banco); <br>• o admin confirma um horário (PATCH 200) |
+| Frontend | `npm test` 45/45; `tsc` (app e node), 0 erros; ESLint, 0; build igual ao anterior (mesmo hash do JS). O frontend não foi alterado |
+
+### 22.6 Perfis e sentidos verificados
+
+| Perfil | Testes | HTTP | Navegador |
+|---|---|---|---|
+| Cliente, barbeiro e admin de A (A → B) | ✅ | ✅ | ✅ |
+| Cliente, barbeiro e admin de B (B → A) | ✅ | ✅ | — |
+| Conta do cadastro público, sem barbearia | ✅ | ✅ | — |
+| Admin de uma barbearia criada no onboarding | ✅ | ✅ | — |
+| Superusuário | ✅ | ✅ (matriz HTML/JSON) | — |
+| Anônimo | ✅ (sem escopo) | ✅ (matriz HTML/JSON) | — |
+
+### 22.7 Verificações que não puderam ser realizadas
+
+- **Pilha de produção** (nginx, gunicorn, CDN) e **banco real**: não disponíveis ou não permitidos. Tudo rodou com `runserver` e banco descartável.
+- **Canal de tempo:** o ID de outra barbearia e o inexistente agora geram a mesma consulta, sem linha encontrada, mas a diferença de tempo de resposta não foi medida.
+- **Django Admin com staff que não é superusuário:** esse perfil não existe. O admin não tem escopo por tenant, por desenho (seção 20.6).
+- **Corridas entre tenants** (concorrência): não testadas.
+- **Navegadores:** Chrome e Safari não estão disponíveis; só o Firefox foi usado. Os papéis de B e a conta sem barbearia foram verificados por HTTP e testes, não pela interface.
+
+### 22.8 Riscos ainda existentes
+
+1. **Código novo precisa usar o escopo.**
+   - **O que os testes estruturais pegam:** um campo relacional gravável ou um filtro relacional novo sem escopo, inclusive um `PrimaryKeyRelatedField` declarado à mão. Um model sem barbearia usado com o escopo falha com `ImproperlyConfigured`.
+   - **O que não pegam:** consultas manuais nas views que busquem por ID sem filtrar a barbearia, como o `exclude_appointment_id`.
+2. **O superusuário enxerga todas as barbearias**, por desenho. Comprometer essa conta expõe a plataforma inteira.
+3. **A contenção deve continuar.** A correção estrutural não justifica religar a API navegável. Para o superusuário ela listaria todas as barbearias, e há os 500 do API-03 e do AUTH-03.
+4. **Itens abertos relacionados:**
+   - **SEC-10:** falta o `exclude_appointment_id`.
+   - **TEN-02:** as checagens condicionais do `validate()` (`if barbeiro and barbershop_id`) e o 403 tardio do `perform_create` continuam no código. O sintoma deixou de se reproduzir porque os campos não aceitam nada para quem não tem barbearia. Se uma mudança futura afrouxar esse escopo, o TEN-02 volta.
+5. **BUS-20 (P3, novo, apenas registrado): cliente promovido a barbeiro deixa os próprios horários sem confirmação.**
+   - **Achado:** na verificação pelo navegador, o admin não conseguiu confirmar um horário: 400 `{"cliente": ["A instância de usuário com id 8 não existe.", "O usuário selecionado deve ter perfil de cliente."]}`.
+   - **Causa:** a sondagem da auditoria tinha promovido esse cliente a barbeiro, de forma legítima (MT-BA), e ele já tinha horários futuros como cliente.
+   - **Não é efeito desta correção:** a resposta é idêntica no código anterior e no corrigido.
+   - **O que falta verificar:** outras edições e o cancelamento desses horários não foram testados.
+   - **Decisão de produto:** o que fazer com os horários de um cliente promovido.
+
+### 22.9 Situação atual
+
+- **TEN-01: ✅ resolvido e verificado** no ambiente de testes. A conclusão se apoia em:
+  - a contenção, que continua ativa;
+  - a correção da causa raiz em todas as superfícies identificadas (seção 22.2);
+  - testes estruturais que enumeram todos os campos e filtros relacionais;
+  - testes de isolamento por papel, nos dois sentidos;
+  - as 217 verificações da auditoria, sem regressão;
+  - a sondagem de referências, com 0 oráculos;
+  - o laboratório com a API navegável religada, com 0 dados alheios;
+  - o navegador.
+
+  Não foi verificado em produção nem no banco real.
+- **SEC-10: ◐ parcialmente resolvido** (P3, continua aberto). Falta o `exclude_appointment_id`.
+- **TEN-02:** sintoma não reproduzível; segue aberto (P2) até a etapa própria.
+
+| | Após a contenção | Após a correção estrutural |
+|---|---|---|
+| P0 | 1 (TEN-01 contido) | **0** (TEN-01 resolvido) |
+| P1 | 3 | 3 (BUS-06 parcial, PROD-01, AUTH-01) |
+| P2 | 29 | 29 (TEN-02 continua contado) |
+| P3 | 37 | 38 (+BUS-20; SEC-10 parcial, continua contado) |
+| **Abertos** | 64 dos 70 originais + 6 novos = 70 | **64 dos 70 originais + 6 novos = 70** (saiu o TEN-01, entrou o BUS-20) |
+
+**Próximo passo:** aguarda a revisão do dono. O TEN-02 não foi iniciado.
+
+---
+
+## 23. Correção do TEN-02 — 14/11/2026
+
+> **Atualização:** o `exclude_appointment_id`, citado aqui como risco aberto do SEC-10, foi corrigido na [seção 24](#24-correção-do-sec-10-exclude_appointment_id--14112026). Esta seção foi preservada.
+
+**Escopo autorizado:** garantir que um usuário sem barbearia seja recusado antes de qualquer validação de negócio que consulte agendamentos, barbeiros ou disponibilidade de outras barbearias, com uma resposta que não dependa do horário nem da existência dos registros. O SEC-10 (`exclude_appointment_id`) ficou de fora, por instrução, e não foi iniciado.
+
+**Restrições cumpridas:**
+
+- **Código:**
+  - **Alterado:** `config/permissions.py`, com a classe nova `HasBarbershop`; `appointments/views.py`; e `appointments/serializers.py`.
+  - **Testes:** um arquivo de teste novo e uma asserção ajustada num teste da etapa anterior.
+  - **Intacto:** models, `settings.py`, `.env`, frontend e dependências.
+- **Migrações:** nenhuma. O `makemigrations --check` responde "No changes detected".
+- **Etapas anteriores preservadas:** a contenção (só `JSONRenderer`) e a correção estrutural do TEN-01 continuam iguais.
+- **Bancos:** o banco real e o PostgreSQL do Docker não foram usados. Os testes com escrita rodaram em SQLite em memória e num **PostgreSQL 18.3 descartável** (`127.0.0.1:55432`), já apagado.
+- **Repositório:** sem commit, push ou merge. As alterações e as evidências anteriores foram preservadas.
+
+Evidências em [`docs/auditoria/evidencias-2026-11-14/ten-02/`](auditoria/evidencias-2026-11-14/ten-02/README.md).
+
+### 23.1 Resumo
+
+| ID | Situação | Base |
+|---|---|---|
+| TEN-02 | ✅ **Resolvido e verificado** no ambiente de testes | Recusa antes de qualquer validação, com uma resposta única para qualquer corpo. Na conta sem barbearia, nenhuma consulta à agenda e nenhuma leitura de tabela de tenant, medidas no SQL do servidor com `DEBUG` True e False. A proteção é independente do escopo dos campos do TEN-01: com esse escopo afrouxado de propósito, o oráculo **voltava** no código anterior e não volta no corrigido |
+
+### 23.2 Causa raiz e investigação
+
+**Onde a conta sem barbearia era recusada, e onde estava a primeira consulta de disponibilidade.** Num `POST /appointments/`, o DRF executa nesta ordem:
+
+1. autenticação;
+2. permissões (`get_permissions`);
+3. validação do serializer, campo a campo;
+4. `validate()`, que chama o `full_clean()`, e o `clean()` do model chama `_validar_conflito_horario`, a **consulta à agenda do barbeiro**;
+5. `perform_create`, que tinha o único `PermissionDenied('Usuário sem barbearia vinculada.')`.
+
+| Versão | Onde a conta sem barbearia parava | Consultas (rastreamento SQL) | Ocupado × livre |
+|---|---|---|---|
+| Auditoria (HEAD) | Passo 4: o `validate()` pulava as checagens de barbearia (`if barbeiro and barbershop_id and …`), e o `full_clean()` rodava | 7 por pedido: lia o cliente, o barbeiro e o serviço de B pelo ID e **consultava a agenda do barbeiro de B** | Respostas diferentes (oráculo) |
+| Anterior (com o TEN-01 estrutural) | Passo 3: os campos relacionais ficam vazios para quem não tem barbearia | 0 | Mesma resposta, ecoando os IDs enviados |
+| Anterior, com o escopo dos campos afrouxado (simulação de uma mudança futura, por exemplo um catálogo público ligado ao PROD-01) | Passo 4, como na auditoria | As mesmas 7, **agenda de B incluída** | **Respostas diferentes: o oráculo voltava** |
+
+**Conclusão da investigação: o TEN-02 não estava protegido de forma independente.**
+
+- O defeito original continuava no código: a recusa só existia em `perform_create`, depois da validação, e o `validate()` pulava as checagens quando `barbershop_id` era vazio.
+- O sintoma tinha sumido só porque o escopo dos campos do TEN-01 barrava antes. A proteção dependia de uma única camada, e uma alteração era necessária.
+
+**As demais operações já recusavam antes de qualquer consulta** e não precisaram mudar:
+
+- **PATCH, PUT e DELETE:** 404 pelo `get_queryset()` vazio, sem SQL;
+- **horários livres:** 403 na primeira linha;
+- **listagem filtrada:** 400, com as opções do filtro vazias.
+
+### 23.3 Alteração implementada
+
+**Duas camadas independentes, com a resposta que o projeto já usa:** 403 `{"detail": "Usuário sem barbearia vinculada."}`, igual à de `perform_create` e de `available-slots`.
+
+1. **Recusa antes da validação.**
+   - **Permissão:** `config.permissions.HasBarbershop` (`config/permissions.py:44`).
+   - **Onde se aplica:** à criação, em `AppointmentViewSet.get_permissions` (`appointments/views.py:40-46`).
+   - **Quando roda:** nas permissões do DRF, antes do serializer. A única consulta é a da autenticação, a linha do próprio usuário.
+   - **Superusuário:** vale também para o superusuário sem barbearia, que o `perform_create` já recusava, só que depois da validação.
+2. **O serializer falha fechado.**
+   - **No `AppointmentSerializer.validate()`** (`appointments/serializers.py:93`): sem barbearia, é `PermissionDenied`, antes das checagens de tenant e do `full_clean()`.
+   - **As três checagens de barbearia,** de barbeiro, serviço e cliente, deixaram de ser condicionais: não há mais caminho que as pule em silêncio.
+   - **Independência:** esta camada vale para qualquer caminho que use o serializer, mesmo sem a view e mesmo com o escopo dos campos afrouxado.
+
+**Sem alteração:**
+
+- **PATCH, PUT e DELETE:** já recusam antes de qualquer consulta. O superusuário precisa continuar editando.
+- **`available-slots`:** já recusa na primeira linha.
+- **Listagem:** já vazia para quem não tem barbearia.
+- **Recusa do `perform_create`:** mantida, como terceira camada.
+
+**Teste ajustado.** Em `config/test_isolamento_tenant.py`, a regressão MT-AP-27 da etapa anterior fixava o 400 da recusa pelos campos. Agora ela exige o 403 com a resposta única e continua exigindo a mesma resposta de um ID inexistente.
+
+### 23.4 Testes de regressão
+
+**`appointments/test_ten02.py` (novo, 9 testes).** A autenticação é JWT real, e o cenário tem as barbearias A e B com agendamentos, uma conta sem barbearia e o superusuário.
+
+| Teste | Caso do pedido | O que comprova |
+|---|---|---|
+| `test_criacao_recusada_antes_da_validacao_com_resposta_unica` e `…_debug` | 1 a 4, com `DEBUG=False` e `DEBUG=True` | Valem para o horário ocupado e o livre de B, o barbeiro válido de B, os IDs inexistentes, o corpo vazio e a data inválida: <br>• o mesmo 403 com o mesmo corpo, sem `data_hora`; <br>• **no SQL capturado, só a autenticação**: a linha do próprio usuário, sem agenda, barbeiro, serviço ou barbearia; <br>• nenhum agendamento criado ou alterado |
+| `test_recusa_nao_depende_do_escopo_dos_campos` | Defesa em profundidade | Com o escopo dos campos afrouxado: <br>• ocupado e livre recebem o mesmo 403; <br>• a agenda de B não é consultada |
+| `test_validate_recusa_sem_barbearia_antes_das_regras_de_negocio` | Segunda camada | O serializer, chamado diretamente com o escopo afrouxado, levanta `PermissionDenied` sem consultar a agenda |
+| `test_demais_operacoes_sem_barbearia_nao_revelam_nada` | Demais operações | PATCH, PUT, DELETE, horários livres e listagem filtrada: a mesma resposta para um registro de B e para um inexistente (e para um dia ocupado e um livre), sem leitura de dados de tenant e sem alteração |
+| `test_usuario_de_a_nao_sonda_a_agenda_de_b` | 5 | Cliente, barbeiro e admin de A com o barbeiro de B, em horário ocupado, horário livre e com ID inexistente: <br>• a mesma resposta; <br>• **a agenda não é consultada**; <br>• nada criado |
+| `test_usuario_legitimo_agenda_na_propria_barbearia` | 6 | Na própria barbearia, cliente, admin e barbeiro agendam (201). O conflito continua detectado ("Este barbeiro já possui um agendamento neste horário."), e a consulta à agenda usa só o barbeiro de A |
+| `test_cadastro_publico_e_onboarding` | 7 | Cadastro público e login: o agendamento é recusado com a resposta única. Depois do onboarding, o mesmo token cria serviço, clientes, barbeiro e agendamento (201): a barbearia vem do banco, não do token |
+| `test_superusuario` | Superusuário | Sem barbearia, não cria agendamento (403, igual). Continua editando e filtrando qualquer barbearia |
+
+**Antes e depois:**
+
+- **Código anterior:** 6 dos 9 testes falham, com 18 subtestes. Entre as falhas estão a reprodução do oráculo com o escopo afrouxado e o serializer que não recusava.
+- **Corrigido:** 9/9.
+- **Os 3 que passam nas duas versões** protegem as demais operações, o caso 5 e o fluxo legítimo.
+
+### 23.5 Resultados
+
+| Verificação | Resultado |
+|---|---|
+| Testes do TEN-02 | Código anterior: 6 de 9 falham. **Corrigido: 9/9** |
+| Suíte completa, SQLite | **432, OK** (9 pulados, que exigem PostgreSQL). Eram 423, mais os 9 novos |
+| Suíte completa, PostgreSQL 18.3 descartável | **432, OK**, 0 pulados |
+| Suíte completa, PostgreSQL 18.3, com `DEBUG=False` também na importação das settings | **432, OK** |
+| 75 testes de isolamento (TEN-02, TEN-01 estrutural e contenção, isolamento existentes) com `--debug-mode` (`DEBUG=True`) | **75, OK** |
+| Django | `check` limpo. `makemigrations --check`: "No changes detected". `check --deploy` com `DEBUG=False`: só o W021, como antes |
+| As 217 verificações da auditoria | **213 conformes**, as mesmas da etapa anterior; nenhuma regrediu. O MT-AP-27 agora responde 403 igual para ocupado e livre. As 4 divergentes são TEN-03 (duas), TEN-04 e `exclude_appointment_id` |
+| Sondagem HTTP com o SQL do servidor, em cinco instâncias (seção 23.6) | Corrigido, com `DEBUG` True e False: resposta única e 0 consultas à agenda |
+| Navegador: build de produção, Firefox headless | 3 logins e 16 páginas: 311 respostas da API, todas em JSON, 0 erros. Pela interface: <br>• o cliente agenda (201); <br>• o cliente remarca (200); <br>• o admin confirma (200) |
+| Frontend | `npm test` 45/45; `tsc` (app e node), 0 erros; ESLint, 0; build igual ao anterior (o frontend não mudou) |
+
+### 23.6 Evidências de que não há mais oráculo de disponibilidade
+
+A sondagem HTTP rodou com o `runserver` real e o PostgreSQL descartável com `log_statement = 'all'`. Cada pedido foi isolado entre marcadores no log do banco.
+
+**Casos 1 a 4 da conta sem barbearia (ocupado, livre, barbeiro válido de B, inexistente):**
+
+| Instância | Status | Respostas distintas | Consultas à agenda | Leituras de tabelas de tenant sem escopo de barbearia |
+|---|---|---|---|---|
+| Auditoria (HEAD) | 400 | 3 | **3** | **14** |
+| Anterior, `DEBUG` True e False | 400 | 3 (1 sem os números ecoados) | 0 | 0 |
+| **Corrigido, `DEBUG=True`** | **403** | **1** | **0** | **0** |
+| **Corrigido, `DEBUG=False`** | **403** | **1** | **0** | **0** |
+
+**Nas instâncias corrigidas:**
+
+- **demais operações da conta sem barbearia:**
+  - PATCH e DELETE: 404 igual para o agendamento de B e para um inexistente;
+  - horários livres: 403 igual para o dia ocupado, o dia livre e IDs inexistentes;
+  - listagem: 400 igual para o barbeiro de B e para um inexistente;
+  - em todos, 0 consultas;
+- **usuários de A contra a agenda de B:** a mesma resposta, sem contar os números ecoados, e 0 consultas à agenda;
+- **cliente de A na própria barbearia:** 201 e 400 por conflito, com a agenda de A consultada;
+- **onboarding:** completo, com 201 em cada passo.
+
+### 23.7 Consultas SQL relevantes
+
+Comandos que o servidor executou para "conta sem barbearia, horário ocupado de B", lidos do log do PostgreSQL. A lista de colunas foi abreviada como `…`.
+
+```sql
+-- Código da auditoria: 400 {"barbershop": [...], "data_hora": ["Este barbeiro já possui um agendamento neste horário."]}
+SELECT … FROM "accounts_user" WHERE "accounts_user"."id" = 35                                   -- autenticação (o próprio usuário)
+SELECT … FROM "accounts_user" WHERE ("accounts_user"."tipo_perfil" = 'cliente' AND "accounts_user"."id" = 13)   -- cliente de B
+SELECT … FROM "barbershops_barber" WHERE "barbershops_barber"."id" = 4                          -- barbeiro de B
+SELECT … FROM "services_service" WHERE "services_service"."id" = 6                              -- serviço de B
+-- (as três leituras se repetem no full_clean)
+SELECT … FROM "appointments_appointment" INNER JOIN "services_service" ON (…)
+  WHERE ("appointments_appointment"."barbeiro_id" = 4 AND "appointments_appointment"."data_hora" >= '…' …)   -- AGENDA DE B
+
+-- Código corrigido (DEBUG True e False): 403 {"detail": "Usuário sem barbearia vinculada."}
+SELECT … FROM "accounts_user" WHERE "accounts_user"."id" = 47                                   -- só a autenticação
+```
+
+**Usuário de A com o barbeiro de B.** A busca já vem com a condição de barbearia, e a linha de B nunca é carregada:
+
+```sql
+SELECT … FROM "barbershops_barber" WHERE ("barbershops_barber"."barbershop_id" = 1 AND "barbershops_barber"."id" = 4)
+```
+
+**Validação legítima na própria barbearia** (conflito do cliente de A):
+
+```sql
+SELECT … FROM "appointments_appointment" INNER JOIN "services_service" ON (…)
+  WHERE ("appointments_appointment"."barbeiro_id" = 1 …)
+```
+
+O `barbeiro_id = 1` é o barbeiro de A escolhido pelo próprio cliente.
+
+### 23.8 Riscos que continuam abertos
+
+1. **SEC-10 (`exclude_appointment_id`):** a busca é global, com mensagem diferente para o agendamento de outra barbearia. Fica para a próxima etapa, que não foi iniciada.
+2. **Respostas diferentes por desenho.** A conta sem barbearia recebe 403 na criação e nos horários livres, e 404 em PATCH, PUT e DELETE.
+   - **Por que são diferentes:** na criação, não há objeto; na edição, o objeto está fora do escopo.
+   - **Por que não há oráculo:** cada resposta é sempre a mesma, seja qual for o corpo ou o ID.
+3. **Outros caminhos que validem agendamentos.** Um endpoint ou uma ação nova que valide agendamentos deve usar `HasBarbershop` ou o `AppointmentSerializer`. O `validate()` do serializer cobre qualquer caminho que o use, mas código que chame `Appointment.full_clean()` diretamente não teria essa proteção.
+4. **Canal de tempo:** não medido. A recusa acontece antes de qualquer consulta, o que tende a uniformizar o tempo.
+5. **Fora do escopo, continuam abertos:** TEN-03, TEN-04, API-03, AUTH-03 e BUS-20.
+
+### 23.9 Situação final
+
+**TEN-02: ✅ resolvido e verificado** no ambiente de testes. A conclusão se apoia em:
+
+- a investigação do caminho de validação nas três versões;
+- os testes de regressão, inclusive com o escopo dos campos afrouxado de propósito;
+- o SQL do servidor real com `DEBUG` True e False;
+- as 217 verificações sem regressão;
+- o navegador.
+
+Não foi verificado em produção nem no banco real.
+
+| | Após a correção estrutural do TEN-01 | Após a correção do TEN-02 |
+|---|---|---|
+| P0 | 0 | 0 |
+| P1 | 3 | 3 (BUS-06 parcial, PROD-01, AUTH-01) |
+| P2 | 29 | **28** (TEN-02 resolvido) |
+| P3 | 38 | 38 (SEC-10 parcial continua contado) |
+| **Abertos** | 64 dos 70 originais + 6 novos = 70 | **64 dos 70 originais + 5 novos = 69** |
+
+**Próximo passo:** aguarda a revisão do dono. O SEC-10 (`exclude_appointment_id`) não foi iniciado.
+
+---
+
+## 24. Correção do SEC-10: `exclude_appointment_id` — 14/11/2026
+
+> **Atualização:** o PER-13, que aqui aparece como aberto, foi corrigido na [seção 25](#25-correção-do-per-13-e-conclusão-do-sec-10--14112026), e o SEC-10 foi concluído. Esta seção foi preservada.
+
+**Escopo autorizado:** investigar e corrigir qualquer diferença de resposta que permitisse descobrir, pelo parâmetro `exclude_appointment_id`, se um agendamento pertence a outra barbearia. TEN-03 e as demais correções não foram iniciadas, por instrução.
+
+**Restrições cumpridas:**
+
+- **Código:** só `appointments/views.py` mudou (a busca do agendamento a excluir e a docstring), mais um arquivo de teste novo.
+- **Intacto:** serializers, models, permissões, `settings.py`, `.env`, frontend e dependências.
+- **Migrações:** nenhuma. O `makemigrations --check` responde "No changes detected".
+- **Etapas anteriores preservadas:** a contenção (só `JSONRenderer`) e as correções do TEN-01 e do TEN-02 continuam iguais, e os testes delas continuam passando.
+- **Bancos:** o banco real e o PostgreSQL do Docker não foram usados. Os testes com escrita rodaram em SQLite em memória e num **PostgreSQL 18.3 descartável** (`127.0.0.1:55432`), já apagado.
+- **Repositório:** sem commit, push ou merge. As alterações e as evidências anteriores foram preservadas.
+
+Evidências em [`docs/auditoria/evidencias-2026-11-14/sec-10/`](auditoria/evidencias-2026-11-14/sec-10/README.md).
+
+### 24.1 Resumo
+
+| Item | Situação |
+|---|---|
+| `exclude_appointment_id` (MT-AV-02) | ✅ **Corrigido e verificado.** O ID de outra barbearia tem o mesmo status, o mesmo corpo, as mesmas consultas SQL (só muda o número) e a mesma ausência de horários de um ID inexistente, e o registro alheio não é lido. Vale com `DEBUG` True e False, para os seis papéis, nos dois sentidos |
+| SEC-10, considerando todos os pontos conhecidos | ◐ **Continua parcial.** Os caminhos entre barbearias estão todos fechados: corpo das requisições (seção 22), filtros (seção 22) e `exclude_appointment_id` (esta seção). Segue presente o terceiro ponto da definição original, que acontece dentro da própria barbearia (PER-13, seção 24.8) e não foi autorizado nesta etapa |
+
+### 24.2 Causa raiz
+
+A inspeção do código atual (`appointments/views.py`, ação `available_slots`) mostrou:
+
+1. **Onde o parâmetro chega.** `request.query_params.get('exclude_appointment_id')` (linha 179). Uma string vazia equivale a omitir o parâmetro (`if exclude_appointment_id:`, linha 215).
+2. **Onde é convertido e validado.** Na própria busca: o Django converte o valor para inteiro. Valores não numéricos (`abc`, `1.5`, `1e3`, espaço) levantam `ValueError`, que é tratado como "não encontrado". Valores fora da faixa do banco também caem em "não encontrado", sem erro 500 em SQLite nem em PostgreSQL.
+3. **Onde o agendamento era consultado.** `Appointment.objects.select_related('cliente', 'barbeiro', 'servico', 'barbershop').get(pk=…)`, **sem condição de barbearia.**
+4. **Se a busca respeitava a barbearia.** **Não.** O registro de outra barbearia era lido, com o cliente, o barbeiro, o serviço e a barbearia carregados por JOIN, e só **depois** comparado com a barbearia do usuário.
+5. **Diferença entre ID inexistente e ID de outra barbearia.** O status era o mesmo (404), mas a mensagem não:
+   - outra barbearia: "Agendamento a excluir **não pertence à sua barbearia**.";
+   - inexistente: "Agendamento a excluir **não encontrado**."
+
+   Disponibilidade e SQL eram iguais. A correção estrutural do TEN-01 não cobria este caminho, porque é uma consulta manual na view, fora dos campos relacionais e dos filtros.
+
+### 24.3 Comportamento anterior e posterior
+
+**A alteração,** em `appointments/views.py:215-225`:
+
+- **Busca:** passou a ser `Appointment.objects.filter(barbershop_id=user.barbershop_id).get(pk=…)`.
+- **Ramo removido:** "não pertence à sua barbearia" ficou inalcançável e saiu.
+- **`select_related` removido:** nenhum campo relacionado era usado depois. Agora o agendamento a excluir não carrega o cliente nem os demais registros.
+
+As regras que vêm depois não mudaram: o cliente só exclui o próprio horário, o barbeiro só a própria agenda, o status precisa permitir remarcação, e o agendamento de outro barbeiro é ignorado.
+
+| Caso | Antes | Depois |
+|---|---|---|
+| Agendamento da própria barbearia, permitido ao papel | 200; o horário é liberado | Igual |
+| Agendamento de **outra barbearia** | 404 "**não pertence à sua barbearia**", depois de ler o registro com JOINs | 404 "**não encontrado**", idêntico ao inexistente; o registro não é lido |
+| ID inexistente | 404 "não encontrado" | Igual |
+| Omitido ou vazio | 200, sem exclusão | Igual |
+| Malformado (`abc`, `1.5`, `-1`, `0`, `1e3`, espaço, valor enorme) | 404 "não encontrado" | Igual, sem erro 500 |
+| Usuário sem barbearia (TEN-02) | 403 "Usuário sem barbearia vinculada." antes de qualquer consulta | Igual |
+| Superusuário sem barbearia | 403 (a ação usa a barbearia do usuário) | Igual |
+| Superusuário com barbearia | Escopo da própria barbearia; o de outra recebia "não pertence" | Escopo da própria barbearia; o de outra é igual ao inexistente |
+| Dentro da própria barbearia: cliente com o horário de outro cliente; barbeiro com o de outro barbeiro | 403 | Igual (regra atual, preservada; seção 24.8) |
+
+### 24.4 Testes adicionados
+
+**`appointments/test_sec10.py` (novo, 11 testes).** O cenário tem as barbearias A e B, cada uma com dois clientes, dois barbeiros, um serviço de 30 minutos e um combo de 60, e horários às 10:00 e às 11:00. Também há uma conta sem barbearia e o superusuário.
+
+| Teste | Casos do pedido | O que comprova |
+|---|---|---|
+| `test_id_de_outra_barbearia_igual_a_inexistente` e `…_debug` | 2, 3, 6, 7 e 8, com `DEBUG=False` e `DEBUG=True` | Para cliente, barbeiro e admin, **A → B e B → A**: <br>• o mesmo status e o **mesmo corpo**; <br>• nenhum horário retornado; <br>• nenhum dado da outra barbearia; <br>• **as mesmas consultas SQL**, só mudando o número; <br>• nenhuma busca do agendamento alheio sem a condição de barbearia do usuário; <br>• nenhum agendamento alterado |
+| `test_consulta_do_excluido_ja_tem_condicao_de_barbearia` | Leitura | Há uma única busca, com `barbershop_id = <A>` na própria consulta e **sem JOIN**: o registro alheio não é carregado antes da recusa |
+| `test_proprio_agendamento_e_excluido_da_ocupacao` | 1 e 8 | Para os três papéis nas duas barbearias, o próprio horário (10:00) é liberado, e o de outro cliente (11:00) continua ocupado |
+| `test_parametro_omitido_ou_vazio_mantem_a_ocupacao` | 4 | Omitido e vazio dão a mesma resposta, sem exclusão |
+| `test_valor_malformado_responde_como_inexistente` | 5 | `abc`, `1.5`, `-1`, `0`, `1e3`, espaço e um valor enorme dão a mesma resposta que um ID inexistente |
+| `test_usuario_sem_barbearia_continua_recusado_antes_de_tudo` | 9 | 403 único, com **zero consultas**, para o agendamento de A, o de B, o inexistente e o omitido |
+| `test_superusuario_mantem_as_regras_atuais` | 10 | Sem barbearia, 403. Com barbearia, exclui o próprio, e o de B é igual ao inexistente, sem ler o de B |
+| `test_regras_atuais_dentro_da_propria_barbearia` | Regras preservadas | O cliente com o horário de outro cliente recebe 403, e o barbeiro com o de outro barbeiro também. O admin exclui qualquer horário da barbearia, e um cancelado recebe 400 |
+| `test_remarcacao_legitima_com_horario_que_so_aparece_ao_excluir_o_proprio` | 11 | O combo de 60 minutos às 10:00 só aparece excluindo o próprio horário, e a remarcação (PATCH) é aceita e gravada |
+| `test_conflitos_da_mesma_barbearia_continuam_valendo` | 12 | Excluir o próprio não libera o horário de outro cliente. Remarcar para cima dele dá 400 "Este barbeiro já possui um agendamento neste horário.". Para outro barbeiro, o próprio horário é ignorado |
+
+**Antes e depois:**
+
+- **Código anterior:** 4 dos 11 testes falham, com 14 subtestes. São a diferença de mensagem, a busca sem condição de barbearia e o superusuário com barbearia.
+- **Corrigido:** 11/11.
+- **Os 7 que passam nas duas versões** protegem as regras atuais e os fluxos legítimos.
+- **Testes antigos:** os 8 de `exclude_appointment_id` em `appointments/tests.py` (`AvailableSlotsExcludeAppointmentTests`) e os de `test_cancelamento_reagendamento.py` continuam passando sem alteração. Eles verificavam só o status.
+
+### 24.5 Resultados
+
+| Verificação | Resultado |
+|---|---|
+| Testes do SEC-10 | Código anterior: 4 de 11 falham. **Corrigido: 11/11** |
+| Suíte completa, SQLite | **443, OK** (9 pulados, que exigem PostgreSQL). Eram 432, mais os 11 novos |
+| Suíte completa, PostgreSQL 18.3 descartável | **443, OK**, 0 pulados |
+| Suíte completa, PostgreSQL 18.3, com `DEBUG=False` também na importação das settings | **443, OK** |
+| 105 testes de isolamento e de `exclude_appointment_id` com `--debug-mode` (`DEBUG=True`) | **105, OK**. Inclui os do SEC-10, do TEN-02, do TEN-01 (estrutural e contenção), os de isolamento existentes e os de remarcação |
+| Django | `check` limpo. `makemigrations --check`: "No changes detected". `check --deploy` com `DEBUG=False`: só o W021, como antes |
+| As 217 verificações da auditoria | De 213 para **214 conformes**. Só o MT-AV-02 mudou, para conforme; nenhuma regrediu. As 3 divergentes restantes são TEN-03 (duas) e TEN-04 |
+| Contenção JSON (matriz HTML/JSON, 1.926 pedidos por instância) | Corrigido, com `DEBUG` True e False: 0 respostas HTML, 0 com dados de outro tenant, `OPTIONS` anuncia só JSON |
+| TEN-01 e TEN-02 | Os testes deles (22 e 9) passam. As verificações MT-HT-01 a 12, MT-FI-01 e MT-AP-27 continuam conformes |
+| Navegador: build de produção, Firefox headless | 3 logins e 16 páginas: 288 respostas da API, todas em JSON, 0 erros. **A remarcação pela interface,** que chama `available-slots` com `exclude_appointment_id`, fez 4 chamadas, todas 200, e gravou a nova data (PATCH 200). O agendamento (201) e a confirmação (200) também funcionaram |
+| Frontend | `npm test` 45/45; `tsc` (app e node), 0 erros; ESLint, 0; build igual ao anterior (o frontend não mudou) |
+
+### 24.6 Evidências de equivalência entre ID alheio e inexistente
+
+Sondagem no servidor real: seis papéis (cliente, barbeiro e admin de A e de B), nos dois sentidos. O SQL foi lido do log do PostgreSQL descartável:
+
+| Instância | Comparações | Corpo diferente | Status diferente | SQL diferente (só o número muda) | Buscas do agendamento alheio sem condição de barbearia | Buscas com JOIN |
+|---|---|---|---|---|---|---|
+| Anterior, `DEBUG` True e False | 6 | **6** | 0 | 0 | **6** | **6** |
+| **Corrigido, `DEBUG=True`** | 6 | **0** | 0 | 0 | **0** | **0** |
+| **Corrigido, `DEBUG=False`** | 6 | **0** | 0 | 0 | **0** | **0** |
+
+**Nas instâncias corrigidas:**
+
+- valores malformados dão a mesma resposta que o inexistente, e o vazio, a mesma que o omitido;
+- o próprio agendamento libera o horário nos seis papéis;
+- a conta sem barbearia recebe 403 único, sem consultar agendamentos;
+- 0 erros 500, inclusive com o valor enorme no PostgreSQL;
+- o md5 de todos os agendamentos ficou igual antes e depois.
+
+### 24.7 Consultas SQL relevantes
+
+Lidas do log do PostgreSQL, para o cliente de A, com a lista de colunas abreviada como `…`:
+
+```sql
+-- Anterior, agendamento de B (419): 404 "Agendamento a excluir não pertence à sua barbearia."
+SELECT … FROM "appointments_appointment"
+  INNER JOIN "barbershops_barbershop" ON (…) INNER JOIN "accounts_user" ON (…)
+  INNER JOIN "barbershops_barber" ON (…) INNER JOIN "services_service" ON (…)
+  WHERE "appointments_appointment"."id" = 419 LIMIT 21          -- lê o agendamento de B e o cliente dele
+
+-- Corrigido, agendamento de B (419): 404 "Agendamento a excluir não encontrado."
+SELECT … FROM "appointments_appointment"
+  WHERE ("appointments_appointment"."barbershop_id" = 1 AND "appointments_appointment"."id" = 419) LIMIT 21
+
+-- Corrigido, inexistente (999999): a mesma consulta e a mesma resposta
+SELECT … FROM "appointments_appointment"
+  WHERE ("appointments_appointment"."barbershop_id" = 1 AND "appointments_appointment"."id" = 999999) LIMIT 21
+```
+
+### 24.8 Riscos ainda abertos
+
+1. **PER-13, o terceiro ponto da definição original do SEC-10 (seção 13), continua presente.** Ele acontece dentro da própria barbearia.
+   - **Comportamento:** o cliente (ou o barbeiro) que pede `GET /users/{id}/` de outro usuário da mesma barbearia recebe **403**. Para um usuário de outra barbearia ou inexistente, recebe **404**. A causa é a permissão de objeto `IsSelfOrAdmin` (`config/permissions.py:12`), aplicada depois do queryset da barbearia (`accounts/views.py:204-205`). Verificado nesta etapa, antes e depois da alteração: `sql/rastreamento-sql-*.txt`.
+   - **Mesmo padrão no `exclude_appointment_id`:** o cliente com o horário de outro cliente, ou o barbeiro com o de outro barbeiro, da mesma barbearia, recebe 403, contra 404 para o inexistente. São "regras atuais", fixadas por testes existentes, e foram preservadas por instrução.
+   - **Impacto:** baixo. Revela só que um ID existe **na própria barbearia** e não expõe dados.
+   - **Correção possível, que depende de autorização:** limitar o queryset de cliente e barbeiro ao que eles podem ver (o próprio cadastro; os próprios horários), devolvendo 404 para o resto. Isso muda respostas que hoje são 403 e os testes que as fixam.
+2. **Consultas manuais por ID.** Este era o último caso conhecido de busca por ID sem condição de barbearia nas views de agendamento:
+   - `available-slots` (barbeiro e serviço) e faturamento já filtram pela barbearia;
+   - os campos relacionais e os filtros usam o escopo do TEN-01.
+
+   Código novo com buscas manuais precisa seguir o mesmo padrão. Os testes estruturais do TEN-01 não cobrem consultas manuais.
+3. **Canal de tempo:** não medido. As duas buscas são a mesma consulta e não encontram linha.
+4. **Fora do escopo, continuam abertos:** TEN-03, TEN-04, API-03, AUTH-03 e BUS-20.
+
+### 24.9 Situação final
+
+- **`exclude_appointment_id`: ✅ corrigido e verificado** no ambiente de testes, com `DEBUG` True e False.
+- **SEC-10: ◐ continua parcial,** e não foi declarado resolvido:
+
+  | Ponto | Situação |
+  |---|---|
+  | Corpo das requisições, entre barbearias | Fechado (seção 22) |
+  | Filtros, entre barbearias | Fechado (seção 22) |
+  | `exclude_appointment_id`, entre barbearias | Fechado (esta seção) |
+  | **PER-13**, dentro da própria barbearia | **Aberto, aguardando decisão** |
+
+  Para encerrar o SEC-10, falta decidir e corrigir o PER-13, ou aceitá-lo formalmente como comportamento intencional.
+
+| | Após a correção do TEN-02 | Após a correção do `exclude_appointment_id` |
+|---|---|---|
+| P0 | 0 | 0 |
+| P1 | 3 | 3 (BUS-06 parcial, PROD-01, AUTH-01) |
+| P2 | 28 | 28 |
+| P3 | 38 | 38 (SEC-10 parcial, só com o PER-13, continua contado) |
+| **Abertos** | 64 dos 70 originais + 5 novos = 69 | **69** |
+
+**Próximo passo:** aguarda a revisão do dono. Nem o TEN-03 nem o PER-13 foram iniciados.
+
+---
+
+## 25. Correção do PER-13 e conclusão do SEC-10 — 14/11/2026
+
+**Escopo autorizado:** corrigir o PER-13, o terceiro ponto da definição original do SEC-10 (seção 13), só na leitura de detalhe de `/users/{id}/` (GET e HEAD), e concluir a validação do SEC-10. O TEN-03 não foi iniciado. As escritas não foram alteradas, por instrução; o mesmo problema nelas foi registrado à parte (SEC-12, seção 25.8).
+
+**Restrições cumpridas:**
+
+- **Código:**
+  - **Alterado:** só `accounts/views.py`, no `UserViewSet.get_queryset()`.
+  - **Testes:** um arquivo de teste novo e quatro asserções de GET atualizadas em testes existentes.
+  - **Intacto:** permissões, serializers, models, `settings.py`, `.env`, frontend e dependências.
+- **Migrações:** nenhuma. O `makemigrations --check` responde "No changes detected".
+- **Etapas anteriores preservadas:** a contenção (só `JSONRenderer`), o TEN-01, o TEN-02 e o `exclude_appointment_id`, com os testes de todos eles passando.
+- **Bancos:** o banco real e o PostgreSQL do Docker não foram usados. Os testes com escrita rodaram em SQLite em memória e num **PostgreSQL 18.3 descartável** (`127.0.0.1:55432`), já apagado.
+- **Repositório:** sem commit, push ou merge, e sem comandos destrutivos. As alterações locais e as evidências anteriores foram preservadas. As desta etapa estão numa pasta nova.
+
+Evidências em [`docs/auditoria/evidencias-2026-11-14/per-13/`](auditoria/evidencias-2026-11-14/per-13/README.md).
+
+### 25.1 Resumo
+
+| Item | Situação |
+|---|---|
+| PER-13 (GET e HEAD em `/users/{id}/`) | ✅ **Corrigido e verificado.** Para cliente e barbeiro, outro usuário da mesma barbearia, um usuário de outra barbearia e um ID inexistente recebem o mesmo 404, com o mesmo corpo e a mesma forma de SQL. O registro do usuário consultado não é carregado. Vale com `DEBUG` True e False, nas duas barbearias |
+| **SEC-10** | ✅ **Resolvido e verificado** no ambiente de testes. Os três pontos da definição original estão cobertos por evidências (seção 25.9) |
+| SEC-12 (novo, P3) | **Registrado, não corrigido.** É a mesma diferença 403 × 404 dentro da própria barbearia em PATCH e PUT de `/users/{id}/` e no `exclude_appointment_id` (seção 25.8) |
+
+### 25.2 Causa raiz
+
+A rota é `/api/v1/users/{id}/`, registrada pelo `DefaultRouter` em `accounts/urls.py` e atendida pelo `UserViewSet` (`accounts/views.py`). O caminho da leitura de detalhe era:
+
+1. **Permissões:** `get_permissions()` aplica `IsAuthenticated` e `IsSelfOrAdmin` em `retrieve`, `update` e `partial_update` (linha 204).
+2. **Busca:** `get_queryset()` limitava à barbearia do usuário. O superusuário via todos, e o usuário sem barbearia, nenhum. Mas a busca **não** levava em conta o que cada papel pode ver.
+3. **Carga do registro:** `get_object()` buscava o registro com `WHERE barbershop_id = <A> AND id = <alvo>` e **o carregava**.
+4. **Recusa tardia:** só então `IsSelfOrAdmin.has_object_permission` (`config/permissions.py:12`) recusava, com 403, quem não é o próprio usuário, admin ou superusuário.
+
+**Resultado:** um usuário da mesma barbearia era lido e recebia 403, enquanto um de outra barbearia ou inexistente nem era encontrado e recebia 404. Cliente e barbeiro descobriam quais IDs existem na própria barbearia.
+
+O PATCH e o PUT passam pelo mesmo caminho e têm a mesma diferença. O DELETE recusa antes da busca, com `IsAdminRole`, e dá 403 uniforme. O HEAD segue o `retrieve`.
+
+### 25.3 Estratégia e alteração
+
+Em `UserViewSet.get_queryset()` (`accounts/views.py:216-224`), quando a ação é `retrieve` (GET e HEAD) e o solicitante não é admin, a consulta ganha `filter(pk=user.pk)`. A autorização entra na própria consulta, antes de recuperar o registro.
+
+| Solicitante | Escopo na leitura de detalhe |
+|---|---|
+| Cliente e barbeiro | Só o próprio cadastro |
+| Admin | Todos os usuários da própria barbearia (inalterado) |
+| Superusuário | Todos (inalterado; tratado antes, em `get_queryset()`) |
+| Usuário sem barbearia | Nenhum (inalterado; queryset vazio, falha fechado, sem SQL de busca) |
+
+**O que fica igual:**
+
+- **`IsSelfOrAdmin`** continua como segunda camada.
+- **Listagem, criação, PATCH, PUT, DELETE e `/users/me/`** não mudaram: a condição se aplica só à ação `retrieve`.
+
+**O que muda por consequência:**
+
+- **Mensagem:** o 404 é o mesmo do DRF para objeto não encontrado (`{"detail":"No User matches the given query."}`), para todos os casos não autorizados e para o inexistente.
+- **Usuário sem barbearia:** na própria conta por ID, já recebia 404. Continua assim; o caminho suportado é `/users/me/`.
+
+### 25.4 Comportamento antes e depois: matriz por papel
+
+GET e HEAD em `/users/{id}/`, nas barbearias A e B:
+
+| Solicitante | Própria conta | Outro cliente da barbearia | Barbeiro da barbearia | Admin da barbearia | Usuário de outra barbearia | Inexistente |
+|---|---|---|---|---|---|---|
+| Cliente | 200 → 200 | **403 → 404** | **403 → 404** | **403 → 404** | 404 → 404 | 404 → 404 |
+| Barbeiro | 200 → 200 | **403 → 404** | **403 → 404** (outro barbeiro) | **403 → 404** | 404 → 404 | 404 → 404 |
+| Admin | 200 → 200 | 200 → 200 | 200 → 200 | 200 → 200 | 404 → 404 | 404 → 404 |
+| Superusuário | 200 → 200 | 200 → 200 | 200 → 200 | 200 → 200 | 200 → 200 | 404 → 404 |
+| Sem barbearia | 404 → 404 | 404 → 404 | 404 → 404 | 404 → 404 | 404 → 404 | 404 → 404 |
+
+**Sem mudança:**
+
+| Operação | Comportamento |
+|---|---|
+| PATCH e PUT em outro usuário da barbearia, por cliente ou barbeiro | 403, contra 404 do inexistente (SEC-12) |
+| DELETE por cliente ou barbeiro | 403 para qualquer ID |
+| `/users/` | Admin vê a própria barbearia; cliente, barbeiro e sem barbearia recebem 403; superusuário vê todos |
+| `/users/me/` | 200 para todos |
+
+As linhas de admin, sem barbearia e superusuário do rastreamento ficaram idênticas antes e depois (`sql/rastreamento-respostas-sql-*.txt`).
+
+### 25.5 Testes
+
+**`accounts/test_per13.py` (novo, 9 testes).** O cenário tem as barbearias A e B, cada uma com dois admins, dois clientes e dois barbeiros com perfil, além de uma conta sem barbearia e do superusuário. A autenticação é JWT real.
+
+| Teste | Casos do pedido | O que comprova |
+|---|---|---|
+| `test_nao_autorizado_igual_a_inexistente` e `…_debug` | 2, 3, 4, 6, 7, 9, 10, 11 e 12, com `DEBUG=False` e `DEBUG=True` | Para cliente, barbeiro e admin de A e de B, cada ID não autorizado (da mesma barbearia e de outra) tem: <br>• o **mesmo status e corpo integral** do inexistente; <br>• nenhum nome nem e-mail do usuário consultado; <br>• **as mesmas consultas SQL**, só mudando o número; <br>• a busca com `barbershop_id` **e** com o ID do próprio solicitante no WHERE, no caso de cliente e barbeiro; <br>• o mesmo status também no HEAD |
+| `test_cada_um_consulta_a_propria_conta` | 1 e 5 | Cliente, barbeiro e admin: 200 com os próprios dados (GET e HEAD) |
+| `test_admin_consulta_usuarios_da_propria_barbearia` | 8 | O admin lê o outro admin, os clientes e os barbeiros da barbearia |
+| `test_usuario_sem_barbearia_continua_sem_acesso` | 13 | 404 único para o próprio ID, A, B e o inexistente. Só a autenticação lê o banco. `/users/me/` continua 200 |
+| `test_superusuario_mantem_o_comportamento` | 14 | 200 para usuários de A e de B; 404 para o inexistente |
+| `test_listagem_users_sem_regressao` | `/users/` | Admin: exatamente os usuários da barbearia. Cliente, barbeiro e sem barbearia: 403. Superusuário: todos |
+| `test_users_me_continua` | `/users/me/` | 200 para todos os papéis |
+| `test_escritas_mantem_as_permissoes_anteriores` | Escritas | As recusas de antes continuam, sem alterar dados: <br>• PATCH e PUT em outro usuário da barbearia (403); <br>• PATCH em outra barbearia (404); <br>• DELETE e POST pelo cliente (403). <br>As escritas legítimas também: <br>• PATCH na própria conta; <br>• PATCH, POST e DELETE do admin |
+
+- **Antes e depois:** no código anterior, 2 dos 9 testes falham (48 subtestes); no corrigido, 9/9. Os 7 que passam nas duas versões protegem o acesso legítimo, a listagem, o `/users/me/` e as escritas.
+- **Testes existentes atualizados:** quatro asserções exigiam **403 no GET** de detalhe de outro usuário da mesma barbearia, que era o próprio oráculo. Agora exigem 404. As asserções de escrita desses mesmos testes não mudaram.
+  - `accounts/test_multitenant_isolation.py`: `test_barber_cannot_manage_users` e `test_client_cannot_manage_users`, só a linha do GET;
+  - `accounts/test_permissions.py`: `test_beireiro_can_only_access_own_user` e `test_cliente_can_only_access_own_user`;
+  - `config/test_renderers.py`: na matriz JSON da contenção, a linha "usuário" passou de 403 para 404 para cliente e barbeiro.
+
+### 25.6 Resultados
+
+| Verificação | Resultado |
+|---|---|
+| Testes do PER-13 | Código anterior: 2 de 9 falham. **Corrigido: 9/9** |
+| Suíte completa, SQLite | **452, OK** (9 pulados, que exigem PostgreSQL). Eram 443, mais os 9 novos |
+| Suíte completa, PostgreSQL 18.3 descartável | **452, OK**, 0 pulados |
+| Suíte completa, PostgreSQL 18.3, com `DEBUG=False` também na importação das settings | **452, OK** |
+| 123 testes com `--debug-mode` (`DEBUG=True`) | **123, OK**. Incluem PER-13, SEC-10 (`exclude_appointment_id` e os 8 testes antigos dele), TEN-02, TEN-01 (estrutural e contenção), isolamento, permissões de usuários e remarcação |
+| Django | `check` limpo. `makemigrations --check`: "No changes detected". `check --deploy` com `DEBUG=False`: só o W021, como antes |
+| As 217 verificações da auditoria | **214 conformes**, sem nenhum veredito alterado em relação à etapa anterior. Elas cobrem o acesso entre barbearias; o PER-13 é coberto pelos testes e pela sondagem desta etapa |
+| Contenção JSON (matriz HTML/JSON, 1.926 pedidos por instância) | Corrigido, com `DEBUG` True e False: 0 respostas HTML, 0 com dados de outro tenant, `OPTIONS` só JSON |
+| Navegador: build de produção, Firefox headless | 3 logins e 16 páginas, inclusive "Minha conta" (pelo `/users/me/`): 285 respostas da API, todas em JSON, 0 erros, 10/10 textos esperados. **Agendamento** (201), **remarcação** (4 chamadas a horários livres com `exclude_appointment_id`, todas 200; PATCH 200) e **confirmação** (200) pela interface |
+| Frontend | `npm test` 45/45; `tsc` (app e node), 0 erros; ESLint, 0; build igual ao anterior (o frontend não mudou) |
+
+### 25.7 Indistinguibilidade e SQL
+
+**Sondagem no servidor real,** com o SQL lido do log do PostgreSQL descartável (`log_statement = 'all'`). São 130 pedidos por instância: cliente, barbeiro e admin de A e de B, superusuário e conta sem barbearia, contra o próprio usuário, usuários da mesma barbearia e de outra, e um inexistente.
+
+| Instância | Não autorizados com resposta diferente da do inexistente | HEAD diferente | SQL diferente (só o número muda) | Buscas sem o solicitante no WHERE (cliente e barbeiro) | Dados do consultado na resposta |
+|---|---|---|---|---|---|
+| Anterior, `DEBUG` True e False | **10** (3 por cliente e barbeiro de A, 2 por cliente e barbeiro de B) | **10** | 0 | **26** | 0 |
+| **Corrigido, `DEBUG` True e False** | **0** | **0** | 0 | **0** | 0 |
+
+Em todas as instâncias: 0 erros 500, os usuários ficaram inalterados (md5) e admins e superusuário mantiveram os 200.
+
+**SQL do servidor** (cliente de A, id 5, consultando o barbeiro da barbearia, id 2, e um inexistente):
+
+```sql
+-- Anterior: carrega a linha do barbeiro e recusa com 403
+SELECT … FROM "accounts_user" WHERE "accounts_user"."id" = 5                                     -- autenticação
+SELECT … FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 2)
+-- Corrigido: a busca já exige o próprio solicitante; não encontra nada e dá 404, igual ao inexistente
+SELECT … FROM "accounts_user" WHERE "accounts_user"."id" = 5                                     -- autenticação
+SELECT … FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 5 AND "accounts_user"."id" = 2)
+SELECT … FROM "accounts_user" WHERE ("accounts_user"."barbershop_id" = 1 AND "accounts_user"."id" = 5 AND "accounts_user"."id" = 999999)
+```
+
+### 25.8 Limitações e riscos
+
+1. **SEC-12 (P3, novo, registrado e não corrigido): a mesma diferença 403 × 404 dentro da própria barbearia, em outras operações.**
+   - **Onde aparece:**
+     - PATCH e PUT de `/users/{id}/` por cliente ou barbeiro em outro usuário da barbearia dão 403, contra 404 para um usuário de outra barbearia ou inexistente. A causa é a mesma do PER-13, no `update` e no `partial_update`. Medido na sondagem: `api/per13-resumo-http-sql.txt`, bloco SEC-12.
+     - No `exclude_appointment_id` (seção 24), o cliente com o horário de outro cliente, ou o barbeiro com o de outro barbeiro, recebe 403, contra 404 para o inexistente.
+   - **Impacto:** baixo. Revela só que um ID existe na própria barbearia, sem dados.
+   - **Correção possível, com autorização:** estender o escopo do PER-13 a `update` e `partial_update` (e, no `exclude_appointment_id`, buscar pelo queryset que cada papel enxerga). Isso troca esses 403 por 404 e exige atualizar os testes que os fixam.
+2. **Mensagem do 404 em inglês.** "No User matches the given query." vem do Django, é igual em todos os casos e revela só o nome do model.
+3. **Canal de tempo:** não medido. As buscas não autorizadas e a inexistente são a mesma consulta e não encontram linha.
+4. **Fora do escopo, continuam abertos:** TEN-03, TEN-04, API-03, AUTH-03 e BUS-20.
+5. **Não verificado:** produção e banco real. Este relatório **não declara o projeto pronto para produção.**
+
+### 25.9 Situação final do SEC-10
+
+**SEC-10: ✅ resolvido e verificado** no ambiente de testes. A definição original (seção 13) tem três pontos, e os três estão corrigidos e cobertos por evidências:
+
+| Ponto da definição original | Correção | Evidência |
+|---|---|---|
+| 1. Para IDs de outra barbearia, "não pertence à sua barbearia" × "Pk inválido" para inexistentes, nos campos do corpo | Seção 22: campos relacionais com escopo de tenant | 288 de 288 pedidos sem oráculo, por instância, com `DEBUG` True e False; testes `ReferenciasCruzadasTests`; nenhuma leitura sem escopo |
+| 2. O `exclude_appointment_id` distingue "não pertence" de "não encontrado" | Seção 24: busca com a barbearia na própria consulta | MT-AV-02 conforme; 6 de 6 comparações iguais; `appointments/test_sec10.py` |
+| 3. Um cliente que consulta outro cliente por ID recebe 403, que revela a existência, em vez de 404 (PER-13) | Esta seção: a leitura de detalhe limitada ao próprio cadastro na consulta | 0 diferenças em 130 pedidos por instância, com `DEBUG` True e False; `accounts/test_per13.py`; SQL com o solicitante no WHERE |
+
+Também ficou fechada a ampliação registrada na auditoria de isolamento, os filtros (MT-FI-01, seção 22). A variante nas escritas e no `exclude_appointment_id`, dentro da própria barbearia, não faz parte desses três pontos e foi registrada como SEC-12.
+
+| | Após o `exclude_appointment_id` | Após o PER-13 |
+|---|---|---|
+| P0 | 0 | 0 |
+| P1 | 3 | 3 (BUS-06 parcial, PROD-01, AUTH-01) |
+| P2 | 28 | 28 |
+| P3 | 38 | 38 (−SEC-10, resolvido; +SEC-12, novo) |
+| **Abertos** | 64 dos 70 originais + 5 novos = 69 | **63 dos 70 originais + 6 novos = 69** |
+
+**Próximo passo:** aguarda a revisão do dono. Nem o TEN-03 nem o SEC-12 foram iniciados.
+
+---
+
+## 26. Investigação do TEN-03 — 15/11/2026
+
+**Escopo autorizado:** só investigar o TEN-03, a exposição da existência de e-mails usados em outras barbearias. Nada foi corrigido. A regra de unicidade é uma decisão de produto e fica com o dono. TEN-04 e SEC-12 não foram iniciados.
+
+**Restrições cumpridas:**
+
+- **Código:** nenhum arquivo de produção, teste, permissão, serializer, model, view, settings, `.env` ou frontend foi alterado. Nenhuma dependência foi atualizada.
+- **Migrações:** nenhuma criada nem aplicada. O `makemigrations --check` responde "No changes detected".
+- **Etapas anteriores preservadas:** a contenção (só `JSONRenderer`), o TEN-01, o TEN-02, o `exclude_appointment_id` e o PER-13. A suíte completa passou sem alteração.
+- **Bancos:** o `barbershop_db` real e o PostgreSQL do Docker (porta 5433) não foram usados. Os testes com escrita rodaram num **PostgreSQL 18.3 descartável** (`initdb` no diretório temporário, só TCP em `127.0.0.1:55432`), já apagado.
+- **Dados:** só fictícios, em domínios reservados `.test`.
+- **Repositório:** sem commit, push ou merge, e sem comandos destrutivos. As alterações locais e as evidências anteriores foram preservadas.
+
+Evidências em [`docs/auditoria/evidencias-2026-11-15/ten-03/`](auditoria/evidencias-2026-11-15/ten-03/README.md).
+
+### 26.1 Resumo
+
+| Item | Situação |
+|---|---|
+| **Causa raiz** | **Confirmada.** O e-mail é único em toda a plataforma no model (`accounts/models.py:29`, `unique=True`) e no banco (`UNIQUE (email)`, restrição `accounts_user_email_key`). Ele é o `USERNAME_FIELD`. O DRF gera desse campo um `UniqueValidator` sobre **todos** os usuários, sem filtro de barbearia, nos três serializers que gravam e-mail. Esse validador responde 400 "usuário com este e-mail já existe." só quando o e-mail está em uso |
+| **Alcance** | Maior do que o registrado em 13/11. Além do admin e do cadastro público, **qualquer cliente ou barbeiro** com barbearia consegue sondar trocando o próprio e-mail. Existem variantes **sem efeito colateral** para anônimo, admin e cliente. Há ainda um caminho por **erro 500**, ao variar a caixa do domínio |
+| **O que revela** | Só a existência do e-mail na plataforma, inclusive de contas inativas e do superusuário. Não revela barbearia, nome nem papel. O admin de A distingue, além disso, "está na minha barbearia" (porque pode listá-la) de "está em outra" |
+| **Achados novos** | **AUTH-04 (P2):** a recuperação de senha pode mandar o token de **outra conta** quando existe uma variação de caixa do e-mail. **AUTH-05 (P3):** o e-mail não tem normalização de caixa coerente: aceita duplicatas por caixa, dá 500 no cadastro e o login diferencia caixa. Registrados, não corrigidos (26.6) |
+| **Alternativas** | A (único global), B (único por barbearia), C (manter e mudar o fluxo, em três níveis), D (aceitar o risco com mitigação) e E (identidade global com vínculos). Comparadas em 26.7 |
+| **Recomendação técnica** | Manter o e-mail único global (A). Corrigir a normalização de caixa (AUTH-04 e AUTH-05). Para o TEN-03, escolher entre aceitar o risco residual com mitigação (D) ou o fluxo de confirmação por e-mail e convites (C3), depois da apresentação. **A decisão de produto continua pendente** (26.8) |
+| **TEN-03** | **Continua aberto (P3).** Não foi marcado como resolvido |
+
+### 26.2 Arquitetura atual de unicidade e autenticação
+
+| # | Pergunta | Resposta confirmada no código atual |
+|---|---|---|
+| 1 | O e-mail é único no model ou só no serializer? | **No model**, e daí em diante em tudo. `email = models.EmailField('e-mail', unique=True)` (`accounts/models.py:29`). Não há `Meta.constraints` nem `unique_together`. Os serializers não definem validação própria: herdam do model o `UniqueValidator` (`arquitetura/validadores-por-serializer.txt`) |
+| 2 | Existe `UNIQUE` no banco? | **Sim, global e sensível à caixa.** A `accounts.0001_initial` cria `"email" varchar(254) NOT NULL UNIQUE` (restrição `accounts_user_email_key`, btree) e o índice `accounts_user_email_b2644a56_like` (`varchar_pattern_ops`). Nenhuma migração posterior altera o campo. Verificado no banco descartável criado pelas migrações (`sql/esquema-accounts_user.txt`). O esquema do banco real já tinha sido conferido como idêntico (seção 20) e não foi consultado agora |
+| 3 | O e-mail é o identificador de login? | **Sim.** `POST /api/v1/auth/login/` (`CustomTokenObtainPairView`, simplejwt) chama o `authenticate()` do Django. O `ModelBackend` busca com `get_by_natural_key`, um `get(email=<valor>)` **exato** (SQL: `WHERE "accounts_user"."email" = '…' LIMIT 21`) |
+| 4 | `USERNAME_FIELD` | `'email'` (`accounts/models.py:49`); `REQUIRED_FIELDS = ['nome']`; `AUTH_USER_MODEL = 'accounts.User'`; `AUTHENTICATION_BACKENDS` é o padrão (`ModelBackend`) |
+| 5 | Como a barbearia é identificada na autenticação? | **Não é informada no login.** Só e-mail e senha. A barbearia vem da linha encontrada (`User.barbershop`, FK única). A cada pedido, o `JWTAuthentication` carrega o usuário pelo claim `user_id`, e o escopo sai de `request.user.barbershop_id` (`config/tenancy.py`, `barbearia_do_pedido`). O claim `barbershop_id` do token (`accounts/serializers.py:336`) não é lido nem pelo backend nem pelo frontend, que usa `/users/me/`. Não existe slug, subdomínio nem cabeçalho de barbearia |
+| 6 | Uma pessoa pode ter contas em barbearias diferentes? | **Só com e-mails diferentes.** Com o mesmo endereço, não. A exceção é acidental: variações de caixa passam, como mostra o AUTH-05 |
+| 7 | Um usuário pode pertencer a mais de uma barbearia? | **Não.** `barbershop` é uma FK única e anulável (`accounts/models.py:40`). Não há tabela de vínculos, e o `tipo_perfil` é por conta. O superusuário é a exceção explícita entre barbearias, por flag, não por vínculo. O onboarding (`BarbershopViewSet.perform_create`) move uma conta sem barbearia para a barbearia que ela cria, uma única vez |
+| 8 | Quais serializers validam unicidade? | `PublicRegistrationSerializer`, `UserCreateSerializer` e `UserSerializer`. Os três têm `UniqueValidator(queryset=User._default_manager, lookup='exact')`, sem filtro de barbearia e com a mensagem "usuário com este e-mail já existe.". No Django Admin, só para a equipe, os formulários `CustomUserCreationForm` e `CustomUserChangeForm` fazem o `validate_unique` do ModelForm. `CustomTokenObtainPairSerializer` e `PasswordResetRequestSerializer` não validam unicidade. O `email` do `BarberSerializer` é só leitura, e o de `Barbershop` é contato, sem unicidade |
+| 9 | Quais endpoints cadastram ou alteram e-mail? | `POST /api/v1/auth/register/`, `POST /api/v1/users/`, `PATCH` e `PUT` `/api/v1/users/{id}/`, e o Django Admin (`/admin/accounts/user/`, equipe). Nenhum outro |
+| 10 | A validação muda conforme o papel? | **O validador é o mesmo para todos.** Muda só se o pedido chega à validação, conforme a tabela 26.3. A ordem do DRF importa: os validadores de campo (`UniqueValidator`) rodam antes do `validate()`, onde ficam os validadores de senha, e o `validate()` não roda se algum campo já falhou. Por isso o pedido com senha fraca devolve só o erro de e-mail quando o e-mail existe, e só o de senha quando ele está livre |
+
+**Normalização atual do e-mail:**
+
+| Variação | Validação (DRF) | Gravação | Login | Recuperação de senha |
+|---|---|---|---|---|
+| Espaços antes ou depois | O `EmailField` corta os espaços (`trim_whitespace`) **antes** do `UniqueValidator`; dá o mesmo 400 do e-mail exato | Sem espaços | Corta os espaços (`CharField`): entra (L06) | Corta os espaços |
+| Maiúsculas na parte local | `lookup='exact'`: **não** encontra o existente | Grava como digitado: **conta duplicada** (R06, C08, P15) | **Diferencia caixa**: senha correta com outra caixa dá 401 (L04) | `email__iexact` + `.first()` ordenado por `nome` (AUTH-04) |
+| Maiúsculas no domínio | Não encontra o existente | No cadastro e na criação, o `create_user` aplica `normalize_email`, que só põe o **domínio** em minúsculas, **depois** da validação: o `INSERT` colide e dá **500** (R07, C09). Na edição não há normalização: grava `…@BETA.TEST`, outra duplicata (P16) | Diferencia caixa: 401 (L05) | Como acima |
+
+### 26.3 Endpoints afetados e quem chega à validação
+
+| Endpoint | Papel | Chega ao `UniqueValidator`? | Oráculo | Limite de taxa atual |
+|---|---|---|---|---|
+| `POST /api/v1/auth/register/` | Anônimo | Sim | **Sim**, inclusive sem efeito colateral (R04 × R05) e por 500 (R07 × R08) | `register`: 10/hora por IP. Só `ScopedRateThrottle`; o `anon` não se aplica |
+| `POST /api/v1/users/` | Admin | Sim | **Sim**, inclusive sem efeito colateral (C04 × C05) e por 500 (C09) | Só o padrão `user`: 1000/hora por conta |
+| `POST /api/v1/users/` | Cliente, barbeiro ou conta sem barbearia | Não: 403 (`IsAdminRole`) antes da validação | Não (C12 a C14) | — |
+| `POST /api/v1/users/` | Superusuário sem barbearia | Sim, e depois falha em "O administrador precisa pertencer a uma barbearia." | Irrelevante: o superusuário lista todos os usuários | — |
+| `PATCH`/`PUT` `/api/v1/users/{próprio}/` | Cliente, barbeiro, admin | Sim | **Sim**, inclusive sem efeito colateral (P05 × P06) | `user`: 1000/hora por conta |
+| `PATCH`/`PUT` `/api/v1/users/{id}/`, usuário da própria barbearia | Admin | Sim | **Sim** (P11, P21) | `user`: 1000/hora |
+| `PATCH` `/api/v1/users/{id}/`, outro usuário da mesma barbearia | Cliente ou barbeiro | Não: 403 antes (SEC-12, mantido) | Não (P14) | — |
+| `PATCH` `/api/v1/users/{id}/`, usuário de outra barbearia | Admin | Não: 404 (queryset) | Não (P13) | — |
+| `PATCH` `/api/v1/users/{próprio}/` | Conta sem barbearia | Não: 404 (`queryset.none()`, `accounts/views.py:214`) | Não (P19), mas tem o cadastro público | — |
+| `POST /api/v1/auth/login/` e `/auth/password/reset/` | Anônimo | Não há validação de unicidade | **Não**: 401 e 204 idênticos (L01 a L03, L07 e L08). A falha é outra, o AUTH-04 | `login` 5/min; `password_reset` 5/hora |
+
+### 26.4 Comportamento reproduzido
+
+**Montagem:**
+
+- A API de laboratório roda o código atual, sem alteração, com `DEBUG=False` e só JSON, sobre o PG 18.3 descartável.
+- Barbearias A (`id=1`) e B (`id=2`).
+- Contas:
+  - de A: admin, barbeiro e dois clientes;
+  - de B: admin, barbeiro, um cliente e um cliente inativo;
+  - uma conta sem barbearia e um superusuário.
+- **58 cenários:** 11 de cadastro público, 16 de criação, 22 de edição e 9 de login e recuperação.
+- Cada cenário parte do seed restaurado, com fotografia do banco antes e depois e o SQL do servidor entre marcadores.
+
+A matriz completa, com o corpo integral de cada resposta, está em `MATRIZ-TEN-03.md`. Os cenários pedidos:
+
+| Cenário pedido | IDs | Status | Resposta | Criou ou alterou | Consulta de existência |
+|---|---|---|---|---|---|
+| E-mail nunca utilizado | R01, C01, P01, P09, P22 | 201 / 200 | O registro criado ou alterado | Sim | Sim, sem filtro de barbearia |
+| E-mail de outro usuário da **mesma** barbearia | C02 (admin), P03 (cliente), P10 (admin) | 400 | `{"email":["usuário com este e-mail já existe."]}` | Não | Sim, sem filtro. No P03, o cliente descobre que outro cliente da barbearia usa o e-mail, algo que ele não conseguiria listar |
+| E-mail de usuário de **outra** barbearia | R03, C03, C06, C07, P04, P07, P08, P11, P21 | 400 | **Idêntica** à da mesma barbearia | Não | **Sim, sem filtro; encontrou a conta de B** |
+| O próprio e-mail na edição | P02, P12 | 200 | O registro, sem mudança | Não | Sim, com `AND NOT (id = <próprio>)` |
+| E-mail de outro usuário na edição | P03, P04, P10, P11, P18, P20, P21 | 400 | `{"email":[…já existe.]}` | Não | Sim |
+| Maiúsculas e minúsculas | R06, R07, R08, C08, C09, P15, P16, L04, L05, L09 | 201 / **500** / 200 / 401 | Parte local: cria duplicata (201/200). Domínio: **500** quando o e-mail existe e 201 quando está livre. Login: 401 | Duplicata em R06, C08, P15 e P16 | Sim, exata: não encontra a variação |
+| Espaços antes ou depois | R09, C10, P17, L06 | 400 / 200 | Iguais ao e-mail exato; o login com espaços entra | Não | Sim, com o valor já sem espaços |
+| Conta inativa | R10, C11, P18, L03 | 400 / 401 | A conta inativa também é revelada pelo 400; no login, 401 igual | Não | Sim |
+
+**Pares que revelam a existência sem criar nem alterar nada:**
+
+| Par | E-mail de B (existe) | E-mail livre |
+|---|---|---|
+| Cadastro público, senha `12345678` (R04 × R05) | 400 `{"email":["usuário com este e-mail já existe."]}` | 400 `{"password":["Esta senha é muito comum.","Esta senha é inteiramente numérica."]}` |
+| Admin A cria cliente, senha `12345678` (C04 × C05) | 400 `{"email":[…]}` | 400 `{"password":[…]}` |
+| Cliente A1 troca o e-mail e envia `nome` vazio (P05 × P06) | 400 `{"email":[…],"nome":["Este campo não pode ser em branco."]}` | 400 `{"nome":[…]}` |
+| Domínio em maiúsculas, no cadastro público (R07 × R08) | **500** HTML "Server Error (500)" | 201 (cria a conta) |
+
+**Tempo:** o 201 leva cerca de 250 ms, por causa do hash da senha, e o 400 entre 13 e 21 ms. Nos pares sem efeito colateral, os tempos ficam na mesma faixa (13 a 19 ms). Nem é preciso medir: o status e o corpo já revelam.
+
+### 26.5 Consultas SQL relevantes
+
+Registradas pelo próprio PostgreSQL descartável (`sql/sql-por-cenario.txt`):
+
+```sql
+-- C03: admin A cria cliente com o e-mail de cliente de B. A consulta não filtra barbearia e encontra a conta de B.
+SELECT … FROM "accounts_user" WHERE "accounts_user"."id" = 1 LIMIT 21                        -- autenticação (JWT)
+SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'cliente.b@beta.test' LIMIT 1
+-- P04: edição do próprio cadastro. Exclui só o próprio id.
+SELECT 1 AS "a" FROM "accounts_user" WHERE ("accounts_user"."email" = 'cliente.b@beta.test' AND NOT ("accounts_user"."id" = 3)) LIMIT 1
+-- R07: domínio em maiúsculas. A validação exata não encontra; o create_user normaliza o domínio e o INSERT colide.
+SELECT 1 AS "a" FROM "accounts_user" WHERE "accounts_user"."email" = 'cliente.b@BETA.TEST' LIMIT 1
+INSERT INTO "accounts_user" (…, "email", …) VALUES (…, 'cliente.b@beta.test', …)
+ERROR:  duplicate key value violates unique constraint "accounts_user_email_key"
+DETAIL:  Key (email)=(cliente.b@beta.test) already exists.
+-- L04: o login é exato (diferencia caixa).
+SELECT … FROM "accounts_user" WHERE "accounts_user"."email" = 'Cliente.A1@alfa.test' LIMIT 21
+-- L07 a L09: a recuperação não diferencia caixa e escolhe UMA conta pela ordem do nome.
+SELECT … FROM "accounts_user" WHERE (UPPER("accounts_user"."email"::text) = UPPER('cliente.b@beta.test') AND "accounts_user"."is_active") ORDER BY "accounts_user"."nome" ASC LIMIT 1
+```
+
+Em todos os cenários com consulta de existência, ela é **global**: nenhuma tem `barbershop_id` no WHERE.
+
+### 26.6 Achados novos relacionados (registrados, não corrigidos)
+
+#### AUTH-04 — Recuperação de senha pode enviar o token de outra conta
+
+> **Atualização de 15/11/2026:** investigado na [seção 28](#28-investigação-e-plano-do-auth-04-e-do-auth-05--15112026). Uma precisão sobre o título: o token vai sempre para o e-mail gravado na própria conta para a qual foi gerado. O que se desvia é a conta recuperada, que passa a ser a do terceiro. **Continua aberto.**
+>
+> **Atualização de 15/11/2026:** ✅ resolvido e verificado no ambiente de testes ([seção 31](#31-correção-do-auth-04-e-do-auth-05-com-e-mail-normalizado-em-ascii--15112026)). A recuperação procura a conta pelo e-mail normalizado, com igualdade exata, e uma variação de caixa não pode mais existir. A `accounts.0006` ainda não foi aplicada no banco real.
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P2 | Backend | `accounts/serializers.py:391` (`filter(email__iexact=…, is_active=True).first()`), combinado com o AUTH-05 | Confirmado (L09) | **Novo** |
+
+- **Descrição.**
+  - Um anônimo cadastra `Cliente.B@beta.test`, uma variação de caixa do e-mail de uma vítima, com um nome que vem antes na ordem alfabética.
+  - A partir daí, toda recuperação pedida com `cliente.b@beta.test` escolhe a conta do terceiro.
+  - Na sondagem, o e-mail saiu para `Cliente.B@beta.test` com o `uid` da conta 18 (a do terceiro), e não da 7 (a da vítima).
+- **Impacto.**
+  - A vítima perde a recuperação de senha enquanto a variação existir.
+  - Na prática, a mensagem cai na caixa postal da vítima, porque os provedores não diferenciam caixa na parte local. Mas o token é da conta do terceiro.
+  - Não há tomada da conta da vítima.
+- **Correção possível, com autorização:** a mesma do AUTH-05. Com unicidade sem diferenciar caixa, o `.first()` deixa de ser ambíguo.
+
+#### AUTH-05 — E-mail sem normalização de caixa coerente
+
+> **Atualização de 15/11/2026:** investigado na [seção 28](#28-investigação-e-plano-do-auth-04-e-do-auth-05--15112026). Efeitos novos: o login logo após o cadastro falha quando o domínio foi digitado com maiúscula, e há 500 em 15 de 15 pedidos simultâneos com o mesmo e-mail. O plano prevê migração. **Continua aberto.**
+>
+> **Atualização de 15/11/2026:** ✅ resolvido e verificado no ambiente de testes ([seção 31](#31-correção-do-auth-04-e-do-auth-05-com-e-mail-normalizado-em-ascii--15112026)). Há uma regra única em todos os caminhos, garantida pelo banco com `CHECK` e `UNIQUE (LOWER(email))`, e sem 500 em pedidos simultâneos. A `accounts.0006` ainda não foi aplicada no banco real.
+
+| Severidade | Camada | Local | Confiança | Estado |
+|---|---|---|---|---|
+| P3 | Backend | `UniqueValidator` com `lookup='exact'`; `accounts/managers.py:43` (`normalize_email` só no `create_user`, depois da validação); `UserSerializer.update` sem normalização; banco `UNIQUE (email)` sensível à caixa; login exato | Confirmado | **Novo** |
+
+- **Descrição.**
+  - A validação, o banco e o login comparam o e-mail exatamente como foi digitado.
+  - O `create_user` põe só o domínio em minúsculas, e só depois de validar.
+  - A recuperação compara sem diferenciar caixa.
+- **Efeitos medidos.**
+  - **Contas duplicadas** do mesmo endereço: R06, C08, P15 e P16.
+  - **500** com página HTML no cadastro e na criação quando o domínio vem em maiúsculas e o e-mail existe (R07, C09). É um segundo oráculo, que nenhuma troca de mensagem fecha.
+  - **Login recusado** com a senha certa e outra caixa (L04, L05). O frontend corta espaços, mas não converte para minúsculas.
+- **Correção possível, com autorização:**
+  - normalizar (cortar espaços e converter para minúsculas) em todos os caminhos de escrita e no login;
+  - usar validação sem diferenciar caixa;
+  - criar um índice único funcional `lower(email)`, que exige migração (26.9).
+
+### 26.7 Alternativas avaliadas
+
+#### Alternativa A — E-mail globalmente único (a regra atual)
+
+- **Modelo, banco e autenticação:** já é a regra atual, e compatível com tudo. O `ModelBackend` exige `USERNAME_FIELD` único: o check `auth.E003`, em `django/contrib/auth/checks.py`, é **erro** quando só o `ModelBackend` está configurado. Login, recuperação e JWT continuam inequívocos.
+- **Banco:** a `UNIQUE (email)` já existe. Falta a unicidade sem diferenciar caixa (AUTH-05).
+- **Cadastro e edição:** nenhum fluxo muda.
+- **Privacidade: a regra, sozinha, é o oráculo.** A simulação de laboratório (`simulacoes/simulacao-alternativa-c.txt`) mediu, em cada variante, 6 pares de pedidos (e-mail de B × e-mail livre):
+
+  | Variante | Pares que ainda distinguem | Por quê |
+  |---|---|---|
+  | Atual | 6 de 6 | Mensagens e campos diferentes |
+  | C1: **só a mensagem genérica** ("Não foi possível usar este e-mail.") | **6 de 6** | O campo `email` aparece no erro só quando o e-mail existe, e o sucesso (201/200) só acontece quando está livre |
+  | C2: **status e corpo padronizados em todo 400** | **3 de 6** | Fecha os pares sem efeito colateral (senha fraca, nome vazio). Não fecha **400 × 201/200** quando o pedido é válido, nem o **500 × 201** do domínio em maiúsculas |
+
+  Trocar a mensagem **não resolve**. Padronizar status e corpo **não resolve**: enquanto a operação puder dar certo para um e-mail livre e der errado para um ocupado, o próprio sucesso revela a existência.
+- **Contas existentes:** nenhum impacto. Com a normalização, os e-mails com maiúsculas precisam ser convertidos, depois de conferir colisões no banco real (consulta em 26.9).
+- **Frontend:** nenhum impacto.
+
+#### Alternativa B — E-mail único por barbearia
+
+- **Modelo:** trocar `unique=True` por `UniqueConstraint(Lower('email'), 'barbershop', nulls_distinct=False)`.
+  - Sem `unique=True` no `USERNAME_FIELD`, o Django acusa o **`auth.E003` (erro)** com o `ModelBackend` padrão.
+  - Seria preciso um backend próprio, e aí o check vira o aviso `auth.W004`.
+- **Autenticação: deixa de ser inequívoca.** A simulação de laboratório (`simulacoes/simulacao-alternativa-b.json`) trocou a restrição dentro de uma transação desfeita e criou duas contas com o mesmo e-mail, em A e em B.
+  - O `POST /auth/login/` com a senha da conta de A respondeu **500** (`MultipleObjectsReturned: get() returned more than one User -- it returned 2!`).
+  - Para funcionar, o login precisaria de um identificador de barbearia, **que hoje não existe**: `Barbershop` não tem slug, e não há subdomínio nem rota por barbearia. Isso exige um campo novo, único e preenchido para as barbearias existentes, rotas ou subdomínios no frontend, e cuidado com `ALLOWED_HOSTS`, CORS e o caminho do cookie de refresh.
+  - A outra opção, "e-mail e senha, depois escolher a barbearia", testa a senha contra várias contas: revela em quais a combinação vale e multiplica o custo de hash.
+- **Recuperação de senha:** fica ambígua. Na simulação, o token foi para uma só das duas contas, e a outra ficou sem recuperação. O pedido e o link teriam de carregar a barbearia.
+- **Tokens:** o JWT continua inequívoco depois do login, porque usa o `user_id`.
+- **Cadastro público e contas sem barbearia:**
+  - Uma `UNIQUE` comum trata `NULL` como distinto. Na simulação, aceitou duas contas sem barbearia com o mesmo e-mail.
+  - O `NULLS NOT DISTINCT` (PG 15+, `nulls_distinct=False` no Django 5.0) resolve isso, mas mantém o oráculo no cadastro público entre contas sem barbearia.
+  - Depois do onboarding, o e-mail do dono sai desse espaço, e um novo cadastro público com o mesmo endereço passa. O login volta a ficar ambíguo, entre a conta sem barbearia e a da barbearia.
+- **Contas existentes:** os dados atuais já são únicos no global, portanto também por barbearia. A migração passaria nos dados.
+- **Oráculo:** só **parcialmente fechado**.
+  - Fecha entre barbearias no `POST /users/` e no `PATCH`: o admin de A cria uma conta própria para a pessoa.
+  - Continua dentro da barbearia (o cliente que troca o próprio e-mail descobre os e-mails dos outros clientes) e no cadastro público.
+- **Produto:** uma pessoa que é cliente de duas barbearias passa a ter duas contas e duas senhas. O e-mail deixa de identificar a pessoa.
+- **Frontend:** login, recuperação, cadastro, rotas e `AuthContext`.
+- **Risco de regressão:** muito alto.
+- **Conclusão:** como o login não fica inequívoco sem um redesenho, esta alternativa **não é recomendada**.
+
+#### Alternativa C — Manter a unicidade global e mudar o fluxo
+
+Três níveis diferentes:
+
+1. **Esconder a mensagem (C1):** não resolve. É a simulação acima.
+2. **Padronizar status e corpo (C2):** reduz o oráculo, mas não o impede. Também é a simulação acima.
+3. **Impedir a enumeração de fato (C3):** a resposta precisa ser a mesma para e-mail livre e ocupado, **e** o sucesso não pode ser visível para quem pediu. Isso só se consegue levando a confirmação para o dono da caixa postal:
+   - **Cadastro público:** sempre 202 "Se o e-mail puder ser usado, enviamos um link para concluir o cadastro". E-mail livre: a conta nasce inativa e recebe um link de confirmação. E-mail ocupado: o dono recebe um aviso ("alguém tentou criar uma conta com seu e-mail; se foi você, recupere a senha"). **O frontend perde o login automático depois do cadastro** e ganha uma página de confirmação.
+   - **Troca do próprio e-mail:** a troca fica pendente. A resposta é sempre "enviamos um link para o novo endereço", e só o link efetiva a troca. Se o endereço estiver ocupado, segue um aviso ou nada.
+   - **Admin cria cliente ou barbeiro:** vira **convite**. A resposta é sempre 202 "convite enviado".
+     - E-mail livre: o convidado define a senha e entra na barbearia.
+     - E-mail ocupado: o convidado é avisado de que já tem conta. Como a FK é única, ele não entra na barbearia com aquele e-mail.
+     - O admin não distingue "não aceitou" de "ocupado", e a lista de convites mostra os dois do mesmo jeito.
+     - **Impacto de produto:** o admin deixa de definir a senha. Um cliente novo só pode ser agendado depois de aceitar o convite. Criar a conta pendente na hora, visível ao admin, recriaria o oráculo.
+   - **Admin edita o e-mail de um cliente:** fica pendente até a confirmação pelo novo endereço.
+   - **Infraestrutura:** precisa de envio de e-mail real. As settings não configuram `EMAIL_HOST` nem `EMAIL_BACKEND` próprio, então vale o padrão SMTP local. A recuperação de senha atual usa `fail_silently=True`. **A entrega de e-mail em produção não foi verificada.**
+   - **Migração:** é opcional. Uma variante usa tokens assinados (`django.core.signing`) e `is_active=False` até a confirmação. Para listar convites, é preciso uma tabela nova.
+   - **Testes:** muda o `accounts/tests.py::test_user_registration_duplicate_email`, que espera 400 com `email`, e todos os que esperam 201 com login logo em seguida, além dos testes de frontend.
+   - **Esforço** médio a alto, com impacto grande na experiência de uso.
+
+#### Alternativa D (outra) — Aceitar o risco residual com mitigação
+
+- Manter a regra A. Corrigir AUTH-04 e AUTH-05.
+- Criar um limite específico para as escritas que trocam ou criam e-mail. Hoje o `PATCH` e o `POST` de `/users/` só têm o limite geral de 1000/hora por conta.
+- Registrar em log as recusas repetidas e documentar a aceitação do risco. A mensagem genérica é opcional e cosmética.
+- **Não resolve o TEN-03:** só reduz a taxa de sondagem, e o cadastro público continua permitindo 10/hora por IP.
+- Esforço e risco baixos. Nenhum impacto no frontend.
+
+#### Alternativa E (outra) — Identidade global com vínculos por barbearia
+
+- Uma conta por e-mail, global, e N barbearias por um vínculo `(user, barbershop, papel, ativo)`.
+- O admin "adiciona" um cliente por e-mail com um convite. O vínculo nasce na aceitação, e a resposta é igual para conta existente ou nova.
+- **Fecha o oráculo** e permite que uma pessoa seja cliente de várias barbearias, um ganho de produto.
+- **Exige refatorar todo o escopo**: `user.barbershop_id` e `tipo_perfil` aparecem em `config/tenancy.py`, nas permissões, nos serializers, nas views e nas regras do BUS-01. Exige também escolher a barbearia ativa por pedido e um seletor no frontend, além de migrar os dados da FK para os vínculos.
+- É uma mudança de arquitetura, para depois da apresentação.
+
+#### Comparação
+
+| | A, só a regra atual | A + D (normalização e limites) | B | C3 | E |
+|---|---|---|---|---|---|
+| Fecha o oráculo entre barbearias | Não | **Não** (só reduz a taxa) | Parcialmente | **Sim** | **Sim** |
+| Login inequívoco | Sim | Sim | **Não** sem identificador de barbearia (500 na simulação) | Sim | Sim, com a barbearia ativa escolhida |
+| Recuperação de senha | AUTH-04 aberto | Corrigida | Ambígua sem barbearia | Corrigida, se feita junto com A + D | Corrigida |
+| Migração | Nenhuma | Índice funcional e dados | Restrição, slug com dados, backend | Opcional (tabela de convites) | Grande (vínculos e dados) |
+| Contas existentes | Sem efeito | Conversão para minúsculas, se não houver colisão | Compatíveis | Sem efeito | Migradas para vínculos |
+| Frontend | Nenhum | Nenhum | Login, recuperação, cadastro, rotas | Cadastro, conta, clientes, barbeiros, páginas novas | Amplo |
+| Esforço / risco de regressão | — | Baixo / baixo | Alto / muito alto | Médio-alto / médio | Muito alto / muito alto |
+| Viável antes de 17/11 | — | Sim, com autorização para a migração | Não | Não recomendado | Não |
+
+### 26.8 Recomendação técnica (a decisão é do dono)
+
+1. **Manter o e-mail único em toda a plataforma (A).** É a única regra coerente com a autenticação atual sem redesenhá-la: login só por e-mail, FK única de barbearia e `ModelBackend`. A alternativa B quebra a unicidade do login, como a simulação demonstrou, e fecha o oráculo só em parte.
+2. **Corrigir o AUTH-04 e o AUTH-05** quando autorizado. Esforço e risco baixos, sem impacto no frontend, e pode ser feito antes de 17/11. Fecha o oráculo por 500, as duplicatas e o desvio da recuperação de senha. **Não fecha o TEN-03.** Exige uma migração e, no banco real, backup e a checagem de colisões antes.
+3. **Para o próprio TEN-03, duas opções:**
+   - **D, agora:** aceitar o risco residual P3, documentado e com limite específico. O que se revela é só a existência do e-mail, sem dados.
+   - **C3, depois da apresentação:** a correção definitiva, com confirmação por e-mail e convites. Depende de entrega de e-mail real e muda o cadastro e a criação de clientes.
+   - Recomendação técnica: **D antes de 17/11 e C3 planejada para depois**. A E só faz sentido se o produto quiser clientes em várias barbearias.
+4. **Não recomendado:** trocar só a mensagem e declarar o TEN-03 resolvido. A simulação mostrou que o oráculo continua.
+
+**Decisão de produto pendente:**
+
+- a regra de unicidade (A, B ou E);
+- o tratamento do TEN-03 (D ou C3);
+- se o AUTH-04 e o AUTH-05 entram antes da apresentação.
+
+### 26.9 Migrações possíveis (ilustrativas, não criadas nem executadas)
+
+**A + D (AUTH-05).** O `unique=True` continua, porque o `auth.E003` só aceita unicidade no próprio campo ou numa `UniqueConstraint(fields=('email',))`, e uma restrição funcional não conta. Acrescenta-se:
+
+```python
+# accounts/migrations/0006_email_unico_sem_diferenciar_caixa.py — ILUSTRATIVO, NÃO CRIADO
+from django.db import migrations, models
+from django.db.models.functions import Lower
+
+operations = [
+    migrations.RunPython(converter_emails_para_minusculas_se_nao_houver_colisao, migrations.RunPython.noop),
+    migrations.AddConstraint(
+        model_name='user',
+        constraint=models.UniqueConstraint(Lower('email'), name='accounts_user_email_sem_caixa_unico'),
+    ),
+]
+```
+
+Antes, no banco real e só com autorização, rodar estas consultas, que são só de leitura:
+
+```sql
+SELECT lower(email), count(*) FROM accounts_user GROUP BY 1 HAVING count(*) > 1;  -- colisões: precisa dar zero linhas
+SELECT count(*) FROM accounts_user WHERE email <> lower(btrim(email));            -- quantos seriam convertidos
+```
+
+O índice sobre `lower(email)` depende da ordenação do banco. Com o aviso do DB-02 (collation 2.43 × 2.44), convém um `REINDEX` numa etapa autorizada.
+
+**B:**
+
+- `AlterField` do `email`, sem `unique` e com `db_index`;
+- `AddConstraint(UniqueConstraint(Lower('email'), 'barbershop', nulls_distinct=False, …))`;
+- `AddField` do `Barbershop.slug`, mais um `RunPython` que preenche o slug e um `AlterField` para não nulo;
+- um backend de autenticação próprio em `AUTHENTICATION_BACKENDS`.
+
+**C3:** nenhuma, com tokens assinados e `is_active=False` até a confirmação. Para listar convites e trocas pendentes: `CreateModel` de convite (barbearia, e-mail, papel, criado por, hash do token, expiração, aceito em) e de troca de e-mail pendente.
+
+**E:** `CreateModel` do vínculo `(user, barbershop, tipo_perfil, ativo)` com unicidade `(user, barbershop)`, mais um `RunPython` que copia `User.barbershop` e `tipo_perfil`. Os campos antigos saem só depois de migrar o código.
+
+### 26.10 Testes e verificações realizados
+
+| Verificação | Resultado |
+|---|---|
+| Leitura do código: model, manager, serializers, views, rotas, permissões, settings de autenticação, Django Admin, `config/tenancy.py`, simplejwt e `ModelBackend`, frontend (`RegisterPage`, `LoginPage`, `AccountPage`, `AdminClientsPage`, `AdminBarbersPage`, `PasswordResetRequestPage`, `AuthContext`, `api/endpoints.ts`) | As respostas de 26.2 |
+| Validadores gerados pelo DRF por serializer (`arquitetura/validadores-por-serializer.txt`) | Três serializers com `UniqueValidator` global e `exact` |
+| Esquema criado pelas migrações no PG 18.3 descartável e `sqlmigrate accounts 0001` (`sql/esquema-accounts_user.txt`) | `UNIQUE (email)` global; nenhuma migração posterior mexe no campo |
+| Sondagem HTTP: 58 cenários com o SQL do servidor (`MATRIZ-TEN-03.md`, `api/`, `sql/`) | A matriz de 26.4; consulta de existência sempre global |
+| Simulação da Alternativa C: 3 variantes × 6 pares × 4 e-mails, numa transação desfeita | Mensagem genérica: 6 de 6 pares distinguem. Status e corpo padronizados: 3 de 6, mais o 500 |
+| Simulação da Alternativa B: restrição trocada numa transação desfeita, com rollback conferido nas restrições do banco | Login 500 (`MultipleObjectsReturned`); recuperação ambígua; duas contas sem barbearia aceitas sem `NULLS NOT DISTINCT` |
+| Suíte completa, sem alteração: SQLite e PG 18.3 descartável | **452 testes, OK** nos dois (9 pulados no SQLite) |
+| `manage.py check` e `makemigrations --check --dry-run` | Sem problemas; "No changes detected" |
+| Hash SHA-256 dos arquivos de código do projeto antes e depois da investigação | Idênticos (nenhum arquivo de código alterado) |
+
+**Incidente de laboratório, sem efeito fora dele:** a primeira versão do script da simulação B tinha o `raise` de desfazer fora do bloco transacional. Numa das execuções, a troca de restrição ficou gravada no banco de laboratório `t3_lab`. Esse banco foi apagado e recriado, o script foi corrigido, e a execução registrada termina com `accounts_user_email_key` restaurada e zero usuários. O banco da sondagem, o banco real e o Docker não foram afetados.
+
+### 26.11 Limitações
+
+1. **Banco real não consultado,** por instrução. A existência de e-mails com maiúsculas ou de colisões por caixa no `barbershop_db` não foi verificada. As consultas de 26.9 ficam para uma etapa autorizada.
+2. **Entrega de e-mail em produção não verificada.** É pré-requisito da C3.
+3. **Os limites de taxa foram relaxados na instância de laboratório** para a matriz caber. Os limites reais (26.3) foram lidos do código, não medidos.
+4. **O Django Admin não foi sondado.** Ele é restrito à equipe, que já enxerga todos os usuários.
+5. **SEC-12 mantido.** Os 403 dentro da barbearia (P14) seguem como registrado na seção 25.
+
+### 26.12 Situação e contagem
+
+**TEN-03: continua aberto (P3).** A causa foi confirmada, o comportamento foi reproduzido e as alternativas foram avaliadas. Aguarda a decisão de produto e nada foi corrigido.
+
+| | Após o PER-13 | Após a investigação do TEN-03 |
+|---|---|---|
+| P0 | 0 | 0 |
+| P1 | 3 | 3 (BUS-06 parcial, PROD-01, AUTH-01) |
+| P2 | 28 | 29 (+AUTH-04) |
+| P3 | 38 | 39 (+AUTH-05; o TEN-03 continua) |
+| **Abertos** | 63 dos 70 originais + 6 novos = 69 | **63 dos 70 originais + 8 novos = 71** |
+
+**Próximo passo:** o dono decide a regra de unicidade e o tratamento do TEN-03. TEN-04 e SEC-12 não foram iniciados.
+
+---
+
+## 27. Mitigação D do TEN-03: limite de tentativas — 15/11/2026
+
+**Decisões do dono (15/11/2026):**
+
+- manter o e-mail único em toda a plataforma (A);
+- adotar um limite específico de tentativas como mitigação temporária do TEN-03 (D);
+- planejar a confirmação por e-mail e os convites (C3) para depois da apresentação;
+- tratar AUTH-04 e AUTH-05 antes da apresentação, numa etapa separada e prioritária;
+- **não** marcar o TEN-03 como resolvido.
+
+**Escopo autorizado:** só a mitigação D. AUTH-04, AUTH-05, TEN-04 e SEC-12 não foram tocados.
+
+**Restrições cumpridas:**
+
+- **Código:**
+  - **Alterado:** `accounts/views.py` e `config/settings.py`.
+  - **Novo:** o módulo `accounts/throttles.py`.
+  - **Intactos:** serializers, models, managers, permissões, a regra de unicidade, o login, a recuperação de senha, o `.env` e o frontend.
+- **Testes:**
+  - um arquivo novo;
+  - a taxa nova acrescentada às duas settings de teste;
+  - uma linha acrescentada a dois testes antigos de throttle (27.6).
+- **Migrações:** nenhuma. A solução usa o cache, como os limites que já existiam. O `makemigrations --check` responde "No changes detected".
+- **Etapas anteriores preservadas:** a contenção (só `JSONRenderer`), o TEN-01, o TEN-02, o SEC-10 e o PER-13, com os testes de todos eles passando.
+- **Bancos:** o banco real e o PostgreSQL do Docker não foram usados. Os testes com escrita rodaram em SQLite em memória e num **PostgreSQL 18.3 descartável** (`127.0.0.1:55432`), já apagado.
+- **Repositório:** sem commit, push ou merge, e sem comandos destrutivos. As alterações locais, os documentos e as evidências anteriores foram preservados.
+
+Evidências em [`docs/auditoria/evidencias-2026-11-15/ten-03-mitigacao-d/`](auditoria/evidencias-2026-11-15/ten-03-mitigacao-d/README.md).
+
+### 27.1 Resumo
+
+| Item | Situação |
+|---|---|
+| **O que foi feito** | Limites próprios, por hora e por dia, nos três fluxos em que a investigação demonstrou o oráculo: cadastro público, criação de usuário e troca de e-mail. Esgotado o limite, a resposta é **429 antes da validação**: igual para e-mail existente e livre, sem consultar a unicidade e sem criar nem alterar nada |
+| **Chave do limite** | Sempre **quem pede**: a conta autenticada ou, para o anônimo, a origem. **Nunca o e-mail nem a conta-alvo.** Um terceiro não consegue gastar a cota da vítima |
+| **Uso legítimo** | A troca de e-mail só conta quando o e-mail enviado difere do atual. Editar o nome, reenviar o próprio e-mail, como fazem "Minha conta" e "Clientes", ou reativar uma conta não contam |
+| **Login e recuperação** | Sem alteração: mesmos limites, mesmas respostas |
+| **Efeito medido** | Por conta, a criação caiu de até 1000 para 30 tentativas por hora e 100 por dia. A troca de e-mail caiu de até 1000 para 10 por hora e 30 por dia. No cadastro público, as 10 por hora que já existiam ganharam um teto de 20 por dia por origem |
+| **TEN-03** | **Continua aberto (P3), agora com mitigação parcial.** Abaixo do limite, a resposta ainda revela a existência do e-mail |
+| **Achado novo** | **SEC-13 (P2):** sem `NUM_PROXIES`, os limites por origem, os novos e os que já existiam (inclusive o de login), aceitam o `X-Forwarded-For` enviado pelo cliente. Isso permite contorná-los e gastar a cota do IP de outra pessoa. Registrado, não corrigido: depende da infraestrutura (27.8) |
+| **Testes** | 28 novos. Suíte de 452 para **480 testes, OK** no SQLite, no PG 18.3 e no PG com `DEBUG=False`. Os 132 de isolamento e da mitigação passam com `DEBUG=True` |
+
+### 27.2 Fluxos afetados e limites, antes e depois
+
+Os fluxos são os mapeados na seção 26.3. Eles **não** usam o mesmo mecanismo:
+
+| Fluxo | Quem chega à validação | Limite antes | Limite agora |
+|---|---|---|---|
+| `POST /api/v1/auth/register/` | Anônimo. A view define `throttle_classes` próprio, então os limites padrão `anon` e `user` **não** se aplicam | `register` (`ScopedRateThrottle`): 10/hora por origem | `register`: 10/hora (**sem mudança**) + **`register_day`: 20/dia** por origem |
+| `POST /api/v1/users/` | Admin. A permissão (`IsAdminRole`) vem antes do limite: cliente, barbeiro e conta sem barbearia continuam recebendo 403 e não gastam cota | Só o padrão `user`: 1000/hora por conta | `user` + **`user_create`: 30/hora** + **`user_create_day`: 100/dia**, por conta |
+| `PATCH`/`PUT /api/v1/users/{id}/` com outro e-mail | Qualquer papel na própria conta; o admin nas contas da sua barbearia | Só o padrão `user`: 1000/hora por conta | `user` + **`email_change`: 10/hora** + **`email_change_day`: 30/dia**, por conta de quem pede, e só quando o e-mail muda |
+| `POST /auth/login/`, `/auth/password/reset/`, `/auth/password/reset/confirm/`, `/auth/refresh/`, `/auth/password/change/`, `/auth/logout/` | Não consultam a unicidade (26.3) | `login` 5/min, `password_reset` 5/hora, `password_reset_confirm` 10/hora, `refresh` 10/min, `password_change` 5/hora, `logout` 30/min | **Sem mudança** (verificado por teste e na sondagem) |
+| Django Admin (`/admin/`) | Só a equipe, que já vê todos os usuários | — | Sem mudança |
+
+### 27.3 Estratégia
+
+1. **Usa o mecanismo que o projeto já tinha:** os throttles do DRF (`SimpleRateThrottle`), com as taxas em `REST_FRAMEWORK['DEFAULT_THROTTLE_RATES']` e o mesmo cache dos limites atuais. Não entrou nenhuma dependência nova.
+2. **Classes próprias** (`accounts/throttles.py`). `LimitePorSolicitante` é um `ScopedRateThrottle` com o escopo fixo na classe, o que permite ter um limite por hora e outro por dia na mesma view. A chave é `throttle_<escopo>_<id da conta>` ou `throttle_<escopo>_<origem>`, nunca o e-mail.
+3. **Cadastro público:** `RegistrationView.throttle_classes = [ScopedRateThrottle, CadastroPublicoPorDiaThrottle]` (`accounts/views.py:133`).
+4. **Criação:** `UserViewSet.get_throttles()` (`accounts/views.py:217`) acrescenta os dois limites só na ação `create`. O DRF os checa depois da permissão e antes da validação.
+5. **Troca de e-mail:** o limite precisa saber se o e-mail muda, e isso exige a conta. Por isso fica em `UserViewSet.update()` (`accounts/views.py:227`), igual ao `UpdateModelMixin.update`. A ordem é:
+   1. `get_object()`, que mantém o escopo e as respostas atuais: 404 fora do alcance e 403 do SEC-12, sem gastar cota;
+   2. `tenta_trocar_email()`, que compara o e-mail enviado, sem os espaços das pontas como faz o `EmailField`, com o atual daquela conta;
+   3. se muda, `_aplicar_limites()`, com a mesma regra do `check_throttles` do DRF;
+   4. só então a validação.
+
+   A comparação usa só um e-mail que quem pede já pode ver: o próprio, ou o de uma conta da barbearia do admin. Não cria um oráculo novo.
+6. **Pedidos recusados continuam contando no outro limite.** É o comportamento padrão do DRF: quando o limite por hora recusa, o diário ainda registra a tentativa. Insistir depois do bloqueio leva ao limite diário, sempre na cota de quem insiste. Na sondagem, o `Retry-After` do cadastro passou de 3600 para 86400 depois da 20ª tentativa.
+7. **A mensagem genérica não é a proteção.** O 429 já é igual para todos os e-mails, e o que protege é a validação não rodar. Abaixo do limite, as respostas continuam as de antes.
+
+### 27.4 Limites adotados e justificativa
+
+| Escopo | Taxa | Justificativa |
+|---|---|---|
+| `register` | 10/hora (já existia) | Mantido |
+| `register_day` | 20/dia por origem | O cadastro público é para donos de barbearia: os clientes são criados pelo admin. O uso legítimo é de uma ou duas contas por origem e por dia, então 20 não afeta nem redes compartilhadas (NAT). A sondagem contínua por origem cai de 240 para 20 por dia |
+| `user_create` | 30/hora por conta | Comporta cadastrar clientes e barbeiros no balcão e na demonstração. Cai de até 1000 para 30 tentativas por hora |
+| `user_create_day` | 100/dia por conta | Limita a sondagem contínua a 100 por dia e por admin. **Pode limitar a importação de uma carteira grande de clientes no primeiro dia.** Nesse caso, a taxa pode ser ajustada em `settings.py`, sem mexer no código |
+| `email_change` | 10/hora por conta | Troca de e-mail é rara (correção de digitação), e reenviar o mesmo e-mail não conta. Cai de até 1000 para 10 por hora |
+| `email_change_day` | 30/dia por conta | Sondagem contínua de no máximo 30 por dia e por conta. O admin que corrige e-mails de clientes usa a própria cota, não a do cliente |
+
+Os valores são uma escolha técnica. Se o dono quiser outros, mudam só em `config/settings.py` e, para manter os testes coerentes, nas settings de teste.
+
+### 27.5 Arquivos alterados nesta etapa
+
+| Arquivo | Alteração |
+|---|---|
+| `accounts/throttles.py` (novo) | `LimitePorSolicitante`, as cinco classes de limite e `tenta_trocar_email()` |
+| `accounts/views.py` | `RegistrationView.throttle_classes`; `UserViewSet.get_throttles()`, `update()` e `_aplicar_limites()` |
+| `config/settings.py` | Cinco taxas novas em `DEFAULT_THROTTLE_RATES`. As existentes não mudaram |
+| `config/test_settings.py`, `config/test_postgres_settings.py` | As mesmas cinco taxas. Essas settings substituem o dicionário de taxas, e sem elas o DRF acusa `ImproperlyConfigured` |
+| `accounts/test_ten03_limites.py` (novo) | 28 testes |
+| `accounts/tests.py`, `accounts/test_correcoes.py` | Nos `ThrottlingTests`, que trocam as taxas por um dicionário próprio, entrou só `'register_day': '1000/day'`, para o bloqueio continuar vindo do `register`, que é o que esses testes verificam. As asserções não mudaram |
+
+O diff só desta etapa está em `diff/diff-somente-mitigacao-d.patch`.
+
+### 27.6 Testes executados
+
+**Os 28 testes novos** (`accounts/test_ten03_limites.py`):
+
+| Grupo | O que verifica |
+|---|---|
+| Configuração (7) | As taxas novas em produção e nos testes. As que já existiam não mudaram. Login, recuperação, refresh, troca de senha e logout com as mesmas classes e escopos. Cadastro com os dois limites. Os limites da criação só na ação `create`. A chave é de quem pede e nunca o e-mail. O que conta como troca de e-mail (11 casos) |
+| Cadastro público (4) | Antes do limite, a validação responde (400). Depois, 429 para e-mail existente, livre e com espaços. Limite diário. Origens independentes: com uma origem esgotada, outra cadastra (201) e entra (200). A janela expira |
+| Criação de usuário (5) | 30 validações, depois 429. Limite diário. Cota por admin: outro admin da mesma barbearia e um de outra criam (201) e o criado entra. Cliente e conta sem barbearia continuam com 403 em 35 tentativas, sem 429. A janela expira |
+| Troca de e-mail (8) | 10 validações, depois 429, e o e-mail não muda. PUT e PATCH dividem a cota. Limite diário. 25 edições sem troca não contam, e depois do bloqueio continuam funcionando. O admin gasta a própria cota, não a do cliente editado nem a de outro admin. **Um terceiro que sonda o e-mail da vítima não bloqueia a vítima**, que troca o e-mail (200), entra (200) e pede recuperação (204). Fora do alcance (404) e SEC-12 (403) mantêm as respostas e não gastam cota. A janela expira |
+| Resposta do limite (1) | Com `DEBUG` True e False, nos três fluxos: 429 idêntico para e-mail existente, livre, da mesma barbearia e inválido. Só a chave `detail`, JSON, `Retry-After: 3600`. Não aparece o e-mail, a barbearia nem HTML. **A unicidade não é consultada** (consultas capturadas) |
+| Login e recuperação (3) | Depois de esgotar os três limites novos: o login entra (200), o login errado dá 401 igual para existente e inexistente, a recuperação dá 204 igual. O limite do login segue 5 por minuto (5×401 e depois 429). A troca de senha não é afetada |
+
+**Antes e depois:**
+
+| Execução | Código anterior | Código corrigido |
+|---|---|---|
+| Testes novos | Falham na importação: `accounts.throttles` não existia (`testes/testes-novos-codigo-anterior.txt`) | **28 OK** |
+| Suíte completa, SQLite | 452 OK (9 pulados) | **480 OK** (9 pulados) |
+| Suíte completa, PG 18.3 descartável | 452 OK | **480 OK** |
+| Suíte completa, PG 18.3, `DEBUG=False` também na importação | — | **480 OK** |
+| Novos + isolamento, permissões, PER-13, SEC-10, TEN-02 e renderizadores, `--debug-mode` (`DEBUG=True`), PG 18.3 | — | **132 OK** |
+| `check`; `makemigrations --check --dry-run` | — | Sem problemas; "No changes detected" |
+| `check --deploy` (`DEBUG=False`) | — | Só o `security.W021` (HSTS preload), que já existia |
+| Frontend: `npm test`, `tsc -b`, ESLint, build | — | 45 testes OK; sem erros de tipo ou de lint; build OK. Nenhum arquivo do frontend foi alterado, e ele já trata o 429 ("Muitas tentativas em pouco tempo…") nas telas afetadas: cadastro, "Minha conta", Clientes e Barbeiros |
+
+**Sondagem HTTP com as taxas reais** (`api/resumo-antes-e-depois.txt`): quatro instâncias (corrigido e anterior, cada uma com `DEBUG` True e False), 98 pedidos cada, com o SQL do servidor:
+
+| Etapa | Anterior (`DEBUG` True e False) | Corrigido (`DEBUG` True e False) |
+|---|---|---|
+| Cadastro público, 25 tentativas | 10×400, 15×429; `Retry-After` até 3600 | 10×400, 15×429; `Retry-After` 3600 e, depois da 20ª, **86400** |
+| Criação pelo admin A, 40 tentativas | **40×400** (a unicidade foi consultada 40 vezes) | **30×400, 10×429** (0 consultas nos 429) |
+| Criação por outro admin | 201 | 201 |
+| Troca do próprio e-mail, 15 tentativas | **15×400** | **10×400, 5×429** (0 consultas nos 429) |
+| Edição sem troca, depois do bloqueio | 2×200 | 2×200 |
+| Vítima: troca o e-mail, entra, pede recuperação | 200, 200, 204 | 200, 200, 204 |
+| Login errado | 4×401, depois 429 (5/min) | Igual |
+| Recuperação, existente e livre | 204 e 204 | Igual |
+
+Em todos os 429, o corpo é o mesmo para e-mail existente e livre: `{"detail":"Pedido foi limitado. Expected available in N seconds."}`, com `Content-Type: application/json`. Nenhum consultou a unicidade.
+
+### 27.7 Por que o TEN-03 continua aberto
+
+1. **Abaixo do limite, o oráculo é o mesmo.** As 10 primeiras trocas, as 30 primeiras criações e as 10 primeiras tentativas de cadastro por hora respondem exatamente como na seção 26, inclusive pelas variantes sem efeito colateral e pelo 500 do AUTH-05.
+2. **Mais contas multiplicam a cota.** Cada conta nova tem a própria cota de troca de e-mail e, depois do onboarding, de criação. As contas novas só são limitadas pelo cadastro por origem, que pode ser contornado (SEC-13).
+3. O limite **reduz a velocidade** de uma enumeração automatizada. Não impede de confirmar um e-mail específico, que pede uma única tentativa.
+
+### 27.8 Limitações e risco residual
+
+1. **SEC-13 (P2, novo, registrado e não corrigido): os limites por origem aceitam o `X-Forwarded-For` enviado pelo cliente.**
+   - **Causa:** as settings não definem `NUM_PROXIES`. Nesse caso, o `get_ident` do DRF usa o `X-Forwarded-For` inteiro, quando presente, como identidade da origem.
+   - **Contorno do limite:** na sondagem, com a origem já bloqueada no cadastro, cinco pedidos com `X-Forwarded-For: 203.0.113.1` a `.5` foram processados (5×400), na versão anterior e na corrigida.
+   - **Bloqueio de terceiros:** um terceiro que envia `X-Forwarded-For: 198.51.100.7` gasta a mesma cota de quem se conecta diretamente desse IP (`laboratorio/xff-identidade.txt`).
+   - **Alcance:** vale para **todos** os limites por origem que já existiam, inclusive o `login` (5/min) contra força bruta, e não só para o `register_day` novo.
+   - **Correção:** definir `NUM_PROXIES` de acordo com a quantidade real de proxies na frente da aplicação. Não há proxy no repositório, mas o `settings.py` já confia em `X-Forwarded-Proto` em produção, o que indica que existe um. Um valor errado faria todos os usuários dividirem o IP do proxy e se bloquearem mutuamente, inclusive no login.
+   - **Por que não foi feito:** por isso, e por a etapa não poder alterar o login, **nenhuma configuração foi inventada**. Fica para uma etapa autorizada, com a topologia de implantação conhecida.
+2. **SEC-05 continua:** o cache é o padrão em memória de cada processo. Com N workers do gunicorn, cada limite vale N vezes, e um reinício zera as cotas. O cache compartilhado (Redis, Memcached ou o cache em banco do Django) é uma decisão de infraestrutura e não está disponível no projeto. Os limites novos têm a mesma limitação dos existentes.
+3. **A mensagem do 429 sai metade em inglês** ("Pedido foi limitado. Expected available in N seconds."), porque a tradução do DRF está incompleta. O mesmo já acontecia no login. O frontend mostra o próprio texto, "Muitas tentativas em pouco tempo. Aguarde um instante e tente novamente.", que fala em "um instante" mesmo quando a espera é de até uma hora ou um dia. Não foi alterado.
+4. **Origem compartilhada:** no cadastro público, quem está atrás do mesmo IP (NAT) divide a cota de 10 por hora, que já existia, e de 20 por dia. Um abusador na mesma rede pode esgotá-la para os demais. O risco é baixo porque o cadastro legítimo é raro, mas existe.
+5. **A janela não é atômica:** o throttle do DRF lê e grava o histórico sem trava. Pedidos simultâneos podem ultrapassar o limite em poucas unidades. Isso também já valia para os limites existentes.
+6. **AUTH-04 e AUTH-05 não foram tocados.** O caminho do 500 pelo domínio em maiúsculas continua, mas agora conta no limite.
+
+### 27.9 Relação com a C3
+
+A D é **temporária**. A C3 elimina o oráculo: o cadastro responde sempre 202 e confirma por e-mail, a troca de e-mail fica pendente até a confirmação e a criação pelo admin vira convite. Quando a C3 entrar:
+
+- **os limites continuam úteis** como proteção contra abuso dos envios de e-mail (bombardeio de convites e de confirmações). Os escopos `register`, `register_day`, `user_create` e `email_change` podem ser mantidos nos endpoints novos;
+- a regra de **contar só a troca de e-mail** passa para o pedido de troca pendente;
+- os testes de `accounts/test_ten03_limites.py` que verificam a validação abaixo do limite (400) precisarão ser revistos, porque as respostas passam a ser 202;
+- a C3 também resolve o **SEC-08**, a falta de verificação de e-mail no cadastro.
+
+### 27.10 Situação final e contagem
+
+- **TEN-03: continua aberto (P3), com mitigação parcial (D).** Não foi marcado como resolvido.
+- **AUTH-04 (P2) e AUTH-05 (P3): continuam abertos**, como registrados na seção 26.6. O código deles (`accounts/serializers.py`, `accounts/managers.py`, `accounts/models.py`) não foi alterado. São a próxima etapa prioritária, quando autorizada.
+- **SEC-13 (P2): novo**, registrado e não corrigido.
+
+| | Após a investigação do TEN-03 | Após a mitigação D |
+|---|---|---|
+| P0 | 0 | 0 |
+| P1 | 3 | 3 (BUS-06 parcial, PROD-01, AUTH-01) |
+| P2 | 29 | 30 (+SEC-13) |
+| P3 | 39 | 39 (o TEN-03 continua, agora mitigado) |
+| **Abertos** | 63 dos 70 originais + 8 novos = 71 | **63 dos 70 originais + 9 novos = 72** |
+
+**Próximo passo:** aguarda autorização para o AUTH-04 e o AUTH-05. TEN-04, SEC-12 e SEC-13 não foram iniciados.
+
+---
+
+## 28. Investigação e plano do AUTH-04 e do AUTH-05 — 15/11/2026
+
+**Decisões do dono que orientam o plano:**
+
+- o e-mail continua único em toda a plataforma;
+- o tratamento de caixa deve ser coerente em cadastro, edição, login e recuperação de senha;
+- a direção é **normalizar o endereço inteiro para minúsculas**;
+- AUTH-04 e AUTH-05 têm prioridade.
+
+**Escopo autorizado:** só diagnóstico e plano. Nada foi corrigido.
+
+**Restrições cumpridas:**
+
+- **Código:** nenhum arquivo de código, teste, migração, settings, `.env` ou frontend foi alterado.
+- **Migrações:** nenhuma criada nem executada.
+- **Banco real:** não foi consultado nem alterado. A consulta de colisões (28.6) ficou pronta e **não foi executada nele**.
+- **Etapas anteriores preservadas:** a mitigação D, o TEN-01, o TEN-02, o SEC-10, o TEN-03, o SEC-13 e o SEC-05 não foram tocados. A contenção (só `JSONRenderer`) continua.
+- **Bancos usados:** só um **PostgreSQL 18.3 descartável** (`127.0.0.1:55432`), com dados fictícios, já apagado. O PostgreSQL do Docker não foi usado.
+- **Repositório:** sem commit, push ou merge. As alterações locais e as evidências anteriores foram preservadas.
+
+Evidências em [`docs/auditoria/evidencias-2026-11-15/auth-04-05/`](auditoria/evidencias-2026-11-15/auth-04-05/README.md).
+
+### 28.1 Resumo
+
+| Item | Situação |
+|---|---|
+| **Causa do AUTH-04** | **Confirmada.** A recuperação procura sem diferenciar caixa e escolhe **uma** conta pela ordem do nome: `filter(email__iexact=…, is_active=True).first()` (`accounts/serializers.py:391`). O cadastro deixa existir mais de uma conta com o mesmo endereço em caixas diferentes (AUTH-05) |
+| **Precisão sobre o AUTH-04** | O token **nunca** vai para um endereço diferente do gravado na conta para a qual foi gerado (6 de 6 mensagens conferidas). O que se desvia é **a conta recuperada**. A vítima recebe o token da conta do terceiro: ao usá-lo, troca a senha do terceiro, e a dela continua igual. Um terceiro só recebe um token da conta dele mesmo |
+| **Causa do AUTH-05** | **Confirmada.** Há quatro tratamentos diferentes para o mesmo dado: (1) a validação compara **exato**; (2) o `create_user` corta os espaços e põe só o **domínio** em minúsculas, **depois** de validar; (3) a edição grava como veio; (4) o login compara **exato**, e a recuperação **sem diferenciar caixa**. O banco tem `UNIQUE (email)` sensível à caixa |
+| **Efeitos medidos** | Contas duplicadas por caixa em cadastro, criação, edição e Django Admin. **500** quando o domínio vem em maiúsculas e o e-mail existe. **O login logo após o cadastro falha** quando o domínio foi digitado com maiúscula. **500 em 15 de 15** pedidos simultâneos com o mesmo e-mail |
+| **Estratégia** | Uma única função de normalização (cortar espaços e converter tudo para minúsculas), aplicada no campo do serializer, no model, no manager e nas buscas de login e recuperação. Garantia no banco por `UNIQUE (LOWER(email))`. `IntegrityError` convertido no mesmo 400 de hoje |
+| **Migração** | **Necessária** (28.5): conversão dos e-mails gravados e restrição no banco. **Não foi criada** |
+| **Colisões no banco real** | **Desconhecidas.** Dependem da consulta de 28.6, que aguarda autorização. Se houver colisões, a migração precisa de uma decisão do dono para cada grupo |
+| **Situação** | **AUTH-04 (P2) e AUTH-05 (P3) continuam abertos** |
+
+### 28.2 AUTH-04: caminho do token, passo a passo
+
+1. **Cadastro (`POST /auth/register/`):**
+   - O `EmailField` do DRF corta os espaços.
+   - O `UniqueValidator` (`lookup='exact'`) procura `WHERE email = 'Cliente.B@beta.test'` e não acha a vítima `cliente.b@beta.test`.
+   - O `create_user` (`accounts/managers.py:43`) aplica o `normalize_email` do Django, que só põe o domínio em minúsculas, e grava `Cliente.B@beta.test`.
+   - Agora existem duas contas para o mesmo endereço.
+2. **Pedido de recuperação** (`accounts/serializers.py:391`):
+   - A busca é `UPPER(email) = UPPER('cliente.b@beta.test') AND is_active ORDER BY nome LIMIT 1`.
+   - Ela casa as duas contas e fica com a de nome menor.
+3. **Destinatário:** é `[user.email]` da conta escolhida (`:397`). O token é gerado para essa mesma conta, e o `uid` é o id dela.
+4. **Confirmação** (`accounts/serializers.py:430`): procura a conta pelo `uid`, isto é, pelo id. A senha trocada é a da conta para a qual o token foi gerado.
+
+**Demonstração** (`demonstracoes/auth04-demonstracao.json`; vítima "Clara Cliente B", id 5):
+
+| Passo | Resultado |
+|---|---|
+| A1, controle, sem variação | Token da conta 5 para `cliente.b@beta.test` |
+| A2, anônimo cadastra `Cliente.B@beta.test` com o nome "Aaron Variante" | 201, conta 6 |
+| A3/A4, a vítima pede a recuperação com `cliente.b@beta.test` ou `CLIENTE.B@BETA.TEST` | Token da **conta 6** para `Cliente.B@beta.test` |
+| A5, a vítima usa esse token | 204 |
+| A6, efeito | `cliente.b@beta.test` + senha nova: **401**. `cliente.b@beta.test` + senha antiga: 200. `Cliente.B@beta.test` + senha nova: **200**. A senha trocada foi a do terceiro |
+| A7, variação com nome que vem **depois** ("Zuleica" > "Celia") | O token vai para a vítima. O resultado depende da ordem alfabética do nome |
+| A8, o admin A cria, **na barbearia A**, o cliente `ADMIN.B@beta.test`, com o nome "Abel" | A recuperação do admin da barbearia B gera o token da conta "Abel", um cliente da barbearia A |
+| A9, o admin A desativa "Abel" | A recuperação volta para o admin de B (`is_active` filtra) |
+| Conferência | Em todas as 6 mensagens, o destinatário é o e-mail gravado na própria conta do token |
+
+**Um terceiro pode receber o token da conta de outra pessoa?** Não pelo código: o token sempre segue para o e-mail da conta a que pertence.
+
+- **O dano real é o desvio da recuperação.** Enquanto a variação existir, a vítima não recupera a própria conta. A mensagem chega à caixa postal da vítima, porque os provedores não diferenciam caixa na parte local, mas o token é de outra conta.
+- **Agravante (A8):** quem segue o link define a senha de uma conta **dentro da barbearia do terceiro**. Se entrar com aquela grafia, opera como cliente dessa barbearia, visível ao admin dela.
+- **Provedor que diferencia caixa** (raro, mas permitido pelo RFC 5321): o dono da variação recebe o token da conta dele mesmo, sem ganho.
+
+**Outros fluxos com o mesmo problema** (busca por e-mail que pode casar várias contas): **nenhum**.
+
+- **Login, login do Django Admin e `createsuperuser`:** usam `get_by_natural_key`, exato. Cada grafia entra na própria conta, e o defeito ali é outro (28.3).
+- **Confirmação da recuperação, refresh e JWT:** procuram pelo id.
+- **Unicidade (`UniqueValidator`):** é exata, e é a causa das duplicatas, não um desvio.
+
+### 28.3 AUTH-05: todos os pontos em que o e-mail entra, é comparado ou gravado
+
+| # | Ponto | Espaços | Parte local | Domínio | Comparação |
+|---|---|---|---|---|---|
+| 1 | Model `email = EmailField(unique=True)` (`accounts/models.py:29`); banco `UNIQUE (email)` + índice `_like` | — | — | — | Banco **sensível à caixa** |
+| 2 | `UserManager.create_user` → `normalize_email` do Django (`accounts/managers.py:43`) | Corta | **Mantém** | Minúsculas | — |
+| 3 | `User.save()` (`accounts/models.py:73`) | Não trata | Não trata | Não trata | — |
+| 4 | `AbstractUser.clean()` do Django → `normalize_email`; `AbstractBaseUser.clean()` → NFKC. Só roda via `full_clean` (Django Admin) | Corta | Mantém | Minúsculas | — |
+| 5 | `PublicRegistrationSerializer` (`accounts/serializers.py:309`), `POST /auth/register/` | Corta (`EmailField`) | Mantém | Minúsculas, mas só **depois** da validação, no `create_user` | `UniqueValidator` **exato** |
+| 6 | `UserCreateSerializer` (`:222`), `POST /users/` | Corta | Mantém | Minúsculas **depois** da validação | Exato |
+| 7 | `UserSerializer` (`:43`), `PATCH`/`PUT /users/{id}/` | Corta | Mantém | **Mantém** (sem normalização) | Exato, excluindo a própria conta |
+| 8 | Login: `CustomTokenObtainPairSerializer` (`CharField` do simplejwt) → `authenticate` → `ModelBackend.get_by_natural_key` | Corta | — | — | **Exato** |
+| 9 | Pedido de recuperação (`:381-397`) | Corta | — | — | **`iexact` + `.first()` por nome** |
+| 10 | Confirmação da recuperação (`:422-430`) | — | — | — | Pelo id |
+| 11 | Django Admin: `CustomUserCreationForm`/`CustomUserChangeForm` (`accounts/forms.py`) → `full_clean` (ponto 4) → `validate_unique`; login do Admin → ponto 8 | Corta | Mantém | Minúsculas **antes** de validar | Exato |
+| 12 | Mitigação D: `tenta_trocar_email` (`accounts/throttles.py:72`) | Corta | — | — | Exato com o atual |
+| 13 | `BarberSerializer.email` (só leitura) e `Barbershop.email` (contato, sem unicidade) | — | — | — | Não identificam ninguém. Fora do escopo |
+| 14 | Frontend: cadastro, login, "Minha conta", Clientes (criar e editar), Barbeiros (criar) e recuperação (`*.tsx`, `z.string().trim()` e `.trim()` no envio). O cadastro entra logo depois com o texto digitado | Corta | Mantém | Mantém | — |
+
+**Matriz medida** (`demonstracoes/auth05-matriz.json`; conta existente `cliente.a1@alfa.test`):
+
+| Variação | Cadastro público | Criação pelo admin | Troca do próprio e-mail |
+|---|---|---|---|
+| Nova, minúsculas | 201, grava igual | 201 | 200 |
+| Nova, maiúsculas na parte local | 201, grava `Novo.2@…` | 201, `Novo.12@…` | 200, `Novo.22@…` |
+| Nova, maiúsculas no domínio | 201, grava `…@exemplo.test` | 201, idem | 200, grava **`…@EXEMPLO.TEST`** |
+| Existente, exato ou com espaços | 400 | 400 | 400 |
+| Existente, maiúsculas na parte local | **201, duplicata** | **201, duplicata** | **200, duplicata** |
+| Existente, maiúsculas no domínio | **500** (`IntegrityError`) | **500** | **200, duplicata** (`…@ALFA.TEST`) |
+| Existente, tudo maiúsculo | **201, duplicata** (`CLIENTE.A1@alfa.test`) | **201, duplicata** | **200, duplicata** |
+
+- **Login com a senha correta:** exato e com espaços dão 200. Maiúsculas na parte local, no domínio ou em tudo dão **401**.
+- **Recuperação:** qualquer variação leva à mesma conta, quando não há duplicata gravada.
+- **Login logo após o cadastro** (`auth05-login-apos-cadastro.json`): `pessoa.tres@EXEMPLO.TEST` e `Pessoa.Quatro@Exemplo.Test` são gravados com o domínio em minúsculas, e o login com o **mesmo texto digitado** dá **401**. Na tela, a conta é criada, mas o login automático falha, e a pessoa só entra se digitar o domínio em minúsculas.
+- **Django Admin** (`auth05-admin-e-unicode.json`): o formulário recusa a variação no domínio, porque o `clean()` normaliza antes do `validate_unique`. Mas aceita `Cliente.B@beta.test` e `CLIENTE.B@BETA.TEST`, este gravado como `CLIENTE.B@beta.test`, e cria duplicatas.
+
+**Diferença entre validação e gravação, e os 500:**
+
+- **Domínio em maiúsculas no cadastro e na criação:** a validação procura o texto como veio (não acha) e o `create_user` grava o domínio em minúsculas. O `INSERT` colide com `accounts_user_email_key`, e a API responde 500.
+- **Concorrência** (`auth05-concorrencia.json`): o `UniqueValidator` consulta e só depois o código grava, com o hash da senha, cerca de 250 ms, no meio. Em **15 de 15** pares simultâneos com o mesmo e-mail (5 cadastros, 5 criações por admins de barbearias diferentes e 5 trocas por contas diferentes), um pedido teve sucesso e o outro recebeu **500**. O banco impediu a duplicata, mas a API não trata o erro.
+- **A validação no serializer não garante a unicidade:** é uma checagem antes de gravar, sujeita a corrida, que não cobre o ORM, o shell, `update()`, `bulk_create` nem SQL.
+
+**Unicode** (`auth05-admin-e-unicode.json`):
+
+- O `EmailValidator` recusa parte local não ASCII (`joão@…`), mas aceita domínio não ASCII (`cliente@ÁLFA.test`).
+- No banco descartável (`C.UTF-8`), o `str.lower()` do Python e o `lower()` do PostgreSQL deram o mesmo resultado em 5 de 6 amostras. A exceção foi `İ`: Python `i̇`, PostgreSQL `i`.
+- O `lower()` depende do `LC_CTYPE` do banco. O do banco real não foi consultado (28.6, consulta 0).
+
+### 28.4 Estratégia técnica recomendada
+
+**Princípios:**
+
+- uma única função de normalização, `btrim` + minúsculas no endereço inteiro, usada em **toda** entrada e em **toda** busca;
+- o banco como garantia final;
+- respostas iguais às de hoje para quem não erra.
+
+| Componente | Precisa mudar? | O que muda e por quê |
+|---|---|---|
+| Função única | **Sim** | Por exemplo, `UserManager.normalize_email` sobrescrito para `(email or '').strip().lower()`. Como é classmethod, cobre `create_user`, `create_superuser` e o `AbstractUser.clean()` do Django Admin |
+| Manager | **Sim** | `create_user` já usa a função. `get_by_natural_key(username)` passa a normalizar e buscar exato. Isso torna sem caixa o login da API, o login do Django Admin e o `createsuperuser`, **sem mexer nas views** nem no simplejwt |
+| Model | **Sim** | `User.save()` normaliza antes de gravar. Cobre o ORM, o shell e o Admin; `update()`, `bulk_create` e SQL ficam para o banco |
+| Serializers | **Sim** | Um `EmailField` que normaliza no `to_internal_value`, aplicado aos três serializers (por exemplo, via `serializer_field_mapping`), para o `UniqueValidator` já receber o valor normalizado. **Um `validate_email` não basta:** o DRF roda o `UniqueValidator` dentro de `field.run_validation`, antes do `validate_<campo>` (`rest_framework/serializers.py:499-501`). Além disso, capturar `IntegrityError` no `create` e no `update` e responder o **mesmo 400** de hoje. Para não esconder outros erros, conferir se a conta com aquele e-mail existe antes de converter |
+| Fluxo de autenticação | **Pelo manager** | Nenhuma view muda. O `ModelBackend` continua igual, inclusive a proteção de tempo para conta inexistente |
+| Recuperação de senha | **Sim** | A busca passa a ser exata no valor normalizado, sem `.first()` ambíguo. A resposta continua 204 para qualquer e-mail, e o envio fictício para e-mail inexistente se mantém |
+| Mitigação D | **Ajuste mínimo** | `tenta_trocar_email` passa a comparar com a mesma função. Reenviar o próprio e-mail em outra caixa deixa de contar como troca. Exige autorização, porque toca a mitigação D |
+| Restrição no banco | **Sim** | `UniqueConstraint(Lower('email'))`: garante que não existam duas contas equivalentes, por qualquer caminho de escrita (28.5) |
+| Conversão dos dados | **Sim** | Os e-mails gravados fora do padrão passam para a forma normalizada |
+| Frontend | **Não é obrigatório** | O backend normaliza tudo. Converter para minúsculas na tela é só conforto visual |
+| TEN-03 | Sem mudança de natureza | As variações de caixa de um e-mail existente passam a receber o mesmo 400 do e-mail exato, sem informação nova. O oráculo pelo 500 desaparece. O TEN-03 continua aberto |
+
+**Restrição no banco, as duas opções medidas em laboratório (`sql/laboratorio-ddl-saida.txt`):**
+
+- **`UNIQUE (LOWER(email))`** (`UniqueConstraint(Lower('email'), …)`): **recomendada.** Impede contas equivalentes, mesmo que algum caminho grave fora do padrão.
+- **`CHECK (email = lower(btrim(email)))`**: obriga a gravar já normalizado. Com ela, a `UNIQUE (email)` atual já impede as equivalentes, e as buscas exatas usam o índice existente. A contrapartida é que qualquer escrita fora do padrão, por um caminho esquecido, vira `IntegrityError`. **Recomendada como reforço; a decisão é do dono.**
+
+**Detalhes que afetam a escolha:**
+
+- **O `unique=True` do campo precisa ficar.** O check `auth.E003` só aceita unicidade no próprio campo ou numa `UniqueConstraint(fields=('email',))`, e uma restrição funcional não conta.
+- **O DRF 3.15.2 ignora `UniqueConstraint` funcional:** só gera validadores para restrições com mais de um campo. Os serializers não mudam de comportamento por causa dela.
+- **O Django 5.0 valida restrições funcionais no `full_clean`:** o Django Admin passa a mostrar erro de formulário, e não 500.
+
+### 28.5 Por que a correção exige migração
+
+1. **O banco não garante hoje a unicidade sem caixa.** O serializer não basta: corrida (15 de 15) e caminhos que não passam por ele. Só uma restrição no banco garante. Isso é uma alteração de esquema, portanto uma migração.
+2. **Os dados atuais podem estar fora do padrão:**
+   - quem se cadastrou com maiúsculas na parte local;
+   - quem trocou o e-mail com o domínio em maiúsculas;
+   - possíveis grupos equivalentes.
+3. **A restrição não pode ser criada com equivalentes no banco (L1).** E a conversão para minúsculas falha na `UNIQUE (email)` atual se houver colisão (L2). A migração precisa verificar, converter e só então restringir.
+
+**Operações previstas para uma migração `accounts.0006`** (ilustrativas; o arquivo **não foi criado**):
+
+1. **`RunPython` de verificação:** se `lower(btrim(email))` se repetir, **interrompe** e lista os ids dos grupos, nunca os e-mails. A migração é atômica e nada muda.
+2. **`RunPython` de conversão:** grava `email.strip().lower()`, com a mesma função da aplicação, só nas contas que mudam.
+3. **`AddConstraint(UniqueConstraint(Lower('email'), name='accounts_user_email_normalizado_unico', violation_error_message='usuário com este e-mail já existe.'))`.**
+4. **Opcional:** `AddConstraint(CheckConstraint(check=Q(email=Lower(Trim('email'))), name='accounts_user_email_em_minusculas'))`.
+5. **Reversão:** retira as restrições. A conversão dos dados não se desfaz, e o backup cobre esse caso.
+
+**Dados afetados:**
+
+- **Contas convertidas:** as que têm `email <> lower(btrim(email))` (consultas 1 e 4 de 28.6). Para elas:
+  - o login passa a aceitar qualquer caixa;
+  - o e-mail aparece em minúsculas;
+  - **os links de recuperação pendentes deixam de valer**, porque o hash do token do Django inclui o e-mail (`django/contrib/auth/tokens.py:120-122`);
+  - sessões e JWT continuam valendo, porque usam o id.
+- **Contas em grupos de colisão:** exigem **decisão do dono**, conta por conta, antes da migração. Opções:
+  - manter o e-mail na conta principal e dar às outras um endereço provisório (como `conflito+<id>@resolver.invalid`), desativando-as ou pedindo um e-mail novo;
+  - ou unificar as contas, o que não é recomendado de forma automática, porque mexe em agendamentos e perfis de barbeiro.
+- **Bloqueio:** `CREATE UNIQUE INDEX` e `ADD CONSTRAINT … CHECK` travam a tabela `accounts_user` durante a criação. A tabela é pequena, e isso deve levar milissegundos, mas convém uma janela curta.
+- **Ordem de implantação:** código e migração **juntos**.
+  - Código novo sem a conversão: quem tem e-mail gravado com maiúsculas não entra, porque a busca normalizada é exata.
+  - Restrição sem o código novo: as variações recebem 500 em vez de virar duplicata.
+
+### 28.6 Consulta de colisões para o banco real (não executada)
+
+O arquivo é `sql/verificacao-colisoes-somente-leitura.sql`. Ele roda numa transação `READ ONLY` que termina em `ROLLBACK`.
+
+| Consulta | Retorna | Dados pessoais |
+|---|---|---|
+| 0 | Banco, `datcollate`, `datctype` e versão. O `lower()` depende do `LC_CTYPE` | Não |
+| 1 | Totais: contas, quantas mudariam, com espaços, não ASCII, **grupos que colidiriam** e contas nesses grupos | Não |
+| 2 | Um registro por grupo de colisão: ids, barbearias, papéis, ativas, superusuário, último login, criação, agendamentos como cliente, perfil de barbeiro e qual já está normalizada | **Não** (só ids) |
+| 3 | O detalhe de cada grupo, com e-mail gravado e nome, **para o dono decidir** | **Sim. Não copiar para as evidências** |
+| 4 | As contas que a normalização mudaria, só pelo id, com o tipo de mudança | Não |
+| 5 | Os ids com caracteres não ASCII, onde o `lower()` do PostgreSQL e o do Python podem divergir | Não |
+
+O núcleo da verificação:
+
+```sql
+SELECT min(u.id) AS grupo, count(*) AS contas, array_agg(u.id ORDER BY u.id) AS ids, …
+FROM accounts_user u
+GROUP BY lower(btrim(u.email))
+HAVING count(*) > 1;
+```
+
+**O que ela retornou no banco fictício** (`sql/colisoes-saida-banco-ficticio.txt`):
+
+- 14 contas: 7 mudariam, 1 tem espaço na ponta e 1 tem caractere não ASCII.
+- **4 grupos de colisão (8 contas):**
+  - a variação do AUTH-04, sem barbearia, × a cliente de B, que tem 2 agendamentos;
+  - a variação do admin B criada e desativada em A;
+  - um barbeiro de A × uma cópia em maiúsculas em B;
+  - dois "espaco@" que só diferem por um espaço final, gravável só pelo shell.
+
+No banco real, um resultado com **0 grupos** libera a migração sem decisões. Qualquer grupo exige a decisão de 28.5 antes.
+
+### 28.7 Riscos de compatibilidade
+
+1. **Colisões no banco real:** desconhecidas até a consulta. Se existirem, a migração é interrompida (de propósito), e cada grupo precisa de decisão.
+2. **E-mails exibidos em minúsculas** e **links de recuperação pendentes invalidados** para as contas convertidas.
+3. **Caixa postal que diferencia caixa na parte local** (permitido pelo RFC 5321, raro na prática): duas pessoas assim deixam de poder ter contas separadas. Foi aceito pela decisão de produto.
+4. **Domínios não ASCII:** o `lower()` do PostgreSQL pode divergir do Python (o caso `İ`). A consulta 5 diz se há contas assim. Se não houver, o risco é só teórico. Se houver, uma opção é guardar o domínio em IDNA (ASCII).
+5. **DB-02** (versão de ordenação 2.43 × 2.44 no banco real): um índice sobre `lower(email)` depende do `LC_CTYPE`. Recomenda-se um `REINDEX` numa etapa autorizada, com backup.
+6. **Implantação:** código e migração na mesma janela, com backup (`pg_dump -Fc`) antes, como foi feito na `barbershops.0006`.
+7. **Testes existentes:** só um depende da caixa. É o `accounts/test_ten03_limites.py:195` (`'Cliente.A1@alfa.test'` conta como troca), que passará a ser `False`. Nenhum outro teste usa e-mail com maiúsculas.
+8. **Mitigação D:** precisa do ajuste mínimo em `tenta_trocar_email`.
+9. **TEN-03:** continua aberto. A mudança não cria oráculo novo e remove o do 500.
+
+### 28.8 Testes que a correção deve trazer
+
+Como nas etapas anteriores, os testes vêm **antes** da correção. Eles falham no código atual e passam no corrigido.
+
+| Teste | Deve verificar | Hoje |
+|---|---|---|
+| Cadastro com e-mail em minúsculas | 201; gravado igual | 201 |
+| Cadastro com maiúsculas (parte local, domínio, tudo) | 201; **gravado em minúsculas** | Grava a parte local como veio |
+| Cadastro com variação de caixa de conta existente | **400**, a mesma mensagem do exato; nenhuma conta criada | 201 (duplicata) ou 500 |
+| Criação pelo admin com variação de caixa | 400; sem conta na barbearia A; a conta de B intacta | 201 ou 500 |
+| Edição do próprio e-mail com maiúsculas, nova ou existente | Nova: 200, gravada em minúsculas. Existente: 400. Reenvio do próprio em outra caixa: 200 sem mudança | Grava como veio; duplicata |
+| Login com caixa diferente e com espaços | 200 para a mesma conta. Senha errada: o mesmo 401 | 401 |
+| Login logo após o cadastro com domínio em maiúsculas | 200 | 401 |
+| Recuperação com caixa diferente | O token vai para a única conta, no endereço normalizado | Funciona sem duplicata |
+| Recuperação com registros antigos com variações | Com a migração aplicada, não existem. Teste da migração: interrompe se houver grupo e informa só os ids | `.first()` escolhe pelo nome |
+| Ausência de token para endereço incorreto | Para cada envio, o `uid` é da conta cujo e-mail é o destinatário, e só existe uma conta por endereço | Desvio (A3) |
+| Tentativa de criar duplicatas por todos os caminhos | Serializers, `create_user`, `User.save()`, formulário do Admin (erro de formulário) e `update()`/SQL (o banco recusa) | Duplicatas |
+| Concorrência entre dois cadastros equivalentes | Uma conta só e **nenhum 500**: o segundo recebe o mesmo 400. No PostgreSQL, com threads e barreira (`TransactionTestCase`). No SQLite, simulado deixando o validador passar e forçando o `IntegrityError` | 500 em 15 de 15 |
+| Ausência de HTTP 500 | Domínio em maiúsculas, corrida, valor inválido e nulo | 500 |
+| Unicidade global preservada | O e-mail de B, em qualquer caixa, é recusado em A, no cadastro e na troca | Parcial |
+| Isolamento multi-tenant preservado | Suíte de isolamento inteira; o login normalizado leva à conta e à barbearia certas; a recuperação não cruza barbearias | Já cobertos |
+| `get_by_natural_key` e `createsuperuser` | Encontram a conta em qualquer caixa | Exato |
+| Migração | Banco com dados antigos fictícios: interrompe com colisão. Sem colisão: converte, cria as restrições, e a reversão as retira | — |
+| Mitigação D | `tenta_trocar_email` com o próprio e-mail em outra caixa → `False`; os 28 testes continuam passando | `True` |
+| Frontend | Sem mudança obrigatória; `npm test`, `tsc`, ESLint e build | — |
+
+### 28.9 Ordem recomendada
+
+1. **Autorização para a consulta de 28.6 no banco real.** Só leitura e sem backup necessário. Gravar nas evidências só os resultados sem dados pessoais (consultas 0, 1, 2, 4 e 5).
+2. **Decisão do dono sobre cada grupo de colisão**, se houver, e sobre o `CHECK` opcional.
+3. **Testes de regressão** (28.8), escritos antes e falhando no código atual.
+4. **Normalização no código:** função única, manager (`normalize_email` e `get_by_natural_key`), `User.save()`, campo de e-mail dos serializers, `IntegrityError` → 400, recuperação exata e o ajuste mínimo da mitigação D.
+5. **Migração `accounts.0006`** (verificação, conversão e restrições), validada no PostgreSQL 18.3 descartável com o conjunto de dados antigos fictícios (`scripts/a45_dados_legados.py`).
+6. **Suíte completa** (SQLite, PostgreSQL 18.3, `DEBUG` True e False), isolamento multi-tenant, `check`, frontend e a repetição das demonstrações desta seção, que devem passar a mostrar o comportamento correto.
+7. **Banco real:** backup `pg_dump -Fc` validado, as decisões de colisão aplicadas, a migração na mesma janela da implantação do código, um smoke test, e o `REINDEX` do DB-02 se autorizado.
+
+### 28.10 Situação
+
+- **AUTH-04: aberto (P2).** Causa confirmada e plano pronto.
+- **AUTH-05: aberto (P3).** Causa confirmada e plano pronto. A investigação acrescentou efeitos ao registro da seção 26.6: o login após o cadastro com domínio em maiúsculas falha, e há 500 em pedidos simultâneos. A severidade não mudou, porque os dois serão corrigidos juntos com o AUTH-04.
+- **TEN-03, SEC-13 e SEC-05:** abertos, sem alteração.
+- **Contagem:** sem mudança, **72 abertos** (63 dos 70 originais + 9 novos).
+
+**Próximo passo:** aguarda autorização para a consulta no banco real, para a migração e para a implementação. SEC-13, SEC-05, TEN-04 e SEC-12 não foram iniciados.
+
+---
+
+## 29. Verificação de colisões no banco real (somente leitura) — 15/11/2026
+
+**Escopo autorizado:** só rodar, no banco real, a consulta de colisões preparada em 28.6. Não inclui implementação, escrita, migração nem nenhuma outra operação.
+
+**Como foi feito:**
+
+- **O arquivo:** foi lido por inteiro e conferido instrução por instrução. Só tem `SELECT`, comandos do psql (`\set`, `\echo`), `BEGIN TRANSACTION READ ONLY`, `SET LOCAL` e `ROLLBACK`.
+- **O bloco 3 não foi executado:** ele só lê, mas mostra nomes e e-mails, e a autorização proíbe expô-los. Rodou uma cópia sem esse bloco, e a diferença está registrada.
+- **A sessão:** aberta com `default_transaction_read_only=on`, `statement_timeout=30s` e `lock_timeout=5s`. As credenciais vieram das settings da aplicação, sem serem impressas.
+- **Não usados:** o PostgreSQL do Docker (porta 5433) e o banco antigo `barbershop`.
+
+Evidências em [`docs/auditoria/evidencias-2026-11-15/auth-04-05-verificacao-banco-real/`](auditoria/evidencias-2026-11-15/auth-04-05-verificacao-banco-real/README.md).
+
+| Item | Resultado |
+|---|---|
+| Banco | `barbershop_db`, PostgreSQL 18.3, localhost (`::1`), porta 5432; `datctype` `pt_BR.UTF-8` (libc) |
+| Contas verificadas | 8 |
+| Contas que seriam normalizadas | 0 |
+| Com espaços nas pontas | 0 |
+| Com caracteres fora do ASCII | 0 |
+| **Grupos de colisão** | **0** |
+| Fim da transação | `ROLLBACK`; nenhum dado alterado |
+
+**Conclusão:**
+
+- Pela consulta, o banco real **não tem colisões**, e nenhuma conta precisaria ser convertida. A migração planejada em 28.5 pode avançar para o próximo passo de planejamento **sem decisões por grupo**: a verificação e a conversão não teriam nada a fazer hoje.
+- Elas continuam necessárias na migração, porque o banco pode mudar até a implantação.
+- Como o banco real usa `pt_BR.UTF-8`, e não o `C.UTF-8` do laboratório, a validação da migração deve repetir esse `LC_CTYPE` no PostgreSQL descartável.
+- **Isso não autoriza a migração nem a implementação.**
+
+**AUTH-04 (P2) e AUTH-05 (P3) continuam abertos.** Contagem sem mudança: 72 abertos.
+
+---
+
+## 30. AUTH-04 e AUTH-05: equivalência Python × PostgreSQL e parada antes da implementação — 15/11/2026
+
+**Escopo autorizado:**
+
+- implementar o AUTH-04 e o AUTH-05, com a migração `accounts.0006` validada em PostgreSQL 18.3 descartável;
+- com uma condição expressa de parada: se não for possível garantir equivalência entre a normalização em Python e a função SQL **para todos os caracteres aceitos**, parar e apresentar uma alternativa segura antes de criar a restrição.
+
+**O que aconteceu:**
+
+- A verificação de equivalência foi feita **antes de qualquer alteração de código**, como o escopo exigia, num PostgreSQL 18.3 descartável com **`pt_BR.UTF-8`** (libc, glibc 2.44), a mesma ordenação do banco real.
+- A equivalência **não se sustenta** para o conjunto de caracteres que o backend aceita hoje. A implementação **foi interrompida**: nenhum código, teste ou migração foi criado ou alterado.
+- O banco real não foi acessado nesta etapa.
+
+Evidências em [`docs/auditoria/evidencias-2026-11-15/auth-04-05-equivalencia/`](auditoria/evidencias-2026-11-15/auth-04-05-equivalencia/README.md).
+
+### 30.1 O que foi medido
+
+| Verificação (1.112.063 pontos de código) | Resultado |
+|---|---|
+| `str.lower()` (Python 3.12, Unicode 15) × `lower()` (PostgreSQL, pt_BR) | **56 divergem**, todos aceitos pelo `EmailValidator` do Django no domínio. Exemplos: `İ` (U+0130: Python `i` + U+0307; PostgreSQL `i`) e letras do Unicode 16 (U+A7CB: Python mantém; PostgreSQL vira U+0264). **No ASCII, nenhuma divergência** |
+| Entradas aceitas cujo valor normalizado em Python seria recusado por `CHECK (email = lower(email))` | **55** |
+| Espaços externos | O Python e o `trim_whitespace` do DRF removem 29 pontos de código. O `btrim()` remove só o espaço (U+0020). A classe `\s` do PostgreSQL (pt_BR) cobre 21 e não inclui U+001C–U+001F, U+0085, U+00A0, U+2007 e U+202F. O `trim()` do JavaScript (frontend) remove 25 e inclui U+FEFF, que o Python não remove |
+| Caracteres invisíveis | O `EmailValidator` aceita, pelo caminho IDNA, U+200B, U+FEFF, U+00AD e outros 7, no meio ou no fim do domínio (20 de 30 posições testadas). Nenhuma normalização os remove: são endereços que parecem iguais e entregam na mesma caixa, mas ficam diferentes no banco |
+| Frontend (zod 3.25.76, `z.string().trim().email()`) | **Só aceita e-mails ASCII.** Recusa domínio acentuado, `İ`, invisíveis e Unicode 16. Pela interface, só ASCII chega ao backend; o resto só chega pela API direta |
+| Banco real (seção 29) | 0 contas com caractere fora do ASCII |
+
+**Conclusão:** com o conjunto aceito hoje, Python e PostgreSQL discordam sobre o que é "o mesmo e-mail normalizado". Uma restrição `CHECK` baseada em `lower()` recusaria e-mails que a aplicação aceita. E os invisíveis criam endereços equivalentes que nenhuma das duas normalizações une.
+
+### 30.2 Alternativa segura proposta (aguarda autorização)
+
+**Restringir o e-mail normalizado a ASCII imprimível, sem espaços (U+0021 a U+007E).**
+
+| Item | Definição exata |
+|---|---|
+| Normalização | `str(valor).strip().lower()`. O `strip()` do Python remove os mesmos 29 pontos de código que o DRF, os formulários do Django e o `normalize_email` já removem hoje |
+| Validação | Depois de normalizar, recusar qualquer caractere fora de U+0021–U+007E, com o mesmo erro de "e-mail inválido" da API (400 no campo `email`), além do `EmailValidator` atual |
+| `CHECK` | `email = lower(email) AND email ~ '^[!-~]+$'` |
+| Unicidade | `UNIQUE (LOWER(email))`, como decidido, mais o `unique=True` atual |
+| Equivalência | **Garantida e medida:** `lower()` idêntico em todo o ASCII. `chr(c) ~ '^[!-~]$'` coincide exatamente com 33 ≤ c ≤ 126 nos 1.112.063 pontos de código, em pt_BR. Como o valor gravado não tem nenhum espaço, as diferenças entre `strip()`, `btrim()`, `\s` e `trim()` deixam de importar |
+| Migração | Além das colisões, a verificação também interrompe se alguma conta tiver, depois de normalizada, caractere fora de U+0021–U+007E, listando só os ids. No banco real seriam 0 |
+| Impacto | A API passa a recusar e-mails com acento, IDN Unicode ou invisíveis, que **a interface já recusa hoje**. Domínios internacionais continuam aceitos na forma punycode (`xn--…`), que o frontend também aceita. Não há contas afetadas no banco real |
+
+**Alternativas avaliadas e não recomendadas:**
+
+- **Converter domínios Unicode para punycode na normalização.** Aceitaria IDN pela API. Mas o codec do Python é IDNA2003 (mapeia, por exemplo, `ß` → `ss`), diferente do IDNA2008/UTS46 dos navegadores. Exigiria mais regras e testes, e o frontend já recusa IDN.
+- **Manter Unicode e criar só `UNIQUE (LOWER(email))`, sem `CHECK`.** Não atende ao requisito: 56 caracteres divergem, e os invisíveis continuam gerando duplicatas equivalentes.
+
+### 30.3 Situação
+
+- **AUTH-04 (P2) e AUTH-05 (P3): continuam abertos.** Não foram implementados.
+- O banco real não foi acessado. Nada foi alterado no código, nos testes, nas migrações, no `.env` ou no frontend.
+- A contagem não muda: 72 abertos.
+
+**Próximo passo:** aguarda a autorização do dono para a regra "e-mail normalizado só em ASCII imprimível" (ou outra alternativa). Com ela, a implementação planejada nas seções 28 e 30.2 pode seguir com a equivalência garantida.
+
+---
+
+## 31. Correção do AUTH-04 e do AUTH-05 com e-mail normalizado em ASCII — 15/11/2026
+
+**Escopo autorizado:** implementar a regra da seção 30.2 e a migração necessária, validando tudo em PostgreSQL 18.3 descartável com `pt_BR.UTF-8`.
+
+A regra aprovada:
+
+- espaços externos removidos com `str.strip()`;
+- só ASCII imprimível de U+0021 a U+007E, checado **antes** de converter;
+- endereço inteiro em minúsculas;
+- sintaxe pelo validador do projeto;
+- punycode aceito.
+
+**Fora do escopo, como pedido:** aplicar a migração no banco real, REINDEX, deploy, commit e verificação de e-mail.
+
+**Restrições cumpridas:**
+
+- **Banco real:** não foi acessado nesta etapa, nem para leitura. Os bancos usados foram só o SQLite em memória e o PostgreSQL 18.3 descartável (`initdb --locale=pt_BR.UTF-8 --locale-provider=libc`, glibc 2.44, `127.0.0.1:55432`), já apagado. O Docker (porta 5433) e o banco antigo `barbershop` não foram usados.
+- **Sem alteração:** `.env`, credenciais, frontend, os limites de taxa, SEC-13, SEC-05, TEN-03, SEC-12 e a contenção (só `JSONRenderer`).
+- **Mitigação D:** só o ajuste mínimo previsto na seção 28, justificado em 31.3.
+- **Repositório:** sem commit, push ou merge. As alterações locais, os documentos e as evidências anteriores foram preservados.
+
+Evidências em [`docs/auditoria/evidencias-2026-11-15/auth-04-05-implementacao/`](auditoria/evidencias-2026-11-15/auth-04-05-implementacao/README.md).
+
+### 31.1 Resumo
+
+| Item | Situação |
+|---|---|
+| **AUTH-04** | **Resolvido e verificado no ambiente de testes.** A recuperação procura a conta pelo e-mail normalizado, com igualdade exata (`User.objects.get(email=…, is_active=True)`), sem `iexact` nem `.first()`. Uma variação de caixa não pode mais existir: a API, o manager, o `save()` e o próprio banco a recusam. Na demonstração, o token vai sempre para a conta certa, e usá-lo troca a senha da vítima, não de outra conta |
+| **AUTH-05** | **Resolvido e verificado no ambiente de testes.** Cadastro, criação, edição, Django Admin, login e recuperação usam a mesma regra (`accounts/emails.py`). O e-mail gravado está sempre na forma canônica. O banco garante isso com `CHECK` e `UNIQUE (LOWER(email))` (migração `accounts.0006`). Pedidos simultâneos dão 400, não 500 |
+| **Condição para a produção** | A `accounts.0006` **não foi aplicada no banco real**. A consulta de 15/11 (seção 29) não achou colisões nem contas a converter, mas a migração verifica tudo de novo e se interrompe se houver problema. A aplicação depende de autorização, de backup e de uma janela de implantação |
+| **Testes** | 41 novos. Suíte de 480 para **521**, OK no SQLite, no PG 18.3 pt_BR e no PG com `DEBUG=False`. Os 211 de novos, isolamento, permissões e limites passam com `DEBUG=True`. No PostgreSQL, nenhum teste novo é pulado, inclusive concorrência real e equivalência |
+| **Antes × depois (HTTP, PG pt_BR)** | Duplicatas por caixa: 7 → **0**. Respostas 500: 2 na matriz e 15 de 15 na concorrência → **0**. Login com outra caixa: 401 → **200**. Login logo após o cadastro com o domínio em maiúsculas: 401 → **200** |
+| **Frontend** | Sem alteração. 45 testes, `tsc`, ESLint e build OK |
+
+### 31.2 Arquivos alterados nesta etapa
+
+| Arquivo | Alteração |
+|---|---|
+| `accounts/emails.py` (novo) | A regra única: `forma_canonica()` (sem conversão de tipo; `None` fora da regra), `normalizar_email()` (`ValidationError` fora da regra), a faixa `[!-~]` e a expressão SQL, os nomes das restrições e `e_violacao_da_unicidade_do_email()`, que reconhece só as duas restrições de unicidade do e-mail: pelo diagnóstico do driver no PostgreSQL e pelo texto padrão no SQLite |
+| `accounts/models.py` | `Meta.constraints` com o `CHECK` e o `UNIQUE (LOWER(email))` (`unique=True` mantido, por causa do `auth.E003`). `clean()` próprio, no lugar dos herdados: o NFKC do `AbstractBaseUser` transformaria caracteres Unicode em ASCII antes da checagem, e o `AbstractUser` só normalizava o domínio. `validate_constraints()` sem repetir as restrições do e-mail (31.5). `save()` normaliza o e-mail sempre que ele é gravado |
+| `accounts/managers.py` | `normalize_email()` passa a ser a regra única (`create_user` e `create_superuser`). `get_by_natural_key()` busca pela forma canônica, com igualdade exata. Isso cobre o login da API, o login do Django Admin e o `createsuperuser` sem mexer nas views; um valor fora da regra se comporta como conta inexistente |
+| `accounts/serializers.py` | `EmailNormalizadoField`: normaliza no `to_internal_value`, **antes** do `UniqueValidator`, sem converter tipos, com as mesmas respostas de antes para entrada inválida. `EmailCanonicoMixin` aplica esse campo aos três serializers de usuário. `recusar_email_duplicado()` converte só a violação da unicidade do e-mail no mesmo 400 do validador e levanta de novo qualquer outro `IntegrityError`. Cadastro, criação e edição gravam dentro de `transaction.atomic()`, e a transação externa continua íntegra. A recuperação usa o campo normalizado e a busca exata (AUTH-04) |
+| `accounts/throttles.py` | O ajuste mínimo da mitigação D (31.3) |
+| `accounts/migrations/0006_email_normalizado.py` (nova) | Verificação e conversão (`RunPython`) e as duas restrições (31.4) |
+| `accounts/test_auth04_auth05.py` (novo) | 41 testes (31.6) |
+| `accounts/test_ten03_limites.py` | O caso `'Cliente.A1@alfa.test'` (o próprio e-mail em outra caixa) passa a **não** contar como troca, e entraram dois casos novos. É a consequência prevista na seção 28 |
+| `config/test_isolamento_tenant.py` | A massa de dados gerava `freguês@alfa.test` a partir do rótulo "Freguês". O nome continua "Freguês"; a parte local do e-mail virou `fregues` (31.7) |
+
+O diff só desta etapa está em `diff/diff-somente-auth04-auth05.patch`.
+
+### 31.3 Ajuste mínimo na mitigação D
+
+- **O que mudou:** só `tenta_trocar_email()`. Ela passa a comparar a forma canônica (`forma_canonica`) com o e-mail atual da conta. Um texto fora da regra, que o serializer recusa, continua contando como antes.
+- **Por que é indispensável:** com a normalização, reenviar o próprio e-mail em outra caixa não troca nada. Sem o ajuste, esse pedido continuaria gastando a cota de troca de e-mail, e uma edição só de nome com o e-mail em outra caixa chegaria a 429. Isso bloquearia um usuário legítimo.
+- **O que não mudou:** taxas, escopos e a identidade que consome a cota.
+- **Teste** (`LimitesExistentesTests`, com as taxas reais): 15 edições com o próprio e-mail em maiúsculas dão 15×200. A troca real continua limitada: 10×400 e depois 429. Os 28 testes da mitigação D continuam passando.
+
+### 31.4 Migração `accounts.0006_email_normalizado`
+
+1. **`RunPython`:**
+   - Verifica **todas** as contas com a mesma `forma_canonica()` da aplicação.
+   - Se houver e-mail fora da regra, ou contas que ficariam com o mesmo e-mail, **interrompe**. A mensagem mostra só os ids, sem e-mails nem nomes, e nada é alterado, porque a migração é atômica. Nenhuma conta é escolhida automaticamente.
+   - Se não houver problema, grava a forma canônica onde ela difere.
+2. **`CHECK`:** `(email = lower(email) AND email ~ '^[!-~]+$')`. No PostgreSQL, fica `CHECK ((((email)::text = lower((email)::text)) AND ((email)::text ~ '^[!-~]+$'::text)))`.
+3. **`UNIQUE (LOWER(email))`:** índice único `accounts_user_email_lower_unico`.
+4. **Reversão:** retira as duas restrições. **Não recupera a grafia original** dos e-mails convertidos, porque a conversão para minúsculas não é reversível. Só um backup feito antes da migração recupera os valores anteriores.
+
+**Validação pelo comando real `migrate`, no PG 18.3 pt_BR** (`migracao/validacao-migracao-postgresql18-ptbr.txt`), com dados antigos fictícios gravados pelo código anterior:
+
+| Cenário | Resultado |
+|---|---|
+| Colisões e e-mail fora da regra | Interrompida: "Contas com e-mail fora da regra (ids): [12]. Grupos que ficariam com o mesmo e-mail após a normalização (ids): [[2, 5], [3, 4], [6, 7], [10, 11]]". A `accounts.0005` continua a última aplicada, sem restrições novas e sem dado alterado |
+| Depois da decisão do dono (simulada: e-mails provisórios nas contas em conflito) | Aplicada. 0 contas fora do padrão; as duas restrições criadas |
+| Reversão (`migrate accounts 0005`) | Restrições retiradas. Os e-mails continuam em minúsculas: a grafia original não volta |
+| Dados antigos válidos (`Pessoa.Dois@…`, `novo.3@EXEMPLO.TEST`, espaço e tabulação nas pontas) | Convertidos para a forma canônica e aplicada |
+| Escrita direta no banco depois da migração | Variação de caixa, espaço e não ASCII violam o `CHECK`; a duplicata exata viola `accounts_user_email_key` |
+
+**Efeito sobre links de recuperação pendentes:** o hash do token do Django inclui o e-mail. Os links pendentes das contas **convertidas** deixam de valer, e a pessoa precisa pedir de novo. Pela consulta de 15/11 (seção 29), nenhuma conta do banco real seria convertida, portanto nenhum link seria invalidado. Sessões e JWT continuam valendo, porque usam o id.
+
+### 31.5 Problemas encontrados durante a implementação
+
+1. **A massa de dados do teste de isolamento tinha um e-mail fora da regra.** O `freguês@alfa.test` era gerado a partir do rótulo "Freguês". A API sempre recusou esse endereço, porque o `EmailValidator` não aceita acento na parte local. Ele só existia porque o `create_user` não validava o formato. Ajustada só a parte local (31.2). Os testes do TEN-01 não mudaram.
+2. **Django Admin com dois erros para um e-mail duplicado.** Um era o do campo; o outro mostrava o nome interno da restrição ("Restrição "accounts_user_email_lower_unico" foi violada."). Corrigido com `validate_constraints()`. As duas restrições do e-mail já estão garantidas antes, pelo `clean()` (forma canônica) e pelo `unique=True` (duplicata), e o banco continua sendo a garantia final. Agora aparece um erro só (`testes/django-admin-mensagens*.txt`). O teste foi reforçado e as suítes foram executadas de novo com o código final.
+3. **O cadastro público não associa a conta a uma barbearia existente.** Esse é o comportamento atual, não uma mudança desta etapa. Hoje o cadastro público é o fluxo do **dono**: conta sem barbearia, login, onboarding (cria a barbearia e vira admin). O cliente que agenda numa barbearia é cadastrado pelo administrador, e uma conta sem barbearia é recusada no agendamento (TEN-02); o frontend a manda para o onboarding. A página pública da barbearia, com convite, é o PROD-01, ainda aberto. Os testes de regressão cobrem os fluxos reais (31.6). Nenhum fluxo novo foi criado.
+4. **Ordem das demonstrações.** No código corrigido, a demonstração do AUTH-04 troca a senha da própria vítima, o que é o comportamento certo, e isso revogou o token usado depois na corrida de troca de e-mail. A demonstração foi refeita com a concorrência antes.
+5. **SQLite × PostgreSQL no `CHECK`.** No SQLite dos testes, a função `REGEXP` do Django usa o `re` do Python, em que `$` aceita um `\n` final. No PostgreSQL, `$` é o fim do texto. A aplicação nunca grava quebra de linha, porque o `strip()` remove. Os testes de escrita direta com quebra de linha foram validados no PostgreSQL.
+
+### 31.6 Testes executados
+
+**Os 41 testes novos** (`accounts/test_auth04_auth05.py`):
+
+| Grupo | O que verifica |
+|---|---|
+| Regra única (8) | ASCII válido. Os 29 espaços externos do Python. Espaços internos. Maiúsculas. Acentos. Domínio Unicode. Punycode. U+0130 e os outros divergentes. O Kelvin (U+212A), recusado antes de virar "k". Invisíveis (U+200B, U+FEFF, U+00AD e outros 7). **Nenhum** ponto de código fora do ASCII passa (1.112.063 testados), nem controle ASCII. Entradas que não são texto. O campo da API responde como antes a não texto, `null`, vazio e inválido. Só as duas restrições de unicidade viram "e-mail duplicado" |
+| Cadastro público (6) | Formas aceitas, gravadas na forma canônica. Formas recusadas com a mesma resposta do e-mail inválido. Variação de caixa de conta existente: 400 e nenhuma conta criada. **Dono: cadastro com maiúsculas → login com o texto digitado → onboarding → serviço, barbeiro e cliente criados com maiúsculas e espaços → agendamento (201)**. **Cliente cadastrado pelo admin: entra com outra caixa e agenda (201)**. Conta sem barbearia continua com 403 no agendamento (TEN-02) |
+| Criação e edição (4) | Criação de cliente e de barbeiro. Duplicidade na mesma barbearia e em outra, em qualquer caixa, com a barbearia B intacta. Troca do próprio e-mail (PATCH e PUT), inclusive o próprio em outra caixa. Admin editando cliente |
+| Login e recuperação (6) | Login sem diferenciar caixa e com espaços, levando à conta e à barbearia certas. Login errado com resposta igual para existente, inexistente e fora da regra. Login do Django Admin e `createsuperuser` com a mesma regra. **A recuperação vai para a conta canônica**: o destinatário é o e-mail gravado e o `uid` é dessa conta. Recuperação de inexistente e de inativa responde igual, com o envio fictício de sempre. **AUTH-04: a variação não pode ser criada pela API, pelo manager nem por `update()`, e a recuperação vai para a dona** |
+| Admin, model e caminhos diretos (3) | Formulários do Django Admin: grava canônico, e duplicata, Unicode, largura total e invisível dão **um** erro no campo. Manager e `save()`. `update()` e `bulk_create()`, que contornam o `save()`, são recusados pelo banco |
+| `IntegrityError` (3) | Corrida simulada (validador desligado): o 400 do validador nos três fluxos, com a transação externa utilizável. Outro `IntegrityError` não vira e-mail duplicado (500 sem a mensagem). Respostas iguais com `DEBUG` True e False |
+| Isolamento (1) | O e-mail de B, em qualquer caixa, não entra em A; a lista de A só tem A; o login normalizado leva à barbearia certa |
+| Limites existentes (1) | 31.3 |
+| **Concorrência real, só PostgreSQL** (3) | Duas threads passam juntas pelo `UniqueValidator` (barreira) e gravam ao mesmo tempo: cadastros públicos, admins de barbearias diferentes e trocas de e-mail. Sempre um sucesso e um 400 com a mensagem de duplicidade, nunca 500, e uma conta só |
+| **Equivalência, só PostgreSQL pt_BR** (2) | `lower()` igual em todo o ASCII. A faixa `[!-~]` exata em todos os pontos de código. Toda forma canônica satisfaz o `CHECK` no banco. Se o banco de teste não for pt_BR, o teste é pulado e informa isso; aqui rodou em pt_BR |
+| Migração (4) | Dados antigos válidos são convertidos. Colisões interrompem sem alterar nada e mostram só ids. E-mail fora da faixa interrompe. Reversão retira as restrições e não recupera a grafia |
+
+**Resultados com o código final:**
+
+| Execução | Resultado |
+|---|---|
+| Testes novos, código anterior | Falham na importação: `accounts.emails` não existia |
+| Testes novos, SQLite | 41 OK (5 pulados: os 3 de concorrência e os 2 de equivalência exigem PostgreSQL), também com `DEBUG=True` |
+| Testes novos, **PG 18.3 pt_BR** | **41 OK, nenhum pulado** |
+| Suíte completa, SQLite | **521 OK** (14 pulados: 9 que já existiam e 5 novos) |
+| Suíte completa, PG 18.3 pt_BR | **521 OK** |
+| Suíte completa, PG 18.3 pt_BR, `DEBUG=False` também na importação | **521 OK** |
+| Novos, isolamento, permissões, PER-13, SEC-10, TEN-02, renderizadores, mitigação D e autenticação, `--debug-mode` | **211 OK** |
+| `check`; `makemigrations --check`; `check --deploy` | Sem problemas; "No changes detected"; só o W021 (HSTS preload), que já existia |
+| Frontend | 45 testes, `tsc -b`, ESLint e build OK; nenhum arquivo alterado |
+
+**Demonstrações HTTP no PG 18.3 pt_BR** (código anterior × corrigido, `DEBUG` True e False; `api/`):
+
+| Demonstração | Anterior | Corrigido |
+|---|---|---|
+| AUTH-04: terceiro cadastra `Cliente.B@beta.test` | 201; a recuperação da vítima gera o token da **conta do terceiro**; usá-lo troca a senha dele | **400**; a recuperação gera o token da **vítima**; usá-lo troca a senha dela (login com a senha nova: 200) |
+| AUTH-04: variação criada por um admin em outra barbearia | 201; desvia a recuperação do admin de B | **400**; não desvia |
+| AUTH-05: matriz de 3 fluxos × 10 variações | 7 duplicatas, 2 respostas 500, domínio em maiúsculas gravado na edição | **0 duplicatas, 0 respostas 500**, tudo gravado na forma canônica; idêntico com `DEBUG=True` |
+| Login com a senha certa e outra caixa | 401 | **200** |
+| Login logo após o cadastro com o domínio em maiúsculas | 401 | **200** |
+| 15 pares de pedidos simultâneos (cadastro, criação, troca) | Um sucesso e um **500** em 15 de 15; 17 `IntegrityError` no log | Um sucesso e um **400** em 15 de 15, nas duas instâncias; 0 `IntegrityError` no log |
+| Recuperação com qualquer caixa ou espaços | A conta certa, quando não havia variação gravada | A conta certa, sempre |
+
+### 31.7 Riscos restantes
+
+1. **A migração não está no banco real.** Precisa de autorização, de backup (`pg_dump -Fc`) e de uma janela de implantação. Pela seção 29, nada seria convertido, mas a verificação dentro da migração protege contra mudanças desde então.
+2. **O código pode ir antes da migração.** Pela seção 29, todos os e-mails reais já estão na forma canônica, então o login e a recuperação funcionam. A corrida dá 400 pela `UNIQUE (email)` que já existe. Só os caminhos que contornam a aplicação ficam sem `CHECK` até a migração. O recomendado continua sendo implantar os dois juntos.
+3. **DB-02:** o índice `UNIQUE (LOWER(email))` depende da ordenação do banco, que avisa versão 2.43 × 2.44. Com só ASCII gravado, o `lower()` não depende disso na prática, mas um `REINDEX` (não executado, não autorizado) continua recomendado, junto com o `REFRESH COLLATION VERSION`, numa etapa própria.
+4. **Mudança de comportamento da API:** e-mails com acento, domínio Unicode ou invisíveis passam a receber 400. A interface já os recusava, e o banco real não tem nenhum. Domínios internacionais continuam aceitos em punycode.
+5. **Sintaxe:** o manager e o `save()` aplicam a regra de forma e de caixa, mas não o `EmailValidator`, como antes. Pela API e pelo Django Admin, a sintaxe continua validada; pelo shell, o banco garante a forma, não a sintaxe.
+6. **Fora do escopo, continuam abertos:**
+   - **TEN-03:** o oráculo continua abaixo do limite. As variações de caixa agora dão o mesmo 400 do e-mail exato, sem informação nova, e o oráculo pelo 500 acabou.
+   - **SEC-13, SEC-05, SEC-12, TEN-04, PROD-01 e SEC-08** (sem verificação de e-mail no cadastro).
+
+### 31.8 Situação e contagem
+
+- **AUTH-04 (P2) e AUTH-05 (P3): ✅ resolvidos e verificados no ambiente de testes** (PostgreSQL 18.3 `pt_BR.UTF-8` descartável e SQLite). A proteção definitiva no banco real depende de aplicar a `accounts.0006`, o que **não** foi autorizado nem feito.
+- **Banco real:** não foi acessado nesta etapa. Continua sem a `accounts.0006`.
+
+| | Após a mitigação D | Após o AUTH-04 e o AUTH-05 |
+|---|---|---|
+| P0 | 0 | 0 |
+| P1 | 3 | 3 (BUS-06 parcial, PROD-01, AUTH-01) |
+| P2 | 30 | 29 (−AUTH-04) |
+| P3 | 39 | 38 (−AUTH-05) |
+| **Abertos** | 63 dos 70 originais + 9 novos = 72 | **63 dos 70 originais + 7 novos = 70** |
+
+**Próximo passo:** aguarda autorização para planejar a janela de implantação (backup, aplicação da `accounts.0006` no banco real e smoke test). Nada foi executado no banco real.
+
+---
+
+## 32. Revisão final do AUTH-04 e do AUTH-05 e plano de implantação da `accounts.0006` — 15/11/2026
+
+**Escopo autorizado:** fazer uma revisão técnica independente das alterações da seção 31 e preparar o plano de uma futura implantação da `accounts.0006` no banco real. Era só leitura, análise e planejamento.
+
+**Restrições cumpridas:**
+
+- nenhuma conexão ao banco real, nenhuma consulta nele e nenhuma migração aplicada;
+- nenhum código, teste ou migração alterado;
+- nenhum dos comandos do plano executado;
+- `.env`, PROD-01, TEN-03, SEC-13, SEC-05, SEC-12, TEN-04 e SEC-08 intactos;
+- sem commit nem deploy.
+
+Os arquivos do plano (consultas, wrapper de credenciais, settings do ensaio e roteiro de fumaça) estão em [`docs/auditoria/evidencias-2026-11-15/auth-04-05-revisao-e-plano/`](auditoria/evidencias-2026-11-15/auth-04-05-revisao-e-plano/README.md) e só passaram por análise de sintaxe.
+
+### 32.1 Resultado da revisão
+
+**Nenhum critério de parada foi atingido.** Não há erro na migração, inconsistência entre modelo e migração, risco de perda de dados, problema de concorrência, teste ausente que comprometa a segurança nem alteração fora do escopo. As observações de 32.2 não bloqueiam e foram incorporadas ao plano.
+
+**Código:**
+
+| # | Ponto revisado | Conclusão |
+|---|---|---|
+| 1 | Mesma normalização em todos os caminhos de cadastro e edição | **Sim.** Os três serializers de usuário geram o campo como `EmailNormalizadoField` (via `EmailCanonicoMixin`). O manager (`normalize_email`) e o `User.save()` usam `normalizar_email`, e o Django Admin, o `User.clean()`. Todos chamam `accounts.emails.forma_canonica`. Não há outra gravação nem busca por e-mail no código de produção: a única busca é a da recuperação, já na forma canônica |
+| 2 | Unicode recusado antes de converter | **Sim.** `forma_canonica` faz `strip()`, checa `[!-~]+` com `fullmatch` e só então chama `lower()`. Teste: nenhum dos 1.112.063 pontos de código fora do ASCII passa, e o Kelvin (U+212A, que viraria "k") é recusado. O NFKC herdado do `AbstractBaseUser.clean()` foi substituído |
+| 3 | Valores que não são texto | **Sim.** O campo da API recusa com 'invalid' antes de qualquer conversão; `null` e vazio continuam 'null' e 'blank'. O teste compara com o `EmailField` antigo, entrada por entrada. Manager e `save()`: `ValidationError`. Login: conta inexistente |
+| 4 | Login e recuperação com a mesma regra | **Sim.** Login pelo `get_by_natural_key` (forma canônica, igualdade exata); recuperação pelo `EmailNormalizadoField` |
+| 5 | A recuperação não seleciona outra conta | **Sim.** `User.objects.get(email=<canônico>, is_active=True)`, sem `iexact` nem `.first()`. A unicidade (`unique=True` e `UNIQUE (LOWER(email))`) impede duas contas candidatas. Demonstrado: o token vai para a vítima, e usá-lo troca a senha dela |
+| 6 | `IntegrityError`: só a unicidade pertinente | **Sim.** `e_violacao_da_unicidade_do_email` aceita só `accounts_user_email_key` e `accounts_user_email_lower_unico`, pelo `diag.constraint_name` no PostgreSQL, que independe do idioma das mensagens (validado com o servidor em pt_BR). Qualquer outro, inclusive o `CHECK`, é levantado de novo; há teste de que ele não vira "e-mail duplicado". `AdminIntegrityError` herda de `ValidationError`, não de `IntegrityError`, então a ordem dos `except` não os mistura |
+| 7 | Transações íntegras depois do erro | **Sim.** Cadastro, criação e edição gravam dentro de `transaction.atomic()`. Num banco sem transação externa, o erro vem no `INSERT`/`UPDATE`, porque as restrições de unicidade do PostgreSQL não são adiáveis. Teste: a transação externa segue utilizável depois do 400 |
+| 8 | Erros do Django Admin | **Sim.** Um erro só no campo, sem nome interno de restrição (ajustado na seção 31), com teste |
+| 9 | Limites de requisição | **Sem mudança de comportamento.** `config/settings.py` não mudou nesta frente. A única mudança é em `tenta_trocar_email`: reenviar o próprio e-mail em outra caixa deixa de contar. Os 28 testes da mitigação D passam, e há teste com as taxas reais |
+| 10 | Caminhos que contornam o `save()` | **Avaliados.** O projeto não usa `update()`, `bulk_create()`, `bulk_update()`, `get_or_create()` nem `update_or_create()` com e-mail. O `CHECK` e o `UNIQUE (LOWER(email))` recusam esses caminhos (teste com `update()` e `bulk_create()`) |
+
+**Migração `accounts.0006_email_normalizado`:**
+
+| Ponto | Conclusão |
+|---|---|
+| Detecção de colisões antes de qualquer alteração | **Sim.** Ela monta as listas e levanta a exceção antes do laço de `update()` |
+| Problemas identificados só por ids | **Sim.** A mensagem só tem ids; o teste verifica que não há `@` nem nomes |
+| Mesma regra do Python | **Sim.** Importa a mesma `forma_canonica` |
+| `CHECK` = faixa aprovada | **Sim.** No PostgreSQL: `CHECK ((((email)::text = lower((email)::text)) AND ((email)::text ~ '^[!-~]+$'::text)))` |
+| `UNIQUE (LOWER(email))` | **Sim.** `CREATE UNIQUE INDEX accounts_user_email_lower_unico ON accounts_user ((LOWER(email)))` |
+| Estado das operações = modelos | **Sim.** `makemigrations --check`: "No changes detected", reconfirmado nesta etapa |
+| Reversão retira as restrições | **Sim.** Testado e validado com `migrate accounts 0005` |
+| Reversão não promete a grafia original | **Sim.** Está documentado na migração e na seção 31 |
+| Perda de dados fora da normalização | **Não há.** Só o campo `email` é atualizado, e só quando a forma canônica difere. Não há `DELETE`. A migração é atômica |
+
+**Aplicação ao estado atual do banco real (sem conectar):**
+
+- A consulta da seção 29 encontrou 8 contas, 0 a normalizar, 0 fora do ASCII e 0 colisões. Com isso, a migração não converteria nada e criaria as duas restrições.
+- **Lacuna (32.2, O1):** a consulta da seção 29 não verificou espaço interno, controles ASCII nem e-mail vazio. Se houver algum caso assim, a migração **se interrompe sem alterar nada**. É seguro, mas a migração não seria aplicada.
+- A pré-verificação do plano (P2) usa a expressão exata do `CHECK` e resolve isso. O ensaio na cópia restaurada (P6) dá a resposta definitiva antes de tocar o banco real.
+
+### 32.2 Observações (nenhuma bloqueia; todas foram incorporadas ao plano)
+
+1. **O1, verificação da seção 29 incompleta para a regra exata.**
+   - Faltaram espaço interno, controles ASCII (`\t`, por exemplo) e e-mail vazio.
+   - Risco: só de interrupção, sem perda.
+   - Tratamento: a consulta 4 de `01-pre-verificacao` e o ensaio P6.
+2. **O2, nome da restrição de unicidade no banco real.**
+   - A conversão do `IntegrityError` da duplicata exata depende do nome `accounts_user_email_key`. O PostgreSQL gera esse nome a partir da `accounts.0001`, e ele foi confirmado nos bancos descartáveis.
+   - No real, é confirmado só por leitura em P2. Se for diferente, a duplicata simultânea voltaria a dar 500, sem risco de dado. **Nesse caso, interromper.**
+3. **O3, a migração importa `forma_canonica` do app.**
+   - É o que garante a mesma regra hoje. Mas mudar essa função depois mudaria o comportamento da `0006` em bancos novos.
+   - **Uma mudança futura na regra deve vir com uma migração nova, não com edição silenciosa da função.**
+4. **O4, travas da migração.**
+   - Na mesma transação, o `ALTER TABLE … ADD CONSTRAINT … CHECK` pega `ACCESS EXCLUSIVE`, e o `CREATE UNIQUE INDEX` bloqueia gravações em `accounts_user` até o `COMMIT`, o que inclui o login.
+   - Com 8 linhas, a duração é de milissegundos. O risco real é **esperar** na fila atrás de uma transação aberta e enfileirar os outros pedidos.
+   - Tratamento: aplicação parada, verificação de sessões e travas (P2 e P8) e `lock_timeout=5s` na sessão do `migrate`.
+5. **O5, compatibilidade entre código e migração.**
+   - **Código novo sem a `0006`: compatível.** Hoje os e-mails do banco real já estão na forma canônica (seção 29), e a corrida dá 400 pela `UNIQUE (email)` que já existe.
+   - **Código antigo com a `0006`: incompatível.** O `create_user` antigo gravaria maiúsculas na parte local, e o `CHECK` responderia 500.
+   - Por isso, depois da migração, só o código novo pode rodar. Na reversão, primeiro reverter a `0006`, depois voltar o código.
+6. **O6, buscas futuras por e-mail.**
+   - Um `filter(email=…)` ou `get_or_create(email=…)` com texto não normalizado não acharia a conta.
+   - Não há nenhum hoje. Orientação: sempre `forma_canonica`.
+7. **O7, dependências da migração.**
+   - O `makemigrations` acrescentou `barbershops.0006` (aplicada no banco real em 13/11) e `auth.0012`.
+   - No banco real há a `token_blacklist.0013` aplicada sem arquivo (ENV-01). O Django ignora migração aplicada sem arquivo.
+   - P2 confirma que o `migrate --plan` lista **só** a `accounts.0006`.
+8. **O8, mensagens.** A API diz "usuário com este e-mail já existe." e o Django Admin, "Usuário com este E-mail já existe.". Já era assim; não é problema novo.
+
+### 32.3 Testes e evidências
+
+- **Reconfirmado nesta etapa** (`testes/reconfirmacao-sqlite.txt`): os arquivos de código e de teste são idênticos aos do fim da seção 31, conferidos por hash. Suíte completa no SQLite: **521 OK** (14 pulados). `makemigrations --check`: "No changes detected". `check`: sem problemas.
+- **Evidências da seção 31, que valem para o código atual** (`auth-04-05-implementacao/`):
+  - PG 18.3 `pt_BR.UTF-8`: **521 OK**; **521 OK** com `DEBUG=False`; 41 novos sem nenhum pulado, inclusive concorrência real e equivalência; 211 de isolamento e limites com `DEBUG=True`;
+  - validação da migração pelo `migrate` real (interrupção com ids, aplicação, reversão e conversão);
+  - demonstrações HTTP de antes e depois: 7 → 0 duplicatas; 500 → 400 em 15 de 15 pedidos simultâneos; login com outra caixa 401 → 200.
+- **Ausências relevantes:**
+  - não há teste automatizado com dados do banco real, que é coberto pelo ensaio P5 a P7;
+  - não há teste do nome da restrição no banco real, que é coberto por P2.
+  - Nenhuma das duas compromete a segurança, porque o plano as verifica antes da aplicação.
+
+### 32.4 Fluxos de cadastro (situação explícita)
+
+| Fluxo | Situação |
+|---|---|
+| **Cadastro público do dono** | **Funciona e está coberto.** Cadastro sem barbearia → login com o texto digitado (agora em qualquer caixa) → onboarding (cria a barbearia e vira admin) → serviços, barbeiros, clientes e agendamentos. Teste de regressão `test_dono_cadastra_entra_cria_a_barbearia_e_agenda` |
+| **Cadastro administrativo do cliente** | **Funciona e está coberto.** O admin cria o cliente na própria barbearia; o cliente entra (em qualquer caixa) e agenda. Teste `test_cliente_cadastrado_pelo_admin_entra_com_outra_caixa_e_agenda` |
+| **Cadastro autônomo do cliente vinculado a uma barbearia** | **Não existe no produto atual, e está fora do escopo.** O cadastro público não associa a conta a uma barbearia existente. A conta sem barbearia é recusada no agendamento (TEN-02), e o frontend a manda para o onboarding. É o **PROD-01 (P1), que continua aberto** e não foi alterado |
+
+### 32.5 Plano de implantação (não executado)
+
+**Princípios:**
+
+- tudo é ensaiado antes numa cópia descartável restaurada do backup novo;
+- no banco real, só leitura até o passo P8;
+- a aplicação fica parada durante a migração;
+- o código novo sobe logo depois;
+- qualquer critério de 32.6 interrompe.
+
+**Variáveis do roteiro** (a definir na hora, num shell `bash`):
+
+```bash
+PROJ=/home/lucasrafael/arquivos_faculdade/saas_barbearia
+EVID=$PROJ/docs/auditoria/evidencias-2026-11-15/auth-04-05-revisao-e-plano
+BK=$HOME/backups/barberpro
+ENSAIO=<diretório NOVO e vazio no diretório temporário da sessão>   # cluster descartável e cópia restaurada
+TS=$(date +%Y%m%d_%H%M%S)
+ARQ=$BK/barbershop_db_${TS}_antes_accounts0006.dump                  # nunca sobrescreve o backup de 13/11
+```
+
+Na tabela, "Real" é o banco `barbershop_db` (PostgreSQL 18.3 do host, porta 5432); "Descartável" é o cluster do ensaio (`127.0.0.1:55432`); "—" é sem banco.
+
+| Passo | Comando futuro | O que faz | Diretório | Leitura/escrita | Banco |
+|---|---|---|---|---|---|
+| **P0 Pré-requisitos** | Autorização expressa do dono para: janela, backup, ensaio com cópia de dados reais, aplicação e fumaça no real | — | — | — | — |
+| P0 | `pg_dump --version; pg_restore --version; psql --version` | Confirma clientes 18.x, compatíveis com o servidor 18.3 | qualquer | Leitura | — |
+| P0 | `locale -a \| grep -x pt_BR.utf8` | Confirma o locale do ensaio | qualquer | Leitura | — |
+| P0 | `tar --exclude=./venv --exclude=./venv312 --exclude=./frontend/node_modules --exclude=./frontend/dist --exclude=./.git --exclude=./.env --exclude=./media --exclude='*.sqlite3' --exclude=./test.db -czf $BK/codigo_${TS}.tar.gz .` (antes, `test ! -e $BK/codigo_${TS}.tar.gz`) | Retrato do código atual, para eventual retorno, sem segredos | `$PROJ` | Escrita só do arquivo | — |
+| **P1 Disco e disponibilidade** | `df -h $BK $ENSAIO` | Espaço livre: exigir pelo menos 10 vezes o tamanho do banco (P2) e 1 GB | qualquer | Leitura | — |
+| P1 | `pg_isready -h localhost -p 5432` | O servidor aceita conexões (sem login) | qualquer | Leitura | Real (sem autenticar) |
+| P1 | `pgrep -fa "manage.py runserver\|gunicorn"` | Lista os processos da aplicação, para pará-los na janela | qualquer | Leitura | — |
+| **P2 Pré-verificação** | `venv/bin/python $EVID/scripts/com_credenciais_da_app.py --somente-leitura -- psql -X -v ON_ERROR_STOP=1 -f $EVID/sql/01-pre-verificacao-somente-leitura.sql` | Identidade, migrações, restrições, regra exata do `CHECK` (só ids), sessões e travas | `$PROJ` | **Leitura** (`READ ONLY`) | **Real** |
+| P2 | `venv/bin/python $EVID/scripts/com_credenciais_da_app.py --somente-leitura -- psql -X -v ON_ERROR_STOP=1 -f $EVID/sql/03-contagem-de-linhas-somente-leitura.sql` | Contagens, guardadas para comparar com a cópia | `$PROJ` | **Leitura** | **Real** |
+| P2 | `PGOPTIONS='-c default_transaction_read_only=on' venv/bin/python manage.py showmigrations accounts barbershops` e `PGOPTIONS='-c default_transaction_read_only=on' venv/bin/python manage.py migrate --plan` | Estado das migrações; o plano deve listar **só** `accounts.0006` | `$PROJ` | **Leitura** (sessão somente leitura) | **Real** |
+| **P3 Backup novo** | `mkdir -p $BK && chmod 700 $BK && test ! -e "$ARQ"` | Garante que não sobrescreve nada | qualquer | Escrita local | — |
+| P3 | `venv/bin/python $EVID/scripts/com_credenciais_da_app.py --somente-leitura -- pg_dump -Fc --no-password -f "$ARQ" && chmod 600 "$ARQ"` | Backup completo em formato custom | `$PROJ` | **Leitura** no banco; escrita só do arquivo | **Real** |
+| **P4 Integridade do backup** | `ls -l "$ARQ"; sha256sum "$ARQ" \| tee "$ARQ.sha256"; pg_restore --list "$ARQ" > /dev/null && echo LISTA_OK; pg_restore --list "$ARQ" \| grep -c 'TABLE DATA'; pg_restore --list "$ARQ" \| grep 'TABLE DATA public accounts_user'` | Arquivo não vazio, hash guardado, índice legível, tabelas presentes | qualquer | Leitura do arquivo | — |
+| **P5 Restauração de teste** | `initdb -D $ENSAIO/pgdata -U smoke --auth=trust -E UTF8 --locale=pt_BR.UTF-8 --locale-provider=libc`, mais `listen_addresses='127.0.0.1'`, `port=55432` e `unix_socket_directories=''` no `postgresql.conf`; depois `pg_ctl -D $ENSAIO/pgdata -l $ENSAIO/pg.log -w start` | Cluster descartável igual ao real (pt_BR, libc) | qualquer | Escrita | **Descartável** |
+| P5 | `psql -X -h 127.0.0.1 -p 55432 -U smoke -d postgres -c "create database ensaio_restaurado template template0"` e `pg_restore --no-owner --no-privileges --exit-on-error -h 127.0.0.1 -p 55432 -U smoke -d ensaio_restaurado "$ARQ"` | Restaura o backup na cópia | qualquer | Escrita | **Descartável** |
+| P5 | `psql -X -h 127.0.0.1 -p 55432 -U smoke -d ensaio_restaurado -f $EVID/sql/03-contagem-de-linhas-somente-leitura.sql` e o mesmo com `01-pre-verificacao` | As contagens e a pré-verificação devem ser **idênticas** às de P2 | qualquer | Leitura | **Descartável** |
+| **P6 Ensaio da migração** | `K=$(python3 -c 'import secrets;print(secrets.token_urlsafe(64))')`; `SECRET_KEY=$K DEBUG=False PYTHONPATH=$EVID/scripts:. venv/bin/python manage.py migrate --plan --settings=ensaio_settings` | Mesmo plano de P2, agora na cópia. A `SECRET_KEY` aleatória impede que um token do ensaio valha na aplicação real | `$PROJ` | Leitura | **Descartável** |
+| P6 | `SECRET_KEY=$K DEBUG=False PGOPTIONS='-c lock_timeout=5s -c statement_timeout=60s' PYTHONPATH=$EVID/scripts:. venv/bin/python manage.py migrate accounts 0006 --settings=ensaio_settings` | **Aplica a 0006 na cópia** dos dados reais | `$PROJ` | Escrita | **Descartável** |
+| P6 | `psql -X -h 127.0.0.1 -p 55432 -U smoke -d ensaio_restaurado -f $EVID/sql/02-pos-verificacao-somente-leitura.sql` | Restrições criadas e válidas; 0 fora da regra | qualquer | Leitura | **Descartável** |
+| **P7 Fumaça na cópia** | `SECRET_KEY=$K DEBUG=False PYTHONPATH=$EVID/scripts:. venv/bin/python manage.py runserver 127.0.0.1:8899 --noreload --settings=ensaio_settings` (em segundo plano) e `python3 -I $EVID/scripts/fumaca.py completo http://127.0.0.1:8899` | Cadastro, login, onboarding, agendamento (dono e cliente), recuperação, variação e não ASCII recusados | `$PROJ` | Escrita (dados fictícios) | **Descartável** |
+| P7 | Encerrar o `runserver` pelo PID; `pg_ctl -D $ENSAIO/pgdata -m fast -w stop && rm -rf $ENSAIO` | **Apaga a cópia**, que tem dados reais | qualquer | Escrita | **Descartável** |
+| **P8 Aplicação** | Parar a aplicação. Repetir as consultas 5 e 6 de `01-pre-verificacao` (como em P2): nenhuma sessão da aplicação e nenhuma trava | Janela limpa | `$PROJ` | Leitura | **Real** |
+| P8 | `PGOPTIONS='-c lock_timeout=5s -c statement_timeout=60s' venv/bin/python manage.py migrate accounts 0006` | **Aplica a 0006.** Esperado: "Applying accounts.0006_email_normalizado... OK" | `$PROJ` | **ESCRITA** | **Real** |
+| **P9 Pós-verificação** | `venv/bin/python $EVID/scripts/com_credenciais_da_app.py --somente-leitura -- psql -X -v ON_ERROR_STOP=1 -f $EVID/sql/02-pos-verificacao-somente-leitura.sql` | `CHECK` e `UNIQUE (LOWER(email))` presentes e válidos; 0 fora da regra; mesmo número de contas | `$PROJ` | **Leitura** | **Real** |
+| P9 | `PGOPTIONS='-c default_transaction_read_only=on' venv/bin/python manage.py showmigrations accounts` e `venv/bin/python manage.py check` | `[X] 0006_email_normalizado`; sem problemas | `$PROJ` | Leitura | **Real** |
+| **P10 Subir o código novo** | Iniciar a aplicação pelo mesmo comando de sempre, a partir de `$PROJ` (o código novo já está na árvore) | — | `$PROJ` | Uso normal | **Real** |
+| **P11 Fumaça no real** | `FUMACA_EMAIL_EXISTENTE=<e-mail do dono, digitado na hora> python3 -I $EVID/scripts/fumaca.py sem-escrita http://<endereço da API>` | API no ar; login errado 401; não ASCII 400; variação de caixa de e-mail existente 400 (sem criar conta); recuperação de inexistente 204 | qualquer | **Nenhum pedido grava no banco** | **Real** |
+| P11 | **Com autorização expressa, pela interface:** login do dono com o e-mail em outra caixa; pedido de recuperação do próprio e-mail; um agendamento de teste com um cliente de teste, cancelado em seguida | Fluxos reais de ponta a ponta | navegador | **ESCRITA** (token de sessão, agendamento) | **Real** |
+| **P12 Registro** | Guardar nas evidências só saídas sem dados pessoais (P2 sem as listas de ids, se o dono preferir; P9; P11), o hash do backup e o horário. Atualizar o relatório de forma aditiva | — | `$PROJ/docs` | Escrita de documentos | — |
+
+**Coordenação entre código e migração** (32.2, O5):
+
+- **A ordem é:** parar a aplicação → P8 → P9 → P10 (código novo).
+- **O código novo já está na árvore e é compatível com o banco sem a `0006`.** Se a janela não acontecer antes de 17/11, a aplicação pode rodar como está.
+- **O código antigo não pode rodar com a `0006` aplicada.**
+- **O código não tem commit.** Decidir se faz commit antes da janela é do dono e está fora deste plano. O retrato de P0 serve de referência.
+
+### 32.6 Critérios objetivos de interrupção
+
+Qualquer item abaixo **interrompe** a implantação. Não se tenta de novo às cegas; registra-se e volta-se ao dono.
+
+1. **P0 e P1:**
+   - falta de autorização;
+   - cliente PostgreSQL abaixo de 18;
+   - sem `pt_BR.utf8`;
+   - espaço livre menor que 10 vezes o banco ou menor que 1 GB;
+   - servidor indisponível.
+2. **P2, identidade e migrações:**
+   - banco diferente de `barbershop_db`, versão diferente de 18.3 ou porta diferente de 5432;
+   - `accounts.0006` já presente;
+   - `migrate --plan` com qualquer outra migração além da `accounts.0006`;
+   - `barbershops.0006` ou `auth.0012` ausentes.
+3. **P2, restrições e dados:**
+   - restrição de unicidade do e-mail com nome diferente de `accounts_user_email_key` (O2);
+   - `violariam_o_check` > 0, `vazios` > 0 ou grupos > 0. Nesse caso, vai para decisão do dono, como na seção 28.5; não se "migra para ver".
+4. **P2 e P8, sessões e travas:**
+   - sessão da aplicação ativa;
+   - qualquer `idle in transaction`;
+   - transação aberta há mais de 60 segundos;
+   - trava em `accounts_user`.
+5. **P3 e P4, backup:**
+   - `pg_dump` com código de saída diferente de 0;
+   - arquivo vazio;
+   - `pg_restore --list` com erro;
+   - `accounts_user` ausente da lista;
+   - hash não registrado.
+6. **P5, restauração:**
+   - erro do `pg_restore`;
+   - contagens diferentes das de P2;
+   - pré-verificação diferente da de P2.
+7. **P6 e P7, ensaio:**
+   - a migração falha ou é interrompida na cópia;
+   - a pós-verificação falha;
+   - qualquer falha no `fumaca.py completo`.
+8. **P8, aplicação:**
+   - qualquer erro, `lock_timeout` ou `statement_timeout`.
+
+   A migração é atômica: o PostgreSQL desfaz tudo. Seguir R1.
+9. **P9, pós-verificação:**
+   - restrição ausente;
+   - índice com `indisvalid` falso;
+   - contas fora da regra;
+   - número de contas diferente;
+   - `0006` não registrada.
+
+   Seguir R2.
+10. **P11, fumaça no real:**
+    - qualquer 500;
+    - falha de login de conta existente;
+    - recuperação diferente de 204;
+    - falha de agendamento.
+
+    Seguir R3.
+
+### 32.7 Procedimento de recuperação
+
+| Caso | Procedimento | Leitura/escrita | Banco |
+|---|---|---|---|
+| **R1. A migração falhou em P8** | Nada a desfazer: a migração é atômica e o PostgreSQL faz o `ROLLBACK`. Confirmar com `01-pre-verificacao` (a `accounts` continua em 0005 e não há restrição nova). A aplicação pode subir com o código novo, que é compatível sem a `0006`. Investigar na cópia (P5 a P7) antes de qualquer nova tentativa | Leitura | Real |
+| **R2. Pós-verificação ou comportamento errado com a `0006` aplicada** | `PGOPTIONS='-c lock_timeout=5s' venv/bin/python manage.py migrate accounts 0005`, a partir de `$PROJ`. A reversão retira as duas restrições. Os e-mails convertidos **não** voltam à grafia original; pela seção 29, nenhum seria convertido. Depois, `01-pre-verificacao` e subir o código novo | **Escrita** | Real |
+| **R3. O código novo falha na fumaça** | Parar a aplicação. Primeiro **R2** (nunca o código antigo com a `0006`). Depois, se o dono decidir voltar o código, extrair o retrato de P0 **num diretório separado** (`mkdir <novo>; tar -xzf $BK/codigo_${TS}.tar.gz -C <novo>`), sem sobrescrever a árvore de trabalho com as alterações não commitadas, e rodar a aplicação de lá, com o mesmo `.env` (um link simbólico, sem copiar nem alterar). Exige autorização | Escrita local | Real (uso normal) |
+| **R4. Dano de dados (último recurso)** | Só com autorização expressa e a aplicação parada. Restaurar o backup de P3: `pg_restore --clean --if-exists --no-owner --single-transaction -d barbershop_db "$ARQ"`, com as credenciais da aplicação. **Perde tudo o que foi gravado depois do backup.** Alternativa menos destrutiva: restaurar num banco novo e trocar o `DATABASE_URL`, o que exige alterar o `.env` e outra autorização, e talvez um papel com `CREATEDB`. O backup de 13/11 continua guardado como segunda linha | **ESCRITA destrutiva** | Real |
+
+### 32.8 Riscos
+
+| Risco | Probabilidade | Mitigação |
+|---|---|---|
+| A migração se interrompe por dado fora da regra não visto na seção 29 (O1) | Baixa | P2 com a regra exata e o ensaio P6. Interromper não altera nada |
+| Fila de travas atrás de uma transação aberta (O4) | Baixa com a aplicação parada | P2 e P8 (sessões e travas); `lock_timeout=5s` |
+| Duplicata simultânea voltar a dar 500 por nome de restrição diferente (O2) | Muito baixa | P2 confirma o nome; se for diferente, interromper |
+| Código antigo rodando com a `0006` (O5) | Baixa | Ordem de 32.5; R3 começa por R2 |
+| Links de recuperação pendentes invalidados | Nula hoje (0 conversões) | — |
+| Cópia restaurada com dados reais exposta | Baixa | Fica só no diretório temporário, com e-mail em `locmem`, `SECRET_KEY` aleatória, e é apagada no fim de P7; nenhuma saída com dados pessoais vai para as evidências |
+| DB-02 (ordenação 2.43 × 2.44) | Baixa para a `0006` (só ASCII) | `REINDEX` e `REFRESH COLLATION VERSION` numa etapa própria, não incluída aqui |
+| Apresentação de 17/11 | — | Se não houver janela segura antes, manter o código novo sem a `0006` (compatível); a garantia do banco fica para depois |
+
+### 32.9 Situação
+
+- **AUTH-04 (P2) e AUTH-05 (P3): ✅ resolvidos e verificados no ambiente de testes** (seção 31). A revisão independente confirmou a implementação. A garantia no banco real depende da `accounts.0006`, **não aplicada**.
+- **PROD-01 (P1): aberto.** O cadastro autônomo do cliente vinculado a uma barbearia não existe e não foi alterado.
+- **Banco real:** não foi acessado nesta etapa. Sem a `accounts.0006`.
+- **Contagem:** sem mudança, **70 abertos**.
+
+**Próximo passo:** aguarda autorização para executar o plano de 32.5, ou parte dele, por exemplo só P0 a P7 (backup e ensaio, sem tocar no esquema do banco real).
+
+---
+
+## 33. Execução de P0 a P7 do plano da `accounts.0006` — 15/11/2026
+
+**Escopo autorizado:** P0 a P7 do plano da seção 32:
+
+- cópia local do código;
+- consultas só de leitura no banco real;
+- backup novo e sua verificação;
+- restauração em PostgreSQL descartável;
+- migração e testes de fumaça **só na cópia**.
+
+**Não autorizado e não executado:** P8, P9, P10, P11 e P12, e qualquer escrita no banco real.
+
+Evidências em [`docs/auditoria/evidencias-2026-11-15/auth-04-05-p0-p7/`](auditoria/evidencias-2026-11-15/auth-04-05-p0-p7/README.md).
+
+### 33.1 Resumo
+
+| Etapa | Resultado |
+|---|---|
+| **P0 Preparação** | Diretório novo e privado (0700) `/home/lucasrafael/backups/barberpro/accounts0006_20261115_224006/`. Cópia isolada do backend (107 arquivos, idênticos ao original por SHA-256), sem `.env`. Retrato do código para eventual retorno (349.115 bytes, 0600, sem `.env*`). O primeiro retrato foi refeito: 33.3. Repositório original e `git status` preservados |
+| **P1 Servidor** | 353 GB livres em `/home` e 7,3 GB em `/tmp` (o banco tem 9,4 MB). PostgreSQL do host aceitando conexões em 5432; Docker em 5433, não usado. Clientes 18.3, glibc 2.44, `pt_BR.utf8` disponível. Portas 55432 e 8899 livres. Nenhum processo da aplicação rodando. **Identidade configurada confere** (`barbershop_db`, localhost, 5432, usuário esperado), sem exibir credenciais |
+| **P2 Banco real (leitura)** | **Identidade confirmada:** `barbershop_db`, PostgreSQL 18.3, `::1:5432`, usuário esperado, sessão somente leitura, `pt_BR.UTF-8` (libc, versão de ordenação 2.43). `accounts` até a 0005; `barbershops.0006` e `auth.0012` aplicadas. `migrate --plan`: **só a `accounts.0006`**. Restrição de unicidade: **`accounts_user_email_key`**, o nome que o código espera (O2 resolvida). **Regra exata: 8 contas, 8 já canônicas, 0 a normalizar, 0 fora da regra, 0 colisões.** Nenhuma outra sessão, nenhuma trava |
+| **P3 e P4 Backup** | `pg_dump -Fc` em sessão somente leitura: `barbershop_db_20261115_224006_antes_accounts0006.dump`, **63.004 bytes**, 0600, SHA-256 **`5eb831d6b973bd82337d3936efd1b8ef707329cb7e2f2f9f2707b31bbc21af95`**. `pg_restore --list`: código 0, 139 itens, 16 tabelas com dados, as 8 principais presentes. Contagens no banco real idênticas antes e depois. Mesma lista de objetos do backup de 13/11, que continua intacto |
+| **P5 Restauração descartável** | PostgreSQL 18.3, `pt_BR.UTF-8`, libc, glibc 2.44, escutando só em `127.0.0.1:55432`, com marca de identidade. `pg_restore` com código 0, sem mensagens. Isolamento: só `plpgsql`, nenhum servidor externo, e-mail sem saída de rede. **Contagens idênticas** ao banco real; **estrutura idêntica** ao backup (108 objetos); pré-verificações **idênticas** às da P2 |
+| **P6 Ensaio da migração** | Pela própria `forma_canonica` sobre a cópia: 0 fora da regra, 0 a normalizar, 0 colisões. `migrate --plan`: só a `accounts.0006`. **"Applying accounts.0006_email_normalizado... OK".** `CHECK` validado; índice único em `lower(email)` válido e pronto; 0 contas fora da regra; e-mails inalterados. `migrate --check` e `makemigrations --check` sem pendências. **Reversão:** retirou as duas restrições, manteve a `UNIQUE` original e não alterou os e-mails. Reaplicação OK |
+| **P7 Fumaça na cópia** | **12 de 12** do roteiro do plano e **28 de 28** do complemento. **0 respostas 500** e 0 tracebacks no log da API do ensaio |
+| **Banco real** | **Nenhuma escrita.** A conferência final (só leitura) mostra o banco idêntico à P2: `accounts.0006` ausente, nenhuma restrição nova, mesmas contagens |
+| **P8** | **Não executada** |
+
+### 33.2 Detalhes
+
+- **Regra exata em SQL (P2).** O SQL do plano (`01-pre-verificacao`) só verificava se o e-mail **já** estava na forma canônica.
+  - Para a regra **exata** da migração, foi gerado um SQL a partir do próprio Python: `btrim` com os 29 pontos de código que o `str.strip()` remove, a faixa `[!-~]` checada antes da conversão, e `lower()` só no ASCII.
+  - Antes de ir ao banco real, ele foi comparado com `forma_canonica` no banco descartável pt_BR: **3.336.202 casos** (todos os pontos de código em três posições, mais casos fixos), **0 divergências** (`saidas/prova-equivalencia-sql-python.txt`).
+  - Na cópia, a mesma conclusão veio da própria função da migração.
+- **Testes de fumaça (P7)**, todos com dados fictícios e só na cópia:
+  - **roteiro do plano:** cadastro público do dono com maiúsculas; login logo depois, com o mesmo texto; variação de caixa e e-mail não ASCII recusados; onboarding; serviço, barbeiro e cliente criados pelo admin; agendamento pelo dono; login do cliente com outra caixa e agendamento pelo próprio cliente; recuperação com outra caixa;
+  - **complemento:** duas barbearias fictícias. O admin de A só lista contas de A, não lê nem edita o cliente de B (404), só vê a própria barbearia e não cria conta com o e-mail do cliente de B em outra caixa. Edição do próprio e-mail grava a forma canônica, e a edição para o e-mail de outra conta ou para não ASCII dá 400. Cadastro com e-mail inválido (espaço interno, invisível, `İ`, número) dá 400. **Recuperação de senha seguida até o fim, com o e-mail capturado em arquivo local:** destinatário e conta do token conferem; a confirmação troca a senha; login com a senha nova (outra caixa) dá 200 e com a antiga, 401; e-mail inexistente dá 204.
+  - **Configuração:** limites de taxa reais; `SECRET_KEY` aleatória; e-mail em arquivo local (`locmem` no `ensaio_settings`).
+- **Segurança das credenciais:**
+  - as credenciais do banco real só foram lidas pelas settings da aplicação e passadas ao `psql`/`pg_dump` por variáveis de ambiente;
+  - não foram impressas, não estiveram na linha de comando, e não houve `set -x`;
+  - tudo foi gravado com `umask 077`.
+
+### 33.3 Problemas encontrados
+
+1. **O primeiro retrato do código incluía arquivos que deviam ficar de fora.** A lista de exclusões do plano (seção 32.5, P0) não previa:
+   - **`frontend/.env`** (115 bytes; o conteúdo não foi aberto);
+   - uma segunda pasta **`.venv`**;
+   - pastas de ferramentas (`.claude`, `.agents`).
+
+   O arquivo, com 39,6 MB, foi detectado pela própria verificação do script. Depois de conferir que fora criado minutos antes, nesta execução e no diretório novo, foi **apagado junto com o seu `.sha256`**. Não era o backup do banco, que ainda não existia. Ele foi refeito por **lista de inclusão**: backend e fontes do frontend, sem `.env*` (349.115 bytes). **Para uma janela futura, o P0 do plano deve usar a lista de inclusão desta execução** (`scripts/p0_retrato.sh`), e não a de exclusão da seção 32.5.
+2. **Falhas dos scripts desta execução, corrigidas sem efeito em banco:**
+   - o `sha256sum` falhou com entradas que são diretórios, e o script parou antes de criar qualquer coisa;
+   - o CSV da prova de equivalência tratava o campo vazio como `NULL`;
+   - uma limpeza redundante de tabela temporária;
+   - uma conferência no zsh sem divisão de palavras, refeita em `bash`.
+3. **Diferença de tamanho entre os backups:** 119.639 bytes em 13/11 × 63.004 bytes agora. A estrutura dos dois é idêntica: 143 itens, 16 tabelas com dados, mesma lista de objetos. A diferença vem do volume de dados de cada data; a restauração confere com o banco atual.
+4. **Versão de ordenação:** o banco real registra 2.43, e a cópia restaurada nasceu com 2.44 (DB-02, já registrado). Não interfere na `0006`, porque o e-mail fica só em ASCII.
+
+### 33.4 Riscos para a janela de P8
+
+- **Nenhum bloqueio encontrado:**
+  - o estado do banco real é o esperado pelo plano;
+  - a migração aplica e reverte na cópia fiel;
+  - os fluxos funcionam sem 500.
+- **Continuam valendo:**
+  - os critérios de interrupção da seção 32.6, com a pré-verificação **repetida no momento** da janela, já que os dados podem mudar até lá;
+  - a aplicação parada durante a migração;
+  - o código antigo nunca roda com a `0006` aplicada.
+- **O backup desta execução vale como referência deste momento.** O plano prevê um backup novo **na própria janela**, porque o banco pode receber gravações até lá.
+
+### 33.5 Situação
+
+- **AUTH-04 (P2) e AUTH-05 (P3):** resolvidos e verificados no ambiente de testes. **Ensaio de implantação aprovado na cópia fiel do banco real.** A `accounts.0006` **não** foi aplicada no banco real.
+- **PROD-01:** aberto, sem alteração.
+- **Banco real:** sem nenhuma escrita. Backup novo preservado.
+- **Contagem:** sem mudança, 70 abertos.
+
+**Próximo passo:** aguarda autorização expressa e separada para P8 (aplicação no banco real) e as etapas seguintes.
+
+---
+
+## 34. Aplicação da `accounts.0006` no banco real (P8) e etapas P9 a P12 — 15/11/2026
+
+**Autorizações**, em duas mensagens separadas do dono:
+
+1. **P8:** repetir as pré-verificações, fazer um backup imediato e aplicar **só** a `accounts.0006` no banco real, com `lock_timeout=5s`.
+2. **P9 a P12:**
+   - P9: pós-verificação somente leitura;
+   - P10: subir a aplicação;
+   - P11: testes **somente de leitura**, sem POST, PUT, PATCH ou DELETE e sem nada que grave;
+   - P12: este registro.
+
+**Não autorizado e não feito:**
+
+- nenhuma escrita além da própria migração;
+- nenhuma reversão ou restauração;
+- nenhum REINDEX nem tratamento do DB-02;
+- nenhuma alteração de código, `.env` ou dependências;
+- nenhum deploy, commit, push ou merge;
+- PROD-01 não foi implementado.
+
+Evidências em [`docs/auditoria/evidencias-2026-11-15/auth-04-05-p8-p12/`](auditoria/evidencias-2026-11-15/auth-04-05-p8-p12/README.md).
+
+### 34.1 Resumo
+
+| Etapa | Resultado |
+|---|---|
+| **P8 Pré-verificações (leitura)** | **Sem nenhuma divergência em relação ao ensaio P0–P7.** Identidade: `barbershop_db`, PostgreSQL 18.3, `::1:5432`, usuário esperado, `pt_BR.UTF-8`, libc, versão de ordenação 2.43. Não é o banco antigo `barbershop` nem o Docker (5433). Código: os 107 arquivos do backend, inclusive a migração, idênticos por SHA-256 aos do ensaio. `accounts` até a 0005; o `migrate --plan` lista só a `accounts.0006`. Restrição `accounts_user_email_key`. Regra exata: **8 contas, 8 canônicas, 0 a normalizar, 0 fora da regra, 0 colisões**. Contagens iguais às da P2. Nenhuma outra sessão, nenhuma transação aberta, nenhuma trava e nenhum processo da aplicação |
+| **P8 Backup imediato** | `pg_dump -Fc` em sessão somente leitura, às 22:55:52. Arquivo `/home/lucasrafael/backups/barberpro/accounts0006_p8_20261115_225552/barbershop_db_20261115_225552_p8_antes_accounts0006.dump`: **63.004 bytes**, arquivo 0600, diretório novo 0700, SHA-256 **`5a4c028b39b4f2c4274e24042b47e863ca9fd7318a17c376453ab9ceed513279`**. `pg_restore --list`: código 0, 139 itens, 16 tabelas com dados, as 8 principais presentes; o próprio arquivo registra `dbname: barbershop_db` e `Dumped from database version: 18.3`. Mesma lista de objetos do backup do ensaio. Contagens iguais antes e depois |
+| **P8 Migração** | Rodou num processo que, **na mesma conexão do `migrate`**, conferiu antes a identidade, o `lock_timeout` de 5 s, a ausência de outras sessões e travas e o plano (só a 0006); qualquer divergência o pararia antes. Das 22:56:21 às 22:56:22: **"Applying accounts.0006_email_normalizado... OK"**, código de saída 0. Nenhum SQL manual, nenhuma outra migração, nenhuma correção em registros. Único aviso: o da versão de ordenação ao conectar (DB-02, não tratado) |
+| **P9 Pós-verificação (leitura)** | **Aprovada.** `accounts.0006` registrada às 22:56:22. `CHECK accounts_user_email_normalizado` presente e validado, com a expressão aprovada: `email = lower(email) AND email ~ '^[!-~]+$'`. Índice único `accounts_user_email_lower_unico` em `lower(email)`, válido e pronto. **`accounts_user_email_key` preservada.** 8 contas, 0 fora da regra; pela regra exata, 8 canônicas e 0 colisões. Todas as tabelas com as contagens de antes da P8, exceto `django_migrations` (53 → 54, o registro da 0006). `showmigrations`: `[X] 0006_email_normalizado`; `migrate --plan`: nenhuma operação; `migrate --check`: código 0 |
+| **P10 Aplicação** | **Backend e frontend no ar.** Código idêntico ao conferido antes da migração: 199 arquivos do retrato da P0 (lista de inclusão), 0 diferenças, e os 107 do backend. **Inicialização sem escrita automática:** nenhum `ready()`, sinal ou consulta em nível de módulo; cache em memória; sessões gravadas só quando modificadas; `UPDATE_LAST_LOGIN = False`. Pelo procedimento do README, **sem `migrate` e sem `npm install`**: `python manage.py runserver` em `127.0.0.1:8000` (lista de serviços sem login: 401 JSON) e `npm run dev` em `localhost:5173` (Vite 6.4.3: 200). Contadores de escrita iguais aos de antes |
+| **P11 Fumaça só leitura** | **26 de 26 OK, 0 respostas 500, 0 tracebacks, nenhuma escrita.** São 19 pedidos HTTP (só GET e OPTIONS, sem login) e 7 verificações internas numa sessão `default_transaction_read_only=on` (34.3) |
+| **P12** | Esta seção e a pasta de evidências nova |
+
+### 34.2 Prova de que P10 e P11 não gravaram nada
+
+Os contadores do PostgreSQL de linhas inseridas, atualizadas e excluídas (`n_tup_ins`, `n_tup_upd`, `n_tup_del` e `n_tup_hot_upd` de `pg_stat_user_tables`, 17 tabelas) foram fotografados em quatro momentos, sempre em sessão somente leitura:
+
+1. **S0**, no fim da P9;
+2. **S1**, depois de subir a aplicação;
+3. **S2**, depois dos testes;
+4. **S3**, no fim.
+
+**Os quatro são idênticos.** As verificações internas, além disso, rodaram numa sessão que o próprio PostgreSQL impediria de gravar.
+
+### 34.3 Testes executados na P11
+
+| Grupo | Teste | Resultado |
+|---|---|---|
+| Backend sem login | Serviços, `users/me`, agendamentos, barbearia e barbeiros (GET) | 401 JSON nos 5 |
+| Rotas de escrita | GET em login, cadastro e recuperação | 405 nos 3 (as rotas existem e só aceitam POST) |
+| | OPTIONS no cadastro | 200 (metadados, sem gravar) |
+| Contenção do TEN-01 | `Accept: text/html` | 406 |
+| | `?format=api` | 404 (nunca HTML da API navegável) |
+| CORS | Preflight OPTIONS do login vindo de `http://localhost:5173` | 200, com `Access-Control-Allow-Origin` do frontend |
+| Django Admin | Página de login (GET, sem enviar o formulário) | 200 |
+| Frontend | Página inicial, `/login`, `/register`, `/password/reset` e o módulo principal | 200 nos 5 |
+| Regra de e-mail (interno, leitura) | As 8 contas reais na forma canônica | 8/8 |
+| | A busca do login (`get_by_natural_key`) acha a mesma conta com o e-mail em MAIÚSCULAS | 8/8 |
+| | Idem, com caixa trocada e espaços nas pontas | 8/8 |
+| | A busca exata da recuperação acha a própria conta ativa a partir de outra caixa | 8/8 |
+| | Conta inativa não é encontrada | 0/0: **não há contas inativas**, então o teste não se aplica |
+| | O cadastro, **só validado e sem `save()`**, recusa a variação de caixa de cada e-mail existente como duplicado (`unique`) | 8/8 |
+| | O cadastro, também só validado, recusa e-mails fora da regra como inválidos (acento, espaço interno, invisível e `K` Kelvin) | 4/4 |
+
+Nenhum teste imprimiu e-mail, nome ou id: só contagens.
+
+### 34.4 Testes não executados por exigirem escrita ou POST (pendentes de autorização separada)
+
+| Teste | Por que não foi executado |
+|---|---|
+| **Login real** (API e Django Admin) | POST. O login pela API grava um `OutstandingToken`, e o do Admin grava uma sessão |
+| **Qualquer fluxo autenticado**, mesmo só de leitura (`users/me`, listas da barbearia, painéis no navegador) | Exige um token, e obtê-lo exige o login, que grava. **Gerar um token fora do fluxo**, com a chave da aplicação, seria contornar a restrição e mexer num segredo, e por isso não foi feito |
+| Renovação de token e logout | Gravam (rotação e lista negra) |
+| Cadastro público e criação de conta pelo admin | Gravam contas |
+| Edição de e-mail ou senha | Gravam |
+| Recuperação de senha e confirmação | POST; a confirmação troca a senha e invalida o token |
+| Onboarding, serviços, barbeiros e agendamentos (criar ou cancelar) | Gravam |
+| **`fumaca.py sem-escrita` do plano** (seção 32: login errado de conta fictícia, cadastro com e-mail não ASCII, cadastro com variação de caixa e recuperação de e-mail inexistente) | São POSTs, proibidos nesta P11, embora não devessem gravar. **A mesma regra do lado do servidor foi conferida pelas verificações internas sem `save()`** (34.3). A resposta HTTP desses fluxos no banco real continua pendente |
+
+O comportamento completo desses fluxos, inclusive com escrita, já foi verificado na **cópia fiel** do banco real (P7, seção 33: 40 de 40 OK) e nos testes automatizados (seção 31).
+
+### 34.5 Estado e riscos
+
+- **A aplicação continua no ar**, em modo de desenvolvimento, iniciada nesta sessão em segundo plano. A partir de agora, qualquer uso real (login, cadastro, agendamento) **grava no banco real normalmente**. Isso é a operação da aplicação, não uma etapa desta auditoria.
+- **O código antigo não pode mais rodar contra o banco real.** Ele gravaria e-mails fora da forma canônica, o `CHECK` recusaria e a resposta seria 500.
+  - **Risco novo:** o código corrigido existe **só como alterações não commitadas** na árvore de trabalho (`git status`). Um `git checkout`, `git stash` ou `git restore` faria a aplicação voltar ao código incompatível.
+  - Recomenda-se **commitar as alterações da auditoria**, o que depende de autorização. O retrato da P0 (`codigo_20261115_224006.tar.gz`) guarda uma cópia.
+- **Caminho de volta,** que depende de nova autorização:
+  - a reversão da 0006 (`migrate accounts 0005`) foi ensaiada na cópia (P6) e retira as duas restrições sem alterar os e-mails;
+  - o backup da P8 permite restaurar o estado de 22:55:52.
+- **DB-02:** o aviso da versão de ordenação (2.43 × 2.44) aparece em cada conexão. Não foi tratado.
+- **PROD-01:** aberto, sem alteração.
+
+### 34.6 Situação
+
+- **AUTH-04 (P2) e AUTH-05 (P3): ✅ resolvidos, com a `accounts.0006` aplicada no banco real e pós-verificada.** A proteção agora está no código **e** no banco (`CHECK` e `UNIQUE (LOWER(email))`). Os testes funcionais com escrita no banco real continuam pendentes de autorização (34.4).
+- **Banco real:**
+  - a única escrita desta etapa foi a `accounts.0006`: duas restrições novas e o registro em `django_migrations`;
+  - nenhuma conta precisou de normalização, e as 8 continuam iguais e na forma canônica;
+  - os backups foram preservados.
+- **Contagem:** sem mudança, **70 abertos**, já sem o AUTH-04 e o AUTH-05 (seção 31).
+
+**Próximo passo:** aguarda nova autorização antes de qualquer operação que escreva no banco real, inclusive os testes da 34.4 e o commit do código.

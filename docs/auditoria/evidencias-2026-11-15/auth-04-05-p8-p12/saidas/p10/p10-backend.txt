@@ -1,0 +1,30 @@
+Watching for file changes with StatReloader
+AVISO:  o banco de dados "barbershop_db" possui uma não correspondência de versão de ordenação
+DETAIL:  The database was created using collation version 2.43, but the operating system provides version 2.44.
+HINT:  Rebuild all objects in this database that use the default collation and run ALTER DATABASE barbershop_db REFRESH COLLATION VERSION, or build PostgreSQL with the right library version.
+Unauthorized: /api/v1/services/
+[15/Nov/2026 23:01:40] "GET /api/v1/services/ HTTP/1.1" 401 68
+Unauthorized: /api/v1/services/
+[15/Nov/2026 23:02:56] "GET /api/v1/services/ HTTP/1.1" 401 68
+Unauthorized: /api/v1/users/me/
+[15/Nov/2026 23:02:56] "GET /api/v1/users/me/ HTTP/1.1" 401 68
+Unauthorized: /api/v1/appointments/
+[15/Nov/2026 23:02:56] "GET /api/v1/appointments/ HTTP/1.1" 401 68
+Unauthorized: /api/v1/barbershops/
+[15/Nov/2026 23:02:56] "GET /api/v1/barbershops/ HTTP/1.1" 401 68
+Unauthorized: /api/v1/barbers/
+[15/Nov/2026 23:02:56] "GET /api/v1/barbers/ HTTP/1.1" 401 68
+Method Not Allowed: /api/v1/auth/login/
+[15/Nov/2026 23:02:56] "GET /api/v1/auth/login/ HTTP/1.1" 405 47
+Method Not Allowed: /api/v1/auth/register/
+[15/Nov/2026 23:02:56] "GET /api/v1/auth/register/ HTTP/1.1" 405 47
+[15/Nov/2026 23:02:56] "OPTIONS /api/v1/auth/register/ HTTP/1.1" 200 225
+Method Not Allowed: /api/v1/auth/password/reset/
+[15/Nov/2026 23:02:56] "GET /api/v1/auth/password/reset/ HTTP/1.1" 405 47
+Not Acceptable: /api/v1/services/
+[15/Nov/2026 23:02:56] "GET /api/v1/services/ HTTP/1.1" 406 79
+Not Found: /api/v1/services/
+[15/Nov/2026 23:02:56] "GET /api/v1/services/?format=api HTTP/1.1" 404 29
+[15/Nov/2026 23:02:56] "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 0
+[15/Nov/2026 23:02:56] "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 0
+[15/Nov/2026 23:02:56] "GET /admin/login/ HTTP/1.1" 200 4176

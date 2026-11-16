@@ -1,0 +1,25 @@
+{
+ "contas": {
+  "A": 1,
+  "B": 2
+ },
+ "login_com_a_senha_da_conta_A": {
+  "status": 500,
+  "corpo": "HTML \"Server Error (500)\""
+ },
+ "get_by_natural_key": "MultipleObjectsReturned: get() returned more than one User -- it returned 2!",
+ "recuperacao_de_senha": {
+  "status": 204,
+  "mensagens": 1,
+  "conta_que_recebeu_o_token": [
+   1
+  ],
+  "observacao": "filter(email__iexact=...).first() escolhe UMA conta (ordem por nome); a outra fica sem recuperação"
+ },
+ "duas_contas_sem_barbearia_com_o_mesmo_email": "ACEITAS (UNIQUE comum trata NULL como distinto; exigiria NULLS NOT DISTINCT)",
+ "restricao_nulls_not_distinct_com_as_duas_contas_sem_barbearia": "recusada pelo banco: could not create unique index \"lab_email_por_barbearia\"",
+ "restricoes_unique_depois_do_rollback": [
+  "accounts_user_email_key"
+ ],
+ "usuarios_no_banco_depois_do_rollback": 0
+}

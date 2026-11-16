@@ -1,0 +1,668 @@
+[
+ {
+  "variante": "atual",
+  "id": "S1",
+  "fluxo": "cadastro público, senha válida",
+  "respostas": {
+   "existente_em_B": {
+    "email": "cliente.b@beta.test",
+    "status": 400,
+    "corpo": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "livre": {
+    "email": "livre.s1@exemplo.test",
+    "status": 201,
+    "corpo": "{\"id\":7,\"email\":\"livre.s1@exemplo.test\",\"nome\":\"Rita\",\"tipo_perfil\":\"cliente\",\"barbershop\":null,\"is_active\":true,\"created_at\":\"2026-11-15T16:28:47.136941-03:00\"}",
+    "contas_criadas": 1,
+    "email_do_proprio_alterado": null
+   },
+   "existente_em_B_dominio_maiusculo": {
+    "email": "cliente.b@BETA.TEST",
+    "status": 500,
+    "corpo": "HTML \"Server Error (500)\"",
+    "contas_criadas": "transação abortada pelo erro do banco",
+    "email_do_proprio_alterado": null
+   },
+   "livre_dominio_maiusculo": {
+    "email": "livre.s1@EXEMPLO.TEST",
+    "status": 201,
+    "corpo": "{\"id\":15,\"email\":\"livre.s1@exemplo.test\",\"nome\":\"Rita\",\"tipo_perfil\":\"cliente\",\"barbershop\":null,\"is_active\":true,\"created_at\":\"2026-11-15T16:28:49.001065-03:00\"}",
+    "contas_criadas": 1,
+    "email_do_proprio_alterado": null
+   }
+  },
+  "distingue_existente_de_livre": true,
+  "distingue_pela_variacao_de_caixa_no_dominio": true
+ },
+ {
+  "variante": "atual",
+  "id": "S2",
+  "fluxo": "cadastro público, senha fraca (sem efeito colateral)",
+  "respostas": {
+   "existente_em_B": {
+    "email": "cliente.b@beta.test",
+    "status": 400,
+    "corpo": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "livre": {
+    "email": "livre.s2@exemplo.test",
+    "status": 400,
+    "corpo": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "existente_em_B_dominio_maiusculo": {
+    "email": "cliente.b@BETA.TEST",
+    "status": 400,
+    "corpo": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "livre_dominio_maiusculo": {
+    "email": "livre.s2@EXEMPLO.TEST",
+    "status": 400,
+    "corpo": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   }
+  },
+  "distingue_existente_de_livre": true,
+  "distingue_pela_variacao_de_caixa_no_dominio": false
+ },
+ {
+  "variante": "atual",
+  "id": "S3",
+  "fluxo": "admin A cria cliente, senha válida",
+  "respostas": {
+   "existente_em_B": {
+    "email": "cliente.b@beta.test",
+    "status": 400,
+    "corpo": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "livre": {
+    "email": "livre.s3@exemplo.test",
+    "status": 201,
+    "corpo": "{\"id\":34,\"email\":\"livre.s3@exemplo.test\",\"nome\":\"Caio\",\"tipo_perfil\":\"cliente\",\"barbershop\":19}",
+    "contas_criadas": 1,
+    "email_do_proprio_alterado": null
+   },
+   "existente_em_B_dominio_maiusculo": {
+    "email": "cliente.b@BETA.TEST",
+    "status": 500,
+    "corpo": "HTML \"Server Error (500)\"",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "livre_dominio_maiusculo": {
+    "email": "livre.s3@EXEMPLO.TEST",
+    "status": 201,
+    "corpo": "{\"id\":42,\"email\":\"livre.s3@exemplo.test\",\"nome\":\"Caio\",\"tipo_perfil\":\"cliente\",\"barbershop\":23}",
+    "contas_criadas": 1,
+    "email_do_proprio_alterado": null
+   }
+  },
+  "distingue_existente_de_livre": true,
+  "distingue_pela_variacao_de_caixa_no_dominio": true
+ },
+ {
+  "variante": "atual",
+  "id": "S4",
+  "fluxo": "admin A cria cliente, senha fraca",
+  "respostas": {
+   "existente_em_B": {
+    "email": "cliente.b@beta.test",
+    "status": 400,
+    "corpo": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "livre": {
+    "email": "livre.s4@exemplo.test",
+    "status": 400,
+    "corpo": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "existente_em_B_dominio_maiusculo": {
+    "email": "cliente.b@BETA.TEST",
+    "status": 400,
+    "corpo": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "livre_dominio_maiusculo": {
+    "email": "livre.s4@EXEMPLO.TEST",
+    "status": 400,
+    "corpo": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   }
+  },
+  "distingue_existente_de_livre": true,
+  "distingue_pela_variacao_de_caixa_no_dominio": false
+ },
+ {
+  "variante": "atual",
+  "id": "S5",
+  "fluxo": "cliente A1 troca o próprio e-mail",
+  "respostas": {
+   "existente_em_B": {
+    "email": "cliente.b@beta.test",
+    "status": 400,
+    "corpo": "{\"email\":[\"usuário com este e-mail já existe.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": false
+   },
+   "livre": {
+    "email": "livre.s5@exemplo.test",
+    "status": 200,
+    "corpo": "{\"id\":59,\"email\":\"livre.s5@exemplo.test\",\"nome\":\"Carlos\",\"tipo_perfil\":\"cliente\",\"barbershop\":35,\"is_active\":true,\"created_at\":\"2026-11-15T16:28:59.099502-03:00\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": true
+   },
+   "existente_em_B_dominio_maiusculo": {
+    "email": "cliente.b@BETA.TEST",
+    "status": 200,
+    "corpo": "{\"id\":62,\"email\":\"cliente.b@BETA.TEST\",\"nome\":\"Carlos\",\"tipo_perfil\":\"cliente\",\"barbershop\":37,\"is_active\":true,\"created_at\":\"2026-11-15T16:28:59.780300-03:00\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": true
+   },
+   "livre_dominio_maiusculo": {
+    "email": "livre.s5@EXEMPLO.TEST",
+    "status": 200,
+    "corpo": "{\"id\":65,\"email\":\"livre.s5@EXEMPLO.TEST\",\"nome\":\"Carlos\",\"tipo_perfil\":\"cliente\",\"barbershop\":39,\"is_active\":true,\"created_at\":\"2026-11-15T16:29:00.463746-03:00\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": true
+   }
+  },
+  "distingue_existente_de_livre": true,
+  "distingue_pela_variacao_de_caixa_no_dominio": false
+ },
+ {
+  "variante": "atual",
+  "id": "S6",
+  "fluxo": "cliente A1 troca o próprio e-mail + nome vazio",
+  "respostas": {
+   "existente_em_B": {
+    "email": "cliente.b@beta.test",
+    "status": 400,
+    "corpo": "{\"email\":[\"usuário com este e-mail já existe.\"],\"nome\":[\"Este campo não pode ser em branco.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": false
+   },
+   "livre": {
+    "email": "livre.s6@exemplo.test",
+    "status": 400,
+    "corpo": "{\"nome\":[\"Este campo não pode ser em branco.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": false
+   },
+   "existente_em_B_dominio_maiusculo": {
+    "email": "cliente.b@BETA.TEST",
+    "status": 400,
+    "corpo": "{\"nome\":[\"Este campo não pode ser em branco.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": false
+   },
+   "livre_dominio_maiusculo": {
+    "email": "livre.s6@EXEMPLO.TEST",
+    "status": 400,
+    "corpo": "{\"nome\":[\"Este campo não pode ser em branco.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": false
+   }
+  },
+  "distingue_existente_de_livre": true,
+  "distingue_pela_variacao_de_caixa_no_dominio": false
+ },
+ {
+  "variante": "C1_so_mensagem_generica",
+  "id": "S1",
+  "fluxo": "cadastro público, senha válida",
+  "respostas": {
+   "existente_em_B": {
+    "email": "cliente.b@beta.test",
+    "status": 400,
+    "corpo": "{\"email\":[\"Não foi possível usar este e-mail.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "livre": {
+    "email": "livre.s1@exemplo.test",
+    "status": 201,
+    "corpo": "{\"id\":85,\"email\":\"livre.s1@exemplo.test\",\"nome\":\"Rita\",\"tipo_perfil\":\"cliente\",\"barbershop\":null,\"is_active\":true,\"created_at\":\"2026-11-15T16:29:05.049189-03:00\"}",
+    "contas_criadas": 1,
+    "email_do_proprio_alterado": null
+   },
+   "existente_em_B_dominio_maiusculo": {
+    "email": "cliente.b@BETA.TEST",
+    "status": 500,
+    "corpo": "HTML \"Server Error (500)\"",
+    "contas_criadas": "transação abortada pelo erro do banco",
+    "email_do_proprio_alterado": null
+   },
+   "livre_dominio_maiusculo": {
+    "email": "livre.s1@EXEMPLO.TEST",
+    "status": 201,
+    "corpo": "{\"id\":93,\"email\":\"livre.s1@exemplo.test\",\"nome\":\"Rita\",\"tipo_perfil\":\"cliente\",\"barbershop\":null,\"is_active\":true,\"created_at\":\"2026-11-15T16:29:06.918726-03:00\"}",
+    "contas_criadas": 1,
+    "email_do_proprio_alterado": null
+   }
+  },
+  "distingue_existente_de_livre": true,
+  "distingue_pela_variacao_de_caixa_no_dominio": true
+ },
+ {
+  "variante": "C1_so_mensagem_generica",
+  "id": "S2",
+  "fluxo": "cadastro público, senha fraca (sem efeito colateral)",
+  "respostas": {
+   "existente_em_B": {
+    "email": "cliente.b@beta.test",
+    "status": 400,
+    "corpo": "{\"email\":[\"Não foi possível usar este e-mail.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "livre": {
+    "email": "livre.s2@exemplo.test",
+    "status": 400,
+    "corpo": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "existente_em_B_dominio_maiusculo": {
+    "email": "cliente.b@BETA.TEST",
+    "status": 400,
+    "corpo": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "livre_dominio_maiusculo": {
+    "email": "livre.s2@EXEMPLO.TEST",
+    "status": 400,
+    "corpo": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   }
+  },
+  "distingue_existente_de_livre": true,
+  "distingue_pela_variacao_de_caixa_no_dominio": false
+ },
+ {
+  "variante": "C1_so_mensagem_generica",
+  "id": "S3",
+  "fluxo": "admin A cria cliente, senha válida",
+  "respostas": {
+   "existente_em_B": {
+    "email": "cliente.b@beta.test",
+    "status": 400,
+    "corpo": "{\"email\":[\"Não foi possível usar este e-mail.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "livre": {
+    "email": "livre.s3@exemplo.test",
+    "status": 201,
+    "corpo": "{\"id\":112,\"email\":\"livre.s3@exemplo.test\",\"nome\":\"Caio\",\"tipo_perfil\":\"cliente\",\"barbershop\":67}",
+    "contas_criadas": 1,
+    "email_do_proprio_alterado": null
+   },
+   "existente_em_B_dominio_maiusculo": {
+    "email": "cliente.b@BETA.TEST",
+    "status": 500,
+    "corpo": "HTML \"Server Error (500)\"",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "livre_dominio_maiusculo": {
+    "email": "livre.s3@EXEMPLO.TEST",
+    "status": 201,
+    "corpo": "{\"id\":120,\"email\":\"livre.s3@exemplo.test\",\"nome\":\"Caio\",\"tipo_perfil\":\"cliente\",\"barbershop\":71}",
+    "contas_criadas": 1,
+    "email_do_proprio_alterado": null
+   }
+  },
+  "distingue_existente_de_livre": true,
+  "distingue_pela_variacao_de_caixa_no_dominio": true
+ },
+ {
+  "variante": "C1_so_mensagem_generica",
+  "id": "S4",
+  "fluxo": "admin A cria cliente, senha fraca",
+  "respostas": {
+   "existente_em_B": {
+    "email": "cliente.b@beta.test",
+    "status": 400,
+    "corpo": "{\"email\":[\"Não foi possível usar este e-mail.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "livre": {
+    "email": "livre.s4@exemplo.test",
+    "status": 400,
+    "corpo": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "existente_em_B_dominio_maiusculo": {
+    "email": "cliente.b@BETA.TEST",
+    "status": 400,
+    "corpo": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "livre_dominio_maiusculo": {
+    "email": "livre.s4@EXEMPLO.TEST",
+    "status": 400,
+    "corpo": "{\"password\":[\"Esta senha é muito comum.\",\"Esta senha é inteiramente numérica.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   }
+  },
+  "distingue_existente_de_livre": true,
+  "distingue_pela_variacao_de_caixa_no_dominio": false
+ },
+ {
+  "variante": "C1_so_mensagem_generica",
+  "id": "S5",
+  "fluxo": "cliente A1 troca o próprio e-mail",
+  "respostas": {
+   "existente_em_B": {
+    "email": "cliente.b@beta.test",
+    "status": 400,
+    "corpo": "{\"email\":[\"Não foi possível usar este e-mail.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": false
+   },
+   "livre": {
+    "email": "livre.s5@exemplo.test",
+    "status": 200,
+    "corpo": "{\"id\":137,\"email\":\"livre.s5@exemplo.test\",\"nome\":\"Carlos\",\"tipo_perfil\":\"cliente\",\"barbershop\":83,\"is_active\":true,\"created_at\":\"2026-11-15T16:29:16.877824-03:00\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": true
+   },
+   "existente_em_B_dominio_maiusculo": {
+    "email": "cliente.b@BETA.TEST",
+    "status": 200,
+    "corpo": "{\"id\":140,\"email\":\"cliente.b@BETA.TEST\",\"nome\":\"Carlos\",\"tipo_perfil\":\"cliente\",\"barbershop\":85,\"is_active\":true,\"created_at\":\"2026-11-15T16:29:17.559314-03:00\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": true
+   },
+   "livre_dominio_maiusculo": {
+    "email": "livre.s5@EXEMPLO.TEST",
+    "status": 200,
+    "corpo": "{\"id\":143,\"email\":\"livre.s5@EXEMPLO.TEST\",\"nome\":\"Carlos\",\"tipo_perfil\":\"cliente\",\"barbershop\":87,\"is_active\":true,\"created_at\":\"2026-11-15T16:29:18.243606-03:00\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": true
+   }
+  },
+  "distingue_existente_de_livre": true,
+  "distingue_pela_variacao_de_caixa_no_dominio": false
+ },
+ {
+  "variante": "C1_so_mensagem_generica",
+  "id": "S6",
+  "fluxo": "cliente A1 troca o próprio e-mail + nome vazio",
+  "respostas": {
+   "existente_em_B": {
+    "email": "cliente.b@beta.test",
+    "status": 400,
+    "corpo": "{\"email\":[\"Não foi possível usar este e-mail.\"],\"nome\":[\"Este campo não pode ser em branco.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": false
+   },
+   "livre": {
+    "email": "livre.s6@exemplo.test",
+    "status": 400,
+    "corpo": "{\"nome\":[\"Este campo não pode ser em branco.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": false
+   },
+   "existente_em_B_dominio_maiusculo": {
+    "email": "cliente.b@BETA.TEST",
+    "status": 400,
+    "corpo": "{\"nome\":[\"Este campo não pode ser em branco.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": false
+   },
+   "livre_dominio_maiusculo": {
+    "email": "livre.s6@EXEMPLO.TEST",
+    "status": 400,
+    "corpo": "{\"nome\":[\"Este campo não pode ser em branco.\"]}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": false
+   }
+  },
+  "distingue_existente_de_livre": true,
+  "distingue_pela_variacao_de_caixa_no_dominio": false
+ },
+ {
+  "variante": "C2_status_e_corpo_padronizados_em_todo_400",
+  "id": "S1",
+  "fluxo": "cadastro público, senha válida",
+  "respostas": {
+   "existente_em_B": {
+    "email": "cliente.b@beta.test",
+    "status": 400,
+    "corpo": "{\"detail\":\"Não foi possível concluir a operação com os dados informados.\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "livre": {
+    "email": "livre.s1@exemplo.test",
+    "status": 201,
+    "corpo": "{\"id\":163,\"email\":\"livre.s1@exemplo.test\",\"nome\":\"Rita\",\"tipo_perfil\":\"cliente\",\"barbershop\":null,\"is_active\":true,\"created_at\":\"2026-11-15T16:29:22.781692-03:00\"}",
+    "contas_criadas": 1,
+    "email_do_proprio_alterado": null
+   },
+   "existente_em_B_dominio_maiusculo": {
+    "email": "cliente.b@BETA.TEST",
+    "status": 500,
+    "corpo": "HTML \"Server Error (500)\"",
+    "contas_criadas": "transação abortada pelo erro do banco",
+    "email_do_proprio_alterado": null
+   },
+   "livre_dominio_maiusculo": {
+    "email": "livre.s1@EXEMPLO.TEST",
+    "status": 201,
+    "corpo": "{\"id\":171,\"email\":\"livre.s1@exemplo.test\",\"nome\":\"Rita\",\"tipo_perfil\":\"cliente\",\"barbershop\":null,\"is_active\":true,\"created_at\":\"2026-11-15T16:29:24.602115-03:00\"}",
+    "contas_criadas": 1,
+    "email_do_proprio_alterado": null
+   }
+  },
+  "distingue_existente_de_livre": true,
+  "distingue_pela_variacao_de_caixa_no_dominio": true
+ },
+ {
+  "variante": "C2_status_e_corpo_padronizados_em_todo_400",
+  "id": "S2",
+  "fluxo": "cadastro público, senha fraca (sem efeito colateral)",
+  "respostas": {
+   "existente_em_B": {
+    "email": "cliente.b@beta.test",
+    "status": 400,
+    "corpo": "{\"detail\":\"Não foi possível concluir a operação com os dados informados.\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "livre": {
+    "email": "livre.s2@exemplo.test",
+    "status": 400,
+    "corpo": "{\"detail\":\"Não foi possível concluir a operação com os dados informados.\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "existente_em_B_dominio_maiusculo": {
+    "email": "cliente.b@BETA.TEST",
+    "status": 400,
+    "corpo": "{\"detail\":\"Não foi possível concluir a operação com os dados informados.\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "livre_dominio_maiusculo": {
+    "email": "livre.s2@EXEMPLO.TEST",
+    "status": 400,
+    "corpo": "{\"detail\":\"Não foi possível concluir a operação com os dados informados.\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   }
+  },
+  "distingue_existente_de_livre": false,
+  "distingue_pela_variacao_de_caixa_no_dominio": false
+ },
+ {
+  "variante": "C2_status_e_corpo_padronizados_em_todo_400",
+  "id": "S3",
+  "fluxo": "admin A cria cliente, senha válida",
+  "respostas": {
+   "existente_em_B": {
+    "email": "cliente.b@beta.test",
+    "status": 400,
+    "corpo": "{\"detail\":\"Não foi possível concluir a operação com os dados informados.\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "livre": {
+    "email": "livre.s3@exemplo.test",
+    "status": 201,
+    "corpo": "{\"id\":190,\"email\":\"livre.s3@exemplo.test\",\"nome\":\"Caio\",\"tipo_perfil\":\"cliente\",\"barbershop\":115}",
+    "contas_criadas": 1,
+    "email_do_proprio_alterado": null
+   },
+   "existente_em_B_dominio_maiusculo": {
+    "email": "cliente.b@BETA.TEST",
+    "status": 500,
+    "corpo": "HTML \"Server Error (500)\"",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "livre_dominio_maiusculo": {
+    "email": "livre.s3@EXEMPLO.TEST",
+    "status": 201,
+    "corpo": "{\"id\":198,\"email\":\"livre.s3@exemplo.test\",\"nome\":\"Caio\",\"tipo_perfil\":\"cliente\",\"barbershop\":119}",
+    "contas_criadas": 1,
+    "email_do_proprio_alterado": null
+   }
+  },
+  "distingue_existente_de_livre": true,
+  "distingue_pela_variacao_de_caixa_no_dominio": true
+ },
+ {
+  "variante": "C2_status_e_corpo_padronizados_em_todo_400",
+  "id": "S4",
+  "fluxo": "admin A cria cliente, senha fraca",
+  "respostas": {
+   "existente_em_B": {
+    "email": "cliente.b@beta.test",
+    "status": 400,
+    "corpo": "{\"detail\":\"Não foi possível concluir a operação com os dados informados.\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "livre": {
+    "email": "livre.s4@exemplo.test",
+    "status": 400,
+    "corpo": "{\"detail\":\"Não foi possível concluir a operação com os dados informados.\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "existente_em_B_dominio_maiusculo": {
+    "email": "cliente.b@BETA.TEST",
+    "status": 400,
+    "corpo": "{\"detail\":\"Não foi possível concluir a operação com os dados informados.\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   },
+   "livre_dominio_maiusculo": {
+    "email": "livre.s4@EXEMPLO.TEST",
+    "status": 400,
+    "corpo": "{\"detail\":\"Não foi possível concluir a operação com os dados informados.\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": null
+   }
+  },
+  "distingue_existente_de_livre": false,
+  "distingue_pela_variacao_de_caixa_no_dominio": false
+ },
+ {
+  "variante": "C2_status_e_corpo_padronizados_em_todo_400",
+  "id": "S5",
+  "fluxo": "cliente A1 troca o próprio e-mail",
+  "respostas": {
+   "existente_em_B": {
+    "email": "cliente.b@beta.test",
+    "status": 400,
+    "corpo": "{\"detail\":\"Não foi possível concluir a operação com os dados informados.\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": false
+   },
+   "livre": {
+    "email": "livre.s5@exemplo.test",
+    "status": 200,
+    "corpo": "{\"id\":215,\"email\":\"livre.s5@exemplo.test\",\"nome\":\"Carlos\",\"tipo_perfil\":\"cliente\",\"barbershop\":131,\"is_active\":true,\"created_at\":\"2026-11-15T16:29:34.509101-03:00\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": true
+   },
+   "existente_em_B_dominio_maiusculo": {
+    "email": "cliente.b@BETA.TEST",
+    "status": 200,
+    "corpo": "{\"id\":218,\"email\":\"cliente.b@BETA.TEST\",\"nome\":\"Carlos\",\"tipo_perfil\":\"cliente\",\"barbershop\":133,\"is_active\":true,\"created_at\":\"2026-11-15T16:29:35.191637-03:00\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": true
+   },
+   "livre_dominio_maiusculo": {
+    "email": "livre.s5@EXEMPLO.TEST",
+    "status": 200,
+    "corpo": "{\"id\":221,\"email\":\"livre.s5@EXEMPLO.TEST\",\"nome\":\"Carlos\",\"tipo_perfil\":\"cliente\",\"barbershop\":135,\"is_active\":true,\"created_at\":\"2026-11-15T16:29:35.882252-03:00\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": true
+   }
+  },
+  "distingue_existente_de_livre": true,
+  "distingue_pela_variacao_de_caixa_no_dominio": false
+ },
+ {
+  "variante": "C2_status_e_corpo_padronizados_em_todo_400",
+  "id": "S6",
+  "fluxo": "cliente A1 troca o próprio e-mail + nome vazio",
+  "respostas": {
+   "existente_em_B": {
+    "email": "cliente.b@beta.test",
+    "status": 400,
+    "corpo": "{\"detail\":\"Não foi possível concluir a operação com os dados informados.\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": false
+   },
+   "livre": {
+    "email": "livre.s6@exemplo.test",
+    "status": 400,
+    "corpo": "{\"detail\":\"Não foi possível concluir a operação com os dados informados.\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": false
+   },
+   "existente_em_B_dominio_maiusculo": {
+    "email": "cliente.b@BETA.TEST",
+    "status": 400,
+    "corpo": "{\"detail\":\"Não foi possível concluir a operação com os dados informados.\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": false
+   },
+   "livre_dominio_maiusculo": {
+    "email": "livre.s6@EXEMPLO.TEST",
+    "status": 400,
+    "corpo": "{\"detail\":\"Não foi possível concluir a operação com os dados informados.\"}",
+    "contas_criadas": 0,
+    "email_do_proprio_alterado": false
+   }
+  },
+  "distingue_existente_de_livre": false,
+  "distingue_pela_variacao_de_caixa_no_dominio": false
+ }
+]

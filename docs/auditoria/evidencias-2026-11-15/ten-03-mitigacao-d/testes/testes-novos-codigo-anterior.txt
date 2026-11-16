@@ -1,0 +1,13 @@
+$ (código ANTERIOR, cópia fora do projeto) manage.py test accounts.test_ten03_limites --settings=config.test_settings
+  File "/usr/lib64/python3.12/unittest/loader.py", line 137, in loadTestsFromName
+    module = __import__(module_name)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-1000/-home-lucasrafael-arquivos-faculdade-saas-barbearia/b732fc01-eeb5-4087-becf-e69fa27549d7/scratchpad/d/codigo-anterior/accounts/test_ten03_limites.py", line 31, in <module>
+    from accounts.throttles import (
+ModuleNotFoundError: No module named 'accounts.throttles'
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+FAILED (errors=1)

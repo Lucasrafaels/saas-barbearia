@@ -1,0 +1,31 @@
+### código corrigido  (agendamento de A = 1, de B = 2)
+
+[1 próprio (A)] 200 {"data":"2026-11-16","slots":["08:00","08:30","09:00","09:30","10:00","10:30","11:00","11:30","12:00","12:30","13:00","13:30","14:00","14:30","15:00",  | 10:00 livre? True
+   - appointments_appointment (joins: []) WHERE ("appointments_appointment"."barbershop_id" = 1 AND "appointments_appointment"."id" = 1) LIMIT 21
+   - appointments_appointment (joins: ['services_service']) WHERE ("appointments_appointment"."barbeiro_id" = 1 AND django_datetime_cast_date("appointments_appointment"."data_hora", 'America/Sao_Paulo', 'UTC') = '2026-11-16' AND NOT ("a
+
+[2 outra barbearia (B)] 404 {"detail":"Agendamento a excluir não encontrado."}  | 10:00 livre? None
+   - appointments_appointment (joins: []) WHERE ("appointments_appointment"."barbershop_id" = 1 AND "appointments_appointment"."id" = 2) LIMIT 21
+
+[3 inexistente] 404 {"detail":"Agendamento a excluir não encontrado."}  | 10:00 livre? None
+   - appointments_appointment (joins: []) WHERE ("appointments_appointment"."barbershop_id" = 1 AND "appointments_appointment"."id" = 999999) LIMIT 21
+
+[4 omitido] 200 {"data":"2026-11-16","slots":["08:00","08:30","09:00","09:30","10:30","11:00","11:30","12:00","12:30","13:00","13:30","14:00","14:30","15:00","15:30",  | 10:00 livre? False
+   - appointments_appointment (joins: ['services_service']) WHERE ("appointments_appointment"."barbeiro_id" = 1 AND django_datetime_cast_date("appointments_appointment"."data_hora", 'America/Sao_Paulo', 'UTC') = '2026-11-16' AND NOT ("a
+
+[5 malformado "abc"] 404 {"detail":"Agendamento a excluir não encontrado."}  | 10:00 livre? None
+
+[5 malformado "1.5"] 404 {"detail":"Agendamento a excluir não encontrado."}  | 10:00 livre? None
+
+[5 malformado "-1"] 404 {"detail":"Agendamento a excluir não encontrado."}  | 10:00 livre? None
+   - appointments_appointment (joins: []) WHERE ("appointments_appointment"."barbershop_id" = 1 AND "appointments_appointment"."id" = -1) LIMIT 21
+
+[5 vazio ""] 200 {"data":"2026-11-16","slots":["08:00","08:30","09:00","09:30","10:30","11:00","11:30","12:00","12:30","13:00","13:30","14:00","14:30","15:00","15:30",  | 10:00 livre? False
+   - appointments_appointment (joins: ['services_service']) WHERE ("appointments_appointment"."barbeiro_id" = 1 AND django_datetime_cast_date("appointments_appointment"."data_hora", 'America/Sao_Paulo', 'UTC') = '2026-11-16' AND NOT ("a
+
+[5 enorme 99999999999999999999] 404 {"detail":"Agendamento a excluir não encontrado."}  | 10:00 livre? None
+
+### PER-13: GET /users/{id}/ como cliente de A
+[outro cliente de A] 403 {"detail":"Você não tem permissão para executar essa ação."}
+[usuário de B] 404 {"detail":"No User matches the given query."}
+[inexistente] 404 {"detail":"No User matches the given query."}

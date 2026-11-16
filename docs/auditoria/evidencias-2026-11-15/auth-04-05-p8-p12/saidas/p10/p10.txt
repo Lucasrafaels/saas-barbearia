@@ -1,0 +1,3 @@
+backend  http://127.0.0.1:8000/api/v1/services/ (sem login): 401   (pid 123296)
+frontend http://localhost:5173/: 200   (pid 123297)
+contadores de inserção/atualização/exclusão (s1-depois-p10): IDÊNTICOS à linha de base — nenhuma escrita

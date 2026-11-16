@@ -1,0 +1,29 @@
+banco da aplicação: barbershop_db em localhost:5432
+AVISO:  o banco de dados "barbershop_db" possui uma não correspondência de versão de ordenação
+DETALHE:  The database was created using collation version 2.43, but the operating system provides version 2.44.
+DICA:  Rebuild all objects in this database that use the default collation and run ALTER DATABASE barbershop_db REFRESH COLLATION VERSION, or build PostgreSQL with the right library version.
+BEGIN
+SET
+== R1. Classificação pela regra exata (esperado: fora_da_regra = 0 e grupos_de_colisao = 0)
+ contas | ja_canonicas | a_normalizar | fora_da_regra | grupos_de_colisao 
+--------+--------------+--------------+---------------+-------------------
+      8 |            8 |            0 |             0 |                 0
+(1 linha)
+
+== R2. ids fora da regra (interromperiam a migração)
+ id 
+----
+(0 linha)
+
+== R3. ids que a migração normalizaria
+ id 
+----
+(0 linha)
+
+== R4. grupos de colisão após a normalização (ids)
+ ids 
+-----
+(0 linha)
+
+ROLLBACK
+exit=0

@@ -1,0 +1,8 @@
+antes: 217 verificações, 213 conformes
+depois: 217 verificações, 214 conformes
+mesmos IDs: True
+veredito alterado: 1
+  MT-AV-02: DIVERGENTE -> conforme
+     antes : B: 404 {"detail": "Agendamento a excluir não pertence à sua barbearia."} | inexistente: 404 {"detail": "Agendamento a excluir não encontrado."}
+     depois: B: 404 {"detail": "Agendamento a excluir não encontrado."} | inexistente: 404 {"detail": "Agendamento a excluir não encontrado."}
+divergentes que continuam: MT-US-16 (P3), MT-US-27 (P3), MT-UP-01 (P3)

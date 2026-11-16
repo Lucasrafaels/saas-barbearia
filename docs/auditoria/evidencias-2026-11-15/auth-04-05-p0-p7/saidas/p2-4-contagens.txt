@@ -1,0 +1,18 @@
+banco da aplicação: barbershop_db em localhost:5432
+AVISO:  o banco de dados "barbershop_db" possui uma não correspondência de versão de ordenação
+DETALHE:  The database was created using collation version 2.43, but the operating system provides version 2.44.
+DICA:  Rebuild all objects in this database that use the default collation and run ALTER DATABASE barbershop_db REFRESH COLLATION VERSION, or build PostgreSQL with the right library version.
+BEGIN
+SET
+tabela|linhas
+accounts_user|8
+appointments_appointment|2
+barbershops_barber|2
+barbershops_barbershop|2
+django_migrations|53
+services_service|2
+token_blacklist_blacklistedtoken|1
+token_blacklist_outstandingtoken|13
+(8 linhas)
+ROLLBACK
+exit=0

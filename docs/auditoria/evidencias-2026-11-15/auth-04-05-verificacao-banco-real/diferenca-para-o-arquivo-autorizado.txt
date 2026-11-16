@@ -1,0 +1,11 @@
+0a1,2
+> -- CÓPIA DE EXECUÇÃO (15/11/2026): idêntica ao arquivo autorizado, SEM o bloco 3 (nomes e e-mails),
+> -- porque a autorização de execução no banco real proíbe consultas que exponham nomes ou e-mails.
+48,54d49
+< 
+< \echo '== 3. DETALHE PARA O DONO, COM E-MAILS E NOMES (não copiar para evidências)'
+< SELECT lower(btrim(email)) AS email_normalizado, id, email AS email_gravado, nome, barbershop_id, tipo_perfil, is_active,
+<        last_login, date_joined
+< FROM accounts_user
+< WHERE lower(btrim(email)) IN (SELECT lower(btrim(email)) FROM accounts_user GROUP BY 1 HAVING count(*) > 1)
+< ORDER BY 1, id;

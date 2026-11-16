@@ -1,0 +1,284 @@
+{
+ "frontend": "http://127.0.0.1:4181",
+ "api": "http://127.0.0.1:8767/api/v1",
+ "perfis": [
+  {
+   "papel": "cliente",
+   "login": {
+    "saiu_do_login": true,
+    "destino": "/"
+   },
+   "paginas": [
+    {
+     "pagina": "/",
+     "final": "/",
+     "pedidos_api": 12,
+     "nao_json": 0,
+     "erros_api": [],
+     "texto_esperado": null,
+     "texto_encontrado": null,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/services",
+     "final": "/services",
+     "pedidos_api": 4,
+     "nao_json": 0,
+     "erros_api": [],
+     "texto_esperado": "Corte",
+     "texto_encontrado": true,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/barbers",
+     "final": "/barbers",
+     "pedidos_api": 6,
+     "nao_json": 0,
+     "erros_api": [],
+     "texto_esperado": "João Navalha",
+     "texto_encontrado": true,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/appointments",
+     "final": "/appointments",
+     "pedidos_api": 10,
+     "nao_json": 0,
+     "erros_api": [],
+     "texto_esperado": null,
+     "texto_encontrado": null,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/appointments/new",
+     "final": "/appointments/new",
+     "pedidos_api": 5,
+     "nao_json": 0,
+     "erros_api": [],
+     "texto_esperado": "Corte",
+     "texto_encontrado": true,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/account",
+     "final": "/account",
+     "pedidos_api": 2,
+     "nao_json": 0,
+     "erros_api": [],
+     "texto_esperado": "cliente1@exemplo.test",
+     "texto_encontrado": true,
+     "nomes_de_B": [],
+     "erros_console": []
+    }
+   ],
+   "total_pedidos_api": 53
+  },
+  {
+   "papel": "barbeiro",
+   "login": {
+    "saiu_do_login": true,
+    "destino": "/barber/agenda"
+   },
+   "paginas": [
+    {
+     "pagina": "/",
+     "final": "/barber/agenda",
+     "pedidos_api": 14,
+     "nao_json": 0,
+     "erros_api": [],
+     "texto_esperado": null,
+     "texto_encontrado": null,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/barber/agenda",
+     "final": "/barber/agenda",
+     "pedidos_api": 11,
+     "nao_json": 0,
+     "erros_api": [],
+     "texto_esperado": null,
+     "texto_encontrado": null,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/account",
+     "final": "/account",
+     "pedidos_api": 6,
+     "nao_json": 0,
+     "erros_api": [],
+     "texto_esperado": "joao.barbeiro@exemplo.test",
+     "texto_encontrado": true,
+     "nomes_de_B": [],
+     "erros_console": []
+    }
+   ],
+   "total_pedidos_api": 59
+  },
+  {
+   "papel": "admin",
+   "login": {
+    "saiu_do_login": true,
+    "destino": "/admin"
+   },
+   "paginas": [
+    {
+     "pagina": "/admin",
+     "final": "/admin",
+     "pedidos_api": 27,
+     "nao_json": 0,
+     "erros_api": [],
+     "texto_esperado": null,
+     "texto_encontrado": null,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/admin/appointments",
+     "final": "/admin/appointments",
+     "pedidos_api": 46,
+     "nao_json": 0,
+     "erros_api": [],
+     "texto_esperado": null,
+     "texto_encontrado": null,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/admin/services",
+     "final": "/admin/services",
+     "pedidos_api": 8,
+     "nao_json": 0,
+     "erros_api": [],
+     "texto_esperado": "Pigmentação",
+     "texto_encontrado": true,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/admin/barbers",
+     "final": "/admin/barbers",
+     "pedidos_api": 5,
+     "nao_json": 0,
+     "erros_api": [],
+     "texto_esperado": "Pedro Tesoura",
+     "texto_encontrado": true,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/admin/clients",
+     "final": "/admin/clients",
+     "pedidos_api": 49,
+     "nao_json": 0,
+     "erros_api": [],
+     "texto_esperado": "Carla Cliente",
+     "texto_encontrado": true,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/admin/barbershop",
+     "final": "/admin/barbershop",
+     "pedidos_api": 6,
+     "nao_json": 0,
+     "erros_api": [],
+     "texto_esperado": "Barbearia Navalha Fictícia",
+     "texto_encontrado": true,
+     "nomes_de_B": [],
+     "erros_console": []
+    },
+    {
+     "pagina": "/account",
+     "final": "/account",
+     "pedidos_api": 6,
+     "nao_json": 0,
+     "erros_api": [],
+     "texto_esperado": "admin.a@exemplo.test",
+     "texto_encontrado": true,
+     "nomes_de_B": [],
+     "erros_console": []
+    }
+   ],
+   "total_pedidos_api": 205
+  }
+ ],
+ "fluxos": [
+  {
+   "fluxo": "cliente agenda pela interface",
+   "passos": {
+    "servico": true,
+    "barbeiro": true,
+    "dia": true,
+    "horario": true,
+    "revisar": true,
+    "confirmar": true,
+    "marcado": true
+   },
+   "post": [
+    {
+     "metodo": "POST",
+     "caminho": "/appointments/",
+     "status": 201,
+     "content_type": "application/json"
+    }
+   ],
+   "criado": true,
+   "mesmo_tenant_em_todos_os_vinculos": true,
+   "erros_console": []
+  },
+  {
+   "fluxo": "cliente remarca pela interface",
+   "passos": {
+    "dia": true,
+    "horario": true,
+    "revisar": true,
+    "remarcar": true
+   },
+   "patch": [
+    {
+     "metodo": "PATCH",
+     "caminho": "/appointments/{id}/",
+     "status": 200,
+     "content_type": "application/json"
+    }
+   ],
+   "horario_mudou": true,
+   "erros_console": []
+  },
+  {
+   "fluxo": "admin confirma horário em /admin/appointments",
+   "botao": "Confirmar: Bruno Cliente, 15:00",
+   "patch": [
+    {
+     "metodo": "PATCH",
+     "caminho": "/appointments/{id}/",
+     "status": 200,
+     "content_type": "application/json"
+    }
+   ],
+   "erros_console": []
+  }
+ ],
+ "resumo": {
+  "logins_ok": 3,
+  "paginas": 16,
+  "pedidos_api": 317,
+  "respostas_nao_json": 0,
+  "erros_api": 0,
+  "paginas_com_texto_esperado": "10/10",
+  "paginas_com_nomes_de_B": 0,
+  "erros_console": 0,
+  "fluxos": [
+   "cliente agenda pela interface: [\"POST /appointments/ 201\"]",
+   "cliente remarca pela interface: [\"PATCH /appointments/{id}/ 200\"]",
+   "admin confirma horário em /admin/appointments: [\"PATCH /appointments/{id}/ 200\"]"
+  ]
+ }
+}

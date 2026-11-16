@@ -1,0 +1,24 @@
+BEGIN
+SET
+== R1. Classificação pela regra exata (esperado: fora_da_regra = 0 e grupos_de_colisao = 0)
+ contas | ja_canonicas | a_normalizar | fora_da_regra | grupos_de_colisao 
+--------+--------------+--------------+---------------+-------------------
+      8 |            8 |            0 |             0 |                 0
+(1 linha)
+
+== R2. ids fora da regra (interromperiam a migração)
+ id 
+----
+(0 linha)
+
+== R3. ids que a migração normalizaria
+ id 
+----
+(0 linha)
+
+== R4. grupos de colisão após a normalização (ids)
+ ids 
+-----
+(0 linha)
+
+ROLLBACK

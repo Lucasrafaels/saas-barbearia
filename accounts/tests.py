@@ -704,7 +704,10 @@ class ThrottlingTests(APITestCase):
             mock.patch.object(APIView, 'throttle_classes', [ScopedRateThrottle]),
             mock.patch.object(
                 SimpleRateThrottle, 'THROTTLE_RATES',
-                {'login': '2/min', 'register': '2/min'},
+                # 'register_day' (TEN-03, mitigação D) é o limite diário do
+                # cadastro: fica alto aqui para o bloqueio continuar vindo do
+                # 'register', que é o que este teste verifica.
+                {'login': '2/min', 'register': '2/min', 'register_day': '1000/day'},
             ),
         ]
         for patcher in patches:

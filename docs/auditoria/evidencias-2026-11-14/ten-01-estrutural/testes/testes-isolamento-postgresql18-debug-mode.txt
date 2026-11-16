@@ -1,0 +1,48 @@
+# testes de isolamento (novos + TEN-01 contenção + isolamento existentes), PostgreSQL 18.3 DESCARTÁVEL, executor com --debug-mode (DEBUG=True)
+Creating test database for alias 'default'...
+Found 66 test(s).
+System check identified no issues (0 silenced).
+.Bad Request: /api/v1/appointments/
+.....Bad Request: /api/v1/appointments/
+.Not Found: /api/v1/appointments/available-slots/
+....Bad Request: /api/v1/appointments/
+..Bad Request: /api/v1/appointments/
+..Bad Request: /api/v1/barbers/
+.Bad Request: /api/v1/appointments/
+.Bad Request: /api/v1/appointments/16/
+.Bad Request: /api/v1/appointments/
+.Bad Request: /api/v1/appointments/20/
+..Forbidden: /api/v1/barbers/
+..Bad Request: /api/v1/appointments/
+.Unauthorized: /api/v1/
+..Unauthorized: /api/v1/users/me/
+.Not Acceptable: /api/v1/appointments/
+.....Not Found: /api/v1/users/112/
+..Bad Request: /api/v1/appointments/31/
+.Not Found: /api/v1/appointments/available-slots/
+...Bad Request: /api/v1/appointments/
+.Not Found: /api/v1/users/157/
+..Bad Request: /api/v1/appointments/
+...Not Found: /api/v1/users/190/
+..Unauthorized: /api/v1/users/
+.Forbidden: /api/v1/users/
+.Forbidden: /api/v1/users/
+.Bad Request: /api/v1/users/226/
+....Not Found: /api/v1/users/256/
+..Bad Request: /api/v1/users/269/
+.Unauthorized: /api/v1/users/
+.Not Found: /api/v1/appointments/53/
+.Not Found: /api/v1/barbers/76/
+.Bad Request: /api/v1/appointments/
+..Forbidden: /api/v1/services/
+.Not Found: /api/v1/services/71/
+.Bad Request: /api/v1/users/329/
+.Not Found: /api/v1/users/336/
+..
+----------------------------------------------------------------------
+Ran 66 tests in 14.204s
+
+OK
+Destroying test database for alias 'default'...
+env PYTHONPATH=$S/iso/pkg:$P venv/bin/python -W default manage.py test         12,83s user 0,55s system 83% cpu 16,066 total
+exit=0

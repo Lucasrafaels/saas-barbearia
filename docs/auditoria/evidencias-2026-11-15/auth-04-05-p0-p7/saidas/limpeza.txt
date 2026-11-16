@@ -1,0 +1,24 @@
+API do ensaio encerrada (pid 113611)
+cluster descartável parado (/tmp/claude-1000/-home-lucasrafael-arquivos-faculdade-saas-barbearia/b732fc01-eeb5-4087-becf-e69fa27549d7/scratchpad/p07/pgdata, porta 55432)
+apagado: pgdata
+apagado: codigo
+apagado: mail
+apagado: out/copia-esquema.dump
+porta 55432 em uso: 0 | porta 8899 em uso: 0
+backup preservado:
+  /home/lucasrafael/backups/barberpro/:
+  total 120
+  drwx------. 1 lucasrafael lucasrafael    124 nov 15 22:40 .
+  drwx------. 1 lucasrafael lucasrafael     18 nov 13 22:04 ..
+  drwx------. 1 lucasrafael lucasrafael    482 nov 15 22:44 accounts0006_20261115_224006
+  -rw-------. 1 lucasrafael lucasrafael 119639 nov 13 22:04 barbershop_db_20261113_220432.dump
+  
+  /home/lucasrafael/backups/barberpro/accounts0006_20261115_224006/:
+  total 432
+  drwx------. 1 lucasrafael lucasrafael    482 nov 15 22:44 .
+  drwx------. 1 lucasrafael lucasrafael    124 nov 15 22:40 ..
+  -rw-------. 1 lucasrafael lucasrafael  63004 nov 15 22:44 barbershop_db_20261115_224006_antes_accounts0006.dump
+  -rw-------. 1 lucasrafael lucasrafael  12845 nov 15 22:44 barbershop_db_20261115_224006_antes_accounts0006.dump.lista.txt
+  -rw-------. 1 lucasrafael lucasrafael    120 nov 15 22:44 barbershop_db_20261115_224006_antes_accounts0006.dump.sha256
+  -rw-------. 1 lucasrafael lucasrafael 349115 nov 15 22:41 codigo_20261115_224006.tar.gz
+  -rw-------. 1 lucasrafael lucasrafael     96 nov 15 22:41 codigo_20261115_224006.tar.gz.sha256

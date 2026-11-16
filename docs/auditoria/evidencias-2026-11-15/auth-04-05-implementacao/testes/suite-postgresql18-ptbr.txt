@@ -1,0 +1,5 @@
+$ manage.py test --settings=ptbr_test_settings --parallel 1  (PG 18.3 descartável, pt_BR.UTF-8)
+Ran 521 tests in 40.221s
+
+OK
+Destroying test database for alias 'default'...

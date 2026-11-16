@@ -31,6 +31,12 @@ from .serializers import (
     revoke_user_refresh_tokens,
 )
 from .admin_integrity import AdminIntegrityError, check_self_change
+from .throttles import (
+    LIMITES_DE_CRIACAO_DE_USUARIO,
+    LIMITES_DE_TROCA_DE_EMAIL,
+    CadastroPublicoPorDiaThrottle,
+    tenta_trocar_email,
+)
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -121,7 +127,10 @@ class RegistrationView(APIView):
 
     permission_classes = [permissions.AllowAny]
     throttle_scope = 'register'
-    throttle_classes = [ScopedRateThrottle]
+    # TEN-03 (mitigação D): o limite por hora (`register`) já existia. O
+    # diário reduz a sondagem contínua de e-mails a partir da mesma origem. Os
+    # dois contam toda tentativa, válida ou não, antes da validação.
+    throttle_classes = [ScopedRateThrottle, CadastroPublicoPorDiaThrottle]
 
     def post(self, request):
         serializer = PublicRegistrationSerializer(data=request.data)
@@ -205,6 +214,51 @@ class UserViewSet(viewsets.ModelViewSet):
             return [permissions.IsAuthenticated(), IsSelfOrAdmin()]
         return [permissions.IsAuthenticated()]
 
+    def get_throttles(self):
+        # TEN-03 (mitigação D): a criação consulta a unicidade do e-mail em
+        # toda a plataforma. O DRF checa estes limites depois da permissão
+        # (só administradores chegam aqui) e antes da validação. Esgotada a
+        # cota, nenhuma tentativa chega a consultar o e-mail.
+        throttles = super().get_throttles()
+        if self.action == 'create':
+            throttles += [limite() for limite in LIMITES_DE_CRIACAO_DE_USUARIO]
+        return throttles
+
+    def update(self, request, *args, **kwargs):
+        """
+        Igual ao `UpdateModelMixin.update`, com o limite da troca de e-mail
+        entre a busca e a validação (TEN-03, mitigação D).
+
+        A busca (`get_object`) vem primeiro e mantém o escopo e as respostas
+        atuais: 404 fora do alcance e 403 do SEC-12, sem gastar a cota. Só um
+        pedido que tenta gravar um e-mail diferente do atual conta no limite de
+        quem pede. Esgotado o limite, a resposta é 429, sem consultar a
+        unicidade.
+        """
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        if tenta_trocar_email(request.data, instance):
+            self._aplicar_limites(request, LIMITES_DE_TROCA_DE_EMAIL)
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
+
+    def _aplicar_limites(self, request, classes):
+        """Mesma regra do `APIView.check_throttles`, para limites checados depois da busca."""
+        esperas = []
+        for classe in classes:
+            limite = classe()
+            if not limite.allow_request(request, self):
+                esperas.append(limite.wait())
+        if esperas:
+            esperas = [espera for espera in esperas if espera is not None]
+            self.throttled(request, max(esperas, default=None))
+
     def get_queryset(self):
         user = self.request.user
         queryset = super().get_queryset()
@@ -212,7 +266,17 @@ class UserViewSet(viewsets.ModelViewSet):
             return queryset
         if user.barbershop_id is None:
             return queryset.none()
-        return queryset.filter(barbershop_id=user.barbershop_id)
+        queryset = queryset.filter(barbershop_id=user.barbershop_id)
+        if self.action == 'retrieve' and user.tipo_perfil != User.TipoPerfil.ADMIN:
+            # PER-13 (SEC-10): na leitura de detalhe (GET e HEAD), cliente e
+            # barbeiro só enxergam o próprio cadastro, já na consulta. Antes, o
+            # registro de outro usuário da barbearia era lido e recusado por
+            # IsSelfOrAdmin (403), enquanto o de outra barbearia ou inexistente
+            # dava 404: a diferença revelava quais IDs existem. Agora todos dão
+            # o mesmo 404, sem carregar o registro. A própria conta continua
+            # disponível aqui e em /users/me/. As escritas não mudaram (SEC-12).
+            queryset = queryset.filter(pk=user.pk)
+        return queryset
 
     def perform_destroy(self, instance):
         # A remoção pela API desativa a conta, preservando agendamentos e

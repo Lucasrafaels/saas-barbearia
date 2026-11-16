@@ -1,0 +1,13 @@
+### código corrigido (escopo dos campos ampliado: simulação)
+
+[1 horário ocupado de B] 403 {"detail":"Usuário sem barbearia vinculada."}
+   agendamentos criados: 0; consultas: 0
+
+[2 horário livre de B] 403 {"detail":"Usuário sem barbearia vinculada."}
+   agendamentos criados: 0; consultas: 0
+
+[3 barbeiro de B (válido), sem os demais campos de B] 403 {"detail":"Usuário sem barbearia vinculada."}
+   agendamentos criados: 0; consultas: 0
+
+[4 IDs inexistentes] 403 {"detail":"Usuário sem barbearia vinculada."}
+   agendamentos criados: 0; consultas: 0

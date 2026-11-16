@@ -1,0 +1,78 @@
+R01  201   265.7 ms  {"id":11,"email":"novo.r01@exemplo.test","nome":"Rita Nova","tipo_perfil":"cliente","barbershop":null,"is_active":true,"created_at":"2026-11-15T16:25:
+R02  400    20.5 ms  {"email":["usuário com este e-mail já existe."]}
+R03  400    12.9 ms  {"email":["usuário com este e-mail já existe."]}
+R04  400    13.5 ms  {"email":["usuário com este e-mail já existe."]}
+R05  400    18.6 ms  {"password":["Esta senha é muito comum.","Esta senha é inteiramente numérica."]}
+R06  201   243.7 ms  {"id":12,"email":"Cliente.B@beta.test","nome":"Rita Nova","tipo_perfil":"cliente","barbershop":null,"is_active":true,"created_at":"2026-11-15T16:25:36
+R07  500   331.6 ms  
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Server Error (500)</title>
+</head>
+<body>
+  <h1>Server Error (500)</h1><p></p>
+</body>
+</html>
+
+R08  201   244.0 ms  {"id":14,"email":"novo.r08@exemplo.test","nome":"Rita Nova","tipo_perfil":"cliente","barbershop":null,"is_active":true,"created_at":"2026-11-15T16:25:
+R09  400    12.6 ms  {"email":["usuário com este e-mail já existe."]}
+R10  400    13.7 ms  {"email":["usuário com este e-mail já existe."]}
+R11  400    13.3 ms  {"email":["usuário com este e-mail já existe."]}
+C01  201   253.1 ms  {"id":15,"email":"novo.c01@exemplo.test","nome":"Caio Novo","tipo_perfil":"cliente","barbershop":1}
+C02  400    15.9 ms  {"email":["usuário com este e-mail já existe."]}
+C03  400    14.3 ms  {"email":["usuário com este e-mail já existe."]}
+C04  400    17.4 ms  {"email":["usuário com este e-mail já existe."]}
+C05  400    15.6 ms  {"password":["Esta senha é muito comum.","Esta senha é inteiramente numérica."]}
+C06  400    15.3 ms  {"email":["usuário com este e-mail já existe."]}
+C07  400    17.1 ms  {"email":["usuário com este e-mail já existe."]}
+C08  201   248.5 ms  {"id":16,"email":"Cliente.B@beta.test","nome":"Caio Novo","tipo_perfil":"cliente","barbershop":1}
+C09  500   276.5 ms  
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Server Error (500)</title>
+</head>
+<body>
+  <h1>Server Error (500)</h1><p></p>
+</body>
+</html>
+
+C10  400    15.8 ms  {"email":["usuário com este e-mail já existe."]}
+C11  400    15.4 ms  {"email":["usuário com este e-mail já existe."]}
+C12  403    11.8 ms  {"detail":"Você não tem permissão para executar essa ação."}
+C13  403    12.1 ms  {"detail":"Você não tem permissão para executar essa ação."}
+C14  403    13.5 ms  {"detail":"Você não tem permissão para executar essa ação."}
+C15  400    15.0 ms  {"email":["usuário com este e-mail já existe."]}
+C16  400    17.4 ms  {"barbershop":"O administrador precisa pertencer a uma barbearia."}
+P01  200    23.5 ms  {"id":3,"email":"novo.p01@exemplo.test","nome":"Carlos Cliente A1","tipo_perfil":"cliente","barbershop":1,"is_active":true,"created_at":"2026-11-15T16
+P02  200    23.8 ms  {"id":3,"email":"cliente.a1@alfa.test","nome":"Carlos Cliente A1","tipo_perfil":"cliente","barbershop":1,"is_active":true,"created_at":"2026-11-15T16:
+P03  400    17.9 ms  {"email":["usuário com este e-mail já existe."]}
+P04  400    17.1 ms  {"email":["usuário com este e-mail já existe."]}
+P05  400    17.0 ms  {"email":["usuário com este e-mail já existe."],"nome":["Este campo não pode ser em branco."]}
+P06  400    18.6 ms  {"nome":["Este campo não pode ser em branco."]}
+P07  400    17.6 ms  {"email":["usuário com este e-mail já existe."]}
+P08  400    21.0 ms  {"email":["usuário com este e-mail já existe."]}
+P09  200    21.8 ms  {"id":3,"email":"novo.p09@exemplo.test","nome":"Carlos Cliente A1","tipo_perfil":"cliente","barbershop":1,"is_active":true,"created_at":"2026-11-15T16
+P10  400    19.0 ms  {"email":["usuário com este e-mail já existe."]}
+P11  400    16.9 ms  {"email":["usuário com este e-mail já existe."]}
+P12  200    22.2 ms  {"id":3,"email":"cliente.a1@alfa.test","nome":"Carlos Cliente A1","tipo_perfil":"cliente","barbershop":1,"is_active":true,"created_at":"2026-11-15T16:
+P13  404    13.9 ms  {"detail":"No User matches the given query."}
+P14  403    16.5 ms  {"detail":"Você não tem permissão para executar essa ação."}
+P15  200    21.9 ms  {"id":3,"email":"Cliente.B@beta.test","nome":"Carlos Cliente A1","tipo_perfil":"cliente","barbershop":1,"is_active":true,"created_at":"2026-11-15T16:2
+P16  200    21.7 ms  {"id":3,"email":"cliente.b@BETA.TEST","nome":"Carlos Cliente A1","tipo_perfil":"cliente","barbershop":1,"is_active":true,"created_at":"2026-11-15T16:2
+P17  400    17.8 ms  {"email":["usuário com este e-mail já existe."]}
+P18  400    17.0 ms  {"email":["usuário com este e-mail já existe."]}
+P19  404    13.3 ms  {"detail":"No User matches the given query."}
+P20  400    16.3 ms  {"email":["usuário com este e-mail já existe."]}
+P21  400    17.8 ms  {"email":["usuário com este e-mail já existe."]}
+P22  200    20.8 ms  {"id":3,"email":"novo.p22@exemplo.test","nome":"Carlos Cliente A1","tipo_perfil":"cliente","barbershop":1,"is_active":true,"created_at":"2026-11-15T16
+L01  401   247.8 ms  {"detail":"Usuário e/ou senha incorreto(s)"}
+L02  401   238.8 ms  {"detail":"Usuário e/ou senha incorreto(s)"}
+L03  401   248.7 ms  {"detail":"Usuário e/ou senha incorreto(s)"}
+L04  401   256.0 ms  {"detail":"Usuário e/ou senha incorreto(s)"}
+L05  401   238.1 ms  {"detail":"Usuário e/ou senha incorreto(s)"}
+L06  200   259.6 ms  {"access":"<token removido>"}
+L07  204    17.0 ms  
+L08  204    14.3 ms  
+L09  204    14.1 ms  

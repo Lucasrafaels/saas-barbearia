@@ -39,3 +39,21 @@ class IsBarberRole(BasePermission):
 class IsClientRole(BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.tipo_perfil == 'cliente'
+
+
+class HasBarbershop(BasePermission):
+    """
+    Exige que o usuário pertença a uma barbearia (TEN-02).
+
+    Usada antes de qualquer validação nas operações que consultam dados de
+    tenant para responder, como a criação de agendamentos. Sem ela, a conta
+    sem barbearia só era recusada em `perform_create`, depois da validação, e
+    a validação já tinha consultado a agenda de outra barbearia. A mensagem é
+    a mesma usada em `perform_create` e em `available-slots`, e não depende
+    do que foi enviado.
+    """
+
+    message = 'Usuário sem barbearia vinculada.'
+
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_authenticated and request.user.barbershop_id)

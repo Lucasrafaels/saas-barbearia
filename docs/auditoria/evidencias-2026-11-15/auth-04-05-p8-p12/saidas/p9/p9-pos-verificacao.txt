@@ -1,0 +1,33 @@
+BEGIN
+SET
+== 1. accounts.0006 registrada como aplicada
+   app    |          name           |            applied            
+----------+-------------------------+-------------------------------
+ accounts | 0006_email_normalizado  | 2026-11-15 22:56:22.654062-03
+ accounts | 0005_protect_barbershop | 2026-11-08 23:23:30.580747-03
+(2 linhas)
+
+== 2. Restrições (esperado: accounts_user_email_key UNIQUE e accounts_user_email_normalizado CHECK, convalidated = t)
+             conname             | contype | convalidated |                                        definicao                                        
+---------------------------------+---------+--------------+-----------------------------------------------------------------------------------------
+ accounts_user_email_key         | u       | t            | UNIQUE (email)
+ accounts_user_email_normalizado | c       | t            | CHECK ((((email)::text = lower((email)::text)) AND ((email)::text ~ '^[!-~]+$'::text)))
+(2 linhas)
+
+== 3. Índices (esperado: accounts_user_email_lower_unico único, válido e pronto, sobre lower(email))
+                indice                | unico | valido | pronto |                                                   definicao                                                    
+--------------------------------------+-------+--------+--------+----------------------------------------------------------------------------------------------------------------
+ accounts_user_barbershop_id_f73426d9 | f     | t      | t      | CREATE INDEX accounts_user_barbershop_id_f73426d9 ON public.accounts_user USING btree (barbershop_id)
+ accounts_user_email_b2644a56_like    | f     | t      | t      | CREATE INDEX accounts_user_email_b2644a56_like ON public.accounts_user USING btree (email varchar_pattern_ops)
+ accounts_user_email_key              | t     | t      | t      | CREATE UNIQUE INDEX accounts_user_email_key ON public.accounts_user USING btree (email)
+ accounts_user_email_lower_unico      | t     | t      | t      | CREATE UNIQUE INDEX accounts_user_email_lower_unico ON public.accounts_user USING btree (lower((email)::text))
+ accounts_user_pkey                   | t     | t      | t      | CREATE UNIQUE INDEX accounts_user_pkey ON public.accounts_user USING btree (id)
+(5 linhas)
+
+== 4. Nenhuma conta fora da regra (esperado: fora_da_regra = 0; contas igual à pré-verificação)
+ contas | fora_da_regra 
+--------+---------------
+      8 |             0
+(1 linha)
+
+ROLLBACK
